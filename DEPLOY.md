@@ -75,7 +75,7 @@ https://YOUR_GITHUB_USERNAME.github.io/jabbarsourcing/
 3. 等待 DNS check successful。
 4. 勾选 **Enforce HTTPS**。
 
-本项目根目录包含 `CNAME.example` 模板。购买域名后，将它复制为 `CNAME` 并再次推送，内容为 `jabbarsourcing.com`。
+本项目根目录已经包含 `CNAME` 文件，内容为 `jabbarsourcing.com`。
 
 如果 GitHub 在首次发布时暂时提示 DNS 检查失败，不要反复删除和添加域名；先等待 DNS 记录传播后再重新检查。
 

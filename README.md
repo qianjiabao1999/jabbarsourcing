@@ -28,5 +28,5 @@ python3 -m http.server 4173
 - `index.html`：网站内容与 SEO 信息
 - `styles.css`：视觉设计和响应式布局
 - `script.js`：手机菜单、滚动动效和询盘邮件
-- `CNAME.example`：GitHub Pages 自定义域名模板；购买域名后复制为 `CNAME`
+- `CNAME`：GitHub Pages 自定义域名配置
 - `.nojekyll`：关闭 Jekyll 处理
