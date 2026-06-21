@@ -331,9 +331,11 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   flex: 1;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
 }
 .team-role {
+  width: 100%;
   color: var(--accent);
   font-size: 10px;
   font-weight: 700;
@@ -341,13 +343,14 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
 }
 .team-card-body > strong {
+  width: 100%;
   margin: 10px 0 2px;
   font-family: var(--display);
   font-size: 26px;
   letter-spacing: -0.035em;
 }
-.team-handle { color: #86868b; font-size: 13px; }
-.team-bio { margin: 17px 0 24px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+.team-handle { width: 100%; color: #86868b; font-size: 13px; }
+.team-bio { width: 100%; margin: 17px 0 24px; color: var(--muted); font-size: 13px; line-height: 1.65; }
 .team-link {
   position: relative;
   margin-top: auto;
