@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Invia una richiesta di acquisto a Jabbar SourcingTeam." />
+    <meta name="description" content="Invia una richiesta di acquisto a Jabbar Sourcing Team." />
     <meta name="theme-color" content="#ffffff" />
-    <title>Richiesta di acquisto | Jabbar SourcingTeam</title>
+    <title>Richiesta di acquisto | Jabbar Sourcing Team</title>
     <link rel="icon" href="../../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../../styles.css?v=apple-39" />
+    <link rel="stylesheet" href="../../styles.css?v=apple-42" />
   </head>
   <body>
     <main>
@@ -17,6 +17,8 @@
           <nav class="language-options" aria-label="Selettore lingua">
             <a href="/inquiry/" lang="zh-CN">中文</a>
             <a href="/en/inquiry/" lang="en">English</a>
+            <a href="/ha/inquiry/" lang="ha">Hausa</a>
+            <a href="/kk/inquiry/" lang="kk">Қазақша</a>
             <a href="/ru/inquiry/" lang="ru">Русский</a>
             <a href="/fr/inquiry/" lang="fr">Français</a>
             <a href="/es/inquiry/" lang="es">Español</a>
@@ -100,6 +102,11 @@
           </section>
         </div>
       </section>
+
+      <a class="sticky-whatsapp" href="https://api.whatsapp.com/send?phone=8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
+        <img src="../../assets/whatsapp-ios-icon.png" alt="" aria-hidden="true" />
+        <span>WhatsApp</span>
+      </a>
     </main>
     <script>
       (function () {
@@ -120,7 +127,7 @@
               var control = field.querySelector("input, select, textarea");
               return control && label ? [control.name, label.textContent.trim()] : null;
             }).filter(Boolean);
-            var lines = ["Jabbar SourcingTeam - Richiesta di acquisto"];
+            var lines = ["Jabbar Sourcing Team - Richiesta di acquisto"];
             labels.forEach(function (item) {
               var value = getValue(item[0]);
               if (value) lines.push(item[1] + ": " + value);
@@ -144,13 +151,12 @@
                 return;
               }
               if (channel === "gmail") {
-                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Richiesta Jabbar SourcingTeam") + "&body=" + encodeURIComponent(message);
+                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Richiesta Jabbar Sourcing Team") + "&body=" + encodeURIComponent(message);
                 return;
               }
               if (channel === "wechat") {
                 var copied = function () {
                   setStatus(form.getAttribute("data-copied-message"));
-                  window.setTimeout(function () { window.location.href = "weixin://"; }, 250);
                 };
                 if (navigator.clipboard && window.isSecureContext) {
                   navigator.clipboard.writeText(message).then(copied).catch(function () {
