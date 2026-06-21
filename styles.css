@@ -351,7 +351,28 @@ a { color: inherit; text-decoration: none; }
   margin: 10px 0 2px;
   font-family: var(--display);
   font-size: 26px;
+  line-height: 1.18;
   letter-spacing: -0.035em;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.team-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.team-title-platform {
+  display: block;
+  font-size: 0.76em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #4a4a4f;
+}
+.team-title-name {
+  display: block;
+  width: 100%;
   text-align: center;
   text-wrap: balance;
   overflow-wrap: anywhere;
