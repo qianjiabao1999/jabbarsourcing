@@ -1,20 +1,20 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="hi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Jabbar SourcingTeam 采购需求登记。" />
+    <meta name="description" content="Jabbar SourcingTeam को सोर्सिंग अनुरोध भेजें।" />
     <meta name="theme-color" content="#ffffff" />
-    <title>采购需求登记 | Jabbar SourcingTeam</title>
-    <link rel="icon" href="../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../styles.css?v=apple-39" />
+    <title>सोर्सिंग अनुरोध | Jabbar SourcingTeam</title>
+    <link rel="icon" href="../../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
+    <link rel="stylesheet" href="../../styles.css?v=apple-39" />
   </head>
   <body>
     <main>
       <section class="team inquiry-page" id="inquiry">
         <details class="language-switch language-menu">
-          <summary>中文</summary>
-          <nav class="language-options" aria-label="语言切换">
+          <summary>हिन्दी</summary>
+          <nav class="language-options" aria-label="भाषा चयन">
             <a href="/inquiry/" lang="zh-CN">中文</a>
             <a href="/en/inquiry/" lang="en">English</a>
             <a href="/ru/inquiry/" lang="ru">Русский</a>
@@ -35,64 +35,64 @@
         </details>
         <div class="container">
           <header class="team-heading inquiry-page-heading">
-            <h1>采购需求登记</h1>
-            <p>告诉我们你想采购什么，我们帮你匹配义乌货源、报价与采购方案。</p>
-            <a class="inquiry-back" href="../">返回首页</a>
+            <h1>सोर्सिंग अनुरोध</h1>
+            <p>हमें बताएं आप क्या खरीदना चाहते हैं। हम Yiwu सप्लायर, कीमत और सोर्सिंग विकल्प मिलाएंगे।</p>
+            <a class="inquiry-back" href="../">होम पर लौटें</a>
           </header>
 
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
-                <span class="inquiry-eyebrow">Sourcing Request</span>
-                <h2 id="inquiry-title">告诉我们你想采购什么</h2>
-                <p>填写产品、数量和联系方式，我们会根据你的需求匹配义乌货源、报价与采购方案。</p>
+                <span class="inquiry-eyebrow">सोर्सिंग अनुरोध</span>
+                <h2 id="inquiry-title">हमें बताएं आप क्या खरीदना चाहते हैं</h2>
+                <p>अपनी उत्पाद जरूरत, मात्रा और संपर्क साझा करें। हम आपके लिए Yiwu सप्लायर, कीमत और विकल्प मिलाएंगे।</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="请至少填写产品需求和联系方式。" data-copied-message="已复制需求内容，请在微信中搜索 18658925544 添加并粘贴发送。" data-copy-fail-message="复制失败，请手动复制页面中的需求内容。">
+              <form class="inquiry-form js-inquiry-form" data-required-message="कृपया कम से कम उत्पाद जरूरत और संपर्क भरें।" data-copied-message="कॉपी हो गया। WeChat खोलें, 18658925544 खोजें और अनुरोध पेस्ट करें।" data-copy-fail-message="कॉपी असफल। कृपया अनुरोध मैन्युअल रूप से कॉपी करें।">
                 <label class="field field-wide">
-                  <span>想采购的产品</span>
-                  <input name="product" type="text" placeholder="例如：一元店百货、厨房用品、玩具、收纳用品…" autocomplete="off" />
+                  <span>आवश्यक उत्पाद</span>
+                  <input name="product" type="text" placeholder="जैसे: डॉलर-स्टोर सामान, किचनवेयर, खिलौने, स्टोरेज…" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>产品方向</span>
+                  <span>उत्पाद श्रेणी</span>
                   <select name="category">
-                  <option value="">请选择</option>
-                  <option value="日用百货">日用百货</option>
-                  <option value="一元店/折扣店货源">一元店/折扣店货源</option>
-                  <option value="厨房用品">厨房用品</option>
-                  <option value="家居收纳">家居收纳</option>
-                  <option value="玩具礼品">玩具礼品</option>
-                  <option value="美妆个护">美妆个护</option>
-                  <option value="其他">其他</option>
+                  <option value="">चुनें</option>
+                  <option value="दैनिक उपयोग के सामान">दैनिक उपयोग के सामान</option>
+                  <option value="डॉलर-स्टोर सप्लाई">डॉलर-स्टोर सप्लाई</option>
+                  <option value="किचनवेयर">किचनवेयर</option>
+                  <option value="होम स्टोरेज">होम स्टोरेज</option>
+                  <option value="खिलौने और गिफ्ट">खिलौने और गिफ्ट</option>
+                  <option value="ब्यूटी और पर्सनल केयर">ब्यूटी और पर्सनल केयर</option>
+                  <option value="अन्य">अन्य</option>
                   </select>
                 </label>
                 <label class="field">
-                  <span>预计数量</span>
-                  <input name="quantity" type="text" placeholder="例如：1000 件 / 1 个柜 / 试单" autocomplete="off" />
+                  <span>अनुमानित मात्रा</span>
+                  <input name="quantity" type="text" placeholder="जैसे: 1,000 pcs / एक कंटेनर / ट्रायल ऑर्डर" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>预算范围</span>
-                  <input name="budget" type="text" placeholder="例如：USD 5,000 或目标单价" autocomplete="off" />
+                  <span>बजट सीमा</span>
+                  <input name="budget" type="text" placeholder="जैसे: USD 5,000 या लक्ष्य यूनिट प्राइस" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>销售国家/地区</span>
-                  <input name="market" type="text" placeholder="例如：美国、法国、沙特、俄罗斯…" autocomplete="off" />
+                  <span>गंतव्य बाजार</span>
+                  <input name="market" type="text" placeholder="जैसे: USA, France, Saudi Arabia, Russia…" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>联系方式</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / 邮箱 / 微信号" autocomplete="off" />
+                  <span>संपर्क जानकारी</span>
+                  <input name="contact" type="text" placeholder="WhatsApp / email / WeChat ID" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>姓名/公司</span>
-                  <input name="company" type="text" placeholder="你的姓名或公司名称" autocomplete="organization" />
+                  <span>नाम / कंपनी</span>
+                  <input name="company" type="text" placeholder="आपका नाम या कंपनी नाम" autocomplete="organization" />
                 </label>
                 <label class="field field-wide">
-                  <span>补充说明</span>
-                  <textarea name="note" rows="3" placeholder="颜色、包装、图片参考、交期要求等"></textarea>
+                  <span>नोट्स</span>
+                  <textarea name="note" rows="3" placeholder="रंग, पैकेजिंग, संदर्भ चित्र, डिलीवरी समय…"></textarea>
                 </label>
                 <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">发送到 WhatsApp</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">通过 Gmail 发送</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">复制并打开微信</button>
+                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">WhatsApp पर भेजें</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">Gmail से भेजें</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">WeChat के लिए कॉपी करें</button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
@@ -120,7 +120,7 @@
               var control = field.querySelector("input, select, textarea");
               return control && label ? [control.name, label.textContent.trim()] : null;
             }).filter(Boolean);
-            var lines = ["Jabbar SourcingTeam - Sourcing Request"];
+            var lines = ["Jabbar SourcingTeam - सोर्सिंग अनुरोध"];
             labels.forEach(function (item) {
               var value = getValue(item[0]);
               if (value) lines.push(item[1] + ": " + value);
@@ -144,7 +144,7 @@
                 return;
               }
               if (channel === "gmail") {
-                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar SourcingTeam inquiry") + "&body=" + encodeURIComponent(message);
+                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar SourcingTeam पूछताछ") + "&body=" + encodeURIComponent(message);
                 return;
               }
               if (channel === "wechat") {

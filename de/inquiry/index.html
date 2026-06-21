@@ -1,20 +1,20 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Jabbar SourcingTeam 采购需求登记。" />
+    <meta name="description" content="Senden Sie eine Sourcing-Anfrage an Jabbar SourcingTeam." />
     <meta name="theme-color" content="#ffffff" />
-    <title>采购需求登记 | Jabbar SourcingTeam</title>
-    <link rel="icon" href="../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../styles.css?v=apple-39" />
+    <title>Sourcing-Anfrage | Jabbar SourcingTeam</title>
+    <link rel="icon" href="../../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
+    <link rel="stylesheet" href="../../styles.css?v=apple-39" />
   </head>
   <body>
     <main>
       <section class="team inquiry-page" id="inquiry">
         <details class="language-switch language-menu">
-          <summary>中文</summary>
-          <nav class="language-options" aria-label="语言切换">
+          <summary>Deutsch</summary>
+          <nav class="language-options" aria-label="Sprachauswahl">
             <a href="/inquiry/" lang="zh-CN">中文</a>
             <a href="/en/inquiry/" lang="en">English</a>
             <a href="/ru/inquiry/" lang="ru">Русский</a>
@@ -35,64 +35,64 @@
         </details>
         <div class="container">
           <header class="team-heading inquiry-page-heading">
-            <h1>采购需求登记</h1>
-            <p>告诉我们你想采购什么，我们帮你匹配义乌货源、报价与采购方案。</p>
-            <a class="inquiry-back" href="../">返回首页</a>
+            <h1>Sourcing-Anfrage</h1>
+            <p>Sagen Sie uns, was Sie kaufen möchten. Wir finden Yiwu-Lieferanten, Preise und Sourcing-Optionen.</p>
+            <a class="inquiry-back" href="../">Zur Startseite</a>
           </header>
 
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
-                <span class="inquiry-eyebrow">Sourcing Request</span>
-                <h2 id="inquiry-title">告诉我们你想采购什么</h2>
-                <p>填写产品、数量和联系方式，我们会根据你的需求匹配义乌货源、报价与采购方案。</p>
+                <span class="inquiry-eyebrow">Sourcing-Anfrage</span>
+                <h2 id="inquiry-title">Sagen Sie uns, was Sie kaufen möchten</h2>
+                <p>Teilen Sie Produktbedarf, Menge und Kontaktdaten. Wir finden Yiwu-Lieferanten, Preise und Optionen.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="请至少填写产品需求和联系方式。" data-copied-message="已复制需求内容，请在微信中搜索 18658925544 添加并粘贴发送。" data-copy-fail-message="复制失败，请手动复制页面中的需求内容。">
+              <form class="inquiry-form js-inquiry-form" data-required-message="Bitte mindestens Produktbedarf und Kontaktdaten ausfüllen." data-copied-message="Kopiert. Öffnen Sie WeChat, suchen Sie 18658925544 und fügen Sie die Anfrage ein." data-copy-fail-message="Kopieren fehlgeschlagen. Bitte kopieren Sie die Anfrage manuell.">
                 <label class="field field-wide">
-                  <span>想采购的产品</span>
-                  <input name="product" type="text" placeholder="例如：一元店百货、厨房用品、玩具、收纳用品…" autocomplete="off" />
+                  <span>Gewünschte Produkte</span>
+                  <input name="product" type="text" placeholder="z. B. Dollar-Store-Waren, Küchenartikel, Spielzeug, Aufbewahrung…" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>产品方向</span>
+                  <span>Produktkategorie</span>
                   <select name="category">
-                  <option value="">请选择</option>
-                  <option value="日用百货">日用百货</option>
-                  <option value="一元店/折扣店货源">一元店/折扣店货源</option>
-                  <option value="厨房用品">厨房用品</option>
-                  <option value="家居收纳">家居收纳</option>
-                  <option value="玩具礼品">玩具礼品</option>
-                  <option value="美妆个护">美妆个护</option>
-                  <option value="其他">其他</option>
+                  <option value="">Bitte wählen</option>
+                  <option value="Alltagswaren">Alltagswaren</option>
+                  <option value="Dollar-Store-Lieferung">Dollar-Store-Lieferung</option>
+                  <option value="Küchenwaren">Küchenwaren</option>
+                  <option value="Haushaltsaufbewahrung">Haushaltsaufbewahrung</option>
+                  <option value="Spielzeug & Geschenke">Spielzeug & Geschenke</option>
+                  <option value="Beauty & Körperpflege">Beauty & Körperpflege</option>
+                  <option value="Andere">Andere</option>
                   </select>
                 </label>
                 <label class="field">
-                  <span>预计数量</span>
-                  <input name="quantity" type="text" placeholder="例如：1000 件 / 1 个柜 / 试单" autocomplete="off" />
+                  <span>Geschätzte Menge</span>
+                  <input name="quantity" type="text" placeholder="z. B. 1.000 Stück / ein Container / Testbestellung" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>预算范围</span>
-                  <input name="budget" type="text" placeholder="例如：USD 5,000 或目标单价" autocomplete="off" />
+                  <span>Budgetrahmen</span>
+                  <input name="budget" type="text" placeholder="z. B. USD 5.000 oder Zielstückpreis" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>销售国家/地区</span>
-                  <input name="market" type="text" placeholder="例如：美国、法国、沙特、俄罗斯…" autocomplete="off" />
+                  <span>Zielmarkt</span>
+                  <input name="market" type="text" placeholder="z. B. USA, Frankreich, Saudi-Arabien, Russland…" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>联系方式</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / 邮箱 / 微信号" autocomplete="off" />
+                  <span>Kontaktdaten</span>
+                  <input name="contact" type="text" placeholder="WhatsApp / E-Mail / WeChat-ID" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>姓名/公司</span>
-                  <input name="company" type="text" placeholder="你的姓名或公司名称" autocomplete="organization" />
+                  <span>Name / Firma</span>
+                  <input name="company" type="text" placeholder="Ihr Name oder Firmenname" autocomplete="organization" />
                 </label>
                 <label class="field field-wide">
-                  <span>补充说明</span>
-                  <textarea name="note" rows="3" placeholder="颜色、包装、图片参考、交期要求等"></textarea>
+                  <span>Notizen</span>
+                  <textarea name="note" rows="3" placeholder="Farbe, Verpackung, Referenzbilder, Lieferzeit…"></textarea>
                 </label>
                 <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">发送到 WhatsApp</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">通过 Gmail 发送</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">复制并打开微信</button>
+                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">Per WhatsApp senden</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">Per Gmail senden</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">Für WeChat kopieren</button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
@@ -120,7 +120,7 @@
               var control = field.querySelector("input, select, textarea");
               return control && label ? [control.name, label.textContent.trim()] : null;
             }).filter(Boolean);
-            var lines = ["Jabbar SourcingTeam - Sourcing Request"];
+            var lines = ["Jabbar SourcingTeam - Sourcing-Anfrage"];
             labels.forEach(function (item) {
               var value = getValue(item[0]);
               if (value) lines.push(item[1] + ": " + value);
@@ -144,7 +144,7 @@
                 return;
               }
               if (channel === "gmail") {
-                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar SourcingTeam inquiry") + "&body=" + encodeURIComponent(message);
+                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar SourcingTeam Anfrage") + "&body=" + encodeURIComponent(message);
                 return;
               }
               if (channel === "wechat") {

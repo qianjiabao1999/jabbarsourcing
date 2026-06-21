@@ -1,20 +1,20 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Jabbar SourcingTeam 采购需求登记。" />
+    <meta name="description" content="Заявка на закупку для Jabbar SourcingTeam." />
     <meta name="theme-color" content="#ffffff" />
-    <title>采购需求登记 | Jabbar SourcingTeam</title>
-    <link rel="icon" href="../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../styles.css?v=apple-39" />
+    <title>Заявка на закупку | Jabbar SourcingTeam</title>
+    <link rel="icon" href="../../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
+    <link rel="stylesheet" href="../../styles.css?v=apple-39" />
   </head>
   <body>
     <main>
       <section class="team inquiry-page" id="inquiry">
         <details class="language-switch language-menu">
-          <summary>中文</summary>
-          <nav class="language-options" aria-label="语言切换">
+          <summary>Русский</summary>
+          <nav class="language-options" aria-label="Выбор языка">
             <a href="/inquiry/" lang="zh-CN">中文</a>
             <a href="/en/inquiry/" lang="en">English</a>
             <a href="/ru/inquiry/" lang="ru">Русский</a>
@@ -35,64 +35,64 @@
         </details>
         <div class="container">
           <header class="team-heading inquiry-page-heading">
-            <h1>采购需求登记</h1>
-            <p>告诉我们你想采购什么，我们帮你匹配义乌货源、报价与采购方案。</p>
-            <a class="inquiry-back" href="../">返回首页</a>
+            <h1>Заявка на закупку</h1>
+            <p>Расскажите, что хотите купить — мы подберём поставщиков, цены и варианты закупки в Иу.</p>
+            <a class="inquiry-back" href="../">На главную</a>
           </header>
 
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <span class="inquiry-eyebrow">Sourcing Request</span>
-                <h2 id="inquiry-title">告诉我们你想采购什么</h2>
-                <p>填写产品、数量和联系方式，我们会根据你的需求匹配义乌货源、报价与采购方案。</p>
+                <h2 id="inquiry-title">Расскажите, что хотите купить</h2>
+                <p>Укажите товар, количество и контакты — мы подберём поставщиков в Иу, цены и варианты закупки.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="请至少填写产品需求和联系方式。" data-copied-message="已复制需求内容，请在微信中搜索 18658925544 添加并粘贴发送。" data-copy-fail-message="复制失败，请手动复制页面中的需求内容。">
+              <form class="inquiry-form js-inquiry-form" data-required-message="Заполните минимум товары и контакт." data-copied-message="Скопировано. Откройте WeChat, найдите 18658925544 и вставьте запрос." data-copy-fail-message="Не удалось скопировать. Скопируйте запрос вручную.">
                 <label class="field field-wide">
-                  <span>想采购的产品</span>
-                  <input name="product" type="text" placeholder="例如：一元店百货、厨房用品、玩具、收纳用品…" autocomplete="off" />
+                  <span>Нужные товары</span>
+                  <input name="product" type="text" placeholder="Например: товары для дискаунтера, кухня, игрушки, хранение…" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>产品方向</span>
+                  <span>Категория</span>
                   <select name="category">
-                  <option value="">请选择</option>
-                  <option value="日用百货">日用百货</option>
-                  <option value="一元店/折扣店货源">一元店/折扣店货源</option>
-                  <option value="厨房用品">厨房用品</option>
-                  <option value="家居收纳">家居收纳</option>
-                  <option value="玩具礼品">玩具礼品</option>
-                  <option value="美妆个护">美妆个护</option>
-                  <option value="其他">其他</option>
+                  <option value="">Выберите</option>
+                  <option value="Товары повседневного спроса">Товары повседневного спроса</option>
+                  <option value="Товары для дискаунтера">Товары для дискаунтера</option>
+                  <option value="Кухонные товары">Кухонные товары</option>
+                  <option value="Хранение для дома">Хранение для дома</option>
+                  <option value="Игрушки и подарки">Игрушки и подарки</option>
+                  <option value="Красота и уход">Красота и уход</option>
+                  <option value="Другое">Другое</option>
                   </select>
                 </label>
                 <label class="field">
-                  <span>预计数量</span>
-                  <input name="quantity" type="text" placeholder="例如：1000 件 / 1 个柜 / 试单" autocomplete="off" />
+                  <span>Количество</span>
+                  <input name="quantity" type="text" placeholder="Например: 1000 шт. / контейнер / пробный заказ" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>预算范围</span>
-                  <input name="budget" type="text" placeholder="例如：USD 5,000 或目标单价" autocomplete="off" />
+                  <span>Бюджет</span>
+                  <input name="budget" type="text" placeholder="Например: USD 5,000 или целевая цена" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>销售国家/地区</span>
-                  <input name="market" type="text" placeholder="例如：美国、法国、沙特、俄罗斯…" autocomplete="off" />
+                  <span>Страна/рынок</span>
+                  <input name="market" type="text" placeholder="Например: США, Франция, Саудовская Аравия, Россия…" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>联系方式</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / 邮箱 / 微信号" autocomplete="off" />
+                  <span>Контакт</span>
+                  <input name="contact" type="text" placeholder="WhatsApp / email / WeChat ID" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>姓名/公司</span>
-                  <input name="company" type="text" placeholder="你的姓名或公司名称" autocomplete="organization" />
+                  <span>Имя / компания</span>
+                  <input name="company" type="text" placeholder="Ваше имя или название компании" autocomplete="organization" />
                 </label>
                 <label class="field field-wide">
-                  <span>补充说明</span>
-                  <textarea name="note" rows="3" placeholder="颜色、包装、图片参考、交期要求等"></textarea>
+                  <span>Комментарий</span>
+                  <textarea name="note" rows="3" placeholder="Цвет, упаковка, фото, сроки поставки…"></textarea>
                 </label>
                 <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">发送到 WhatsApp</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">通过 Gmail 发送</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">复制并打开微信</button>
+                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">Отправить в WhatsApp</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">Отправить через Gmail</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">Скопировать для WeChat</button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
