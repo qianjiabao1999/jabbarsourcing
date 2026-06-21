@@ -161,20 +161,24 @@ a { color: inherit; text-decoration: none; }
   font-size: clamp(52px, 7.5vw, 94px);
   line-height: 0.95;
   letter-spacing: -0.078em;
-  color: #1d1d1f;
+  color: #111113;
   text-wrap: balance;
 }
 .team-heading h1 span {
   display: inline-block;
-  color: #3a3a3c;
+  background: linear-gradient(92deg, #1d1d1f 0%, #5d6570 44%, #0a84ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.072em;
 }
 .team-heading p {
-  max-width: 720px;
+  max-width: 680px;
   margin: 0 auto;
-  color: var(--muted);
-  font-size: 19px;
-  line-height: 1.62;
-  letter-spacing: -0.018em;
+  color: #77777d;
+  font-size: 18px;
+  line-height: 1.66;
+  letter-spacing: -0.012em;
   text-wrap: balance;
 }
 
