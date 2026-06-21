@@ -3,11 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Jabbar Sourcing Team 采购需求登记。" />
+    <meta name="description" content="Get a free quote from Jabbar Sourcing for China sourcing, Yiwu wholesale products, supplier matching, warehousing, and shipping support." />
     <meta name="theme-color" content="#ffffff" />
-    <title>采购需求登记 | Jabbar Sourcing Team</title>
+    <meta property="og:title" content="Get a Free Quote | Jabbar Sourcing" />
+    <meta property="og:description" content="Send your sourcing request and get matched with Yiwu suppliers and wholesale pricing." />
+    <meta property="og:image" content="https://www.jabbarsourcing.com/assets/grace-from-yiwu.jpg" />
+    <meta property="og:url" content="https://www.jabbarsourcing.com/inquiry/" />
+    <meta property="og:type" content="website" />
+    <title>Get a Free Quote | Jabbar Sourcing</title>
+    <link rel="canonical" href="https://www.jabbarsourcing.com/inquiry/" />
     <link rel="icon" href="../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../styles.css?v=apple-44" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-45" />
     <script>
       (function () {
         try {
@@ -145,8 +151,8 @@
         </div>
       </section>
 
-      <a class="sticky-whatsapp" href="https://api.whatsapp.com/send?phone=8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
-        <img src="../assets/whatsapp-ios-icon.png" alt="" aria-hidden="true" />
+      <a class="sticky-whatsapp" href="https://wa.me/8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
+        <img loading="lazy" src="../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
         <span>WhatsApp</span>
       </a>
     </main>
@@ -189,7 +195,7 @@
               var message = buildMessage();
               var channel = button.getAttribute("data-channel");
               if (channel === "whatsapp") {
-                window.location.href = "https://api.whatsapp.com/send?phone=8618658925544&text=" + encodeURIComponent(message);
+                window.location.href = "https://wa.me/8618658925544?text=" + encodeURIComponent(message);
                 return;
               }
               if (channel === "gmail") {

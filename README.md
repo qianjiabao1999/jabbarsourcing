@@ -1,32 +1,138 @@
 # Jabbar Sourcing
 
-Jabbar Sourcing 的英文品牌官网，针对海外进口商、电商品牌和中小企业设计。
+Static GitHub Pages website for `www.jabbarsourcing.com`.
 
-## 本地预览
+## What This Site Includes
+
+- Multilingual landing pages for Jabbar Sourcing
+- Static sourcing request forms that open WhatsApp, Gmail, or WeChat copy flow
+- WebP image assets for faster loading
+- `robots.txt` and `sitemap.xml` for Google Search Console
+- SEO title, meta description, Open Graph tags, and canonical URLs on the main pages
+- GitHub Actions workflow for automatic Pages deployment
+
+## Local Preview
 
 ```bash
 python3 -m http.server 4173
 ```
 
-然后访问 `http://127.0.0.1:4173`。
+Then open:
 
-## 发布
+```text
+http://127.0.0.1:4173/
+```
 
-网站是纯静态页面，不需要安装依赖或运行构建命令，可直接发布到 GitHub Pages。
-完整操作步骤见 [DEPLOY.md](DEPLOY.md)。
+## Deployment
 
-## 上线前需要替换
+This is a pure static site. It does not need WordPress, plugins, a database, or a build step.
 
-- 确认并购买 `jabbarsourcing.com`
-- 开通 `hello@jabbarsourcing.com` 企业邮箱
-- 将网站服务内容、产品品类和承诺调整为真实业务信息
-- 有 WhatsApp 号码后，可增加悬浮联系按钮
-- 有真实工厂、团队和质检照片后，可替换示意主视觉
+GitHub Pages options:
 
-## 文件
+- Recommended: **Settings -> Pages -> Build and deployment -> GitHub Actions**
+- Alternative: deploy from the `main` branch root
 
-- `index.html`：网站内容与 SEO 信息
-- `styles.css`：视觉设计和响应式布局
-- `script.js`：手机菜单、滚动动效和询盘邮件
-- `CNAME`：GitHub Pages 自定义域名配置
-- `.nojekyll`：关闭 Jekyll 处理
+The included workflow is:
+
+```text
+.github/workflows/deploy.yml
+```
+
+## SEO Checklist
+
+After deployment:
+
+1. Open Google Search Console.
+2. Add `https://www.jabbarsourcing.com/` as a property.
+3. Submit:
+
+```text
+https://www.jabbarsourcing.com/sitemap.xml
+```
+
+4. Test:
+
+```text
+https://www.jabbarsourcing.com/robots.txt
+https://www.jabbarsourcing.com/sitemap.xml
+```
+
+5. Use URL Inspection in Search Console for the home page and request indexing.
+
+## HTTPS
+
+In GitHub:
+
+```text
+Settings -> Pages -> Enforce HTTPS
+```
+
+For the custom domain, keep DNS pointed to GitHub Pages and confirm both URLs work:
+
+```text
+https://jabbarsourcing.com
+https://www.jabbarsourcing.com
+```
+
+## Cloudflare Speed Settings
+
+GitHub Pages already uses a CDN. If Cloudflare is added, enable:
+
+- Brotli
+- Auto Minify for HTML, CSS, and JavaScript
+- HTTPS redirect
+- Cache static assets
+
+Set Cloudflare proxy only after GitHub Pages HTTPS is working.
+
+## Contact Form Options
+
+Current static form behavior:
+
+- WhatsApp: opens `wa.me`
+- Gmail: opens a prefilled compose window
+- WeChat: copies the request text and asks the buyer to add the WeChat ID
+
+To use Formspree:
+
+1. Create a form at `https://formspree.io`.
+2. Add the Formspree endpoint to the inquiry form.
+3. Test that submissions arrive in email.
+
+To use Tawk.to:
+
+1. Create a Tawk.to property.
+2. Add the provided embed snippet before `</body>` in the HTML pages where chat should appear.
+
+## Image Optimization
+
+`cwebp` is installed locally through Homebrew:
+
+```bash
+brew install webp
+```
+
+Generate WebP files:
+
+```bash
+find assets -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 | while IFS= read -r -d '' img; do
+  base="${img%.*}"
+  ext="${img##*.}"
+  out="${base}.webp"
+  if [ -e "$out" ] && [ "$ext" != "png" ]; then out="${img}.webp"; fi
+  cwebp -quiet -q 82 -m 6 -metadata none "$img" -o "$out"
+done
+```
+
+## Important Files
+
+- `index.html`: Chinese/default home page
+- `en/index.html`: English home page
+- `inquiry/index.html`: default quote form
+- `styles.css`: shared design and responsive source styles
+- `styles.min.css`: minified CSS served by the HTML pages
+- `robots.txt`: crawler rules
+- `sitemap.xml`: URLs for Google
+- `CNAME`: custom domain
+- `_config.yml`: site metadata for GitHub Pages/Jekyll-compatible tooling
+- `.nojekyll`: serve files as static assets without Jekyll processing

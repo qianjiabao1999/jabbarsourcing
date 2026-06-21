@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#ffffff" />
     <title>仕入れリクエスト | Jabbar Sourcing Team</title>
     <link rel="icon" href="../../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../../styles.css?v=apple-44" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-45" />
   </head>
   <body>
     <main>
@@ -104,8 +104,8 @@
         </div>
       </section>
 
-      <a class="sticky-whatsapp" href="https://api.whatsapp.com/send?phone=8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
-        <img src="../../assets/whatsapp-ios-icon.png" alt="" aria-hidden="true" />
+      <a class="sticky-whatsapp" href="https://wa.me/8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
+        <img loading="lazy" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
         <span>WhatsApp</span>
       </a>
     </main>
@@ -148,7 +148,7 @@
               var message = buildMessage();
               var channel = button.getAttribute("data-channel");
               if (channel === "whatsapp") {
-                window.location.href = "https://api.whatsapp.com/send?phone=8618658925544&text=" + encodeURIComponent(message);
+                window.location.href = "https://wa.me/8618658925544?text=" + encodeURIComponent(message);
                 return;
               }
               if (channel === "gmail") {
