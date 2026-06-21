@@ -1,61 +1,20 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="ur" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Jabbar Sourcing Team 采购需求登记。" />
+    <meta name="description" content="Jabbar Sourcing Team کو سورسنگ درخواست بھیجیں۔" />
     <meta name="theme-color" content="#ffffff" />
-    <title>采购需求登记 | Jabbar Sourcing Team</title>
-    <link rel="icon" href="../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../styles.css?v=apple-44" />
-    <script>
-      (function () {
-        try {
-          var path = window.location.pathname;
-          var isInquiry = path === "/inquiry/" || path === "/inquiry/index.html";
-          var manual = window.sessionStorage && sessionStorage.getItem("jabbarManualLanguage") === "1";
-          if (!isInquiry || manual) return;
-          var languages = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
-          var map = {
-            zh: "/inquiry/",
-            en: "/en/inquiry/",
-            hi: "/hi/inquiry/",
-            es: "/es/inquiry/",
-            ar: "/ar/inquiry/",
-            fr: "/fr/inquiry/",
-            pt: "/pt/inquiry/",
-            id: "/id/inquiry/",
-            ur: "/ur/inquiry/",
-            pa: "/ur/inquiry/",
-            ps: "/ur/inquiry/",
-            sd: "/ur/inquiry/",
-            ru: "/ru/inquiry/",
-            de: "/de/inquiry/",
-            ja: "/ja/inquiry/",
-            ha: "/ha/inquiry/",
-            tr: "/tr/inquiry/",
-            vi: "/vi/inquiry/",
-            ko: "/ko/inquiry/",
-            th: "/th/inquiry/",
-            it: "/it/inquiry/",
-            kk: "/kk/inquiry/"
-          };
-          var target = "/en/inquiry/";
-          for (var i = 0; i < languages.length; i += 1) {
-            var code = String(languages[i] || "").toLowerCase().split("-")[0];
-            if (map[code]) { target = map[code]; break; }
-          }
-          if (target !== "/inquiry/") window.location.replace(target + window.location.search + window.location.hash);
-        } catch (error) {}
-      })();
-    </script>
+    <title>سورسنگ درخواست | Jabbar Sourcing Team</title>
+    <link rel="icon" href="../../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
+    <link rel="stylesheet" href="../../styles.css?v=apple-44" />
   </head>
   <body>
     <main>
       <section class="team inquiry-page" id="inquiry">
         <details class="language-switch language-menu">
-          <summary>中文</summary>
-          <nav class="language-options" aria-label="语言切换">
+          <summary>اردو</summary>
+          <nav class="language-options" aria-label="زبان منتخب کریں">
             <a href="/inquiry/" lang="zh-CN">中文</a>
             <a href="/en/inquiry/" lang="en">English</a>
             <a href="/hi/inquiry/" lang="hi">हिन्दी</a>
@@ -79,64 +38,64 @@
         </details>
         <div class="container">
           <header class="team-heading inquiry-page-heading">
-            <h1>采购需求登记</h1>
-            <p>告诉我们你想采购什么，我们帮你匹配义乌货源、报价与采购方案。</p>
-            <a class="inquiry-back" href="../">返回首页</a>
+            <h1>سورسنگ درخواست</h1>
+            <p>ہمیں بتائیں آپ کیا خریدنا چاہتے ہیں؛ ہم آپ کے لیے یی وو کے سپلائرز، قیمتیں اور سورسنگ آپشنز ملائیں گے۔</p>
+            <a class="inquiry-back" href="../">واپس ہوم</a>
           </header>
 
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <span class="inquiry-eyebrow">Sourcing Request</span>
-                <h2 id="inquiry-title">告诉我们你想采购什么</h2>
-                <p>填写产品、数量和联系方式，我们会根据你的需求匹配义乌货源、报价与采购方案。</p>
+                <h2 id="inquiry-title">ہمیں بتائیں آپ کیا خریدنا چاہتے ہیں</h2>
+                <p>اپنی مصنوعات، مقدار اور رابطے کی معلومات لکھیں؛ ہم آپ کے لیے یی وو کے سپلائرز، قیمتیں اور سورسنگ آپشنز ملائیں گے۔</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="请至少填写产品需求和联系方式。" data-copied-message="已复制需求内容，请在微信中搜索 18658925544 添加并粘贴发送。" data-copy-fail-message="复制失败，请手动复制页面中的需求内容。">
+              <form class="inquiry-form js-inquiry-form" data-required-message="براہِ کرم کم از کم مطلوبہ مصنوعات اور رابطے کی معلومات درج کریں۔" data-copied-message="کاپی ہو گیا۔ WeChat کھولیں، 18658925544 تلاش کریں، اور درخواست پیسٹ کریں۔" data-copy-fail-message="کاپی نہیں ہو سکا۔ براہِ کرم درخواست دستی طور پر کاپی کریں۔">
                 <label class="field field-wide">
-                  <span>想采购的产品</span>
-                  <input name="product" type="text" placeholder="例如：一元店百货、厨房用品、玩具、收纳用品…" autocomplete="off" />
+                  <span>مطلوبہ مصنوعات</span>
+                  <input name="product" type="text" placeholder="مثلاً ڈالر اسٹور اشیا، کچن ویئر، کھلونے، اسٹوریج آئٹمز…" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>产品方向</span>
+                  <span>مصنوعات کی کیٹیگری</span>
                   <select name="category">
-                  <option value="">请选择</option>
-                  <option value="日用百货">日用百货</option>
-                  <option value="一元店/折扣店货源">一元店/折扣店货源</option>
-                  <option value="厨房用品">厨房用品</option>
-                  <option value="家居收纳">家居收纳</option>
-                  <option value="玩具礼品">玩具礼品</option>
-                  <option value="美妆个护">美妆个护</option>
-                  <option value="其他">其他</option>
+                  <option value="">منتخب کریں</option>
+                  <option value="Daily commodities">روزمرہ اشیا</option>
+                  <option value="Dollar-store supply">ڈالر اسٹور سپلائی</option>
+                  <option value="Kitchenware">کچن ویئر</option>
+                  <option value="Home storage">گھر کی اسٹوریج</option>
+                  <option value="Toys &amp; gifts">کھلونے اور تحائف</option>
+                  <option value="Beauty &amp; personal care">بیوٹی اور ذاتی دیکھ بھال</option>
+                  <option value="Other">دیگر</option>
                   </select>
                 </label>
                 <label class="field">
-                  <span>预计数量</span>
-                  <input name="quantity" type="text" placeholder="例如：1000 件 / 1 个柜 / 试单" autocomplete="off" />
+                  <span>متوقع مقدار</span>
+                  <input name="quantity" type="text" placeholder="مثلاً 1,000 پیس / ایک کنٹینر / ٹرائل آرڈر" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>预算范围</span>
-                  <input name="budget" type="text" placeholder="例如：USD 5,000 或目标单价" autocomplete="off" />
+                  <span>بجٹ رینج</span>
+                  <input name="budget" type="text" placeholder="مثلاً USD 5,000 یا ہدف فی یونٹ قیمت" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>销售国家/地区</span>
-                  <input name="market" type="text" placeholder="例如：美国、法国、沙特、俄罗斯…" autocomplete="off" />
+                  <span>منزل مارکیٹ</span>
+                  <input name="market" type="text" placeholder="مثلاً امریکہ، فرانس، سعودی عرب، روس…" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>联系方式</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / 邮箱 / 微信号" autocomplete="off" />
+                  <span>رابطے کی معلومات</span>
+                  <input name="contact" type="text" placeholder="WhatsApp / ای میل / WeChat ID" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>姓名/公司</span>
-                  <input name="company" type="text" placeholder="你的姓名或公司名称" autocomplete="organization" />
+                  <span>نام / کمپنی</span>
+                  <input name="company" type="text" placeholder="آپ کا نام یا کمپنی کا نام" autocomplete="organization" />
                 </label>
                 <label class="field field-wide">
-                  <span>补充说明</span>
-                  <textarea name="note" rows="3" placeholder="颜色、包装、图片参考、交期要求等"></textarea>
+                  <span>نوٹس</span>
+                  <textarea name="note" rows="3" placeholder="رنگ، پیکنگ، ریفرنس تصاویر، ڈیلیوری وقت…"></textarea>
                 </label>
                 <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">发送到 WhatsApp</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">通过 Gmail 发送</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">复制并打开微信</button>
+                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">WhatsApp پر بھیجیں</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">Gmail سے بھیجیں</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">WeChat کے لیے کاپی کریں</button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
@@ -146,7 +105,7 @@
       </section>
 
       <a class="sticky-whatsapp" href="https://api.whatsapp.com/send?phone=8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
-        <img src="../assets/whatsapp-ios-icon.png" alt="" aria-hidden="true" />
+        <img src="../../assets/whatsapp-ios-icon.png" alt="" aria-hidden="true" />
         <span>WhatsApp</span>
       </a>
     </main>
@@ -169,7 +128,7 @@
               var control = field.querySelector("input, select, textarea");
               return control && label ? [control.name, label.textContent.trim()] : null;
             }).filter(Boolean);
-            var lines = ["Jabbar Sourcing Team - Sourcing Request"];
+            var lines = ["Jabbar Sourcing Team - سورسنگ درخواست"];
             labels.forEach(function (item) {
               var value = getValue(item[0]);
               if (value) lines.push(item[1] + ": " + value);
@@ -193,7 +152,7 @@
                 return;
               }
               if (channel === "gmail") {
-                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar Sourcing Team inquiry") + "&body=" + encodeURIComponent(message);
+                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar Sourcing Team درخواست") + "&body=" + encodeURIComponent(message);
                 return;
               }
               if (channel === "wechat") {
