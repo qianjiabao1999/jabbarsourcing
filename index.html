@@ -25,7 +25,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@500;600;700&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=team-6" />
+    <link rel="stylesheet" href="styles.css?v=team-7" />
   </head>
   <body>
     <main>
@@ -46,8 +46,10 @@
 
           <div class="team-grid">
             <a
-              class="team-card"
+              class="team-card js-app-link"
               href="https://www.douyin.com/user/MS4wLjABAAAA5SfL1RgN5bWEbuIK7ZFCb8CocFC1f5Ao6EHPD290b8T_eTvglSqBvGL9gXScTj7C"
+              data-app-link="snssdk1128://webview?url=https%3A%2F%2Fwww.douyin.com%2Fuser%2FMS4wLjABAAAA5SfL1RgN5bWEbuIK7ZFCb8CocFC1f5Ao6EHPD290b8T_eTvglSqBvGL9gXScTj7C%3Ffrom_tab_name%3Dmain"
+              data-web-link="https://www.douyin.com/user/MS4wLjABAAAA5SfL1RgN5bWEbuIK7ZFCb8CocFC1f5Ao6EHPD290b8T_eTvglSqBvGL9gXScTj7C"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="在抖音查看浙江好多宝品牌管理有限公司"
@@ -68,13 +70,15 @@
                 <strong>浙江好多宝品牌管理有限公司</strong>
                 <span class="team-handle">抖音号：85389940454</span>
                 <span class="team-bio">专注海外贸易、加盟连锁店与日用百货批发，拥有 50,000 平方米仓储和 30,000+ 款优质产品。</span>
-                <span class="team-link">View on Douyin <span aria-hidden="true">↗</span></span>
+                <span class="team-link">打开抖音 APP <span aria-hidden="true">↗</span></span>
               </span>
             </a>
 
             <a
-              class="team-card"
+              class="team-card js-app-link"
               href="https://xhslink.com/m/9JjRFCiZG6a"
+              data-app-link="xhsdiscover://user/5af044554eacab1175529438"
+              data-web-link="https://xhslink.com/m/9JjRFCiZG6a"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="在小红书查看浙江好多宝品牌管理有限公司"
@@ -244,5 +248,49 @@
         </div>
       </section>
     </main>
+    <script>
+      (function () {
+        var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (!isMobile) return;
+
+        document.querySelectorAll(".js-app-link").forEach(function (link) {
+          link.addEventListener("click", function (event) {
+            var appLink = link.getAttribute("data-app-link");
+            var webLink = link.getAttribute("data-web-link") || link.href;
+            if (!appLink) return;
+
+            event.preventDefault();
+
+            var didLeave = false;
+            var cleanup = function () {
+              document.removeEventListener("visibilitychange", onVisibilityChange);
+              window.removeEventListener("pagehide", onPageHide);
+            };
+            var onVisibilityChange = function () {
+              if (document.hidden) {
+                didLeave = true;
+                cleanup();
+              }
+            };
+            var onPageHide = function () {
+              didLeave = true;
+              cleanup();
+            };
+
+            document.addEventListener("visibilitychange", onVisibilityChange);
+            window.addEventListener("pagehide", onPageHide);
+
+            window.setTimeout(function () {
+              cleanup();
+              if (!didLeave && !document.hidden) {
+                window.location.href = webLink;
+              }
+            }, 1600);
+
+            window.location.href = appLink;
+          });
+        });
+      })();
+    </script>
   </body>
 </html>
