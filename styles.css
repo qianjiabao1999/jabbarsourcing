@@ -8,9 +8,21 @@
   --line: rgba(0, 0, 0, 0.08);
   --shadow: 0 18px 55px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 28px 80px rgba(0, 0, 0, 0.13);
-  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", system-ui, sans-serif;
-  --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Manrope", var(--sans);
+  --font-latin: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  --font-cjk: "PingFang SC", "Hiragino Sans GB", "HarmonyOS Sans SC", "HarmonyOS Sans", "MiSans", "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", var(--font-latin);
+  --font-arabic: "SF Arabic", "Geeza Pro", "Noto Naskh Arabic", "Noto Sans Arabic", "Tahoma", "Arial", var(--font-latin);
+  --sans: var(--font-latin);
+  --display: var(--font-latin);
   --motion: cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+
+html[lang^="zh"] {
+  --sans: var(--font-cjk);
+  --display: var(--font-cjk);
+}
+html[lang="ar"] {
+  --sans: var(--font-arabic);
+  --display: var(--font-arabic);
 }
 
 * { box-sizing: border-box; }
