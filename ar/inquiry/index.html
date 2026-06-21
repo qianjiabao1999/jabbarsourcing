@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#ffffff" />
     <title>طلب توريد | Jabbar Sourcing Team</title>
     <link rel="icon" href="../../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-50" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-51" />
   </head>
   <body>
     <main>
@@ -50,7 +50,7 @@
                 <h2 id="inquiry-title">أخبرنا بما تريد شراءه</h2>
                 <p>اكتب المنتجات والكمية وبيانات التواصل، وسنقترح لك موردين وأسعاراً وخيارات توريد من ييوو.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="يرجى تعبئة المنتجات وبيانات التواصل على الأقل." data-copied-message="تم النسخ. افتح WeChat وابحث عن 18658925544 ثم الصق الطلب." data-copy-fail-message="تعذر النسخ. يرجى نسخ الطلب يدوياً.">
+              <form class="inquiry-form js-inquiry-form" data-required-message="يرجى تعبئة المنتجات وبيانات التواصل على الأقل." data-copied-message="تم النسخ. افتح WeChat وابحث عن 18658925544 ثم الصق الطلب." data-copy-fail-message="تعذر النسخ. يرجى نسخ الطلب يدوياً." data-telegram-copied-message="تم نسخ الطلب. الصقه في Telegram بعد فتح المحادثة.">
                 <label class="field field-wide">
                   <span>المنتجات المطلوبة</span>
                   <input name="product" type="text" placeholder="مثال: منتجات يومية، أدوات مطبخ، ألعاب، تخزين…" autocomplete="off" />
@@ -96,6 +96,7 @@
                   <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">إرسال عبر WhatsApp</button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">إرسال عبر Gmail</button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">نسخ لـ WeChat</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram">إرسال عبر Telegram</button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
@@ -109,6 +110,10 @@
         <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
           <img loading="lazy" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
           <span>WhatsApp</span>
+        </a>
+        <a class="sticky-contact sticky-contact-telegram js-app-open" href="https://t.me/Jabbar199901" data-app-link="tg://resolve?domain=Jabbar199901" data-web-link="https://t.me/Jabbar199901" data-copy-text="@Jabbar199901" target="_blank" rel="noopener noreferrer" aria-label="Telegram @Jabbar199901">
+          <img loading="lazy" src="../../assets/telegram-ios-icon.svg" alt="" aria-hidden="true" />
+          <span>Telegram</span>
         </a>
       </nav>
     </main>
@@ -156,6 +161,27 @@
               }
               if (channel === "gmail") {
                 window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar Sourcing Team inquiry") + "&body=" + encodeURIComponent(message);
+                return;
+              }
+              if (channel === "telegram") {
+                var telegramCopied = function () {
+                  setStatus(form.getAttribute("data-telegram-copied-message") || "Inquiry copied. Paste it in Telegram after the chat opens.");
+                };
+                if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard.writeText(message).then(telegramCopied).catch(function () {
+                    setStatus(form.getAttribute("data-copy-fail-message"));
+                  });
+                } else {
+                  setStatus(form.getAttribute("data-copy-fail-message"));
+                }
+                var telegramOpened = false;
+                var markTelegramOpened = function () { telegramOpened = true; };
+                window.addEventListener("pagehide", markTelegramOpened, { once: true });
+                window.addEventListener("blur", markTelegramOpened, { once: true });
+                window.location.href = "tg://resolve?domain=Jabbar199901";
+                window.setTimeout(function () {
+                  if (!telegramOpened) window.location.href = "https://t.me/Jabbar199901";
+                }, 1600);
                 return;
               }
               if (channel === "wechat") {

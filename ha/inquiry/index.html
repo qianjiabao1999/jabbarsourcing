@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#ffffff" />
     <title>Rajistar buƙatar sayayya | Jabbar Sourcing Team</title>
     <link rel="icon" href="../../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-50" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-51" />
   </head>
   <body>
     <main>
@@ -50,7 +50,7 @@
                 <h2 id="inquiry-title">Faɗa mana abin da kuke son saya</h2>
                 <p>Rubuta samfurin da kuke nema, adadi da hanyar tuntuɓa. Za mu haɗa ku da masu kaya a Yiwu, farashi da tsarin sourcing.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="Aƙalla ku cika samfurin da kuke nema da hanyar tuntuɓa." data-copied-message="An kwafe. Ku buɗe WeChat, ku binciki 18658925544, sannan ku liƙa buƙatar." data-copy-fail-message="Kwafi ya gagara. Ku kwafe bayanin buƙatar da hannu.">
+              <form class="inquiry-form js-inquiry-form" data-required-message="Aƙalla ku cika samfurin da kuke nema da hanyar tuntuɓa." data-copied-message="An kwafe. Ku buɗe WeChat, ku binciki 18658925544, sannan ku liƙa buƙatar." data-copy-fail-message="Kwafi ya gagara. Ku kwafe bayanin buƙatar da hannu." data-telegram-copied-message="An kwafe bukatar. Manna ta a Telegram bayan tattaunawar ta bude.">
                 <label class="field field-wide">
                   <span>Kayayyakin da ake nema</span>
                   <input name="product" type="text" placeholder="misali: kayan shagon farashi ɗaya, kayan kitchen, toys, kayan ajiya…" autocomplete="off" />
@@ -96,6 +96,7 @@
                   <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">Aika ta WhatsApp</button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">Aika ta Gmail</button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">Kwafe don WeChat</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram">Aika ta Telegram</button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
@@ -109,6 +110,10 @@
         <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
           <img loading="lazy" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
           <span>WhatsApp</span>
+        </a>
+        <a class="sticky-contact sticky-contact-telegram js-app-open" href="https://t.me/Jabbar199901" data-app-link="tg://resolve?domain=Jabbar199901" data-web-link="https://t.me/Jabbar199901" data-copy-text="@Jabbar199901" target="_blank" rel="noopener noreferrer" aria-label="Telegram @Jabbar199901">
+          <img loading="lazy" src="../../assets/telegram-ios-icon.svg" alt="" aria-hidden="true" />
+          <span>Telegram</span>
         </a>
       </nav>
     </main>
@@ -156,6 +161,27 @@
               }
               if (channel === "gmail") {
                 window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Tambayar Jabbar Sourcing Team") + "&body=" + encodeURIComponent(message);
+                return;
+              }
+              if (channel === "telegram") {
+                var telegramCopied = function () {
+                  setStatus(form.getAttribute("data-telegram-copied-message") || "Inquiry copied. Paste it in Telegram after the chat opens.");
+                };
+                if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard.writeText(message).then(telegramCopied).catch(function () {
+                    setStatus(form.getAttribute("data-copy-fail-message"));
+                  });
+                } else {
+                  setStatus(form.getAttribute("data-copy-fail-message"));
+                }
+                var telegramOpened = false;
+                var markTelegramOpened = function () { telegramOpened = true; };
+                window.addEventListener("pagehide", markTelegramOpened, { once: true });
+                window.addEventListener("blur", markTelegramOpened, { once: true });
+                window.location.href = "tg://resolve?domain=Jabbar199901";
+                window.setTimeout(function () {
+                  if (!telegramOpened) window.location.href = "https://t.me/Jabbar199901";
+                }, 1600);
                 return;
               }
               if (channel === "wechat") {

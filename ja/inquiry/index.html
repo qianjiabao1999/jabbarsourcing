@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#ffffff" />
     <title>仕入れリクエスト | Jabbar Sourcing Team</title>
     <link rel="icon" href="../../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-50" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-51" />
   </head>
   <body>
     <main>
@@ -50,7 +50,7 @@
                 <h2 id="inquiry-title">購入したい商品を教えてください</h2>
                 <p>商品、数量、連絡先を共有してください。義烏の仕入れ先、価格、仕入れ案を提案します。</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="商品内容と連絡先を少なくとも入力してください。" data-copied-message="コピーしました。WeChatを開き、18658925544を検索して貼り付けてください。" data-copy-fail-message="コピーできませんでした。内容を手動でコピーしてください。">
+              <form class="inquiry-form js-inquiry-form" data-required-message="商品内容と連絡先を少なくとも入力してください。" data-copied-message="コピーしました。WeChatを開き、18658925544を検索して貼り付けてください。" data-copy-fail-message="コピーできませんでした。内容を手動でコピーしてください。" data-telegram-copied-message="依頼内容をコピーしました。Telegram が開いたら貼り付けて送信してください。">
                 <label class="field field-wide">
                   <span>必要な商品</span>
                   <input name="product" type="text" placeholder="例：均一価格店商品、キッチン用品、玩具、収納用品…" autocomplete="off" />
@@ -96,6 +96,7 @@
                   <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">WhatsAppで送信</button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">Gmailで送信</button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">WeChat用にコピー</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram">Telegramで送信</button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
@@ -109,6 +110,10 @@
         <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
           <img loading="lazy" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
           <span>WhatsApp</span>
+        </a>
+        <a class="sticky-contact sticky-contact-telegram js-app-open" href="https://t.me/Jabbar199901" data-app-link="tg://resolve?domain=Jabbar199901" data-web-link="https://t.me/Jabbar199901" data-copy-text="@Jabbar199901" target="_blank" rel="noopener noreferrer" aria-label="Telegram @Jabbar199901">
+          <img loading="lazy" src="../../assets/telegram-ios-icon.svg" alt="" aria-hidden="true" />
+          <span>Telegram</span>
         </a>
       </nav>
     </main>
@@ -156,6 +161,27 @@
               }
               if (channel === "gmail") {
                 window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar Sourcing Team お問い合わせ") + "&body=" + encodeURIComponent(message);
+                return;
+              }
+              if (channel === "telegram") {
+                var telegramCopied = function () {
+                  setStatus(form.getAttribute("data-telegram-copied-message") || "Inquiry copied. Paste it in Telegram after the chat opens.");
+                };
+                if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard.writeText(message).then(telegramCopied).catch(function () {
+                    setStatus(form.getAttribute("data-copy-fail-message"));
+                  });
+                } else {
+                  setStatus(form.getAttribute("data-copy-fail-message"));
+                }
+                var telegramOpened = false;
+                var markTelegramOpened = function () { telegramOpened = true; };
+                window.addEventListener("pagehide", markTelegramOpened, { once: true });
+                window.addEventListener("blur", markTelegramOpened, { once: true });
+                window.location.href = "tg://resolve?domain=Jabbar199901";
+                window.setTimeout(function () {
+                  if (!telegramOpened) window.location.href = "https://t.me/Jabbar199901";
+                }, 1600);
                 return;
               }
               if (channel === "wechat") {

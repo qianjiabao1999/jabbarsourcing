@@ -482,16 +482,23 @@ a { color: inherit; text-decoration: none; }
 }
 .contact-whatsapp,
 .contact-gmail,
-.contact-wechat {
+.contact-wechat,
+.contact-telegram {
   color: #1d1d1f;
 }
 .contact-actions .contact-whatsapp { order: 1; }
 .contact-actions .contact-gmail { order: 2; }
 .contact-actions .contact-wechat { order: 3; }
+.contact-actions .contact-telegram { order: 4; }
 .contact-whatsapp {
   --contact-rgb: 37, 211, 102;
   --contact-accent: #25d366;
   --contact-accent-strong: #128c7e;
+}
+.contact-telegram {
+  --contact-rgb: 34, 158, 217;
+  --contact-accent: #229ed9;
+  --contact-accent-strong: #1784d8;
 }
 .contact-wechat {
   --contact-rgb: 7, 193, 96;
@@ -671,6 +678,9 @@ a { color: inherit; text-decoration: none; }
   height: 22px;
   border-radius: 7px;
   filter: drop-shadow(0 4px 8px rgba(var(--sticky-rgb), 0.24));
+}
+.sticky-contact-telegram {
+  --sticky-rgb: 34, 158, 217;
 }
 .team-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 22px; }
 .team-card {

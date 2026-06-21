@@ -13,7 +13,7 @@
     <title>免费采购报价 | Jabbar Sourcing</title>
     <link rel="canonical" href="https://www.jabbarsourcing.com/inquiry/" />
     <link rel="icon" href="../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../styles.min.css?v=apple-50" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-51" />
     <script>
       (function () {
         try {
@@ -97,7 +97,7 @@
                 <h2 id="inquiry-title">告诉我们你想采购什么</h2>
                 <p>填写产品、数量和联系方式，我们会根据你的需求匹配义乌货源、报价与采购方案。</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="请至少填写产品需求和联系方式。" data-copied-message="已复制需求内容，请在微信中搜索 18658925544 添加并粘贴发送。" data-copy-fail-message="复制失败，请手动复制页面中的需求内容。">
+              <form class="inquiry-form js-inquiry-form" data-required-message="请至少填写产品需求和联系方式。" data-copied-message="已复制需求内容，请在微信中搜索 18658925544 添加并粘贴发送。" data-copy-fail-message="复制失败，请手动复制页面中的需求内容。" data-telegram-copied-message="已复制需求内容，Telegram 打开后请粘贴发送。">
                 <label class="field field-wide">
                   <span>想采购的产品</span>
                   <input name="product" type="text" placeholder="例如：一元店百货、厨房用品、玩具、收纳用品…" autocomplete="off" />
@@ -143,6 +143,7 @@
                   <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">发送到 WhatsApp</button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">通过 Gmail 发送</button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">复制并打开微信</button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram">发送到 Telegram</button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
@@ -156,6 +157,10 @@
         <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
           <img loading="lazy" src="../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
           <span>WhatsApp</span>
+        </a>
+        <a class="sticky-contact sticky-contact-telegram js-app-open" href="https://t.me/Jabbar199901" data-app-link="tg://resolve?domain=Jabbar199901" data-web-link="https://t.me/Jabbar199901" data-copy-text="@Jabbar199901" target="_blank" rel="noopener noreferrer" aria-label="Telegram @Jabbar199901">
+          <img loading="lazy" src="../assets/telegram-ios-icon.svg" alt="" aria-hidden="true" />
+          <span>Telegram</span>
         </a>
       </nav>
     </main>
@@ -203,6 +208,27 @@
               }
               if (channel === "gmail") {
                 window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar Sourcing Team inquiry") + "&body=" + encodeURIComponent(message);
+                return;
+              }
+              if (channel === "telegram") {
+                var telegramCopied = function () {
+                  setStatus(form.getAttribute("data-telegram-copied-message") || "Inquiry copied. Paste it in Telegram after the chat opens.");
+                };
+                if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard.writeText(message).then(telegramCopied).catch(function () {
+                    setStatus(form.getAttribute("data-copy-fail-message"));
+                  });
+                } else {
+                  setStatus(form.getAttribute("data-copy-fail-message"));
+                }
+                var telegramOpened = false;
+                var markTelegramOpened = function () { telegramOpened = true; };
+                window.addEventListener("pagehide", markTelegramOpened, { once: true });
+                window.addEventListener("blur", markTelegramOpened, { once: true });
+                window.location.href = "tg://resolve?domain=Jabbar199901";
+                window.setTimeout(function () {
+                  if (!telegramOpened) window.location.href = "https://t.me/Jabbar199901";
+                }, 1600);
                 return;
               }
               if (channel === "wechat") {
