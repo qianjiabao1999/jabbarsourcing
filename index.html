@@ -16,7 +16,29 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@500;600;700&amp;display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=apple-24" />
+    <link rel="stylesheet" href="styles.css?v=apple-25" />
+    <script>
+      (function () {
+        try {
+          var path = window.location.pathname;
+          var isHome = path === "/" || path === "/index.html";
+          var manual = window.sessionStorage && sessionStorage.getItem("jabbarManualLanguage") === "1";
+          if (!isHome || manual) return;
+          var languages = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
+          var target = "/en/";
+          for (var i = 0; i < languages.length; i += 1) {
+            var code = String(languages[i] || "").toLowerCase();
+            if (code.indexOf("zh") === 0) { target = "/"; break; }
+            if (code.indexOf("ru") === 0) { target = "/ru/"; break; }
+            if (code.indexOf("fr") === 0) { target = "/fr/"; break; }
+            if (code.indexOf("es") === 0) { target = "/es/"; break; }
+            if (code.indexOf("ar") === 0) { target = "/ar/"; break; }
+            if (code.indexOf("en") === 0) { target = "/en/"; break; }
+          }
+          if (target !== "/") window.location.replace(target + window.location.search + window.location.hash);
+        } catch (error) {}
+      })();
+    </script>
   </head>
   <body>
     <main>
@@ -239,6 +261,15 @@
             });
           });
         }
+
+
+        document.querySelectorAll(".language-options a").forEach(function (link) {
+          link.addEventListener("click", function () {
+            try {
+              sessionStorage.setItem("jabbarManualLanguage", "1");
+            } catch (error) {}
+          });
+        });
 
         document.querySelectorAll(".js-app-open").forEach(function (link) {
           link.addEventListener("click", function (event) {
