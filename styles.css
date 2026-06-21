@@ -361,6 +361,9 @@ a { color: inherit; text-decoration: none; }
   margin: 22px auto 0;
 }
 .contact-link {
+  --contact-rgb: 10, 132, 255;
+  --contact-accent: #0a84ff;
+  --contact-accent-strong: #0066cc;
   position: relative;
   isolation: isolate;
   display: inline-flex;
@@ -373,16 +376,18 @@ a { color: inherit; text-decoration: none; }
   color: #1d1d1f;
   background:
     radial-gradient(110% 140% at 16% 0%, rgba(255, 255, 255, 0.98), transparent 42%),
-    radial-gradient(90% 120% at 84% 100%, rgba(10, 132, 255, 0.11), transparent 52%),
+    radial-gradient(90% 120% at 84% 100%, rgba(var(--contact-rgb), 0.18), transparent 52%),
+    radial-gradient(65% 120% at 0% 100%, rgba(var(--contact-rgb), 0.08), transparent 58%),
     linear-gradient(142deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.18) 48%, rgba(255, 255, 255, 0.48)),
     rgba(255, 255, 255, 0.24);
-  border: 1px solid rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(var(--contact-rgb), 0.2);
   border-radius: 999px;
-  outline: 1px solid rgba(0, 0, 0, 0.06);
+  outline: 1px solid rgba(var(--contact-rgb), 0.12);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.96),
     inset 0 -1px 1px rgba(0, 0, 0, 0.09),
-    0 12px 30px rgba(0, 0, 0, 0.1);
+    0 12px 30px rgba(0, 0, 0, 0.1),
+    0 10px 24px rgba(var(--contact-rgb), 0.12);
   backdrop-filter: blur(32px) saturate(1.85) contrast(1.05);
   -webkit-backdrop-filter: blur(32px) saturate(1.85) contrast(1.05);
   font-size: 14px;
@@ -398,6 +403,7 @@ a { color: inherit; text-decoration: none; }
   border-radius: inherit;
   background:
     radial-gradient(90% 120% at 18% 0%, rgba(255, 255, 255, 0.98), transparent 38%),
+    radial-gradient(100% 140% at 100% 100%, rgba(var(--contact-rgb), 0.14), transparent 56%),
     linear-gradient(110deg, rgba(255, 255, 255, 0.14), transparent 36%, rgba(255, 255, 255, 0.46) 46%, transparent 56%);
   opacity: 0.68;
 }
@@ -414,13 +420,15 @@ a { color: inherit; text-decoration: none; }
   transform: translateY(-2px);
   background:
     radial-gradient(110% 140% at 16% 0%, rgba(255, 255, 255, 1), transparent 42%),
-    radial-gradient(90% 120% at 84% 100%, rgba(10, 132, 255, 0.14), transparent 52%),
+    radial-gradient(90% 120% at 84% 100%, rgba(var(--contact-rgb), 0.24), transparent 52%),
+    radial-gradient(65% 120% at 0% 100%, rgba(var(--contact-rgb), 0.12), transparent 58%),
     linear-gradient(142deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.22) 48%, rgba(255, 255, 255, 0.58)),
     rgba(255, 255, 255, 0.32);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 1),
     inset 0 -1px 1px rgba(0, 0, 0, 0.085),
-    0 14px 34px rgba(0, 0, 0, 0.11);
+    0 14px 34px rgba(0, 0, 0, 0.11),
+    0 16px 34px rgba(var(--contact-rgb), 0.18);
 }
 .contact-link svg,
 .contact-link .brand-icon,
@@ -439,7 +447,9 @@ a { color: inherit; text-decoration: none; }
   border-radius: 7px;
 }
 .contact-link .brand-icon {
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+  filter:
+    drop-shadow(0 1px 1px rgba(255, 255, 255, 0.72))
+    drop-shadow(0 4px 8px rgba(var(--contact-rgb), 0.28));
 }
 .contact-link .contact-text {
   display: flex;
@@ -474,6 +484,28 @@ a { color: inherit; text-decoration: none; }
 .contact-gmail,
 .contact-wechat {
   color: #1d1d1f;
+}
+.contact-whatsapp {
+  --contact-rgb: 37, 211, 102;
+  --contact-accent: #25d366;
+  --contact-accent-strong: #128c7e;
+}
+.contact-wechat {
+  --contact-rgb: 7, 193, 96;
+  --contact-accent: #07c160;
+  --contact-accent-strong: #00a85a;
+}
+.contact-gmail {
+  --contact-rgb: 234, 67, 53;
+  --contact-accent: #ea4335;
+  --contact-accent-strong: #4285f4;
+}
+.contact-gmail::before {
+  background:
+    radial-gradient(90% 120% at 18% 0%, rgba(255, 255, 255, 0.98), transparent 38%),
+    radial-gradient(78% 110% at 100% 100%, rgba(66, 133, 244, 0.16), transparent 56%),
+    radial-gradient(70% 100% at 0% 100%, rgba(251, 188, 5, 0.14), transparent 56%),
+    linear-gradient(110deg, rgba(255, 255, 255, 0.14), transparent 36%, rgba(255, 255, 255, 0.46) 46%, transparent 56%);
 }
 .contact-modal[hidden] {
   display: none;
@@ -1236,6 +1268,28 @@ html.gallery-ready .gallery-track {
 .testimonials {
   margin: 44px auto 58px;
 }
+.testimonials .section-eyebrow {
+  min-height: 34px;
+  padding: 0 18px;
+  color: #c2410c;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 244, 224, 0.72)),
+    rgba(255, 149, 0, 0.14);
+  border-color: rgba(255, 149, 0, 0.26);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 8px 18px rgba(255, 149, 0, 0.12);
+  font-size: 13px;
+  line-height: 1;
+}
+.testimonials .section-heading h2 {
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(92deg, #111827 0%, #ff2d55 46%, #ff7a00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 .testimonial-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1709,7 +1763,9 @@ html.gallery-ready .gallery-track {
   .testimonials { margin: 26px auto 36px; }
   .section-heading { margin-bottom: 14px; }
   .section-eyebrow { min-height: 23px; font-size: 8px; }
+  .testimonials .section-eyebrow { min-height: 28px; padding: 0 14px; font-size: 11px; }
   .section-heading h2 { font-size: 24px; line-height: 1.12; }
+  .testimonials .section-heading h2 { font-size: clamp(32px, 10vw, 42px); }
   .testimonial-grid { gap: 10px; }
   .testimonial-card { padding: 16px; border-radius: 21px; }
   .testimonial-rating { min-height: 26px; gap: 6px; padding: 3px 7px; font-size: 12px; }
