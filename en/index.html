@@ -13,7 +13,7 @@
     <meta property="og:image" content="../assets/grace-from-yiwu.jpg" />
     <title>Jabbar SourcingTeam English</title>
     <link rel="icon" href="../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="../styles.css?v=apple-33" />
+    <link rel="stylesheet" href="../styles.css?v=apple-34" />
   </head>
   <body>
     <main>
@@ -163,63 +163,16 @@
           </section>
 
 
-          <section class="inquiry-section" aria-labelledby="inquiry-title">
-            <div class="inquiry-panel">
-              <div class="inquiry-copy">
-                <span class="inquiry-eyebrow">Sourcing Request</span>
-                <h2 id="inquiry-title">Tell us what you want to buy</h2>
-                <p>Share your product needs, quantity, and contact details. We will match Yiwu suppliers, pricing, and sourcing options for you.</p>
-              </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="Please fill in at least products needed and contact details." data-copied-message="Copied. Please open WeChat, search 18658925544, and paste the request." data-copy-fail-message="Copy failed. Please copy the request manually.">
-                <label class="field field-wide">
-                  <span>Products needed</span>
-                  <input name="product" type="text" placeholder="e.g. dollar-store goods, kitchenware, toys, storage items…" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Product category</span>
-                  <select name="category">
-                  <option value="">Select one</option>
-                  <option value="Daily commodities">Daily commodities</option>
-                  <option value="Dollar-store supply">Dollar-store supply</option>
-                  <option value="Kitchenware">Kitchenware</option>
-                  <option value="Home storage">Home storage</option>
-                  <option value="Toys &amp; gifts">Toys &amp; gifts</option>
-                  <option value="Beauty &amp; personal care">Beauty &amp; personal care</option>
-                  <option value="Other">Other</option>
-                  </select>
-                </label>
-                <label class="field">
-                  <span>Estimated quantity</span>
-                  <input name="quantity" type="text" placeholder="e.g. 1,000 pcs / one container / trial order" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Budget range</span>
-                  <input name="budget" type="text" placeholder="e.g. USD 5,000 or target unit price" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Destination market</span>
-                  <input name="market" type="text" placeholder="e.g. USA, France, Saudi Arabia, Russia…" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Contact details</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / email / WeChat ID" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Name / company</span>
-                  <input name="company" type="text" placeholder="Your name or company name" autocomplete="organization" />
-                </label>
-                <label class="field field-wide">
-                  <span>Notes</span>
-                  <textarea name="note" rows="3" placeholder="Color, packaging, reference images, delivery time…"></textarea>
-                </label>
-                <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">Send on WhatsApp</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">Send by Gmail</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">Copy for WeChat</button>
-                </div>
-                <p class="inquiry-status" aria-live="polite"></p>
-              </form>
-            </div>
+
+
+          <section class="inquiry-entry" aria-label="Sourcing request">
+            <a class="inquiry-entry-card" href="../inquiry/">
+              <span class="inquiry-entry-copy">
+                <strong>Sourcing request</strong>
+                <span>Tell us what you want to buy. We will match Yiwu suppliers and pricing.</span>
+              </span>
+              <span class="inquiry-entry-button">Fill the request <span aria-hidden="true">↗</span></span>
+            </a>
           </section>
 
           <div class="team-grid">
@@ -411,63 +364,6 @@
           });
         }
 
-        document.querySelectorAll(".js-inquiry-form").forEach(function (form) {
-          var status = form.querySelector(".inquiry-status");
-          var getValue = function (name) {
-            var field = form.elements[name];
-            return field ? String(field.value || "").trim() : "";
-          };
-          var buildMessage = function () {
-            var labels = Array.prototype.slice.call(form.querySelectorAll(".field")).map(function (field) {
-              var label = field.querySelector("span");
-              var control = field.querySelector("input, select, textarea");
-              return control && label ? [control.name, label.textContent.trim()] : null;
-            }).filter(Boolean);
-            var lines = ["Jabbar SourcingTeam - Sourcing Request"];
-            labels.forEach(function (item) {
-              var value = getValue(item[0]);
-              if (value) lines.push(item[1] + ": " + value);
-            });
-            lines.push("Page: " + window.location.href.split("#")[0]);
-            return lines.join("\n");
-          };
-          var setStatus = function (message) {
-            if (status) status.textContent = message || "";
-          };
-          form.querySelectorAll(".js-inquiry-send").forEach(function (button) {
-            button.addEventListener("click", function () {
-              var product = getValue("product");
-              var contact = getValue("contact");
-              if (!product || !contact) {
-                setStatus(form.getAttribute("data-required-message"));
-                return;
-              }
-              var message = buildMessage();
-              var channel = button.getAttribute("data-channel");
-              if (channel === "whatsapp") {
-                window.location.href = "https://api.whatsapp.com/send?phone=8618658925544&text=" + encodeURIComponent(message);
-                return;
-              }
-              if (channel === "gmail") {
-                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar SourcingTeam inquiry") + "&body=" + encodeURIComponent(message);
-                return;
-              }
-              if (channel === "wechat") {
-                var copied = function () {
-                  setStatus(form.getAttribute("data-copied-message"));
-                  window.setTimeout(function () { window.location.href = "weixin://"; }, 250);
-                };
-                if (navigator.clipboard && window.isSecureContext) {
-                  navigator.clipboard.writeText(message).then(copied).catch(function () {
-                    setStatus(form.getAttribute("data-copy-fail-message"));
-                  });
-                } else {
-                  setStatus(form.getAttribute("data-copy-fail-message"));
-                }
-              }
-            });
-          });
-        });
 
 
         document.querySelectorAll(".language-options a").forEach(function (link) {

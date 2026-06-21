@@ -13,7 +13,7 @@
     <meta property="og:image" content="assets/grace-from-yiwu.jpg" />
     <title>Jabbar SourcingTeam</title>
     <link rel="icon" href="assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
-    <link rel="stylesheet" href="styles.css?v=apple-33" />
+    <link rel="stylesheet" href="styles.css?v=apple-34" />
     <script>
       (function () {
         try {
@@ -185,63 +185,16 @@
           </section>
 
 
-          <section class="inquiry-section" aria-labelledby="inquiry-title">
-            <div class="inquiry-panel">
-              <div class="inquiry-copy">
-                <span class="inquiry-eyebrow">Sourcing Request</span>
-                <h2 id="inquiry-title">告诉我们你想采购什么</h2>
-                <p>填写产品、数量和联系方式，我们会根据你的需求匹配义乌货源、报价与采购方案。</p>
-              </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="请至少填写产品需求和联系方式。" data-copied-message="已复制需求内容，请在微信中搜索 18658925544 添加并粘贴发送。" data-copy-fail-message="复制失败，请手动复制页面中的需求内容。">
-                <label class="field field-wide">
-                  <span>想采购的产品</span>
-                  <input name="product" type="text" placeholder="例如：一元店百货、厨房用品、玩具、收纳用品…" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>产品方向</span>
-                  <select name="category">
-                  <option value="">请选择</option>
-                  <option value="日用百货">日用百货</option>
-                  <option value="一元店/折扣店货源">一元店/折扣店货源</option>
-                  <option value="厨房用品">厨房用品</option>
-                  <option value="家居收纳">家居收纳</option>
-                  <option value="玩具礼品">玩具礼品</option>
-                  <option value="美妆个护">美妆个护</option>
-                  <option value="其他">其他</option>
-                  </select>
-                </label>
-                <label class="field">
-                  <span>预计数量</span>
-                  <input name="quantity" type="text" placeholder="例如：1000 件 / 1 个柜 / 试单" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>预算范围</span>
-                  <input name="budget" type="text" placeholder="例如：USD 5,000 或目标单价" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>销售国家/地区</span>
-                  <input name="market" type="text" placeholder="例如：美国、法国、沙特、俄罗斯…" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>联系方式</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / 邮箱 / 微信号" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>姓名/公司</span>
-                  <input name="company" type="text" placeholder="你的姓名或公司名称" autocomplete="organization" />
-                </label>
-                <label class="field field-wide">
-                  <span>补充说明</span>
-                  <textarea name="note" rows="3" placeholder="颜色、包装、图片参考、交期要求等"></textarea>
-                </label>
-                <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp">发送到 WhatsApp</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail">通过 Gmail 发送</button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat">复制并打开微信</button>
-                </div>
-                <p class="inquiry-status" aria-live="polite"></p>
-              </form>
-            </div>
+
+
+          <section class="inquiry-entry" aria-label="采购需求登记">
+            <a class="inquiry-entry-card" href="inquiry/">
+              <span class="inquiry-entry-copy">
+                <strong>采购需求登记</strong>
+                <span>告诉我们你想买什么，我们帮你匹配义乌货源与报价。</span>
+              </span>
+              <span class="inquiry-entry-button">填写需求 <span aria-hidden="true">↗</span></span>
+            </a>
           </section>
 
           <div class="team-grid">
@@ -433,63 +386,6 @@
           });
         }
 
-        document.querySelectorAll(".js-inquiry-form").forEach(function (form) {
-          var status = form.querySelector(".inquiry-status");
-          var getValue = function (name) {
-            var field = form.elements[name];
-            return field ? String(field.value || "").trim() : "";
-          };
-          var buildMessage = function () {
-            var labels = Array.prototype.slice.call(form.querySelectorAll(".field")).map(function (field) {
-              var label = field.querySelector("span");
-              var control = field.querySelector("input, select, textarea");
-              return control && label ? [control.name, label.textContent.trim()] : null;
-            }).filter(Boolean);
-            var lines = ["Jabbar SourcingTeam - Sourcing Request"];
-            labels.forEach(function (item) {
-              var value = getValue(item[0]);
-              if (value) lines.push(item[1] + ": " + value);
-            });
-            lines.push("Page: " + window.location.href.split("#")[0]);
-            return lines.join("\n");
-          };
-          var setStatus = function (message) {
-            if (status) status.textContent = message || "";
-          };
-          form.querySelectorAll(".js-inquiry-send").forEach(function (button) {
-            button.addEventListener("click", function () {
-              var product = getValue("product");
-              var contact = getValue("contact");
-              if (!product || !contact) {
-                setStatus(form.getAttribute("data-required-message"));
-                return;
-              }
-              var message = buildMessage();
-              var channel = button.getAttribute("data-channel");
-              if (channel === "whatsapp") {
-                window.location.href = "https://api.whatsapp.com/send?phone=8618658925544&text=" + encodeURIComponent(message);
-                return;
-              }
-              if (channel === "gmail") {
-                window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=qianjiabao1999@gmail.com&su=" + encodeURIComponent("Jabbar SourcingTeam inquiry") + "&body=" + encodeURIComponent(message);
-                return;
-              }
-              if (channel === "wechat") {
-                var copied = function () {
-                  setStatus(form.getAttribute("data-copied-message"));
-                  window.setTimeout(function () { window.location.href = "weixin://"; }, 250);
-                };
-                if (navigator.clipboard && window.isSecureContext) {
-                  navigator.clipboard.writeText(message).then(copied).catch(function () {
-                    setStatus(form.getAttribute("data-copy-fail-message"));
-                  });
-                } else {
-                  setStatus(form.getAttribute("data-copy-fail-message"));
-                }
-              }
-            });
-          });
-        });
 
 
         document.querySelectorAll(".language-options a").forEach(function (link) {
