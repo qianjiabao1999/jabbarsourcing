@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Get a free quote from Jabbar Sourcing for China sourcing, Yiwu wholesale products, supplier matching, warehousing, and shipping support." />
+    <meta name="description" content="向 Jabbar Sourcing 提交采购需求，获取义乌货源匹配、批发报价、仓储和发货支持。" />
     <meta name="theme-color" content="#ffffff" />
-    <meta property="og:title" content="Get a Free Quote | Jabbar Sourcing" />
-    <meta property="og:description" content="Send your sourcing request and get matched with Yiwu suppliers and wholesale pricing." />
+    <meta property="og:title" content="免费采购报价 | Jabbar Sourcing" />
+    <meta property="og:description" content="提交采购需求，我们帮你匹配义乌供应商和批发报价。" />
     <meta property="og:image" content="https://www.jabbarsourcing.com/assets/grace-from-yiwu.jpg" />
     <meta property="og:url" content="https://www.jabbarsourcing.com/inquiry/" />
     <meta property="og:type" content="website" />
-    <title>Get a Free Quote | Jabbar Sourcing</title>
+    <title>免费采购报价 | Jabbar Sourcing</title>
     <link rel="canonical" href="https://www.jabbarsourcing.com/inquiry/" />
     <link rel="icon" href="../assets/favicon.svg?v=jabbar-1" type="image/svg+xml" sizes="any" />
     <link rel="stylesheet" href="../styles.min.css?v=apple-45" />
@@ -93,7 +93,7 @@
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
-                <span class="inquiry-eyebrow">Sourcing Request</span>
+                <span class="inquiry-eyebrow">采购需求</span>
                 <h2 id="inquiry-title">告诉我们你想采购什么</h2>
                 <p>填写产品、数量和联系方式，我们会根据你的需求匹配义乌货源、报价与采购方案。</p>
               </div>
@@ -175,12 +175,12 @@
               var control = field.querySelector("input, select, textarea");
               return control && label ? [control.name, label.textContent.trim()] : null;
             }).filter(Boolean);
-            var lines = ["Jabbar Sourcing Team - Sourcing Request"];
+            var lines = ["Jabbar Sourcing Team - 采购需求"];
             labels.forEach(function (item) {
               var value = getValue(item[0]);
               if (value) lines.push(item[1] + ": " + value);
             });
-            lines.push("Page: " + window.location.href.split("#")[0]);
+            lines.push("页面: " + window.location.href.split("#")[0]);
             return lines.join("\n");
           };
           var setStatus = function (message) { if (status) status.textContent = message || ""; };
