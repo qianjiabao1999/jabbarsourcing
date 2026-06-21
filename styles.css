@@ -488,8 +488,8 @@ a { color: inherit; text-decoration: none; }
 }
 .contact-actions .contact-whatsapp { order: 1; }
 .contact-actions .contact-gmail { order: 2; }
-.contact-actions .contact-wechat { order: 3; }
-.contact-actions .contact-telegram { order: 4; }
+.contact-actions .contact-telegram { order: 3; }
+.contact-actions .contact-wechat { order: 4; }
 .contact-whatsapp {
   --contact-rgb: 37, 211, 102;
   --contact-accent: #25d366;
