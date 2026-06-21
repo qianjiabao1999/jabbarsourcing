@@ -672,13 +672,6 @@ a { color: inherit; text-decoration: none; }
   border-radius: 7px;
   filter: drop-shadow(0 4px 8px rgba(var(--sticky-rgb), 0.24));
 }
-.sticky-contact-wechat {
-  --sticky-rgb: 7, 193, 96;
-}
-.sticky-contact-gmail {
-  --sticky-rgb: 234, 67, 53;
-}
-
 .team-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 22px; }
 .team-card {
   --spot-x: 50%;
