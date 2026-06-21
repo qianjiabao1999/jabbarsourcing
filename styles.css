@@ -45,18 +45,17 @@ button, input, textarea { font: inherit; }
 .button-primary { background: var(--amber); color: #102a24; }
 .text-link { padding: 11px 0 7px; border-bottom: 1px solid rgba(255,255,255,.42); }
 .text-link span { margin-left: 12px; color: var(--amber); }
-.hero-tiktok { position: absolute; top: 52%; right: 0; width: 318px; padding: 14px; display: grid; grid-template-columns: 58px 1fr 24px; align-items: center; gap: 12px; color: white; background: rgba(10,14,13,.86); border: 1px solid rgba(255,255,255,.2); border-radius: 15px; box-shadow: 0 22px 65px rgba(0,0,0,.3); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); transition: transform .25s, background .25s; }
-.hero-tiktok:hover { transform: translateY(-5px); background: rgba(10,14,13,.95); }
+.hero-tiktok { position: absolute; top: 52%; right: 0; width: 318px; padding: 10px 15px 10px 10px; display: grid; grid-template-columns: 58px 1fr 24px; align-items: center; gap: 12px; color: var(--ink); background: rgba(255,255,255,.96); border: 1px solid rgba(255,255,255,.72); border-radius: 999px; box-shadow: 0 22px 65px rgba(0,0,0,.24); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); transition: transform .25s, background .25s, box-shadow .25s; }
+.hero-tiktok:hover { transform: translateY(-5px); background: white; box-shadow: 0 27px 75px rgba(0,0,0,.28); }
 .hero-tiktok-avatar-wrap { position: relative; width: 58px; height: 58px; }
-.hero-tiktok-avatar { width: 58px; height: 58px; display: block; object-fit: cover; border: 2px solid white; border-radius: 50%; }
-.hero-tiktok-plus { position: absolute; left: 50%; bottom: -5px; width: 18px; height: 18px; display: grid; place-items: center; transform: translateX(-50%); border: 2px solid #111; border-radius: 50%; background: #fe2c55; color: white; font-size: 14px; font-weight: 700; line-height: 1; }
+.hero-tiktok-avatar { width: 58px; height: 58px; display: block; object-fit: cover; border: 2px solid #f0eee9; border-radius: 50%; }
 .hero-tiktok-copy { min-width: 0; display: grid; gap: 2px; }
 .hero-tiktok-topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .hero-tiktok-topline strong { overflow: hidden; font-size: 14px; white-space: nowrap; text-overflow: ellipsis; }
-.hero-tiktok-topline svg { flex: 0 0 auto; width: 18px; fill: white; filter: drop-shadow(-1px 0 #25f4ee) drop-shadow(1px 0 #fe2c55); }
-.hero-tiktok-handle { color: rgba(255,255,255,.62); font-size: 11px; }
-.hero-tiktok-bio { overflow: hidden; margin-top: 3px; color: rgba(255,255,255,.83); font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
-.hero-tiktok-arrow { color: #25f4ee; font-size: 17px; }
+.hero-tiktok-topline svg { flex: 0 0 auto; width: 18px; fill: #111; filter: drop-shadow(-1px 0 #25f4ee) drop-shadow(1px 0 #fe2c55); }
+.hero-tiktok-handle { color: #7a817e; font-size: 11px; }
+.hero-tiktok-bio { overflow: hidden; margin-top: 3px; color: #505955; font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
+.hero-tiktok-arrow { color: #fe2c55; font-size: 17px; }
 .hero-proof { position: absolute; left: 24px; bottom: -175px; display: flex; gap: 0; }
 .hero-proof div { display: grid; min-width: 178px; padding: 0 28px; border-left: 1px solid rgba(255,255,255,.22); }
 .hero-proof div:first-child { padding-left: 0; border-left: 0; }
