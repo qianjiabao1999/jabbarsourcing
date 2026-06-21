@@ -308,13 +308,17 @@ a { color: inherit; text-decoration: none; }
   z-index: 1;
 }
 .contact-link svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
 }
-.contact-whatsapp { color: #128c4a; }
-.contact-gmail { color: #c5221f; }
+.contact-link .brand-icon {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+}
+.contact-whatsapp,
+.contact-gmail {
+  color: #1d1d1f;
+}
 
 .team-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 22px; }
 .team-card {
@@ -647,7 +651,7 @@ a { color: inherit; text-decoration: none; }
   .team-heading p { max-width: 340px; font-size: 12px; line-height: 1.55; }
   .contact-actions { gap: 8px; margin-top: 16px; }
   .contact-link { min-height: 36px; padding: 0 12px; font-size: 12px; }
-  .contact-link svg { width: 17px; height: 17px; }
+  .contact-link svg { width: 19px; height: 19px; }
   .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .team-card:last-child:nth-child(odd) { width: calc((100% - 10px) / 2); }
   .team-card { min-height: 0; border-radius: 22px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.07); }
