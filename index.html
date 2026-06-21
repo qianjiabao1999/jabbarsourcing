@@ -10,7 +10,7 @@
       name="description"
       content="Meet the JabbarSourcing team on the ground in China."
     />
-    <meta name="theme-color" content="#edf0e9" />
+    <meta name="theme-color" content="#ffffff" />
     <meta property="og:title" content="JabbarSourcing Team" />
     <meta
       property="og:description"
@@ -25,7 +25,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@500;600;700&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=team-7" />
+    <link rel="stylesheet" href="styles.css?v=apple-2" />
   </head>
   <body>
     <main>
@@ -251,6 +251,27 @@
     <script>
       (function () {
         var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (!isMobile && !window.matchMedia("(pointer: coarse)").matches) {
+          document.querySelectorAll(".team-card").forEach(function (card) {
+            card.addEventListener("pointermove", function (event) {
+              var rect = card.getBoundingClientRect();
+              var x = event.clientX - rect.left;
+              var y = event.clientY - rect.top;
+              var rotateX = ((y / rect.height) - 0.5) * -4;
+              var rotateY = ((x / rect.width) - 0.5) * 4;
+              card.style.setProperty("--spot-x", x + "px");
+              card.style.setProperty("--spot-y", y + "px");
+              card.style.setProperty("--tilt-x", rotateX + "deg");
+              card.style.setProperty("--tilt-y", rotateY + "deg");
+            });
+
+            card.addEventListener("pointerleave", function () {
+              card.style.removeProperty("--tilt-x");
+              card.style.removeProperty("--tilt-y");
+            });
+          });
+        }
+
         if (!isMobile) return;
 
         document.querySelectorAll(".js-app-link").forEach(function (link) {
