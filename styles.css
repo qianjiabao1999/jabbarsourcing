@@ -363,12 +363,12 @@ a { color: inherit; text-decoration: none; }
   z-index: 1;
 }
 .contact-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
   gap: 12px;
-  max-width: 940px;
+  max-width: 900px;
   margin: 22px auto 0;
 }
 .contact-link {
@@ -381,8 +381,9 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: center;
   gap: 10px;
+  width: 100%;
   min-height: 54px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   overflow: hidden;
   color: #1d1d1f;
   background:
@@ -1111,14 +1112,15 @@ html.gallery-ready .gallery-track {
   position: relative;
   isolation: isolate;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  justify-content: center;
+  gap: 12px;
   overflow: hidden;
   width: min(100%, 760px);
-  min-height: 86px;
+  min-height: 118px;
   margin: 0 auto;
-  padding: 18px 20px 18px 24px;
+  padding: 22px 24px;
   color: #1d1d1f;
   background:
     radial-gradient(95% 135% at 12% 0%, rgba(255, 255, 255, 0.98), transparent 44%),
@@ -1208,7 +1210,7 @@ html.gallery-ready .gallery-track {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  max-width: min(260px, 42%);
+  max-width: min(260px, 100%);
   min-height: 44px;
   padding: 0 18px;
   color: #fff;
@@ -1761,7 +1763,14 @@ html.gallery-ready .gallery-track {
     font-size: 10.5px;
     line-height: 1.3;
   }
-  .contact-actions { gap: 8px; max-width: 360px; margin-top: 16px; }
+  .contact-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 360px;
+    margin-top: 16px;
+  }
+  .contact-link { width: auto; }
   .contact-link { min-height: 46px; padding: 7px 11px; gap: 8px; font-size: 12px; }
   .contact-link svg,
   .contact-link .brand-icon { width: 19px; height: 19px; }
