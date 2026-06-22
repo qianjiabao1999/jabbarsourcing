@@ -9,11 +9,11 @@
   --shadow: 0 18px 55px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 28px 80px rgba(0, 0, 0, 0.13);
   --glass-rgb: 10, 132, 255;
-  --glass-tint: 0.16;
-  --glass-fill: 0.28;
-  --glass-edge: 0.26;
+  --glass-tint: 0.1;
+  --glass-fill: 0.14;
+  --glass-edge: 0.18;
   --glass-ink: #1d1d1f;
-  --glass-shadow: 0.12;
+  --glass-shadow: 0.09;
   --font-latin: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   --font-cjk: "PingFang SC", "Hiragino Sans GB", "HarmonyOS Sans SC", "HarmonyOS Sans", "MiSans", "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", var(--font-latin);
   --font-japanese: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", var(--font-latin);
@@ -899,9 +899,9 @@ a { color: inherit; text-decoration: none; }
   position: relative;
   z-index: 3;
   overflow: visible;
-  width: clamp(70px, 35%, 88px);
+  width: clamp(76px, 38%, 96px);
   aspect-ratio: 1 / 1;
-  margin: 13px auto 29px;
+  margin: 13px auto 31px;
   background:
     radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.98), transparent 38%),
     var(--soft);
@@ -2053,31 +2053,31 @@ html.gallery-ready .gallery-track {
   overflow: hidden;
   color: var(--glass-ink, #1d1d1f);
   background:
-    radial-gradient(125% 170% at 14% 0%, rgba(255, 255, 255, 0.98), transparent 38%),
-    radial-gradient(96% 132% at 92% 100%, rgba(var(--glass-rgb-active), var(--glass-tint, 0.2)), transparent 58%),
-    radial-gradient(70% 120% at 0% 100%, rgba(255, 255, 255, 0.38), transparent 58%),
-    linear-gradient(140deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.18) 46%, rgba(255, 255, 255, 0.5)),
-    rgba(255, 255, 255, var(--glass-fill, 0.28));
-  border-color: rgba(var(--glass-rgb-active), var(--glass-edge, 0.26));
-  outline: 1px solid rgba(255, 255, 255, 0.58);
+    radial-gradient(125% 170% at 14% 0%, rgba(255, 255, 255, 0.78), transparent 38%),
+    radial-gradient(96% 132% at 92% 100%, rgba(var(--glass-rgb-active), var(--glass-tint, 0.13)), transparent 58%),
+    radial-gradient(70% 120% at 0% 100%, rgba(255, 255, 255, 0.2), transparent 58%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.08) 46%, rgba(255, 255, 255, 0.26)),
+    rgba(255, 255, 255, var(--glass-fill, 0.14));
+  border-color: rgba(var(--glass-rgb-active), var(--glass-edge, 0.18));
+  outline: 1px solid rgba(255, 255, 255, 0.38);
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.98),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.08),
-    inset 1px 0 1px rgba(255, 255, 255, 0.55),
-    inset -1px 0 1px rgba(0, 0, 0, 0.04),
-    0 12px 30px rgba(0, 0, 0, var(--glass-shadow, 0.12)),
-    0 10px 24px rgba(var(--glass-rgb-active), 0.12);
-  backdrop-filter: blur(34px) saturate(1.95) contrast(1.08) brightness(1.04);
-  -webkit-backdrop-filter: blur(34px) saturate(1.95) contrast(1.08) brightness(1.04);
+    inset 0 1px 1px rgba(255, 255, 255, 0.78),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.06),
+    inset 1px 0 1px rgba(255, 255, 255, 0.32),
+    inset -1px 0 1px rgba(0, 0, 0, 0.025),
+    0 10px 26px rgba(0, 0, 0, var(--glass-shadow, 0.09)),
+    0 8px 20px rgba(var(--glass-rgb-active), 0.08);
+  backdrop-filter: blur(38px) saturate(2.05) contrast(1.08) brightness(1.05);
+  -webkit-backdrop-filter: blur(38px) saturate(2.05) contrast(1.08) brightness(1.05);
 }
 
 .language-switch,
 .language-options {
   --glass-rgb: 142, 142, 147;
-  --glass-tint: 0.1;
-  --glass-fill: 0.34;
-  --glass-edge: 0.14;
-  --glass-shadow: 0.1;
+  --glass-tint: 0.06;
+  --glass-fill: 0.2;
+  --glass-edge: 0.1;
+  --glass-shadow: 0.08;
 }
 .language-switch {
   position: absolute;
@@ -2090,37 +2090,37 @@ html.gallery-ready .gallery-track {
 .company-point span,
 .inquiry-button {
   --glass-rgb: 10, 132, 255;
-  --glass-tint: 0.14;
-  --glass-edge: 0.22;
-  --glass-shadow: 0.1;
+  --glass-tint: 0.09;
+  --glass-edge: 0.15;
+  --glass-shadow: 0.08;
 }
 .contact-link {
   --glass-rgb: var(--contact-rgb);
-  --glass-tint: 0.17;
-  --glass-edge: 0.22;
-  --glass-shadow: 0.12;
+  --glass-tint: 0.1;
+  --glass-edge: 0.16;
+  --glass-shadow: 0.09;
 }
 .sticky-contact {
   --glass-rgb: var(--sticky-rgb);
-  --glass-tint: 0.18;
-  --glass-fill: 0.34;
-  --glass-edge: 0.2;
-  --glass-shadow: 0.15;
+  --glass-tint: 0.11;
+  --glass-fill: 0.2;
+  --glass-edge: 0.15;
+  --glass-shadow: 0.1;
 }
 .team-platform {
   --glass-rgb: var(--platform-rgb);
   --glass-ink: var(--platform-accent);
-  --glass-tint: 0.2;
-  --glass-fill: 0.26;
-  --glass-edge: 0.25;
-  --glass-shadow: 0.12;
+  --glass-tint: 0.12;
+  --glass-fill: 0.16;
+  --glass-edge: 0.17;
+  --glass-shadow: 0.08;
 }
 .team-link {
   --glass-rgb: 142, 142, 147;
-  --glass-tint: 0.08;
-  --glass-fill: 0.24;
-  --glass-edge: 0.12;
-  --glass-shadow: 0.1;
+  --glass-tint: 0.05;
+  --glass-fill: 0.14;
+  --glass-edge: 0.09;
+  --glass-shadow: 0.07;
 }
 .inquiry-entry-button,
 .inquiry-back,
@@ -2128,43 +2128,43 @@ html.gallery-ready .gallery-track {
 .inquiry-button-primary {
   --glass-rgb: 10, 132, 255;
   --glass-ink: #fff;
-  --glass-tint: 0.28;
-  --glass-fill: 0.34;
-  --glass-edge: 0.34;
-  --glass-shadow: 0.16;
+  --glass-tint: 0.18;
+  --glass-fill: 0.22;
+  --glass-edge: 0.24;
+  --glass-shadow: 0.11;
 }
 .inquiry-entry-card-cta .inquiry-entry-button {
   --glass-rgb: 255, 122, 0;
   --glass-ink: #fff;
-  --glass-tint: 0.3;
-  --glass-fill: 0.34;
-  --glass-edge: 0.36;
-  --glass-shadow: 0.18;
+  --glass-tint: 0.2;
+  --glass-fill: 0.22;
+  --glass-edge: 0.25;
+  --glass-shadow: 0.12;
 }
 .testimonials .section-heading,
 .testimonial-rating,
 .testimonial-rating::after {
   --glass-rgb: 255, 149, 0;
-  --glass-tint: 0.2;
-  --glass-edge: 0.24;
-  --glass-shadow: 0.11;
+  --glass-tint: 0.12;
+  --glass-edge: 0.16;
+  --glass-shadow: 0.08;
 }
 .testimonial-rating {
   --glass-ink: #ffb000;
 }
 .testimonial-rating::after {
   --glass-ink: #8a4b00;
-  --glass-fill: 0.46;
+  --glass-fill: 0.2;
 }
 .company-intro .section-eyebrow {
   --glass-rgb: 10, 132, 255;
   --glass-ink: #0a4c96;
   background:
-    radial-gradient(125% 170% at 14% 0%, rgba(255, 255, 255, 0.98), transparent 38%),
-    radial-gradient(96% 132% at 92% 100%, rgba(10, 132, 255, 0.2), transparent 58%),
-    radial-gradient(70% 120% at 0% 100%, rgba(255, 255, 255, 0.38), transparent 58%),
-    linear-gradient(140deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.18) 46%, rgba(255, 255, 255, 0.5)),
-    rgba(255, 255, 255, 0.28);
+    radial-gradient(125% 170% at 14% 0%, rgba(255, 255, 255, 0.78), transparent 38%),
+    radial-gradient(96% 132% at 92% 100%, rgba(10, 132, 255, 0.12), transparent 58%),
+    radial-gradient(70% 120% at 0% 100%, rgba(255, 255, 255, 0.2), transparent 58%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.08) 46%, rgba(255, 255, 255, 0.26)),
+    rgba(255, 255, 255, 0.14);
 }
 .testimonials .section-eyebrow {
   color: #c2410c;
@@ -2408,8 +2408,8 @@ html.gallery-ready .gallery-track {
   .team-card:hover { transform: none; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.055); }
   .team-card::after { display: none; }
   .team-card-media {
-    width: clamp(48px, 39%, 62px);
-    margin: 9px auto 23px;
+    width: clamp(52px, 42%, 68px);
+    margin: 9px auto 25px;
     border-radius: 50%;
   }
   .team-card:hover .team-card-media img { transform: none; }
