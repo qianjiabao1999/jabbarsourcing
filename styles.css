@@ -794,20 +794,20 @@ a { color: inherit; text-decoration: none; }
   width: 100%;
   margin: 0 auto;
 }
-.social-platform-group-douyin .team-grid,
 .social-platform-group-xhs .team-grid {
   grid-template-columns: minmax(0, 270px);
   max-width: 270px;
   justify-content: center;
 }
-.social-platform-group-tiktok .team-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-width: 805px;
-}
+.social-platform-group-douyin .team-grid,
 .social-platform-group-instagram .team-grid {
   grid-template-columns: repeat(2, minmax(0, 270px));
   max-width: 562px;
   justify-content: center;
+}
+.social-platform-group-tiktok .team-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 805px;
 }
 .team-card {
   --spot-x: 50%;
@@ -1891,11 +1891,11 @@ html.gallery-ready .gallery-track {
   .social-platform-group-instagram {
     grid-column: auto;
   }
-  .social-platform-group-douyin .team-grid,
   .social-platform-group-xhs .team-grid {
     grid-template-columns: minmax(0, calc((100% - 22px) / 2));
     max-width: 560px;
   }
+  .social-platform-group-douyin .team-grid,
   .social-platform-group-tiktok .team-grid,
   .social-platform-group-instagram .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2027,11 +2027,11 @@ html.gallery-ready .gallery-track {
     height: 12px;
   }
   .social-platform-symbol-text { font-size: 6px; }
-  .social-platform-group-douyin .team-grid,
   .social-platform-group-xhs .team-grid {
     grid-template-columns: minmax(0, calc((100% - 10px) / 2));
     max-width: 360px;
   }
+  .social-platform-group-douyin .team-grid,
   .social-platform-group-tiktok .team-grid,
   .social-platform-group-instagram .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
