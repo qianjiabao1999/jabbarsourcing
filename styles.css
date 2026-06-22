@@ -8,6 +8,12 @@
   --line: rgba(0, 0, 0, 0.08);
   --shadow: 0 18px 55px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 28px 80px rgba(0, 0, 0, 0.13);
+  --glass-rgb: 10, 132, 255;
+  --glass-tint: 0.16;
+  --glass-fill: 0.28;
+  --glass-edge: 0.26;
+  --glass-ink: #1d1d1f;
+  --glass-shadow: 0.12;
   --font-latin: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   --font-cjk: "PingFang SC", "Hiragino Sans GB", "HarmonyOS Sans SC", "HarmonyOS Sans", "MiSans", "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", var(--font-latin);
   --font-japanese: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", var(--font-latin);
@@ -57,7 +63,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 a { color: inherit; text-decoration: none; }
-.container { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+.container { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
 .sr-only {
   position: absolute;
   width: 1px;
@@ -255,8 +261,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 .team-heading {
-  max-width: min(100%, 980px);
-  margin: 38px auto 60px;
+  max-width: min(100%, 1040px);
+  margin: 42px auto 58px;
   padding: 0 8px;
   text-align: center;
   opacity: 0;
@@ -368,7 +374,7 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
   align-items: center;
   gap: 12px;
-  max-width: 900px;
+  max-width: 960px;
   margin: 22px auto 0;
 }
 .contact-link {
@@ -697,20 +703,20 @@ a { color: inherit; text-decoration: none; }
 .team-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22px;
-  max-width: 1080px;
+  gap: 18px;
+  max-width: 930px;
   margin: 0 auto;
 }
 .social-platform-groups {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 34px 28px;
-  max-width: 1080px;
+  gap: 30px 22px;
+  max-width: 930px;
   margin: 0 auto;
 }
 .social-platform-group {
   display: grid;
-  gap: 15px;
+  gap: 13px;
 }
 .social-platform-group-tiktok,
 .social-platform-group-instagram {
@@ -795,19 +801,19 @@ a { color: inherit; text-decoration: none; }
   margin: 0 auto;
 }
 .social-platform-group-xhs .team-grid {
-  grid-template-columns: minmax(0, 270px);
-  max-width: 270px;
+  grid-template-columns: minmax(0, 220px);
+  max-width: 220px;
   justify-content: center;
 }
 .social-platform-group-douyin .team-grid,
 .social-platform-group-instagram .team-grid {
-  grid-template-columns: repeat(2, minmax(0, 270px));
-  max-width: 562px;
+  grid-template-columns: repeat(2, minmax(0, 220px));
+  max-width: 458px;
   justify-content: center;
 }
 .social-platform-group-tiktok .team-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-width: 805px;
+  max-width: 696px;
 }
 .team-card {
   --spot-x: 50%;
@@ -819,12 +825,14 @@ a { color: inherit; text-decoration: none; }
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 28px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(24px) saturate(1.25);
-  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+  background:
+    radial-gradient(100% 130% at 24% 0%, rgba(255, 255, 255, 0.8), transparent 44%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(248, 250, 253, 0.24));
+  border: 1px solid rgba(0, 0, 0, 0.055);
+  border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.055);
+  backdrop-filter: blur(18px) saturate(1.16);
+  -webkit-backdrop-filter: blur(18px) saturate(1.16);
   opacity: 0;
   transform: translateY(22px) scale(0.985);
   isolation: isolate;
@@ -851,8 +859,8 @@ a { color: inherit; text-decoration: none; }
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.88), transparent 36%),
-    radial-gradient(circle at 80% 0%, rgba(0, 113, 227, 0.08), transparent 32%);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.74), transparent 36%),
+    radial-gradient(circle at 80% 0%, rgba(0, 113, 227, 0.065), transparent 32%);
   opacity: 0;
   transition: opacity 0.38s ease;
   z-index: 1;
@@ -879,9 +887,11 @@ a { color: inherit; text-decoration: none; }
 }
 .team-card:hover {
   transform: perspective(1000px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-10px) scale(1.012);
-  background: #fff;
+  background:
+    radial-gradient(100% 130% at 24% 0%, rgba(255, 255, 255, 0.9), transparent 44%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.62), rgba(248, 250, 253, 0.32));
   border-color: rgba(0, 113, 227, 0.16);
-  box-shadow: var(--shadow-hover);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.085);
 }
 .team-card:hover::before { opacity: 1; }
 .team-card:hover::after { opacity: 0.82; }
@@ -889,9 +899,9 @@ a { color: inherit; text-decoration: none; }
   position: relative;
   z-index: 3;
   overflow: visible;
-  width: clamp(92px, 42%, 122px);
+  width: clamp(70px, 35%, 88px);
   aspect-ratio: 1 / 1;
-  margin: 24px auto 8px;
+  margin: 13px auto 29px;
   background:
     radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.98), transparent 38%),
     var(--soft);
@@ -899,7 +909,7 @@ a { color: inherit; text-decoration: none; }
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.92),
     inset 0 -1px 1px rgba(0, 0, 0, 0.08),
-    0 14px 34px rgba(0, 0, 0, 0.11);
+    0 10px 24px rgba(0, 0, 0, 0.1);
 }
 .team-card-media img {
   width: 100%;
@@ -911,96 +921,140 @@ a { color: inherit; text-decoration: none; }
 }
 .team-card:hover .team-card-media img { transform: scale(1.045); filter: saturate(1.04) contrast(1.02); }
 .team-platform {
+  --platform-rgb: 37, 244, 238;
+  --platform-accent: #1d1d1f;
   position: absolute;
-  right: -16px;
-  bottom: 4px;
+  left: 50%;
+  top: calc(100% + 7px);
   width: auto;
-  min-width: 34px;
-  height: 34px;
+  min-width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 0 12px;
-  color: white;
-  background: #111;
+  gap: 5px;
+  padding: 0 8px;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--platform-accent);
+  background:
+    radial-gradient(110% 140% at 16% 0%, rgba(255, 255, 255, 0.96), transparent 42%),
+    radial-gradient(90% 120% at 88% 100%, rgba(var(--platform-rgb), 0.18), transparent 52%),
+    radial-gradient(70% 120% at 0% 100%, rgba(var(--platform-rgb), 0.08), transparent 58%),
+    linear-gradient(142deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.18) 48%, rgba(255, 255, 255, 0.44)),
+    rgba(255, 255, 255, 0.24);
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.48);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
-  transition: transform 0.35s var(--motion);
+  border: 1px solid rgba(var(--platform-rgb), 0.22);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.94),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.08),
+    0 9px 20px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(var(--platform-rgb), 0.14);
+  backdrop-filter: blur(22px) saturate(1.65) contrast(1.04);
+  -webkit-backdrop-filter: blur(22px) saturate(1.65) contrast(1.04);
+  transform: translateX(-50%);
+  transition: transform 0.35s var(--motion), box-shadow 0.35s, background 0.35s;
 }
-.team-card:hover .team-platform { transform: scale(1.08); }
+.team-platform::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(90% 120% at 18% 0%, rgba(255, 255, 255, 0.96), transparent 38%),
+    linear-gradient(110deg, rgba(255, 255, 255, 0.12), transparent 36%, rgba(255, 255, 255, 0.44) 48%, transparent 58%);
+  opacity: 0.7;
+}
+.team-card:hover .team-platform { transform: translateX(-50%) scale(1.08); }
 .team-platform svg {
-  width: 18px;
+  position: relative;
+  z-index: 1;
+  width: 15px;
   flex: 0 0 auto;
   fill: currentColor;
   filter: drop-shadow(-1px 0 #25f4ee) drop-shadow(1px 0 #fe2c55);
 }
 .platform-name {
-  font-size: 10px;
+  position: relative;
+  z-index: 1;
+  color: var(--platform-accent);
+  font-size: 8.5px;
   font-weight: 800;
   letter-spacing: -0.01em;
   line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.62);
 }
 .platform-icon-text {
+  position: relative;
+  z-index: 1;
   display: inline-grid;
   place-items: center;
-  min-width: 27px;
-  height: 22px;
-  padding: 0 5px;
+  min-width: 23px;
+  height: 18px;
+  padding: 0 4px;
   color: #ff2442;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(255, 36, 66, 0.16);
   border-radius: 8px;
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 1;
 }
+.team-platform-douyin,
+.social-platform-group-tiktok .team-platform {
+  --platform-rgb: 37, 244, 238;
+  --platform-accent: #1d1d1f;
+}
 .team-platform-xhs {
-  background: #ff2442;
+  --platform-rgb: 255, 36, 66;
+  --platform-accent: #ff2442;
 }
 .team-platform-instagram {
-  min-width: 104px;
-  height: 36px;
-  gap: 7px;
-  padding: 0 13px 0 9px;
-  color: #fff;
+  --platform-rgb: 193, 53, 132;
+  --platform-accent: #2b2b30;
+  min-width: 82px;
+  height: 28px;
+  gap: 5px;
+  padding: 0 9px 0 7px;
   background:
-    radial-gradient(circle at 28% 22%, #feda75 0 18%, transparent 34%),
-    radial-gradient(circle at 18% 86%, #fa7e1e 0 22%, transparent 42%),
-    radial-gradient(circle at 82% 88%, #4f5bd5 0 18%, transparent 38%),
-    linear-gradient(135deg, #feda75 0%, #fa7e1e 22%, #d62976 48%, #962fbf 72%, #4f5bd5 100%);
-  border-color: rgba(255, 255, 255, 0.58);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.38),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.16),
-    0 14px 30px rgba(193, 53, 132, 0.24),
-    0 10px 24px rgba(0, 0, 0, 0.18);
+    radial-gradient(110% 140% at 16% 0%, rgba(255, 255, 255, 0.96), transparent 42%),
+    radial-gradient(90% 120% at 88% 100%, rgba(193, 53, 132, 0.16), transparent 52%),
+    radial-gradient(60% 120% at 0% 100%, rgba(250, 126, 30, 0.09), transparent 58%),
+    linear-gradient(142deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.18) 48%, rgba(255, 255, 255, 0.44)),
+    rgba(255, 255, 255, 0.24);
 }
 .team-platform-instagram svg {
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   color: #fff;
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 6px;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.95) 0 8%, transparent 18%),
+    radial-gradient(circle at 24% 82%, #f7a84f 0 20%, transparent 44%),
+    radial-gradient(circle at 84% 84%, #5b67d9 0 18%, transparent 40%),
+    linear-gradient(135deg, #f9d66b 0%, #f47b39 23%, #d9457f 50%, #9f4bc2 74%, #5868d8 100%);
+  border-radius: 5px;
   fill: none;
   stroke: #fff;
-  stroke-width: 1.8;
+  stroke-width: 1.65;
   stroke-linecap: round;
   stroke-linejoin: round;
   filter: none;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-    0 3px 8px rgba(193, 53, 132, 0.28);
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.16),
+    0 2px 5px rgba(193, 53, 132, 0.22);
 }
 .team-platform-instagram .platform-name {
-  color: #fff;
+  color: #2b2b30;
   font-weight: 850;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.56);
 }
 .team-card-body {
   position: relative;
   z-index: 3;
-  padding: 13px 16px 20px;
+  padding: 6px 10px 11px;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -1009,13 +1063,13 @@ a { color: inherit; text-decoration: none; }
 }
 .team-role {
   display: flex;
-  min-height: 28px;
+  min-height: 19px;
   width: 100%;
   align-items: center;
   justify-content: center;
   text-align: center;
   color: #0a84ff;
-  font-size: clamp(12px, 0.82vw, 14px);
+  font-size: clamp(10px, 0.72vw, 11.6px);
   font-weight: 850;
   letter-spacing: 0.015em;
   line-height: 1.22;
@@ -1025,9 +1079,9 @@ a { color: inherit; text-decoration: none; }
 }
 .team-card-body > strong {
   width: 100%;
-  margin: 8px 0 2px;
+  margin: 3px 0 0;
   font-family: var(--display);
-  font-size: clamp(18px, 1.55vw, 22px);
+  font-size: clamp(15px, 1.16vw, 17px);
   line-height: 1.18;
   letter-spacing: -0.035em;
   text-align: center;
@@ -1070,15 +1124,15 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -0.015em;
   text-transform: lowercase;
 }
-.team-handle { width: 100%; color: #86868b; font-size: 12px; text-align: center; overflow-wrap: anywhere; }
+.team-handle { width: 100%; color: #86868b; font-size: 10px; text-align: center; overflow-wrap: anywhere; }
 .team-bio {
   display: -webkit-box;
   width: 100%;
-  margin: 11px auto 16px;
+  margin: 5px auto 8px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 10px;
+  line-height: 1.35;
   text-align: center;
   text-wrap: balance;
   overflow-wrap: anywhere;
@@ -1096,9 +1150,9 @@ a { color: inherit; text-decoration: none; }
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  min-height: 32px;
-  padding: 6px 12px;
+  gap: 7px;
+  min-height: 26px;
+  padding: 3px 9px;
   overflow: hidden;
   isolation: isolate;
   color: rgba(29, 29, 31, 0.9);
@@ -1117,7 +1171,7 @@ a { color: inherit; text-decoration: none; }
     0 2px 7px rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(28px) saturate(1.9) contrast(1.08) brightness(1.08);
   -webkit-backdrop-filter: blur(28px) saturate(1.9) contrast(1.08) brightness(1.08);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   line-height: 1.18;
   text-align: center;
@@ -1171,10 +1225,16 @@ a { color: inherit; text-decoration: none; }
 }
 .team-link > span { color: currentColor; }
 .team-link-label {
+  display: block;
+  flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .team-link > span[aria-hidden="true"] {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
 }
 
@@ -1491,11 +1551,138 @@ html.gallery-ready .gallery-track {
   line-height: 1.08;
   letter-spacing: 0;
 }
+.company-intro {
+  margin: 50px auto 58px;
+}
+.company-intro .section-heading {
+  margin-bottom: 24px;
+}
+.company-intro .section-eyebrow {
+  color: #0a4c96;
+  background: rgba(10, 132, 255, 0.1);
+  border-color: rgba(10, 132, 255, 0.16);
+}
+.company-intro .section-heading h2 {
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(94deg, #111113 0%, #31415a 42%, #0a84ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.company-intro-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+  gap: 18px;
+  max-width: 1040px;
+  margin: 0 auto;
+  align-items: stretch;
+}
+.company-story,
+.company-point {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(110% 145% at 14% 0%, rgba(255, 255, 255, 0.98), transparent 42%),
+    radial-gradient(90% 120% at 100% 100%, rgba(10, 132, 255, 0.12), transparent 58%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(248, 251, 255, 0.46));
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 28px;
+  outline: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.96),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.065),
+    0 16px 44px rgba(0, 0, 0, 0.075);
+  backdrop-filter: blur(28px) saturate(1.65);
+  -webkit-backdrop-filter: blur(28px) saturate(1.65);
+}
+.company-story {
+  display: flex;
+  min-height: 252px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 30px;
+}
+.company-story::before,
+.company-point::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(80% 120% at 16% 0%, rgba(255, 255, 255, 0.88), transparent 44%),
+    linear-gradient(112deg, transparent 24%, rgba(255, 255, 255, 0.34) 48%, transparent 64%);
+  opacity: 0.72;
+}
+.company-story p,
+.company-point span,
+.company-point strong,
+.company-point p {
+  position: relative;
+  z-index: 1;
+}
+.company-story p {
+  max-width: 640px;
+  margin: 0;
+  color: #4f5661;
+  font-size: clamp(15px, 1.2vw, 18px);
+  font-weight: 680;
+  line-height: 1.7;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+.company-story p + p {
+  margin-top: 12px;
+}
+.company-points {
+  display: grid;
+  gap: 12px;
+}
+.company-point {
+  display: grid;
+  min-height: 76px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 7px 12px;
+  align-content: center;
+  padding: 16px 18px;
+}
+.company-point span {
+  grid-row: 1 / span 2;
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  color: #0a84ff;
+  background: rgba(10, 132, 255, 0.1);
+  border: 1px solid rgba(10, 132, 255, 0.16);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+.company-point strong {
+  color: #1d1d1f;
+  font-size: 16px;
+  font-weight: 880;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.company-point p {
+  margin: 0;
+  color: #707078;
+  font-size: 12px;
+  font-weight: 680;
+  line-height: 1.42;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
 .testimonials {
   margin: 44px auto 58px;
 }
 .testimonials .section-heading {
-  display: inline-flex;
+  display: flex;
   width: max-content;
   max-width: min(100%, 780px);
   align-items: center;
@@ -1844,6 +2031,161 @@ html.gallery-ready .gallery-track {
   text-align: center;
 }
 
+.language-switch,
+.team-heading .hero-proof,
+.contact-link,
+.sticky-contact,
+.social-platform-title,
+.team-platform,
+.team-link,
+.inquiry-entry-button,
+.inquiry-back,
+.section-eyebrow,
+.company-point span,
+.testimonials .section-heading,
+.testimonial-rating,
+.testimonial-rating::after,
+.contact-modal-copy,
+.contact-modal-close,
+.inquiry-button {
+  --glass-rgb-active: var(--glass-rgb, 10, 132, 255);
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--glass-ink, #1d1d1f);
+  background:
+    radial-gradient(125% 170% at 14% 0%, rgba(255, 255, 255, 0.98), transparent 38%),
+    radial-gradient(96% 132% at 92% 100%, rgba(var(--glass-rgb-active), var(--glass-tint, 0.2)), transparent 58%),
+    radial-gradient(70% 120% at 0% 100%, rgba(255, 255, 255, 0.38), transparent 58%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.18) 46%, rgba(255, 255, 255, 0.5)),
+    rgba(255, 255, 255, var(--glass-fill, 0.28));
+  border-color: rgba(var(--glass-rgb-active), var(--glass-edge, 0.26));
+  outline: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.98),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.08),
+    inset 1px 0 1px rgba(255, 255, 255, 0.55),
+    inset -1px 0 1px rgba(0, 0, 0, 0.04),
+    0 12px 30px rgba(0, 0, 0, var(--glass-shadow, 0.12)),
+    0 10px 24px rgba(var(--glass-rgb-active), 0.12);
+  backdrop-filter: blur(34px) saturate(1.95) contrast(1.08) brightness(1.04);
+  -webkit-backdrop-filter: blur(34px) saturate(1.95) contrast(1.08) brightness(1.04);
+}
+
+.language-switch,
+.language-options {
+  --glass-rgb: 142, 142, 147;
+  --glass-tint: 0.1;
+  --glass-fill: 0.34;
+  --glass-edge: 0.14;
+  --glass-shadow: 0.1;
+}
+.language-switch {
+  position: absolute;
+  width: max-content;
+  overflow: visible;
+}
+.team-heading .hero-proof,
+.social-platform-title,
+.section-eyebrow,
+.company-point span,
+.inquiry-button {
+  --glass-rgb: 10, 132, 255;
+  --glass-tint: 0.14;
+  --glass-edge: 0.22;
+  --glass-shadow: 0.1;
+}
+.contact-link {
+  --glass-rgb: var(--contact-rgb);
+  --glass-tint: 0.17;
+  --glass-edge: 0.22;
+  --glass-shadow: 0.12;
+}
+.sticky-contact {
+  --glass-rgb: var(--sticky-rgb);
+  --glass-tint: 0.18;
+  --glass-fill: 0.34;
+  --glass-edge: 0.2;
+  --glass-shadow: 0.15;
+}
+.team-platform {
+  --glass-rgb: var(--platform-rgb);
+  --glass-ink: var(--platform-accent);
+  --glass-tint: 0.2;
+  --glass-fill: 0.26;
+  --glass-edge: 0.25;
+  --glass-shadow: 0.12;
+}
+.team-link {
+  --glass-rgb: 142, 142, 147;
+  --glass-tint: 0.08;
+  --glass-fill: 0.24;
+  --glass-edge: 0.12;
+  --glass-shadow: 0.1;
+}
+.inquiry-entry-button,
+.inquiry-back,
+.contact-modal-copy,
+.inquiry-button-primary {
+  --glass-rgb: 10, 132, 255;
+  --glass-ink: #fff;
+  --glass-tint: 0.28;
+  --glass-fill: 0.34;
+  --glass-edge: 0.34;
+  --glass-shadow: 0.16;
+}
+.inquiry-entry-card-cta .inquiry-entry-button {
+  --glass-rgb: 255, 122, 0;
+  --glass-ink: #fff;
+  --glass-tint: 0.3;
+  --glass-fill: 0.34;
+  --glass-edge: 0.36;
+  --glass-shadow: 0.18;
+}
+.testimonials .section-heading,
+.testimonial-rating,
+.testimonial-rating::after {
+  --glass-rgb: 255, 149, 0;
+  --glass-tint: 0.2;
+  --glass-edge: 0.24;
+  --glass-shadow: 0.11;
+}
+.testimonial-rating {
+  --glass-ink: #ffb000;
+}
+.testimonial-rating::after {
+  --glass-ink: #8a4b00;
+  --glass-fill: 0.46;
+}
+.company-intro .section-eyebrow {
+  --glass-rgb: 10, 132, 255;
+  --glass-ink: #0a4c96;
+  background:
+    radial-gradient(125% 170% at 14% 0%, rgba(255, 255, 255, 0.98), transparent 38%),
+    radial-gradient(96% 132% at 92% 100%, rgba(10, 132, 255, 0.2), transparent 58%),
+    radial-gradient(70% 120% at 0% 100%, rgba(255, 255, 255, 0.38), transparent 58%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.18) 46%, rgba(255, 255, 255, 0.5)),
+    rgba(255, 255, 255, 0.28);
+}
+.testimonials .section-eyebrow {
+  color: #c2410c;
+  background: none;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.social-platform-group-douyin .social-platform-title,
+.social-platform-group-tiktok .social-platform-title {
+  --glass-rgb: 37, 244, 238;
+}
+.social-platform-group-xhs .social-platform-title {
+  --glass-rgb: 255, 36, 66;
+}
+.social-platform-group-instagram .social-platform-title {
+  --glass-rgb: 193, 53, 132;
+}
+
 @keyframes galleryMarquee {
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(-18vw, 0, 0); }
@@ -1857,14 +2199,14 @@ html.gallery-ready .gallery-track {
 @media (max-width: 1024px) {
   .team-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: 820px;
+    max-width: 700px;
   }
   .social-platform-groups {
-    max-width: 820px;
+    max-width: 700px;
   }
   .social-platform-group-tiktok .team-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: 820px;
+    max-width: 700px;
   }
 }
 
@@ -1887,12 +2229,12 @@ html.gallery-ready .gallery-track {
   }
   .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 560px;
+    max-width: 500px;
   }
   .social-platform-groups {
     grid-template-columns: 1fr;
-    gap: 26px;
-    max-width: 560px;
+    gap: 24px;
+    max-width: 500px;
   }
   .social-platform-group-tiktok,
   .social-platform-group-instagram {
@@ -1900,13 +2242,20 @@ html.gallery-ready .gallery-track {
   }
   .social-platform-group-xhs .team-grid {
     grid-template-columns: minmax(0, calc((100% - 22px) / 2));
-    max-width: 560px;
+    max-width: 500px;
   }
   .social-platform-group-douyin .team-grid,
   .social-platform-group-tiktok .team-grid,
   .social-platform-group-instagram .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 500px;
+  }
+  .company-intro-layout {
+    grid-template-columns: 1fr;
     max-width: 560px;
+  }
+  .company-story {
+    min-height: 0;
   }
   .testimonial-grid { grid-template-columns: 1fr; }
   .testimonial-card { min-height: 0; }
@@ -1920,7 +2269,7 @@ html.gallery-ready .gallery-track {
   }
   .team-card:only-child {
     grid-column: 1 / -1;
-    width: min(100%, 370px);
+    width: min(100%, 220px);
     justify-self: center;
   }
   .social-platform-group-douyin .team-card:only-child,
@@ -2015,8 +2364,8 @@ html.gallery-ready .gallery-track {
     font-size: 11px;
   }
   .sticky-contact img { width: 19px; height: 19px; border-radius: 6px; }
-  .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .social-platform-groups { gap: 22px; max-width: 360px; }
+  .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .social-platform-groups { gap: 20px; max-width: 340px; }
   .social-platform-group { gap: 10px; }
   .social-platform-title {
     min-height: 30px;
@@ -2035,60 +2384,73 @@ html.gallery-ready .gallery-track {
   }
   .social-platform-symbol-text { font-size: 6px; }
   .social-platform-group-xhs .team-grid {
-    grid-template-columns: minmax(0, calc((100% - 10px) / 2));
-    max-width: 360px;
+    grid-template-columns: minmax(0, calc((100% - 8px) / 2));
+    max-width: 340px;
   }
   .social-platform-group-douyin .team-grid,
   .social-platform-group-tiktok .team-grid,
   .social-platform-group-instagram .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 360px;
+    max-width: 340px;
   }
-  .team-card:last-child:nth-child(odd) { width: calc((100% - 10px) / 2); }
+  .team-card:last-child:nth-child(odd) { width: calc((100% - 8px) / 2); }
   .social-platform-group-douyin .team-card:only-child,
   .social-platform-group-xhs .team-card:only-child {
     grid-column: auto;
     width: 100%;
     justify-self: stretch;
   }
-  .team-card { min-height: 0; border-radius: 22px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.07); }
-  .team-card:hover { transform: none; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.07); }
+  .team-card {
+    min-height: 0;
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.055);
+  }
+  .team-card:hover { transform: none; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.055); }
   .team-card::after { display: none; }
   .team-card-media {
-    width: clamp(62px, 48%, 84px);
-    margin: 14px auto 4px;
+    width: clamp(48px, 39%, 62px);
+    margin: 9px auto 23px;
     border-radius: 50%;
   }
   .team-card:hover .team-card-media img { transform: none; }
-  .team-platform { right: -12px; bottom: 0; min-width: 28px; height: 28px; gap: 4px; padding: 0 7px; }
+  .team-platform {
+    left: 50%;
+    top: calc(100% + 5px);
+    min-width: 22px;
+    height: 22px;
+    gap: 3px;
+    padding: 0 5px;
+    transform: translateX(-50%);
+  }
+  .team-card:hover .team-platform { transform: translateX(-50%); }
   .team-platform-instagram {
-    min-width: 76px;
-    height: 28px;
-    gap: 5px;
-    padding: 0 8px 0 6px;
+    min-width: 52px;
+    height: 21px;
+    gap: 3px;
+    padding: 0 5px 0 4px;
   }
-  .team-platform svg { width: 14px; }
+  .team-platform svg { width: 10.5px; }
   .team-platform-instagram svg {
-    width: 16px;
-    height: 16px;
-    border-radius: 5px;
+    width: 11px;
+    height: 11px;
+    border-radius: 4px;
   }
-  .platform-name { font-size: 8px; }
-  .platform-icon-text { min-width: 20px; height: 16px; padding: 0 4px; border-radius: 6px; font-size: 7px; }
-  .team-card-body { padding: 9px 11px 14px; }
-  .team-role { min-height: 24px; font-size: clamp(9.5px, 2.45vw, 11px); line-height: 1.28; letter-spacing: 0.01em; }
-  .team-card-body > strong { margin: 6px 0 1px; font-size: 16px; line-height: 1.2; }
-  .team-handle { max-width: 100%; overflow-wrap: anywhere; font-size: 9px; }
+  .platform-name { font-size: 5.7px; }
+  .platform-icon-text { min-width: 17px; height: 13px; padding: 0 3px; border-radius: 5px; font-size: 5.8px; }
+  .team-card-body { padding: 5px 7px 9px; }
+  .team-role { min-height: 17px; font-size: clamp(8.2px, 2.1vw, 9.3px); line-height: 1.2; letter-spacing: 0.01em; }
+  .team-card-body > strong { margin: 3px 0 1px; font-size: 13px; line-height: 1.14; }
+  .team-handle { max-width: 100%; overflow-wrap: anywhere; font-size: 7.8px; }
   .team-bio {
     display: -webkit-box;
     overflow: hidden;
-    margin: 9px 0 13px;
-    font-size: 10px;
-    line-height: 1.45;
+    margin: 5px 0 7px;
+    font-size: 8.2px;
+    line-height: 1.3;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
-  .team-link { min-height: 29px; gap: 6px; padding: 5px 9px; font-size: 9px; line-height: 1.18; }
+  .team-link { min-height: 24px; gap: 4px; padding: 3px 6px; font-size: 7.9px; line-height: 1.14; }
   .sourcing-gallery { margin: 22px auto 34px; padding-top: 0; }
   .gallery-block { margin-top: 18px; }
   .gallery-track {
@@ -2124,6 +2486,31 @@ html.gallery-ready .gallery-track {
   .inquiry-entry-button,
   .inquiry-back { min-height: 34px; padding: 0 11px; font-size: 10px; white-space: normal; }
   .inquiry-entry-button { max-width: 100%; min-height: 32px; padding: 0 12px; font-size: 9.5px; white-space: normal; }
+  .company-intro { margin: 26px auto 34px; }
+  .company-intro .section-heading { margin-bottom: 14px; }
+  .company-story {
+    padding: 18px 16px;
+    border-radius: 22px;
+  }
+  .company-story p {
+    font-size: 12px;
+    line-height: 1.52;
+  }
+  .company-story p + p { margin-top: 8px; }
+  .company-points { gap: 8px; }
+  .company-point {
+    min-height: 64px;
+    gap: 5px 9px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+  .company-point span {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
+  }
+  .company-point strong { font-size: 13px; }
+  .company-point p { font-size: 10px; line-height: 1.34; }
   .testimonials { margin: 26px auto 36px; }
   .section-heading { margin-bottom: 14px; }
   .section-eyebrow { min-height: 23px; font-size: 8px; }
