@@ -1152,14 +1152,6 @@ a { color: inherit; text-decoration: none; }
   width: 100%;
   text-align: center;
 }
-.team-title-latin {
-  color: #6e6e73;
-  font-family: var(--sans);
-  font-size: 0.58em;
-  font-weight: 850;
-  letter-spacing: -0.015em;
-  text-transform: lowercase;
-}
 .team-handle { width: 100%; color: #86868b; font-size: 10px; text-align: center; overflow-wrap: anywhere; }
 .team-link {
   position: relative;
@@ -1581,6 +1573,7 @@ html.gallery-ready .gallery-track {
   margin-bottom: 24px;
 }
 .company-intro .section-eyebrow {
+  display: none !important;
   color: #0a4c96;
   background: rgba(10, 132, 255, 0.1);
   border-color: rgba(10, 132, 255, 0.16);
@@ -1623,8 +1616,10 @@ html.gallery-ready .gallery-track {
   display: flex;
   min-height: 252px;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   padding: 30px;
+  text-align: center;
 }
 .company-story::before,
 .company-point::before {
@@ -1647,13 +1642,14 @@ html.gallery-ready .gallery-track {
 }
 .company-story p {
   max-width: 640px;
-  margin: 0;
+  margin: 0 auto;
   color: #4f5661;
   font-size: clamp(15px, 1.2vw, 18px);
   font-weight: 680;
   line-height: 1.7;
   letter-spacing: -0.012em;
   text-wrap: balance;
+  text-align: center;
 }
 .company-story p + p {
   margin-top: 12px;
@@ -1712,8 +1708,8 @@ html.gallery-ready .gallery-track {
   justify-content: center;
   gap: 18px;
   margin: 0 auto 28px;
-  padding: 12px 24px 12px 18px;
-  overflow: hidden;
+  padding: 14px 28px 16px 22px;
+  overflow: visible !important;
   background:
     radial-gradient(120% 160% at 14% 0%, rgba(255, 255, 255, 0.98), transparent 44%),
     radial-gradient(90% 130% at 100% 100%, rgba(255, 149, 0, 0.16), transparent 58%),
@@ -1732,22 +1728,26 @@ html.gallery-ready .gallery-track {
   flex: 0 0 auto;
   min-height: 0;
   margin: 0;
-  padding: 0;
+  padding: 2px 2px 4px;
   color: #c2410c;
   background: none;
   border: 0;
   box-shadow: none;
   font-size: 16px;
-  line-height: 1.15;
+  line-height: 1.34;
+  overflow: visible;
+  white-space: nowrap;
 }
 .testimonials .section-heading h2 {
   display: inline-block;
   flex: 1 1 auto;
+  padding: 0.05em 0.02em 0.12em;
   color: transparent;
   background: linear-gradient(92deg, #111827 0%, #ff2d55 46%, #ff7a00 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  line-height: 1.18;
   text-align: center;
   white-space: normal;
 }
@@ -2388,8 +2388,23 @@ html.gallery-ready .gallery-track {
   }
   .sticky-contact img { width: 19px; height: 19px; border-radius: 6px; }
   .team-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 6px; }
-  .social-platform-groups { gap: 18px; max-width: 360px; }
+  .social-platform-groups {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px 6px;
+    max-width: 360px;
+    align-items: start;
+  }
   .social-platform-group { gap: 10px; }
+  .social-platform-group-douyin {
+    grid-column: 1 / span 2;
+  }
+  .social-platform-group-xhs {
+    grid-column: 3;
+  }
+  .social-platform-group-tiktok,
+  .social-platform-group-instagram {
+    grid-column: 1 / -1;
+  }
   .social-platform-title {
     min-height: 30px;
     gap: 6px;
@@ -2406,8 +2421,16 @@ html.gallery-ready .gallery-track {
     height: 12px;
   }
   .social-platform-symbol-text { font-size: 6px; }
-  .social-platform-group-douyin .team-grid,
-  .social-platform-group-xhs .team-grid,
+  .social-platform-group-douyin .team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: none;
+    gap: 10px 6px;
+  }
+  .social-platform-group-xhs .team-grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: none;
+    gap: 10px 6px;
+  }
   .social-platform-group-tiktok .team-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     max-width: 360px;
@@ -2431,6 +2454,18 @@ html.gallery-ready .gallery-track {
     grid-column: auto;
     width: 100%;
     justify-self: stretch;
+  }
+  .social-platform-group-xhs .social-platform-title {
+    gap: 4px;
+    padding: 0 8px 0 6px;
+    font-size: 10.5px;
+  }
+  .social-platform-group-xhs .social-platform-symbol {
+    width: 17px;
+    height: 17px;
+  }
+  .social-platform-group-xhs .social-platform-symbol-text {
+    font-size: 4.8px;
   }
   .team-card {
     min-height: 0;
@@ -2589,14 +2624,25 @@ html.gallery-ready .gallery-track {
     width: fit-content;
     max-width: min(100%, 340px);
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     margin-bottom: 16px;
-    padding: 11px 20px 13px;
+    padding: 14px 22px 17px;
     border-radius: 28px;
+    overflow: visible !important;
   }
-  .testimonials .section-eyebrow { min-height: 0; padding: 0; font-size: 12px; }
+  .testimonials .section-eyebrow {
+    min-height: 0;
+    padding: 2px 2px 4px;
+    font-size: 12px;
+    line-height: 1.34;
+    overflow: visible;
+  }
   .section-heading h2 { font-size: 24px; line-height: 1.12; }
-  .testimonials .section-heading h2 { font-size: clamp(32px, 10vw, 42px); }
+  .testimonials .section-heading h2 {
+    padding: 0.05em 0.02em 0.12em;
+    font-size: clamp(32px, 10vw, 42px);
+    line-height: 1.18;
+  }
   .testimonial-grid { gap: 10px; }
   .testimonial-card { padding: 16px; border-radius: 21px; }
   .testimonial-rating { min-height: 26px; gap: 6px; padding: 3px 7px; font-size: 12px; }
