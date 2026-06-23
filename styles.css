@@ -757,6 +757,7 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
 }
 .social-platform-title {
+  --platform-rgb: 142, 142, 147;
   display: inline-flex;
   min-height: 43px;
   align-items: center;
@@ -764,15 +765,20 @@ a { color: inherit; text-decoration: none; }
   gap: 10px;
   padding: 0 20px 0 12px;
   color: #1d1d1f;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background:
+    radial-gradient(120% 170% at 14% 0%, rgba(255, 255, 255, 0.82), transparent 40%),
+    radial-gradient(86% 130% at 96% 100%, rgba(var(--platform-rgb), 0.055), transparent 58%),
+    linear-gradient(142deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.1) 48%, rgba(255, 255, 255, 0.28)),
+    rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(var(--platform-rgb), 0.12);
   border-radius: 999px;
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.08),
-    0 12px 28px rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    inset 0 -1px 1px rgba(0, 0, 0, 0.055),
+    0 12px 28px rgba(0, 0, 0, 0.065),
+    0 8px 22px rgba(var(--platform-rgb), 0.055);
+  backdrop-filter: blur(34px) saturate(1.72) contrast(1.04);
+  -webkit-backdrop-filter: blur(34px) saturate(1.72) contrast(1.04);
   font-size: 15.4px;
   font-weight: 880;
   letter-spacing: -0.01em;
@@ -1816,8 +1822,9 @@ html.gallery-ready .gallery-track {
 }
 .inquiry-language-back {
   position: absolute;
-  top: 68px;
-  left: max(24px, calc((100vw - 1120px) / 2));
+  top: 22px;
+  right: max(24px, calc((100vw - 1120px) / 2));
+  left: auto;
   z-index: 4;
   min-height: 36px;
   margin: 0;
@@ -1827,8 +1834,8 @@ html.gallery-ready .gallery-track {
   letter-spacing: -0.005em;
 }
 [dir="rtl"] .inquiry-language-back {
-  right: max(24px, calc((100vw - 1120px) / 2));
-  left: auto;
+  right: auto;
+  left: max(24px, calc((100vw - 1120px) / 2));
 }
 .inquiry-panel {
   position: relative;
@@ -2142,17 +2149,32 @@ html.gallery-ready .gallery-track {
   --glass-shadow: 0.08;
 }
 .contact-link {
-  --glass-rgb: var(--contact-rgb);
-  --glass-tint: 0.1;
-  --glass-edge: 0.16;
-  --glass-shadow: 0.09;
+  --glass-rgb: 142, 142, 147;
+  --glass-tint: 0.045;
+  --glass-fill: 0.18;
+  --glass-edge: 0.1;
+  --glass-shadow: 0.07;
+  border-color: rgba(var(--contact-rgb), 0.14);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.84),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.055),
+    inset 1px 0 1px rgba(255, 255, 255, 0.28),
+    inset -1px 0 1px rgba(0, 0, 0, 0.02),
+    0 10px 26px rgba(0, 0, 0, 0.07),
+    0 8px 22px rgba(var(--contact-rgb), 0.055);
 }
 .sticky-contact {
-  --glass-rgb: var(--sticky-rgb);
-  --glass-tint: 0.11;
+  --glass-rgb: 142, 142, 147;
+  --glass-tint: 0.045;
   --glass-fill: 0.2;
-  --glass-edge: 0.15;
-  --glass-shadow: 0.1;
+  --glass-edge: 0.1;
+  --glass-shadow: 0.08;
+  border-color: rgba(var(--sticky-rgb), 0.14);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.86),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.055),
+    0 12px 30px rgba(0, 0, 0, 0.1),
+    0 8px 22px rgba(var(--sticky-rgb), 0.06);
 }
 .team-link {
   --glass-rgb: 142, 142, 147;
@@ -2205,6 +2227,7 @@ html.gallery-ready .gallery-track {
     0 8px 20px rgba(0, 0, 0, 0.06);
 }
 .inquiry-button[data-channel="gmail"] {
+  --button-rgb: 234, 67, 53;
   --glass-rgb: 234, 67, 53;
   --glass-ink: #2b2b30;
   --glass-tint: 0.09;
@@ -2220,11 +2243,12 @@ html.gallery-ready .gallery-track {
   pointer-events: none;
   border-radius: inherit;
   background:
-    radial-gradient(70% 100% at 18% 100%, rgba(251, 188, 5, 0.16), transparent 58%),
-    radial-gradient(84% 120% at 96% 100%, rgba(66, 133, 244, 0.13), transparent 58%);
-  opacity: 0.85;
+    radial-gradient(70% 100% at 18% 100%, rgba(251, 188, 5, 0.075), transparent 58%),
+    radial-gradient(84% 120% at 96% 100%, rgba(66, 133, 244, 0.07), transparent 58%);
+  opacity: 0.55;
 }
 .inquiry-button[data-channel="wechat"] {
+  --button-rgb: 7, 193, 96;
   --glass-rgb: 7, 193, 96;
   --glass-ink: #1d1d1f;
   --glass-tint: 0.11;
@@ -2234,6 +2258,7 @@ html.gallery-ready .gallery-track {
   border-color: rgba(7, 193, 96, 0.18);
 }
 .inquiry-button[data-channel="telegram"] {
+  --button-rgb: 34, 158, 217;
   --glass-rgb: 34, 158, 217;
   --glass-ink: #1d1d1f;
   --glass-tint: 0.11;
@@ -2241,6 +2266,22 @@ html.gallery-ready .gallery-track {
   --glass-edge: 0.17;
   --glass-shadow: 0.08;
   border-color: rgba(34, 158, 217, 0.2);
+}
+.inquiry-button[data-channel],
+.inquiry-button-primary {
+  --glass-rgb: 142, 142, 147;
+  --glass-ink: #1d1d1f;
+  --glass-tint: 0.045;
+  --glass-fill: 0.2;
+  --glass-edge: 0.1;
+  --glass-shadow: 0.075;
+  color: #1d1d1f;
+  border-color: rgba(var(--button-rgb, 37, 211, 102), 0.15);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.86),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.055),
+    0 10px 26px rgba(0, 0, 0, 0.07),
+    0 8px 22px rgba(var(--button-rgb, 37, 211, 102), 0.06);
 }
 .inquiry-entry-card-cta .inquiry-entry-button {
   --glass-rgb: 255, 122, 0;
@@ -2287,13 +2328,28 @@ html.gallery-ready .gallery-track {
 }
 .social-platform-group-douyin .social-platform-title,
 .social-platform-group-tiktok .social-platform-title {
-  --glass-rgb: 37, 244, 238;
+  --platform-rgb: 37, 244, 238;
 }
 .social-platform-group-xhs .social-platform-title {
-  --glass-rgb: 255, 36, 66;
+  --platform-rgb: 255, 36, 66;
 }
 .social-platform-group-instagram .social-platform-title {
-  --glass-rgb: 193, 53, 132;
+  --platform-rgb: 193, 53, 132;
+}
+.social-platform-title {
+  --glass-rgb: 142, 142, 147;
+  --glass-tint: 0.045;
+  --glass-fill: 0.18;
+  --glass-edge: 0.1;
+  --glass-shadow: 0.07;
+  border-color: rgba(var(--platform-rgb, 142, 142, 147), 0.14);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.84),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.055),
+    inset 1px 0 1px rgba(255, 255, 255, 0.28),
+    inset -1px 0 1px rgba(0, 0, 0, 0.02),
+    0 10px 26px rgba(0, 0, 0, 0.07),
+    0 8px 22px rgba(var(--platform-rgb, 142, 142, 147), 0.055);
 }
 
 @keyframes galleryMarquee {
@@ -2695,8 +2751,9 @@ html.gallery-ready .gallery-track {
     white-space: nowrap;
   }
   .inquiry-language-back {
-    top: 58px;
-    left: 10px;
+    top: 16px;
+    right: 10px;
+    left: auto;
     min-width: 0;
     min-height: 34px;
     padding: 0 14px;
@@ -2704,8 +2761,8 @@ html.gallery-ready .gallery-track {
     font-weight: 850;
   }
   [dir="rtl"] .inquiry-language-back {
-    right: 10px;
-    left: auto;
+    right: auto;
+    left: 10px;
   }
   .inquiry-entry-button { max-width: 100%; min-height: 32px; padding: 0 12px; font-size: 9.5px; white-space: normal; }
   .company-intro { margin: 26px auto 34px; }
