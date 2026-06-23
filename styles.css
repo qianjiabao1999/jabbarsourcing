@@ -271,11 +271,12 @@ a { color: inherit; text-decoration: none; }
 .team-heading h1 {
   margin: 0 0 14px;
   padding-bottom: 0.08em;
-  font-family: var(--display);
+  font-family: ui-rounded, "SF Pro Rounded", "Avenir Next Rounded", "Nunito Sans", "PingFang SC", "Microsoft YaHei", var(--display);
   font-size: clamp(42px, 5.55vw, 74px);
   line-height: 1.1;
-  letter-spacing: -0.058em;
+  letter-spacing: -0.044em;
   color: #111113;
+  font-weight: 950;
   text-align: center;
   text-wrap: balance;
   overflow-wrap: anywhere;
@@ -284,11 +285,13 @@ a { color: inherit; text-decoration: none; }
   display: inline-block;
   padding-bottom: 0.08em;
   margin-bottom: -0.08em;
-  background: linear-gradient(92deg, #1d1d1f 0%, #5d6570 44%, #0a84ff 100%);
+  background: linear-gradient(92deg, #141417 0%, #24324a 28%, #0071e3 58%, #31d3ff 78%, #ff2d55 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  letter-spacing: -0.06em;
+  -webkit-text-fill-color: transparent;
+  font-weight: 960;
+  letter-spacing: -0.046em;
 }
 .team-heading p {
   max-width: 680px;
@@ -367,6 +370,21 @@ a { color: inherit; text-decoration: none; }
 .team-heading .hero-proof > * {
   position: relative;
   z-index: 1;
+}
+.team-heading .hero-proof > span {
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(94deg, #111827 0%, #1f4f7f 36%, #0a84ff 66%, #ff2d55 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 920;
+}
+@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+  .team-heading .hero-proof > span {
+    color: #1d1d1f;
+    -webkit-text-fill-color: currentColor;
+  }
 }
 .contact-actions {
   display: grid;
@@ -954,15 +972,29 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   text-align: center;
 }
 .team-card-body > strong {
+  --social-name-gradient: linear-gradient(94deg, #111827 0%, #24466b 28%, #0a84ff 66%, #ff2d55 100%);
   width: 100%;
   margin: 0;
+  color: transparent;
+  background: var(--social-name-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-family: var(--display);
   font-size: clamp(19px, 1.38vw, 22px);
+  font-weight: 940;
   line-height: 1.18;
   letter-spacing: -0.035em;
   text-align: center;
   text-wrap: balance;
   overflow-wrap: anywhere;
+}
+.team-card-body > strong span {
+  color: transparent;
+  background: var(--social-name-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .team-title {
   display: flex;
@@ -985,7 +1017,15 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   width: 100%;
   text-align: center;
 }
-.team-handle { width: 100%; color: #86868b; font-size: 12.5px; text-align: center; overflow-wrap: anywhere; }
+.team-handle {
+  width: 100%;
+  color: #62626a;
+  font-size: 14px;
+  font-weight: 880;
+  letter-spacing: -0.018em;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
 .team-link {
   position: relative;
   margin-top: auto;
@@ -1726,9 +1766,9 @@ html.gallery-ready .gallery-track {
 }
 .inquiry-back {
   width: max-content;
-  min-height: 40px;
-  margin: 14px auto 0;
-  padding: 0 18px;
+  min-height: 48px;
+  margin: 18px auto 0;
+  padding: 0 24px;
   color: #1d1d1f;
   background:
     linear-gradient(142deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.3)),
@@ -1737,6 +1777,10 @@ html.gallery-ready .gallery-track {
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.92),
     0 10px 26px rgba(0, 0, 0, 0.07);
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1;
 }
 .inquiry-panel {
   position: relative;
@@ -1785,15 +1829,15 @@ html.gallery-ready .gallery-track {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 28px;
-  padding: 0 13px;
+  min-height: 42px;
+  padding: 0 24px;
   color: #6f6f76;
   background: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: 0.12em;
+  font-size: 16.5px;
+  font-weight: 940;
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 .inquiry-copy h2 {
@@ -1816,8 +1860,13 @@ html.gallery-ready .gallery-track {
 .inquiry-copy p {
   max-width: 620px;
   margin: 0 auto;
-  color: #77777d;
-  font-size: 14.5px;
+  color: transparent;
+  background: linear-gradient(92deg, #52525b 0%, #2563eb 48%, #0a84ff 72%, #14b8d4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 16.5px;
+  font-weight: 820;
   line-height: 1.58;
   text-wrap: balance;
 }
@@ -1845,30 +1894,31 @@ html.gallery-ready .gallery-track {
 }
 .field span {
   color: #4c4c52;
-  font-size: 12.8px;
-  font-weight: 850;
+  font-size: 16px;
+  font-weight: 930;
   letter-spacing: -0.01em;
 }
 .field input,
 .field select,
 .field textarea {
   width: 100%;
-  min-height: 48px;
-  padding: 0 16px;
+  min-height: 56px;
+  padding: 0 18px;
   color: #1d1d1f;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 17px;
+  border-radius: 19px;
   outline: none;
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.92);
   font: inherit;
-  font-size: 15px;
+  font-size: 18px;
+  font-weight: 720;
   line-height: 1.25;
   transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
 }
 .field textarea {
-  min-height: 86px;
-  padding-top: 15px;
+  min-height: 106px;
+  padding-top: 17px;
   resize: vertical;
 }
 .field input:focus,
@@ -1894,8 +1944,8 @@ html.gallery-ready .gallery-track {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  min-height: 46px;
-  padding: 0 18px;
+  min-height: 54px;
+  padding: 0 24px;
   color: #1d1d1f;
   background:
     linear-gradient(142deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.3)),
@@ -1907,8 +1957,8 @@ html.gallery-ready .gallery-track {
     0 10px 26px rgba(0, 0, 0, 0.07);
   cursor: pointer;
   font: inherit;
-  font-size: 13.6px;
-  font-weight: 850;
+  font-size: 16px;
+  font-weight: 930;
   line-height: 1.2;
   text-align: center;
   white-space: normal;
@@ -1919,8 +1969,8 @@ html.gallery-ready .gallery-track {
   z-index: 1;
 }
 .inquiry-button-icon {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   display: block;
   flex: 0 0 auto;
   object-fit: cover;
@@ -1947,7 +1997,7 @@ html.gallery-ready .gallery-track {
   min-height: 18px;
   margin: 0;
   color: #73737a;
-  font-size: 12.5px;
+  font-size: 14.8px;
   font-weight: 750;
   text-align: center;
 }
@@ -2426,13 +2476,13 @@ html.gallery-ready .gallery-track {
   .team-card:hover { transform: none; box-shadow: none; }
   .team-card::after { display: none; }
   .team-card-media {
-    width: clamp(76px, 55%, 96px);
+    width: clamp(86px, 60%, 110px);
     margin: 12px auto 14px;
     border-radius: 50%;
   }
   .social-platform-group-tiktok .team-card-media {
-    width: clamp(70px, 58%, 84px);
-    margin: 10px auto 12px;
+    width: clamp(80px, 62%, 96px);
+    margin: 11px auto 13px;
   }
   .team-card:hover .team-card-media img { transform: none; }
   .team-card-body { padding: 7px 7px 11px; }
@@ -2440,7 +2490,7 @@ html.gallery-ready .gallery-track {
     width: max-content;
     max-width: none;
     margin: 0 0 3px;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.14;
     white-space: nowrap;
     overflow-wrap: normal;
@@ -2458,31 +2508,34 @@ html.gallery-ready .gallery-track {
   .team-handle {
     width: max-content;
     max-width: none;
+    color: #5f636d;
+    font-weight: 900;
+    letter-spacing: -0.02em;
     overflow-wrap: normal;
     word-break: keep-all;
     white-space: nowrap;
-    font-size: 11px;
+    font-size: 13.4px;
   }
   .social-platform-group-tiktok .team-card-body { padding: 6px 4px 10px; }
   .social-platform-group-tiktok .team-card-body > strong {
     margin: 0 0 3px;
-    font-size: clamp(15px, 4vw, 17px);
+    font-size: clamp(16px, 4.2vw, 18.5px);
     line-height: 1.12;
   }
-  .social-platform-group-tiktok .team-handle { font-size: 9.6px; }
+  .social-platform-group-tiktok .team-handle { font-size: 11.7px; font-weight: 920; }
   .team-link {
     max-width: none;
-    min-height: 28px;
+    min-height: 32px;
     gap: 0;
-    padding: 5px 14px;
-    font-size: 10.5px;
+    padding: 6px 16px;
+    font-size: 11.4px;
     line-height: 1.12;
   }
   .social-platform-group-tiktok .team-link {
     max-width: none;
-    min-height: 26px;
-    padding: 4px 10px;
-    font-size: 9.4px;
+    min-height: 29px;
+    padding: 5px 12px;
+    font-size: 10.2px;
   }
   .team-link-label {
     max-width: none;
@@ -2525,10 +2578,13 @@ html.gallery-ready .gallery-track {
   .inquiry-entry-button,
   .inquiry-back { min-height: 34px; padding: 0 11px; font-size: 10px; white-space: normal; }
   .inquiry-back {
-    min-width: 96px;
+    min-width: 118px;
+    min-height: 42px;
+    padding: 0 18px;
     color: #1d1d1f;
-    font-size: 11px;
-    font-weight: 880;
+    font-size: 14px;
+    font-weight: 920;
+    white-space: nowrap;
   }
   .inquiry-entry-button { max-width: 100%; min-height: 32px; padding: 0 12px; font-size: 9.5px; white-space: normal; }
   .company-intro { margin: 26px auto 34px; }
@@ -2593,38 +2649,38 @@ html.gallery-ready .gallery-track {
   .inquiry-page-heading p { max-width: 340px; font-size: 13.2px; line-height: 1.5; }
   .inquiry-panel { gap: 14px; padding: 16px 12px 14px; border-radius: 24px; }
   .inquiry-copy { margin-bottom: 0; }
-  .inquiry-eyebrow { min-height: 26px; padding: 0 12px; font-size: 9.6px; letter-spacing: 0.1em; }
-  .inquiry-copy h2 { margin: 9px auto 6px; font-size: clamp(27px, 7.2vw, 35px); line-height: 1.08; }
-  .inquiry-copy p { max-width: 318px; font-size: 12.2px; line-height: 1.48; }
-  .inquiry-form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
-  .field { gap: 5px; }
-  .field span { font-size: 11.2px; line-height: 1.22; }
+  .inquiry-eyebrow { min-height: 38px; padding: 0 22px; font-size: 15.2px; letter-spacing: 0.035em; }
+  .inquiry-copy h2 { margin: 10px auto 7px; font-size: clamp(30px, 7.9vw, 39px); line-height: 1.08; }
+  .inquiry-copy p { max-width: 330px; font-size: 14.6px; font-weight: 830; line-height: 1.52; }
+  .inquiry-form { grid-template-columns: 1fr; gap: 12px; width: min(100%, 340px); }
+  .field { gap: 6px; }
+  .field span { font-size: 15.4px; line-height: 1.24; }
   .field input,
   .field select,
-  .field textarea { min-height: 43px; padding: 0 12px; border-radius: 15px; font-size: 12.8px; line-height: 1.22; }
-  .field textarea { min-height: 68px; padding-top: 12px; }
-  .inquiry-actions { gap: 9px; margin-top: 8px; }
+  .field textarea { min-height: 56px; padding: 0 16px; border-radius: 18px; font-size: 16.4px; font-weight: 720; line-height: 1.25; }
+  .field textarea { min-height: 104px; padding-top: 16px; }
+  .inquiry-actions { gap: 10px; margin-top: 10px; }
   .inquiry-button {
-    min-height: 43px;
-    padding: 0 15px;
+    min-height: 52px;
+    padding: 0 20px;
     gap: 8px;
     color: #1d1d1f;
-    font-size: 12.4px;
-    font-weight: 880;
+    font-size: 15.2px;
+    font-weight: 940;
   }
   .inquiry-button-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 6px;
   }
   .inquiry-button[data-channel="telegram"] .inquiry-button-icon {
     border-radius: 50%;
   }
   .inquiry-button-primary {
-    min-width: 156px;
+    min-width: 174px;
     color: #143524;
   }
-  .inquiry-status { font-size: 11.6px; line-height: 1.42; }
+  .inquiry-status { font-size: 13px; line-height: 1.45; }
 }
 
 @media (max-width: 360px) {

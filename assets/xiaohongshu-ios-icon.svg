@@ -1,7 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Xiaohongshu">
-  <rect width="120" height="120" rx="25" fill="#ff2442"/>
-  <g fill="#fff" font-family="PingFang SC, Noto Sans CJK SC, Microsoft YaHei, Arial, sans-serif" font-weight="900">
-    <text x="60" y="53" text-anchor="middle" font-size="30" letter-spacing="-2">小红</text>
-    <text x="60" y="83" text-anchor="middle" font-size="30" letter-spacing="-1">书</text>
-  </g>
+  <defs>
+    <linearGradient id="xhs-bg" x1="18" y1="10" x2="102" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff3656"/>
+      <stop offset="0.55" stop-color="#ff2442"/>
+      <stop offset="1" stop-color="#e71939"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="27" fill="url(#xhs-bg)"/>
+  <rect x="3" y="3" width="114" height="114" rx="24" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="2"/>
+  <text
+    x="60"
+    y="68"
+    fill="#fff"
+    text-anchor="middle"
+    font-family="PingFang SC, Noto Sans CJK SC, Microsoft YaHei, Arial, sans-serif"
+    font-size="27"
+    font-weight="950"
+    letter-spacing="-2.8"
+  >小红书</text>
 </svg>
