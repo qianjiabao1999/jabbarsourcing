@@ -80,6 +80,53 @@ a { color: inherit; text-decoration: none; }
   border: 0;
 }
 
+.site-logo-lockup {
+  --logo-glow: 10, 58, 118;
+  position: relative;
+  width: clamp(124px, 13vw, 190px);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  padding: clamp(5px, 0.8vw, 8px);
+  overflow: hidden;
+  border: 1px solid rgba(var(--logo-glow), 0.16);
+  border-radius: 34px;
+  background:
+    radial-gradient(120% 150% at 18% 0%, rgba(255, 255, 255, 0.84), transparent 42%),
+    radial-gradient(92% 130% at 90% 100%, rgba(var(--logo-glow), 0.09), transparent 58%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.14) 48%, rgba(255, 255, 255, 0.34)),
+    rgba(255, 255, 255, 0.22);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.06),
+    0 18px 44px rgba(0, 0, 0, 0.1),
+    0 10px 28px rgba(var(--logo-glow), 0.12);
+  backdrop-filter: blur(34px) saturate(1.85) contrast(1.04);
+  -webkit-backdrop-filter: blur(34px) saturate(1.85) contrast(1.04);
+}
+.site-logo-lockup::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(100% 130% at 18% 0%, rgba(255, 255, 255, 0.8), transparent 38%),
+    linear-gradient(110deg, transparent 28%, rgba(255, 255, 255, 0.34) 47%, transparent 62%);
+  opacity: 0.72;
+}
+.site-logo-lockup img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  border-radius: 28px;
+  filter: drop-shadow(0 8px 18px rgba(8, 35, 78, 0.16));
+}
+
 @supports (animation-timeline: scroll()) {
   .team-heading {
     animation-timeline: view();
@@ -267,7 +314,7 @@ a { color: inherit; text-decoration: none; }
 
 .team-heading {
   max-width: min(100%, 1040px);
-  margin: 42px auto 58px;
+  margin: 28px auto 50px;
   padding: 0 8px;
   text-align: center;
   opacity: 0;
@@ -1324,7 +1371,7 @@ html.gallery-ready .gallery-track {
   min-width: 0;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   text-align: center;
 }
 [dir="rtl"] .inquiry-entry-copy {
@@ -1341,12 +1388,12 @@ html.gallery-ready .gallery-track {
   color: transparent;
 }
 .inquiry-entry-copy span {
-  max-width: 560px;
+  max-width: 640px;
   background: var(--grad-warm-soft);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  font-size: clamp(12px, 1.2vw, 16px);
+  font-size: clamp(14px, 1.28vw, 17px);
   font-weight: 760;
   line-height: 1.38;
 }
@@ -2467,7 +2514,9 @@ html.gallery-ready .gallery-track {
   .language-options { min-width: 148px; }
   .brand { gap: 8px; font-size: 15px; }
   .brand-mark { width: 30px; height: 30px; border-radius: 10px; font-size: 16px; }
-  .team-heading { margin: 18px auto 28px; }
+  .team-heading { margin: 14px auto 26px; }
+  .site-logo-lockup { width: clamp(104px, 32vw, 132px); margin-bottom: 12px; padding: 5px; border-radius: 26px; }
+  .site-logo-lockup img { border-radius: 22px; }
   .team-heading h1 {
     margin: 0 0 11px;
     font-size: clamp(25px, 7.9vw, 33px);
@@ -2738,7 +2787,7 @@ html.gallery-ready .gallery-track {
   .inquiry-entry-copy { align-items: center; text-align: center; gap: 3px; }
   [dir="rtl"] .inquiry-entry-copy { text-align: center; align-items: center; }
   .inquiry-entry-copy strong { font-size: clamp(17px, 4.8vw, 22px); letter-spacing: -0.04em; }
-  .inquiry-entry-copy span { max-width: 280px; font-size: 9.5px; line-height: 1.28; }
+  .inquiry-entry-copy span { max-width: 288px; font-size: 11.2px; line-height: 1.34; }
   .inquiry-entry-button,
   .inquiry-back { min-height: 34px; padding: 0 11px; font-size: 10px; white-space: normal; }
   .inquiry-back {
