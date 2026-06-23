@@ -1782,6 +1782,36 @@ html.gallery-ready .gallery-track {
   font-weight: 900;
   letter-spacing: 0;
 }
+.testimonial-order-meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 14px 0 0;
+}
+.testimonial-card .testimonial-order-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 5px 10px;
+  color: rgba(29, 29, 31, 0.82);
+  background:
+    radial-gradient(120% 150% at 15% 0%, rgba(255, 255, 255, 0.78), transparent 42%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.13));
+  border: 1px solid rgba(255, 149, 0, 0.18);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.74),
+    0 6px 14px rgba(0, 0, 0, 0.045);
+  backdrop-filter: blur(22px) saturate(1.45);
+  -webkit-backdrop-filter: blur(22px) saturate(1.45);
+  font-size: 12.5px;
+  font-weight: 880;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
 .testimonial-card p {
   margin: 18px 0 22px;
   color: #1d1d1f;
@@ -2845,12 +2875,12 @@ html.gallery-ready .gallery-track {
   .testimonials .section-heading {
     width: min(100%, 370px);
     max-width: min(100%, 370px);
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: nowrap;
-    gap: 12px;
+    gap: 8px;
     margin-bottom: 16px;
-    padding: 10px 18px 12px;
-    border-radius: 999px;
+    padding: 13px 18px 15px;
+    border-radius: 28px;
     overflow: visible !important;
   }
   .testimonials .section-eyebrow {
@@ -2864,9 +2894,10 @@ html.gallery-ready .gallery-track {
   .section-heading h2 { font-size: 24px; line-height: 1.12; }
   .testimonials .section-heading h2 {
     padding: 0.06em 0.02em 0.12em;
-    font-size: clamp(28px, 8.2vw, 36px);
-    line-height: 1.16;
-    white-space: nowrap;
+    font-size: clamp(24px, 6.55vw, 31px);
+    line-height: 1.18;
+    white-space: normal;
+    text-wrap: balance;
   }
   .testimonial-grid { gap: 10px; }
   .testimonial-card { padding: 16px; border-radius: 21px; }
@@ -2874,6 +2905,8 @@ html.gallery-ready .gallery-track {
   .testimonial-rating::after { min-height: 17px; padding: 0 6px; font-size: 9px; }
   .testimonial-card p { margin: 11px 0 13px; font-size: 12px; line-height: 1.45; }
   .testimonial-card span { font-size: 10px; }
+  .testimonial-order-meta { gap: 5px; margin-top: 9px; }
+  .testimonial-card .testimonial-order-meta span { min-height: 22px; padding: 4px 8px; font-size: 9.8px; letter-spacing: -0.035em; }
   .inquiry-page > .container { padding-top: 44px; }
   .inquiry-page-heading { margin: 4px auto 16px; }
   .inquiry-page-heading h1 { font-size: clamp(32px, 9vw, 43px); line-height: 1.08; }
