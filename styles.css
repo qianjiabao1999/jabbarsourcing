@@ -942,25 +942,9 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   align-items: center;
   text-align: center;
 }
-.team-role {
-  display: flex;
-  min-height: 19px;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #0a84ff;
-  font-size: clamp(10px, 0.72vw, 11.6px);
-  font-weight: 850;
-  letter-spacing: 0.015em;
-  line-height: 1.22;
-  text-transform: none;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
-}
 .team-card-body > strong {
   width: 100%;
-  margin: 3px 0 0;
+  margin: 0;
   font-family: var(--display);
   font-size: clamp(15px, 1.16vw, 17px);
   line-height: 1.18;
@@ -973,14 +957,7 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-}
-.team-title-platform {
-  display: block;
-  font-size: 0.76em;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #4a4a4f;
+  gap: 1px;
 }
 .team-title-name {
   display: flex;
@@ -1985,7 +1962,6 @@ html.gallery-ready .gallery-track {
   --glass-shadow: 0.055;
 }
 .inquiry-entry-button,
-.inquiry-back,
 .contact-modal-copy,
 .inquiry-button-primary {
   --glass-rgb: 10, 132, 255;
@@ -1994,6 +1970,30 @@ html.gallery-ready .gallery-track {
   --glass-fill: 0.22;
   --glass-edge: 0.24;
   --glass-shadow: 0.11;
+}
+.inquiry-back {
+  --glass-rgb: 142, 142, 147;
+  --glass-ink: #1d1d1f;
+  --glass-tint: 0.06;
+  --glass-fill: 0.26;
+  --glass-edge: 0.12;
+  --glass-shadow: 0.08;
+  color: #1d1d1f;
+}
+.inquiry-button-primary {
+  --glass-rgb: 37, 211, 102;
+  --glass-ink: #143524;
+  --glass-tint: 0.14;
+  --glass-fill: 0.28;
+  --glass-edge: 0.22;
+  --glass-shadow: 0.12;
+  color: #143524;
+  border-color: rgba(37, 211, 102, 0.24);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.86),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.055),
+    0 12px 28px rgba(37, 211, 102, 0.16),
+    0 8px 20px rgba(0, 0, 0, 0.06);
 }
 .inquiry-entry-card-cta .inquiry-entry-button {
   --glass-rgb: 255, 122, 0;
@@ -2325,17 +2325,11 @@ html.gallery-ready .gallery-track {
   }
   .team-card:hover .team-card-media img { transform: none; }
   .team-card-body { padding: 5px 7px 9px; }
-  .team-role { min-height: 17px; font-size: clamp(8.2px, 2.1vw, 9.3px); line-height: 1.2; letter-spacing: 0.01em; }
-  .team-card-body > strong { margin: 3px 0 1px; font-size: 13px; line-height: 1.14; }
+  .team-card-body > strong { margin: 0 0 1px; font-size: 13px; line-height: 1.14; }
   .team-handle { max-width: 100%; overflow-wrap: anywhere; font-size: 7.8px; }
   .social-platform-group-tiktok .team-card-body { padding: 4px 4px 8px; }
-  .social-platform-group-tiktok .team-role {
-    min-height: 15px;
-    font-size: clamp(7.2px, 1.85vw, 8px);
-    line-height: 1.18;
-  }
   .social-platform-group-tiktok .team-card-body > strong {
-    margin: 2px 0 1px;
+    margin: 0 0 1px;
     font-size: clamp(10.8px, 3.1vw, 12px);
     line-height: 1.12;
   }
@@ -2388,6 +2382,12 @@ html.gallery-ready .gallery-track {
   .inquiry-entry-copy span { max-width: 280px; font-size: 9.5px; line-height: 1.28; }
   .inquiry-entry-button,
   .inquiry-back { min-height: 34px; padding: 0 11px; font-size: 10px; white-space: normal; }
+  .inquiry-back {
+    min-width: 96px;
+    color: #1d1d1f;
+    font-size: 11px;
+    font-weight: 880;
+  }
   .inquiry-entry-button { max-width: 100%; min-height: 32px; padding: 0 12px; font-size: 9.5px; white-space: normal; }
   .company-intro { margin: 26px auto 34px; }
   .company-intro .section-heading { margin-bottom: 14px; }
@@ -2461,8 +2461,18 @@ html.gallery-ready .gallery-track {
   .field select,
   .field textarea { min-height: 36px; padding: 0 10px; border-radius: 13px; font-size: 11px; }
   .field textarea { min-height: 52px; padding-top: 10px; }
-  .inquiry-actions { gap: 7px; margin-top: 4px; }
-  .inquiry-button { min-height: 34px; padding: 0 10px; font-size: 10px; }
+  .inquiry-actions { gap: 8px; margin-top: 6px; }
+  .inquiry-button {
+    min-height: 38px;
+    padding: 0 13px;
+    color: #1d1d1f;
+    font-size: 11px;
+    font-weight: 880;
+  }
+  .inquiry-button-primary {
+    min-width: 142px;
+    color: #143524;
+  }
   .inquiry-status { font-size: 10px; }
 }
 
