@@ -713,10 +713,12 @@ a { color: inherit; text-decoration: none; }
   gap: 30px 22px;
   max-width: 930px;
   margin: 0 auto;
+  direction: ltr;
 }
 .social-platform-group {
   display: grid;
   gap: 13px;
+  direction: ltr;
 }
 .social-platform-group-tiktok,
 .social-platform-group-instagram {
@@ -809,6 +811,10 @@ a { color: inherit; text-decoration: none; }
 .social-platform-group .team-grid {
   width: 100%;
   margin: 0 auto;
+  direction: ltr;
+}
+html[dir="rtl"] .social-platform-group .team-card-body {
+  direction: rtl;
 }
 .social-platform-group-xhs .team-grid {
   grid-template-columns: minmax(0, 220px);
@@ -907,7 +913,7 @@ a { color: inherit; text-decoration: none; }
   overflow: visible;
   width: clamp(76px, 38%, 96px);
   aspect-ratio: 1 / 1;
-  margin: 13px auto 31px;
+  margin: 13px auto 15px;
   background:
     radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.98), transparent 38%),
     var(--soft);
@@ -926,167 +932,6 @@ a { color: inherit; text-decoration: none; }
   transition: transform 0.55s var(--motion), filter 0.55s;
 }
 .team-card:hover .team-card-media img { transform: scale(1.045); filter: saturate(1.04) contrast(1.02); }
-.team-platform {
-  --platform-rgb: 37, 244, 238;
-  --platform-accent: #1d1d1f;
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 7px);
-  width: auto;
-  min-width: 28px;
-  height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 0 8px;
-  overflow: hidden;
-  isolation: isolate;
-  color: var(--platform-accent);
-  background:
-    radial-gradient(110% 140% at 16% 0%, rgba(255, 255, 255, 0.96), transparent 42%),
-    radial-gradient(90% 120% at 88% 100%, rgba(var(--platform-rgb), 0.18), transparent 52%),
-    radial-gradient(70% 120% at 0% 100%, rgba(var(--platform-rgb), 0.08), transparent 58%),
-    linear-gradient(142deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.18) 48%, rgba(255, 255, 255, 0.44)),
-    rgba(255, 255, 255, 0.24);
-  border-radius: 999px;
-  border: 1px solid rgba(var(--platform-rgb), 0.22);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.94),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.08),
-    0 9px 20px rgba(0, 0, 0, 0.12),
-    0 8px 18px rgba(var(--platform-rgb), 0.14);
-  backdrop-filter: blur(22px) saturate(1.65) contrast(1.04);
-  -webkit-backdrop-filter: blur(22px) saturate(1.65) contrast(1.04);
-  transform: translateX(-50%);
-  transition: transform 0.35s var(--motion), box-shadow 0.35s, background 0.35s;
-}
-.team-platform::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  pointer-events: none;
-  border-radius: inherit;
-  background:
-    radial-gradient(90% 120% at 18% 0%, rgba(255, 255, 255, 0.96), transparent 38%),
-    linear-gradient(110deg, rgba(255, 255, 255, 0.12), transparent 36%, rgba(255, 255, 255, 0.44) 48%, transparent 58%);
-  opacity: 0.7;
-}
-.team-card:hover .team-platform { transform: translateX(-50%) scale(1.08); }
-.team-platform svg {
-  position: relative;
-  z-index: 1;
-  width: 15px;
-  flex: 0 0 auto;
-  fill: currentColor;
-  filter: drop-shadow(-1px 0 #25f4ee) drop-shadow(1px 0 #fe2c55);
-}
-.platform-name {
-  position: relative;
-  z-index: 1;
-  color: var(--platform-accent);
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1;
-  white-space: nowrap;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.62);
-}
-.platform-icon-text {
-  position: relative;
-  z-index: 1;
-  display: inline-grid;
-  place-items: center;
-  min-width: 23px;
-  height: 18px;
-  padding: 0 4px;
-  color: #ff2442;
-  background: rgba(255, 255, 255, 0.58);
-  border: 1px solid rgba(255, 36, 66, 0.16);
-  border-radius: 8px;
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-.team-platform-douyin,
-.social-platform-group-tiktok .team-platform {
-  --platform-rgb: 37, 244, 238;
-  --platform-accent: #1d1d1f;
-  min-width: 58px;
-}
-.team-platform-xhs {
-  --platform-rgb: 255, 36, 66;
-  --platform-accent: #2f3033;
-  min-width: 86px;
-  gap: 6px;
-  padding: 0 9px 0 5px;
-}
-.team-platform-xhs .platform-name {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.team-platform-xhs .platform-name::before {
-  content: "小红书";
-  display: inline-grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 auto;
-  color: #fff;
-  background: #ff2442;
-  border-radius: 7px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 4px 9px rgba(255, 36, 66, 0.18);
-  font-family: var(--font-cjk);
-  font-size: 5.3px;
-  font-weight: 900;
-  letter-spacing: -0.12em;
-  line-height: 1;
-  white-space: nowrap;
-}
-.team-platform-instagram {
-  --platform-rgb: 193, 53, 132;
-  --platform-accent: #2b2b30;
-  min-width: 82px;
-  height: 28px;
-  gap: 5px;
-  padding: 0 9px 0 7px;
-  background:
-    radial-gradient(110% 140% at 16% 0%, rgba(255, 255, 255, 0.96), transparent 42%),
-    radial-gradient(90% 120% at 88% 100%, rgba(193, 53, 132, 0.16), transparent 52%),
-    radial-gradient(60% 120% at 0% 100%, rgba(250, 126, 30, 0.09), transparent 58%),
-    linear-gradient(142deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.18) 48%, rgba(255, 255, 255, 0.44)),
-    rgba(255, 255, 255, 0.24);
-}
-.team-platform-instagram svg {
-  width: 16px;
-  height: 16px;
-  color: #fff;
-  background:
-    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.95) 0 8%, transparent 18%),
-    radial-gradient(circle at 24% 82%, #f7a84f 0 20%, transparent 44%),
-    radial-gradient(circle at 84% 84%, #5b67d9 0 18%, transparent 40%),
-    linear-gradient(135deg, #f9d66b 0%, #f47b39 23%, #d9457f 50%, #9f4bc2 74%, #5868d8 100%);
-  border-radius: 5px;
-  fill: none;
-  stroke: #fff;
-  stroke-width: 1.65;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: none;
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.3),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.16),
-    0 2px 5px rgba(193, 53, 132, 0.22);
-}
-.team-platform-instagram .platform-name {
-  color: #2b2b30;
-  font-weight: 850;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.56);
-}
 .team-card-body {
   position: relative;
   z-index: 3;
@@ -1708,7 +1553,7 @@ html.gallery-ready .gallery-track {
   justify-content: center;
   gap: 18px;
   margin: 0 auto 28px;
-  padding: 14px 28px 16px 22px;
+  padding: 16px 30px 18px 24px;
   overflow: visible !important;
   background:
     radial-gradient(120% 160% at 14% 0%, rgba(255, 255, 255, 0.98), transparent 44%),
@@ -1726,28 +1571,31 @@ html.gallery-ready .gallery-track {
 }
 .testimonials .section-eyebrow {
   flex: 0 0 auto;
-  min-height: 0;
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
   margin: 0;
-  padding: 2px 2px 4px;
+  padding: 5px 4px 7px;
   color: #c2410c;
   background: none;
   border: 0;
   box-shadow: none;
   font-size: 16px;
-  line-height: 1.34;
-  overflow: visible;
+  line-height: 1.45;
+  overflow: visible !important;
   white-space: nowrap;
 }
 .testimonials .section-heading h2 {
   display: inline-block;
   flex: 1 1 auto;
-  padding: 0.05em 0.02em 0.12em;
+  padding: 0.08em 0.03em 0.16em;
   color: transparent;
   background: linear-gradient(92deg, #111827 0%, #ff2d55 46%, #ff7a00 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  line-height: 1.18;
+  line-height: 1.24;
   text-align: center;
   white-space: normal;
 }
@@ -2059,7 +1907,6 @@ html.gallery-ready .gallery-track {
 .contact-link,
 .sticky-contact,
 .social-platform-title,
-.team-platform,
 .team-link,
 .inquiry-entry-button,
 .inquiry-back,
@@ -2130,14 +1977,6 @@ html.gallery-ready .gallery-track {
   --glass-edge: 0.15;
   --glass-shadow: 0.1;
 }
-.team-platform {
-  --glass-rgb: var(--platform-rgb);
-  --glass-ink: var(--platform-accent);
-  --glass-tint: 0.12;
-  --glass-fill: 0.16;
-  --glass-edge: 0.17;
-  --glass-shadow: 0.08;
-}
 .team-link {
   --glass-rgb: 142, 142, 147;
   --glass-tint: 0.035;
@@ -2195,6 +2034,7 @@ html.gallery-ready .gallery-track {
   border: 0;
   outline: 0;
   box-shadow: none;
+  overflow: visible !important;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -2476,57 +2316,14 @@ html.gallery-ready .gallery-track {
   .team-card::after { display: none; }
   .team-card-media {
     width: clamp(52px, 42%, 68px);
-    margin: 9px auto 25px;
+    margin: 9px auto 11px;
     border-radius: 50%;
   }
   .social-platform-group-tiktok .team-card-media {
     width: clamp(48px, 48%, 58px);
-    margin: 7px auto 23px;
+    margin: 7px auto 10px;
   }
   .team-card:hover .team-card-media img { transform: none; }
-  .team-platform {
-    left: 50%;
-    top: calc(100% + 5px);
-    min-width: 22px;
-    height: 22px;
-    gap: 3px;
-    padding: 0 5px;
-    transform: translateX(-50%);
-  }
-  .team-card:hover .team-platform { transform: translateX(-50%); }
-  .team-platform-douyin {
-    min-width: 48px;
-    gap: 3px;
-    padding: 0 6px;
-  }
-  .team-platform-xhs {
-    min-width: 82px;
-    gap: 4px;
-    padding: 0 7px 0 4px;
-  }
-  .team-platform-xhs .platform-name {
-    gap: 4px;
-  }
-  .team-platform-xhs .platform-name::before {
-    width: 18px;
-    height: 18px;
-    border-radius: 6px;
-    font-size: 4.4px;
-  }
-  .team-platform-instagram {
-    min-width: 52px;
-    height: 21px;
-    gap: 3px;
-    padding: 0 5px 0 4px;
-  }
-  .team-platform svg { width: 10.5px; }
-  .team-platform-instagram svg {
-    width: 11px;
-    height: 11px;
-    border-radius: 4px;
-  }
-  .platform-name { font-size: 5.7px; }
-  .platform-icon-text { min-width: 17px; height: 13px; padding: 0 3px; border-radius: 5px; font-size: 5.8px; }
   .team-card-body { padding: 5px 7px 9px; }
   .team-role { min-height: 17px; font-size: clamp(8.2px, 2.1vw, 9.3px); line-height: 1.2; letter-spacing: 0.01em; }
   .team-card-body > strong { margin: 3px 0 1px; font-size: 13px; line-height: 1.14; }
@@ -2622,26 +2419,26 @@ html.gallery-ready .gallery-track {
   .section-eyebrow { min-height: 23px; font-size: 8px; }
   .testimonials .section-heading {
     width: fit-content;
-    max-width: min(100%, 340px);
+    max-width: min(100%, 350px);
     flex-direction: column;
     gap: 4px;
     margin-bottom: 16px;
-    padding: 14px 22px 17px;
+    padding: 18px 24px 22px;
     border-radius: 28px;
     overflow: visible !important;
   }
   .testimonials .section-eyebrow {
-    min-height: 0;
-    padding: 2px 2px 4px;
+    min-height: 30px;
+    padding: 5px 4px 7px;
     font-size: 12px;
-    line-height: 1.34;
-    overflow: visible;
+    line-height: 1.45;
+    overflow: visible !important;
   }
   .section-heading h2 { font-size: 24px; line-height: 1.12; }
   .testimonials .section-heading h2 {
-    padding: 0.05em 0.02em 0.12em;
+    padding: 0.08em 0.03em 0.18em;
     font-size: clamp(32px, 10vw, 42px);
-    line-height: 1.18;
+    line-height: 1.24;
   }
   .testimonial-grid { gap: 10px; }
   .testimonial-card { padding: 16px; border-radius: 21px; }
