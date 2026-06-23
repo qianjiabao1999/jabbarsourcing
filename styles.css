@@ -703,15 +703,15 @@ a { color: inherit; text-decoration: none; }
 .team-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
-  max-width: 930px;
+  gap: 20px;
+  max-width: 980px;
   margin: 0 auto;
 }
 .social-platform-groups {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 30px 22px;
-  max-width: 930px;
+  gap: 34px 24px;
+  max-width: 980px;
   margin: 0 auto;
   direction: ltr;
 }
@@ -730,11 +730,11 @@ a { color: inherit; text-decoration: none; }
 }
 .social-platform-title {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 40px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 0 16px 0 10px;
+  gap: 9px;
+  padding: 0 18px 0 11px;
   color: #1d1d1f;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -745,14 +745,14 @@ a { color: inherit; text-decoration: none; }
     0 12px 28px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  font-size: 13px;
+  font-size: 14.2px;
   font-weight: 880;
   letter-spacing: -0.01em;
   line-height: 1;
 }
 .social-platform-symbol {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -765,8 +765,8 @@ a { color: inherit; text-decoration: none; }
   line-height: 1;
 }
 .social-platform-symbol svg {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   fill: currentColor;
 }
 .social-platform-symbol-text {
@@ -789,7 +789,7 @@ a { color: inherit; text-decoration: none; }
 .social-platform-group-xhs .social-platform-symbol-text {
   color: #fff;
   font-family: var(--font-cjk);
-  font-size: 5.2px;
+  font-size: 5.7px;
   font-weight: 900;
   letter-spacing: -0.12em;
 }
@@ -817,19 +817,19 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   direction: rtl;
 }
 .social-platform-group-xhs .team-grid {
-  grid-template-columns: minmax(0, 220px);
-  max-width: 220px;
+  grid-template-columns: minmax(0, 240px);
+  max-width: 240px;
   justify-content: center;
 }
 .social-platform-group-douyin .team-grid,
 .social-platform-group-instagram .team-grid {
-  grid-template-columns: repeat(2, minmax(0, 220px));
-  max-width: 458px;
+  grid-template-columns: repeat(2, minmax(0, 240px));
+  max-width: 500px;
   justify-content: center;
 }
 .social-platform-group-tiktok .team-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-width: 696px;
+  max-width: 780px;
 }
 .team-card {
   --spot-x: 50%;
@@ -911,9 +911,9 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   position: relative;
   z-index: 3;
   overflow: visible;
-  width: clamp(76px, 38%, 96px);
+  width: clamp(88px, 40%, 112px);
   aspect-ratio: 1 / 1;
-  margin: 13px auto 15px;
+  margin: 14px auto 16px;
   background:
     radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.98), transparent 38%),
     var(--soft);
@@ -946,7 +946,7 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   width: 100%;
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(15px, 1.16vw, 17px);
+  font-size: clamp(17px, 1.28vw, 20px);
   line-height: 1.18;
   letter-spacing: -0.035em;
   text-align: center;
@@ -974,7 +974,7 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   width: 100%;
   text-align: center;
 }
-.team-handle { width: 100%; color: #86868b; font-size: 10px; text-align: center; overflow-wrap: anywhere; }
+.team-handle { width: 100%; color: #86868b; font-size: 11px; text-align: center; overflow-wrap: anywhere; }
 .team-link {
   position: relative;
   margin-top: auto;
@@ -987,8 +987,8 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   align-items: center;
   justify-content: center;
   gap: 0;
-  min-height: 22px;
-  padding: 3px 13px;
+  min-height: 26px;
+  padding: 4px 15px;
   overflow: hidden;
   isolation: isolate;
   color: rgba(29, 29, 31, 0.82);
@@ -1007,8 +1007,8 @@ html[dir="rtl"] .social-platform-group .team-card-body {
     0 2px 7px rgba(255, 255, 255, 0.38);
   backdrop-filter: blur(36px) saturate(2.05) contrast(1.08) brightness(1.05);
   -webkit-backdrop-filter: blur(36px) saturate(2.05) contrast(1.08) brightness(1.05);
-  font-size: 9.2px;
-  font-weight: 740;
+  font-size: 10.5px;
+  font-weight: 780;
   line-height: 1.12;
   text-align: center;
   white-space: nowrap;
@@ -2308,14 +2308,14 @@ html.gallery-ready .gallery-track {
     font-size: 11px;
   }
   .sticky-contact img { width: 19px; height: 19px; border-radius: 6px; }
-  .team-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 6px; }
+  .team-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
   .social-platform-groups {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px 6px;
-    max-width: 360px;
+    gap: 22px 8px;
+    max-width: min(392px, 100%);
     align-items: start;
   }
-  .social-platform-group { gap: 10px; }
+  .social-platform-group { gap: 12px; }
   .social-platform-group-douyin {
     grid-column: 1 / span 2;
   }
@@ -2327,39 +2327,39 @@ html.gallery-ready .gallery-track {
     grid-column: 1 / -1;
   }
   .social-platform-title {
-    min-height: 30px;
-    gap: 6px;
-    padding: 0 12px 0 8px;
-    font-size: 11.5px;
+    min-height: 34px;
+    gap: 7px;
+    padding: 0 14px 0 9px;
+    font-size: 13px;
   }
   .social-platform-symbol {
-    width: 18px;
-    height: 18px;
-    border-radius: 6px;
+    width: 21px;
+    height: 21px;
+    border-radius: 7px;
   }
   .social-platform-symbol svg {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
   }
-  .social-platform-symbol-text { font-size: 6px; }
+  .social-platform-symbol-text { font-size: 6.4px; }
   .social-platform-group-douyin .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: none;
-    gap: 10px 6px;
+    gap: 12px 8px;
   }
   .social-platform-group-xhs .team-grid {
     grid-template-columns: minmax(0, 1fr);
     max-width: none;
-    gap: 10px 6px;
+    gap: 12px 8px;
   }
   .social-platform-group-tiktok .team-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: 360px;
-    gap: 10px 6px;
+    max-width: min(392px, 100%);
+    gap: 14px 8px;
   }
   .social-platform-group-instagram .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 272px;
+    max-width: 312px;
     justify-content: center;
   }
   .team-card:last-child:nth-child(odd) { width: calc((100% - 8px) / 2); }
@@ -2377,16 +2377,16 @@ html.gallery-ready .gallery-track {
     justify-self: stretch;
   }
   .social-platform-group-xhs .social-platform-title {
-    gap: 4px;
-    padding: 0 8px 0 6px;
-    font-size: 10.5px;
+    gap: 5px;
+    padding: 0 10px 0 7px;
+    font-size: 12px;
   }
   .social-platform-group-xhs .social-platform-symbol {
-    width: 17px;
-    height: 17px;
+    width: 20px;
+    height: 20px;
   }
   .social-platform-group-xhs .social-platform-symbol-text {
-    font-size: 4.8px;
+    font-size: 5.3px;
   }
   .team-card {
     min-height: 0;
@@ -2396,38 +2396,38 @@ html.gallery-ready .gallery-track {
   .team-card:hover { transform: none; box-shadow: none; }
   .team-card::after { display: none; }
   .team-card-media {
-    width: clamp(52px, 42%, 68px);
-    margin: 9px auto 11px;
+    width: clamp(66px, 50%, 84px);
+    margin: 10px auto 12px;
     border-radius: 50%;
   }
   .social-platform-group-tiktok .team-card-media {
-    width: clamp(48px, 48%, 58px);
-    margin: 7px auto 10px;
+    width: clamp(60px, 54%, 72px);
+    margin: 8px auto 11px;
   }
   .team-card:hover .team-card-media img { transform: none; }
-  .team-card-body { padding: 5px 7px 9px; }
-  .team-card-body > strong { margin: 0 0 1px; font-size: 13px; line-height: 1.14; }
-  .team-handle { max-width: 100%; overflow-wrap: anywhere; font-size: 7.8px; }
-  .social-platform-group-tiktok .team-card-body { padding: 4px 4px 8px; }
+  .team-card-body { padding: 6px 7px 10px; }
+  .team-card-body > strong { margin: 0 0 2px; font-size: 16px; line-height: 1.14; }
+  .team-handle { max-width: 100%; overflow-wrap: anywhere; font-size: 9.5px; }
+  .social-platform-group-tiktok .team-card-body { padding: 5px 4px 9px; }
   .social-platform-group-tiktok .team-card-body > strong {
-    margin: 0 0 1px;
-    font-size: clamp(10.8px, 3.1vw, 12px);
+    margin: 0 0 2px;
+    font-size: clamp(13.2px, 3.65vw, 15px);
     line-height: 1.12;
   }
-  .social-platform-group-tiktok .team-handle { font-size: 6.9px; }
+  .social-platform-group-tiktok .team-handle { font-size: 8.2px; }
   .team-link {
-    max-width: min(86%, 142px);
-    min-height: 20px;
+    max-width: min(92%, 158px);
+    min-height: 24px;
     gap: 0;
-    padding: 3px 10px;
-    font-size: 7.6px;
+    padding: 4px 12px;
+    font-size: 9.2px;
     line-height: 1.12;
   }
   .social-platform-group-tiktok .team-link {
-    max-width: 96%;
-    min-height: 18px;
-    padding: 2px 7px;
-    font-size: 6.8px;
+    max-width: 98%;
+    min-height: 22px;
+    padding: 3px 8px;
+    font-size: 8.2px;
   }
   .sourcing-gallery { margin: 22px auto 34px; padding-top: 0; }
   .gallery-block { margin-top: 18px; }
