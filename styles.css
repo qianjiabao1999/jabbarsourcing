@@ -1159,9 +1159,15 @@ html.gallery-ready .gallery-track {
   aspect-ratio: 3 / 4;
   border-radius: 30px;
 }
-.gallery-frame img {
+.gallery-frame picture {
   position: relative;
   z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.gallery-frame img {
+  position: relative;
   display: block;
   width: 100%;
   height: 100%;
@@ -1676,17 +1682,28 @@ html.gallery-ready .gallery-track {
   padding-top: 54px;
 }
 .inquiry-page-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   max-width: 760px;
   margin: 18px auto 20px;
+  text-align: center;
 }
 .inquiry-page-heading h1 {
+  max-width: 12em;
+  margin-right: auto;
+  margin-left: auto;
   font-size: clamp(34px, 4.4vw, 58px);
   letter-spacing: -0.052em;
+  text-wrap: balance;
 }
 .inquiry-page-heading p {
   max-width: 560px;
+  margin-right: auto;
+  margin-left: auto;
   font-size: 15px;
   line-height: 1.55;
+  text-wrap: balance;
 }
 .inquiry-back {
   width: max-content;
@@ -1705,10 +1722,11 @@ html.gallery-ready .gallery-track {
 .inquiry-panel {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(230px, 0.72fr) minmax(0, 1.28fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: clamp(18px, 3vw, 34px);
-  width: min(100%, 980px);
+  justify-items: center;
+  gap: clamp(16px, 2.4vw, 26px);
+  width: min(100%, 920px);
   margin: 0 auto;
   overflow: hidden;
   padding: clamp(18px, 3vw, 30px);
@@ -1735,12 +1753,13 @@ html.gallery-ready .gallery-track {
 .inquiry-copy {
   position: relative;
   z-index: 1;
-  max-width: none;
-  margin: 0;
-  text-align: left;
+  justify-self: center;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
 }
 [dir="rtl"] .inquiry-copy {
-  text-align: right;
+  text-align: center;
 }
 .inquiry-eyebrow {
   display: inline-flex;
@@ -1763,10 +1782,11 @@ html.gallery-ready .gallery-track {
   font-size: clamp(25px, 3vw, 42px);
   line-height: 1.04;
   letter-spacing: -0.052em;
+  text-wrap: balance;
 }
 .inquiry-copy p {
-  max-width: 330px;
-  margin: 0;
+  max-width: 620px;
+  margin: 0 auto;
   color: #77777d;
   font-size: 13px;
   line-height: 1.58;
@@ -1778,6 +1798,8 @@ html.gallery-ready .gallery-track {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  width: min(100%, 820px);
+  justify-self: center;
   text-align: left;
 }
 [dir="rtl"] .inquiry-form {
@@ -1837,6 +1859,11 @@ html.gallery-ready .gallery-track {
   margin-top: 6px;
 }
 .inquiry-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-height: 40px;
   padding: 0 15px;
   color: #1d1d1f;
@@ -1856,6 +1883,22 @@ html.gallery-ready .gallery-track {
   text-align: center;
   white-space: normal;
   transition: transform 0.22s var(--motion), box-shadow 0.22s, background 0.22s;
+}
+.inquiry-button > * {
+  position: relative;
+  z-index: 1;
+}
+.inquiry-button-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border-radius: 6px;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.72)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+.inquiry-button[data-channel="telegram"] .inquiry-button-icon {
+  border-radius: 50%;
 }
 .inquiry-button-primary {
   color: #fff;
@@ -1994,6 +2037,44 @@ html.gallery-ready .gallery-track {
     inset 0 -1px 1px rgba(0, 0, 0, 0.055),
     0 12px 28px rgba(37, 211, 102, 0.16),
     0 8px 20px rgba(0, 0, 0, 0.06);
+}
+.inquiry-button[data-channel="gmail"] {
+  --glass-rgb: 234, 67, 53;
+  --glass-ink: #2b2b30;
+  --glass-tint: 0.09;
+  --glass-fill: 0.24;
+  --glass-edge: 0.14;
+  --glass-shadow: 0.075;
+  border-color: rgba(234, 67, 53, 0.16);
+}
+.inquiry-button[data-channel="gmail"]::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(70% 100% at 18% 100%, rgba(251, 188, 5, 0.16), transparent 58%),
+    radial-gradient(84% 120% at 96% 100%, rgba(66, 133, 244, 0.13), transparent 58%);
+  opacity: 0.85;
+}
+.inquiry-button[data-channel="wechat"] {
+  --glass-rgb: 7, 193, 96;
+  --glass-ink: #1d1d1f;
+  --glass-tint: 0.11;
+  --glass-fill: 0.24;
+  --glass-edge: 0.16;
+  --glass-shadow: 0.08;
+  border-color: rgba(7, 193, 96, 0.18);
+}
+.inquiry-button[data-channel="telegram"] {
+  --glass-rgb: 34, 158, 217;
+  --glass-ink: #1d1d1f;
+  --glass-tint: 0.11;
+  --glass-fill: 0.24;
+  --glass-edge: 0.17;
+  --glass-shadow: 0.08;
+  border-color: rgba(34, 158, 217, 0.2);
 }
 .inquiry-entry-card-cta .inquiry-entry-button {
   --glass-rgb: 255, 122, 0;
@@ -2465,9 +2546,18 @@ html.gallery-ready .gallery-track {
   .inquiry-button {
     min-height: 38px;
     padding: 0 13px;
+    gap: 7px;
     color: #1d1d1f;
     font-size: 11px;
     font-weight: 880;
+  }
+  .inquiry-button-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+  }
+  .inquiry-button[data-channel="telegram"] .inquiry-button-icon {
+    border-radius: 50%;
   }
   .inquiry-button-primary {
     min-width: 142px;
