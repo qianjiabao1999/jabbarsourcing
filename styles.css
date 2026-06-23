@@ -24,6 +24,11 @@
   --sans: var(--font-latin);
   --display: var(--font-latin);
   --motion: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --grad-cool-soft: linear-gradient(94deg, #7c78b8 0%, #5f8ec3 46%, #78b4c5 74%, #b985a3 100%);
+  --grad-blue-soft: linear-gradient(94deg, #667db4 0%, #5c8cc4 56%, #78b8c8 100%);
+  --grad-social-soft: linear-gradient(94deg, #7475b5 0%, #5d8fc8 45%, #77b7c8 72%, #b785a5 100%);
+  --grad-warm-soft: linear-gradient(100deg, #9d6b5b 0%, #ce7c70 48%, #d69b62 100%);
+  --grad-review-soft: linear-gradient(92deg, #7d6b9f 0%, #c26d90 55%, #d39162 100%);
 }
 
 html[lang^="zh"] {
@@ -285,7 +290,7 @@ a { color: inherit; text-decoration: none; }
   display: inline-block;
   padding-bottom: 0.08em;
   margin-bottom: -0.08em;
-  background: linear-gradient(92deg, #6a11cb 0%, #0071e3 34%, #31d3ff 66%, #ff2d55 100%);
+  background: var(--grad-cool-soft);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -314,7 +319,7 @@ a { color: inherit; text-decoration: none; }
   text-align: center;
   direction: ltr;
   unicode-bidi: isolate;
-  background: linear-gradient(96deg, #6a11cb 0%, #0a84ff 44%, #31d3ff 70%, #ff2d55 100%);
+  background: var(--grad-cool-soft);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -374,7 +379,7 @@ a { color: inherit; text-decoration: none; }
 .team-heading .hero-proof > span {
   display: inline-block;
   color: transparent;
-  background: linear-gradient(94deg, #6a11cb 0%, #0a84ff 42%, #31d3ff 68%, #ff2d55 100%);
+  background: var(--grad-cool-soft);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -977,7 +982,7 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   text-align: center;
 }
 .team-card-body > strong {
-  --social-name-gradient: linear-gradient(94deg, #6a11cb 0%, #2575fc 40%, #00c6ff 68%, #ff2d55 100%);
+  --social-name-gradient: var(--grad-social-soft);
   width: 100%;
   margin: 0;
   color: transparent;
@@ -1324,14 +1329,14 @@ html.gallery-ready .gallery-track {
   font-size: clamp(24px, 3vw, 36px);
   line-height: 1.04;
   letter-spacing: -0.05em;
-  background: linear-gradient(100deg, #7c2d12 0%, #ff3b30 42%, #ff9500 100%);
+  background: var(--grad-warm-soft);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .inquiry-entry-copy span {
   max-width: 560px;
-  background: linear-gradient(100deg, #7c2d12 0%, #ef4444 44%, #f97316 100%);
+  background: var(--grad-warm-soft);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1391,11 +1396,11 @@ html.gallery-ready .gallery-track {
 .inquiry-entry-card-cta .inquiry-entry-button {
   background:
     radial-gradient(120% 160% at 18% 0%, rgba(255, 255, 255, 0.52), transparent 42%),
-    linear-gradient(145deg, #ff3b30, #ff9500);
+    linear-gradient(145deg, #d88672, #d7a25f);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.58),
     inset 0 -1px 1px rgba(0, 0, 0, 0.18),
-    0 16px 30px rgba(255, 59, 48, 0.3);
+    0 16px 30px rgba(206, 124, 112, 0.22);
 }
 .inquiry-entry-card-cta:hover .inquiry-entry-button,
 .inquiry-entry-card-cta:focus-visible .inquiry-entry-button {
@@ -1405,12 +1410,12 @@ html.gallery-ready .gallery-track {
   text-underline-offset: 4px;
   background:
     radial-gradient(120% 160% at 18% 0%, rgba(255, 255, 255, 0.58), transparent 42%),
-    linear-gradient(145deg, #ff2d55, #ff7a00);
+    linear-gradient(145deg, #d7798c, #d99a62);
   border-color: rgba(255, 255, 255, 0.7);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.62),
     inset 0 -1px 1px rgba(0, 0, 0, 0.18),
-    0 20px 38px rgba(255, 59, 48, 0.34);
+    0 20px 38px rgba(206, 124, 112, 0.24);
 }
 .inquiry-entry-button:hover {
   transform: translateX(2px) translateY(-2px);
@@ -1468,7 +1473,7 @@ html.gallery-ready .gallery-track {
 .company-intro .section-heading h2 {
   display: inline-block;
   color: transparent;
-  background: linear-gradient(94deg, #6a11cb 0%, #0a84ff 54%, #31d3ff 100%);
+  background: var(--grad-blue-soft);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1635,7 +1640,7 @@ html.gallery-ready .gallery-track {
   flex: 0 0 auto;
   padding: 0.08em 0.03em 0.16em;
   color: transparent;
-  background: linear-gradient(92deg, #6a11cb 0%, #ff2d55 52%, #ff7a00 100%);
+  background: var(--grad-review-soft);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1750,6 +1755,9 @@ html.gallery-ready .gallery-track {
   margin: 6px auto 22px;
   text-align: center;
 }
+.inquiry-page > .container {
+  padding-top: 34px;
+}
 .inquiry-page-heading h1 {
   display: inline-block;
   max-width: 12em;
@@ -1757,7 +1765,7 @@ html.gallery-ready .gallery-track {
   margin-left: auto;
   padding: 0.04em 0.02em 0.13em;
   color: transparent;
-  background: linear-gradient(92deg, #6a11cb 0%, #0a84ff 48%, #37b7ff 100%);
+  background: var(--grad-blue-soft);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1805,6 +1813,22 @@ html.gallery-ready .gallery-track {
   font-weight: 950;
   letter-spacing: -0.01em;
   line-height: 1;
+}
+.inquiry-language-back {
+  position: absolute;
+  top: 68px;
+  left: max(24px, calc((100vw - 1120px) / 2));
+  z-index: 4;
+  min-height: 36px;
+  margin: 0;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: -0.005em;
+}
+[dir="rtl"] .inquiry-language-back {
+  right: max(24px, calc((100vw - 1120px) / 2));
+  left: auto;
 }
 .inquiry-panel {
   position: relative;
@@ -1871,7 +1895,7 @@ html.gallery-ready .gallery-track {
   z-index: 1;
   display: inline-block;
   color: transparent;
-  background: linear-gradient(94deg, #6a11cb 0%, #0a84ff 48%, #31d3ff 74%, #ff2d55 100%);
+  background: var(--grad-cool-soft);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1900,7 +1924,7 @@ html.gallery-ready .gallery-track {
   margin: 14px auto 9px;
   padding: 0.04em 0.02em 0.12em;
   color: transparent;
-  background: linear-gradient(92deg, #6a11cb 0%, #0a84ff 48%, #31d3ff 74%, #ff2d55 100%);
+  background: var(--grad-cool-soft);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1914,7 +1938,7 @@ html.gallery-ready .gallery-track {
   max-width: 620px;
   margin: 0 auto;
   color: transparent;
-  background: linear-gradient(92deg, #6a11cb 0%, #2563eb 44%, #0a84ff 72%, #14b8d4 100%);
+  background: var(--grad-blue-soft);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2035,7 +2059,7 @@ html.gallery-ready .gallery-track {
 }
 .inquiry-button-primary {
   color: #fff;
-  background: linear-gradient(145deg, #0a84ff, #0066cc);
+  background: linear-gradient(145deg, #70a1cf, #5f8ec3);
   border-color: rgba(0, 102, 204, 0.2);
   box-shadow: 0 12px 28px rgba(0, 102, 204, 0.22);
 }
@@ -2449,6 +2473,9 @@ html.gallery-ready .gallery-track {
     gap: 7px;
     font-size: 11px;
   }
+  .sticky-contact-telegram {
+    display: none;
+  }
   .sticky-contact img { width: 19px; height: 19px; border-radius: 6px; }
   .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 16px; }
   .social-platform-groups {
@@ -2502,8 +2529,9 @@ html.gallery-ready .gallery-track {
   .social-platform-group-instagram .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: min(390px, 100%);
-    gap: 24px 16px;
+    gap: 24px 10px;
     justify-content: center;
+    padding-inline: 2px;
   }
   .team-card:last-child:nth-child(odd) { width: calc((100% - 8px) / 2); }
   .social-platform-group-douyin .team-card:last-child:nth-child(odd),
@@ -2592,6 +2620,17 @@ html.gallery-ready .gallery-track {
     line-height: 1.12;
   }
   .social-platform-group-tiktok .team-handle { font-size: clamp(12.8px, 3.38vw, 14px); font-weight: 950; letter-spacing: -0.045em; }
+  .social-platform-group-instagram {
+    padding-bottom: 128px;
+  }
+  .social-platform-group-instagram .team-card-body > strong {
+    font-size: clamp(18.6px, 4.9vw, 21px);
+    letter-spacing: -0.055em;
+  }
+  .social-platform-group-instagram .team-handle {
+    font-size: clamp(12.8px, 3.35vw, 14px);
+    letter-spacing: -0.045em;
+  }
   .team-link {
     max-width: 100%;
     min-height: 36px;
@@ -2655,6 +2694,19 @@ html.gallery-ready .gallery-track {
     font-weight: 950;
     white-space: nowrap;
   }
+  .inquiry-language-back {
+    top: 58px;
+    left: 10px;
+    min-width: 0;
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 850;
+  }
+  [dir="rtl"] .inquiry-language-back {
+    right: 10px;
+    left: auto;
+  }
   .inquiry-entry-button { max-width: 100%; min-height: 32px; padding: 0 12px; font-size: 9.5px; white-space: normal; }
   .company-intro { margin: 26px auto 34px; }
   .company-intro .section-heading { margin-bottom: 14px; }
@@ -2716,6 +2768,7 @@ html.gallery-ready .gallery-track {
   .testimonial-rating::after { min-height: 17px; padding: 0 6px; font-size: 9px; }
   .testimonial-card p { margin: 11px 0 13px; font-size: 12px; line-height: 1.45; }
   .testimonial-card span { font-size: 10px; }
+  .inquiry-page > .container { padding-top: 44px; }
   .inquiry-page-heading { margin: 4px auto 16px; }
   .inquiry-page-heading h1 { font-size: clamp(32px, 9vw, 43px); line-height: 1.08; }
   .inquiry-page-heading p { max-width: 340px; font-size: 13.2px; line-height: 1.5; }
