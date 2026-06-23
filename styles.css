@@ -285,7 +285,7 @@ a { color: inherit; text-decoration: none; }
   display: inline-block;
   padding-bottom: 0.08em;
   margin-bottom: -0.08em;
-  background: linear-gradient(92deg, #141417 0%, #24324a 28%, #0071e3 58%, #31d3ff 78%, #ff2d55 100%);
+  background: linear-gradient(92deg, #111113 0%, #111113 24%, #24324a 45%, #0071e3 66%, #31d3ff 82%, #ff2d55 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -314,7 +314,7 @@ a { color: inherit; text-decoration: none; }
   text-align: center;
   direction: ltr;
   unicode-bidi: isolate;
-  background: linear-gradient(96deg, #111113 0%, #30343b 30%, #0a84ff 68%, #6e56cf 100%);
+  background: linear-gradient(96deg, #111113 0%, #111113 24%, #30343b 42%, #0a84ff 72%, #6e56cf 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -374,7 +374,7 @@ a { color: inherit; text-decoration: none; }
 .team-heading .hero-proof > span {
   display: inline-block;
   color: transparent;
-  background: linear-gradient(94deg, #111827 0%, #1f4f7f 36%, #0a84ff 66%, #ff2d55 100%);
+  background: linear-gradient(94deg, #111827 0%, #111827 24%, #1f4f7f 46%, #0a84ff 72%, #ff2d55 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -972,7 +972,7 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   text-align: center;
 }
 .team-card-body > strong {
-  --social-name-gradient: linear-gradient(94deg, #111827 0%, #24466b 28%, #0a84ff 66%, #ff2d55 100%);
+  --social-name-gradient: linear-gradient(94deg, #111827 0%, #111827 24%, #24466b 48%, #0a84ff 74%, #ff2d55 100%);
   width: 100%;
   margin: 0;
   color: transparent;
@@ -1316,14 +1316,14 @@ html.gallery-ready .gallery-track {
   font-size: clamp(24px, 3vw, 36px);
   line-height: 1.04;
   letter-spacing: -0.05em;
-  background: linear-gradient(100deg, #111113 0%, #ff3b30 46%, #ff9500 100%);
+  background: linear-gradient(100deg, #111113 0%, #111113 26%, #ff3b30 62%, #ff9500 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .inquiry-entry-copy span {
   max-width: 560px;
-  background: linear-gradient(100deg, #5f636d 0%, #a54d1f 52%, #f97316 100%);
+  background: linear-gradient(100deg, #111827 0%, #111827 24%, #6b4a3d 52%, #f97316 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1460,7 +1460,7 @@ html.gallery-ready .gallery-track {
 .company-intro .section-heading h2 {
   display: inline-block;
   color: transparent;
-  background: linear-gradient(94deg, #111113 0%, #31415a 42%, #0a84ff 100%);
+  background: linear-gradient(94deg, #111113 0%, #111113 24%, #31415a 52%, #0a84ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1583,18 +1583,19 @@ html.gallery-ready .gallery-track {
   display: flex;
   width: max-content;
   max-width: min(100%, 780px);
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 5px;
   margin: 0 auto 28px;
-  padding: 16px 30px 18px 24px;
+  padding: 20px 38px 24px;
   overflow: visible !important;
   background:
     radial-gradient(120% 160% at 14% 0%, rgba(255, 255, 255, 0.98), transparent 44%),
     radial-gradient(90% 130% at 100% 100%, rgba(255, 149, 0, 0.16), transparent 58%),
     linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(255, 244, 230, 0.42));
   border: 1px solid rgba(255, 149, 0, 0.24);
-  border-radius: 999px;
+  border-radius: 34px;
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.96),
     inset 0 -1px 1px rgba(0, 0, 0, 0.06),
@@ -1615,17 +1616,18 @@ html.gallery-ready .gallery-track {
   background: none;
   border: 0;
   box-shadow: none;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 920;
   line-height: 1.45;
   overflow: visible !important;
   white-space: nowrap;
 }
 .testimonials .section-heading h2 {
   display: inline-block;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   padding: 0.08em 0.03em 0.16em;
   color: transparent;
-  background: linear-gradient(92deg, #111827 0%, #ff2d55 46%, #ff7a00 100%);
+  background: linear-gradient(92deg, #111827 0%, #111827 24%, #ff2d55 62%, #ff7a00 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1747,11 +1749,11 @@ html.gallery-ready .gallery-track {
   margin-left: auto;
   padding: 0.04em 0.02em 0.13em;
   color: transparent;
-  background: linear-gradient(92deg, #111827 0%, #154d8f 44%, #0a84ff 74%, #37b7ff 100%);
+  background: linear-gradient(92deg, #111827 0%, #111827 24%, #154d8f 54%, #0a84ff 78%, #37b7ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-size: clamp(34px, 4.4vw, 58px);
+  font-size: clamp(44px, 5.2vw, 70px);
   letter-spacing: -0.052em;
   line-height: 1.08;
   text-wrap: balance;
@@ -1847,7 +1849,7 @@ html.gallery-ready .gallery-track {
   margin: 14px auto 9px;
   padding: 0.04em 0.02em 0.12em;
   color: transparent;
-  background: linear-gradient(92deg, #111827 0%, #1c4d83 42%, #0a84ff 72%, #31d3ff 100%);
+  background: linear-gradient(92deg, #111827 0%, #111827 24%, #1c4d83 54%, #0a84ff 78%, #31d3ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1861,7 +1863,7 @@ html.gallery-ready .gallery-track {
   max-width: 620px;
   margin: 0 auto;
   color: transparent;
-  background: linear-gradient(92deg, #52525b 0%, #2563eb 48%, #0a84ff 72%, #14b8d4 100%);
+  background: linear-gradient(92deg, #111827 0%, #111827 22%, #2563eb 56%, #0a84ff 78%, #14b8d4 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2388,19 +2390,19 @@ html.gallery-ready .gallery-track {
     font-size: 11px;
   }
   .sticky-contact img { width: 19px; height: 19px; border-radius: 6px; }
-  .team-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 9px; }
+  .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 16px; }
   .social-platform-groups {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 25px 8px;
-    max-width: min(410px, 100%);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 16px;
+    max-width: min(390px, 100%);
     align-items: start;
   }
-  .social-platform-group { gap: 14px; }
+  .social-platform-group { gap: 16px; }
   .social-platform-group-douyin {
-    grid-column: 1 / span 2;
+    grid-column: 1;
   }
   .social-platform-group-xhs {
-    grid-column: 3;
+    grid-column: 2;
   }
   .social-platform-group-tiktok,
   .social-platform-group-instagram {
@@ -2423,23 +2425,24 @@ html.gallery-ready .gallery-track {
   }
   .social-platform-symbol-text { font-size: 6.8px; }
   .social-platform-group-douyin .team-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     max-width: none;
-    gap: 14px 9px;
+    gap: 20px;
   }
   .social-platform-group-xhs .team-grid {
     grid-template-columns: minmax(0, 1fr);
     max-width: none;
-    gap: 14px 9px;
+    gap: 20px;
   }
   .social-platform-group-tiktok .team-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: min(410px, 100%);
-    gap: 16px 9px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: min(390px, 100%);
+    gap: 24px 16px;
   }
   .social-platform-group-instagram .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 336px;
+    max-width: min(390px, 100%);
+    gap: 24px 16px;
     justify-content: center;
   }
   .team-card:last-child:nth-child(odd) { width: calc((100% - 8px) / 2); }
@@ -2470,72 +2473,78 @@ html.gallery-ready .gallery-track {
   }
   .team-card {
     min-height: 0;
+    min-width: 0;
     border-radius: 18px;
     box-shadow: none;
   }
   .team-card:hover { transform: none; box-shadow: none; }
   .team-card::after { display: none; }
   .team-card-media {
-    width: clamp(86px, 60%, 110px);
+    width: clamp(92px, 58%, 112px);
     margin: 12px auto 14px;
     border-radius: 50%;
   }
   .social-platform-group-tiktok .team-card-media {
-    width: clamp(80px, 62%, 96px);
-    margin: 11px auto 13px;
+    width: clamp(88px, 56%, 104px);
+    margin: 12px auto 14px;
   }
   .team-card:hover .team-card-media img { transform: none; }
-  .team-card-body { padding: 7px 7px 11px; }
+  .team-card-body {
+    width: 100%;
+    min-width: 0;
+    padding: 8px 6px 12px;
+  }
   .team-card-body > strong {
-    width: max-content;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
     margin: 0 0 3px;
-    font-size: 20px;
+    font-size: clamp(17.4px, 4.85vw, 20px);
     line-height: 1.14;
     white-space: nowrap;
+    text-wrap: nowrap;
     overflow-wrap: normal;
     word-break: keep-all;
   }
   .team-title,
   .team-title-name,
   .team-title-line {
-    width: max-content;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
     white-space: nowrap;
     overflow-wrap: normal;
     word-break: keep-all;
   }
   .team-handle {
-    width: max-content;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
     color: #5f636d;
     font-weight: 900;
     letter-spacing: -0.02em;
     overflow-wrap: normal;
     word-break: keep-all;
     white-space: nowrap;
-    font-size: 13.4px;
+    font-size: clamp(12.2px, 3.35vw, 13.4px);
   }
-  .social-platform-group-tiktok .team-card-body { padding: 6px 4px 10px; }
+  .social-platform-group-tiktok .team-card-body { padding: 7px 5px 11px; }
   .social-platform-group-tiktok .team-card-body > strong {
     margin: 0 0 3px;
-    font-size: clamp(16px, 4.2vw, 18.5px);
+    font-size: clamp(16px, 4.55vw, 18.5px);
     line-height: 1.12;
   }
-  .social-platform-group-tiktok .team-handle { font-size: 11.7px; font-weight: 920; }
+  .social-platform-group-tiktok .team-handle { font-size: clamp(11px, 3vw, 11.7px); font-weight: 920; }
   .team-link {
-    max-width: none;
+    max-width: 100%;
     min-height: 32px;
     gap: 0;
-    padding: 6px 16px;
-    font-size: 11.4px;
+    padding: 6px 14px;
+    font-size: clamp(10.6px, 3vw, 11.4px);
     line-height: 1.12;
   }
   .social-platform-group-tiktok .team-link {
-    max-width: none;
+    max-width: 100%;
     min-height: 29px;
-    padding: 5px 12px;
-    font-size: 10.2px;
+    padding: 5px 10px;
+    font-size: clamp(9.6px, 2.75vw, 10.2px);
   }
   .team-link-label {
     max-width: none;
