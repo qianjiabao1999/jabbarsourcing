@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Xiaohongshu">
+  <rect width="120" height="120" rx="25" fill="#ff2442"/>
+  <g fill="#fff" font-family="PingFang SC, Noto Sans CJK SC, Microsoft YaHei, Arial, sans-serif" font-weight="900">
+    <text x="60" y="53" text-anchor="middle" font-size="30" letter-spacing="-2">小红</text>
+    <text x="60" y="83" text-anchor="middle" font-size="30" letter-spacing="-1">书</text>
+  </g>
+</svg>

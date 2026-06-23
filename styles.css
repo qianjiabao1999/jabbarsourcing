@@ -703,21 +703,21 @@ a { color: inherit; text-decoration: none; }
 .team-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
-  max-width: 980px;
+  gap: 22px;
+  max-width: 1040px;
   margin: 0 auto;
 }
 .social-platform-groups {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 34px 24px;
-  max-width: 980px;
+  gap: 38px 28px;
+  max-width: 1040px;
   margin: 0 auto;
   direction: ltr;
 }
 .social-platform-group {
   display: grid;
-  gap: 13px;
+  gap: 15px;
   direction: ltr;
 }
 .social-platform-group-tiktok,
@@ -730,11 +730,11 @@ a { color: inherit; text-decoration: none; }
 }
 .social-platform-title {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 43px;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  padding: 0 18px 0 11px;
+  gap: 10px;
+  padding: 0 20px 0 12px;
   color: #1d1d1f;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -745,14 +745,14 @@ a { color: inherit; text-decoration: none; }
     0 12px 28px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  font-size: 14.2px;
+  font-size: 15.4px;
   font-weight: 880;
   letter-spacing: -0.01em;
   line-height: 1;
 }
 .social-platform-symbol {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -765,12 +765,19 @@ a { color: inherit; text-decoration: none; }
   line-height: 1;
 }
 .social-platform-symbol svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   fill: currentColor;
 }
+.social-platform-symbol img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: inherit;
+}
 .social-platform-symbol-text {
-  font-size: 7px;
+  font-size: 7.4px;
   font-weight: 950;
   letter-spacing: -0.08em;
 }
@@ -780,16 +787,20 @@ a { color: inherit; text-decoration: none; }
   box-shadow: -1px 0 0 #25f4ee, 1px 0 0 #fe2c55, 0 5px 10px rgba(0, 0, 0, 0.18);
 }
 .social-platform-group-xhs .social-platform-symbol {
+  overflow: hidden;
   background: #ff2442;
   border-radius: 7px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
     0 5px 12px rgba(255, 36, 66, 0.2);
 }
+.social-platform-group-xhs .social-platform-symbol-xhs {
+  color: inherit;
+}
 .social-platform-group-xhs .social-platform-symbol-text {
   color: #fff;
   font-family: var(--font-cjk);
-  font-size: 5.7px;
+  font-size: 6px;
   font-weight: 900;
   letter-spacing: -0.12em;
 }
@@ -817,19 +828,19 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   direction: rtl;
 }
 .social-platform-group-xhs .team-grid {
-  grid-template-columns: minmax(0, 240px);
-  max-width: 240px;
+  grid-template-columns: minmax(0, 260px);
+  max-width: 260px;
   justify-content: center;
 }
 .social-platform-group-douyin .team-grid,
 .social-platform-group-instagram .team-grid {
-  grid-template-columns: repeat(2, minmax(0, 240px));
-  max-width: 500px;
+  grid-template-columns: repeat(2, minmax(0, 260px));
+  max-width: 540px;
   justify-content: center;
 }
 .social-platform-group-tiktok .team-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-width: 780px;
+  max-width: 840px;
 }
 .team-card {
   --spot-x: 50%;
@@ -911,9 +922,9 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   position: relative;
   z-index: 3;
   overflow: visible;
-  width: clamp(88px, 40%, 112px);
+  width: clamp(98px, 42%, 126px);
   aspect-ratio: 1 / 1;
-  margin: 14px auto 16px;
+  margin: 16px auto 18px;
   background:
     radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.98), transparent 38%),
     var(--soft);
@@ -935,7 +946,7 @@ html[dir="rtl"] .social-platform-group .team-card-body {
 .team-card-body {
   position: relative;
   z-index: 3;
-  padding: 6px 10px 11px;
+  padding: 7px 12px 13px;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -946,7 +957,7 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   width: 100%;
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(17px, 1.28vw, 20px);
+  font-size: clamp(19px, 1.38vw, 22px);
   line-height: 1.18;
   letter-spacing: -0.035em;
   text-align: center;
@@ -974,21 +985,21 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   width: 100%;
   text-align: center;
 }
-.team-handle { width: 100%; color: #86868b; font-size: 11px; text-align: center; overflow-wrap: anywhere; }
+.team-handle { width: 100%; color: #86868b; font-size: 12.5px; text-align: center; overflow-wrap: anywhere; }
 .team-link {
   position: relative;
   margin-top: auto;
   align-self: center;
   display: inline-flex;
   width: fit-content;
-  max-width: min(84%, 176px);
+  max-width: min(88%, 196px);
   min-width: 0;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
   gap: 0;
-  min-height: 26px;
-  padding: 4px 15px;
+  min-height: 30px;
+  padding: 5px 18px;
   overflow: hidden;
   isolation: isolate;
   color: rgba(29, 29, 31, 0.82);
@@ -1007,7 +1018,7 @@ html[dir="rtl"] .social-platform-group .team-card-body {
     0 2px 7px rgba(255, 255, 255, 0.38);
   backdrop-filter: blur(36px) saturate(2.05) contrast(1.08) brightness(1.05);
   -webkit-backdrop-filter: blur(36px) saturate(2.05) contrast(1.08) brightness(1.05);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 780;
   line-height: 1.12;
   text-align: center;
@@ -1690,18 +1701,26 @@ html.gallery-ready .gallery-track {
   text-align: center;
 }
 .inquiry-page-heading h1 {
+  display: inline-block;
   max-width: 12em;
   margin-right: auto;
   margin-left: auto;
+  padding: 0.04em 0.02em 0.13em;
+  color: transparent;
+  background: linear-gradient(92deg, #111827 0%, #154d8f 44%, #0a84ff 74%, #37b7ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-size: clamp(34px, 4.4vw, 58px);
   letter-spacing: -0.052em;
+  line-height: 1.08;
   text-wrap: balance;
 }
 .inquiry-page-heading p {
   max-width: 560px;
   margin-right: auto;
   margin-left: auto;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
   text-wrap: balance;
 }
@@ -1754,6 +1773,7 @@ html.gallery-ready .gallery-track {
   position: relative;
   z-index: 1;
   justify-self: center;
+  width: min(100%, 700px);
   max-width: 700px;
   margin: 0 auto;
   text-align: center;
@@ -1765,22 +1785,31 @@ html.gallery-ready .gallery-track {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 25px;
-  padding: 0 11px;
+  min-height: 28px;
+  padding: 0 13px;
   color: #6f6f76;
   background: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .inquiry-copy h2 {
-  margin: 14px 0 9px;
+  display: table;
+  width: auto;
+  max-width: 100%;
+  margin: 14px auto 9px;
+  padding: 0.04em 0.02em 0.12em;
+  color: transparent;
+  background: linear-gradient(92deg, #111827 0%, #1c4d83 42%, #0a84ff 72%, #31d3ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-family: var(--display);
-  font-size: clamp(25px, 3vw, 42px);
-  line-height: 1.04;
+  font-size: clamp(31px, 3.5vw, 48px);
+  line-height: 1.08;
   letter-spacing: -0.052em;
   text-wrap: balance;
 }
@@ -1788,7 +1817,7 @@ html.gallery-ready .gallery-track {
   max-width: 620px;
   margin: 0 auto;
   color: #77777d;
-  font-size: 13px;
+  font-size: 14.5px;
   line-height: 1.58;
   text-wrap: balance;
 }
@@ -1797,8 +1826,8 @@ html.gallery-ready .gallery-track {
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  width: min(100%, 820px);
+  gap: 13px;
+  width: min(100%, 860px);
   justify-self: center;
   text-align: left;
 }
@@ -1809,14 +1838,14 @@ html.gallery-ready .gallery-track {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 5px;
+  gap: 7px;
 }
 .field-wide {
   grid-column: 1 / -1;
 }
 .field span {
   color: #4c4c52;
-  font-size: 11px;
+  font-size: 12.8px;
   font-weight: 850;
   letter-spacing: -0.01em;
 }
@@ -1824,21 +1853,22 @@ html.gallery-ready .gallery-track {
 .field select,
 .field textarea {
   width: 100%;
-  min-height: 42px;
-  padding: 0 13px;
+  min-height: 48px;
+  padding: 0 16px;
   color: #1d1d1f;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 15px;
+  border-radius: 17px;
   outline: none;
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.92);
   font: inherit;
-  font-size: 13px;
+  font-size: 15px;
+  line-height: 1.25;
   transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
 }
 .field textarea {
-  min-height: 70px;
-  padding-top: 12px;
+  min-height: 86px;
+  padding-top: 15px;
   resize: vertical;
 }
 .field input:focus,
@@ -1855,17 +1885,17 @@ html.gallery-ready .gallery-track {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 10px;
+  margin-top: 8px;
 }
 .inquiry-button {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 15px;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 18px;
   color: #1d1d1f;
   background:
     linear-gradient(142deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.3)),
@@ -1877,7 +1907,7 @@ html.gallery-ready .gallery-track {
     0 10px 26px rgba(0, 0, 0, 0.07);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 13.6px;
   font-weight: 850;
   line-height: 1.2;
   text-align: center;
@@ -1889,8 +1919,8 @@ html.gallery-ready .gallery-track {
   z-index: 1;
 }
 .inquiry-button-icon {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: block;
   flex: 0 0 auto;
   object-fit: cover;
@@ -1917,7 +1947,7 @@ html.gallery-ready .gallery-track {
   min-height: 18px;
   margin: 0;
   color: #73737a;
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 750;
   text-align: center;
 }
@@ -2308,14 +2338,14 @@ html.gallery-ready .gallery-track {
     font-size: 11px;
   }
   .sticky-contact img { width: 19px; height: 19px; border-radius: 6px; }
-  .team-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
+  .team-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 9px; }
   .social-platform-groups {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 22px 8px;
-    max-width: min(392px, 100%);
+    gap: 25px 8px;
+    max-width: min(410px, 100%);
     align-items: start;
   }
-  .social-platform-group { gap: 12px; }
+  .social-platform-group { gap: 14px; }
   .social-platform-group-douyin {
     grid-column: 1 / span 2;
   }
@@ -2327,39 +2357,39 @@ html.gallery-ready .gallery-track {
     grid-column: 1 / -1;
   }
   .social-platform-title {
-    min-height: 34px;
-    gap: 7px;
-    padding: 0 14px 0 9px;
-    font-size: 13px;
+    min-height: 37px;
+    gap: 8px;
+    padding: 0 16px 0 10px;
+    font-size: 14.2px;
   }
   .social-platform-symbol {
-    width: 21px;
-    height: 21px;
-    border-radius: 7px;
+    width: 23px;
+    height: 23px;
+    border-radius: 8px;
   }
   .social-platform-symbol svg {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
   }
-  .social-platform-symbol-text { font-size: 6.4px; }
+  .social-platform-symbol-text { font-size: 6.8px; }
   .social-platform-group-douyin .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: none;
-    gap: 12px 8px;
+    gap: 14px 9px;
   }
   .social-platform-group-xhs .team-grid {
     grid-template-columns: minmax(0, 1fr);
     max-width: none;
-    gap: 12px 8px;
+    gap: 14px 9px;
   }
   .social-platform-group-tiktok .team-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: min(392px, 100%);
-    gap: 14px 8px;
+    max-width: min(410px, 100%);
+    gap: 16px 9px;
   }
   .social-platform-group-instagram .team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 312px;
+    max-width: 336px;
     justify-content: center;
   }
   .team-card:last-child:nth-child(odd) { width: calc((100% - 8px) / 2); }
@@ -2377,16 +2407,16 @@ html.gallery-ready .gallery-track {
     justify-self: stretch;
   }
   .social-platform-group-xhs .social-platform-title {
-    gap: 5px;
-    padding: 0 10px 0 7px;
-    font-size: 12px;
+    gap: 6px;
+    padding: 0 12px 0 8px;
+    font-size: 13.2px;
   }
   .social-platform-group-xhs .social-platform-symbol {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
   }
   .social-platform-group-xhs .social-platform-symbol-text {
-    font-size: 5.3px;
+    font-size: 5.8px;
   }
   .team-card {
     min-height: 0;
@@ -2396,38 +2426,69 @@ html.gallery-ready .gallery-track {
   .team-card:hover { transform: none; box-shadow: none; }
   .team-card::after { display: none; }
   .team-card-media {
-    width: clamp(66px, 50%, 84px);
-    margin: 10px auto 12px;
+    width: clamp(76px, 55%, 96px);
+    margin: 12px auto 14px;
     border-radius: 50%;
   }
   .social-platform-group-tiktok .team-card-media {
-    width: clamp(60px, 54%, 72px);
-    margin: 8px auto 11px;
+    width: clamp(70px, 58%, 84px);
+    margin: 10px auto 12px;
   }
   .team-card:hover .team-card-media img { transform: none; }
-  .team-card-body { padding: 6px 7px 10px; }
-  .team-card-body > strong { margin: 0 0 2px; font-size: 16px; line-height: 1.14; }
-  .team-handle { max-width: 100%; overflow-wrap: anywhere; font-size: 9.5px; }
-  .social-platform-group-tiktok .team-card-body { padding: 5px 4px 9px; }
+  .team-card-body { padding: 7px 7px 11px; }
+  .team-card-body > strong {
+    width: max-content;
+    max-width: none;
+    margin: 0 0 3px;
+    font-size: 18px;
+    line-height: 1.14;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: keep-all;
+  }
+  .team-title,
+  .team-title-name,
+  .team-title-line {
+    width: max-content;
+    max-width: none;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: keep-all;
+  }
+  .team-handle {
+    width: max-content;
+    max-width: none;
+    overflow-wrap: normal;
+    word-break: keep-all;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  .social-platform-group-tiktok .team-card-body { padding: 6px 4px 10px; }
   .social-platform-group-tiktok .team-card-body > strong {
-    margin: 0 0 2px;
-    font-size: clamp(13.2px, 3.65vw, 15px);
+    margin: 0 0 3px;
+    font-size: clamp(15px, 4vw, 17px);
     line-height: 1.12;
   }
-  .social-platform-group-tiktok .team-handle { font-size: 8.2px; }
+  .social-platform-group-tiktok .team-handle { font-size: 9.6px; }
   .team-link {
-    max-width: min(92%, 158px);
-    min-height: 24px;
+    max-width: none;
+    min-height: 28px;
     gap: 0;
-    padding: 4px 12px;
-    font-size: 9.2px;
+    padding: 5px 14px;
+    font-size: 10.5px;
     line-height: 1.12;
   }
   .social-platform-group-tiktok .team-link {
-    max-width: 98%;
-    min-height: 22px;
-    padding: 3px 8px;
-    font-size: 8.2px;
+    max-width: none;
+    min-height: 26px;
+    padding: 4px 10px;
+    font-size: 9.4px;
+  }
+  .team-link-label {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
   }
   .sourcing-gallery { margin: 22px auto 34px; padding-top: 0; }
   .gallery-block { margin-top: 18px; }
@@ -2527,43 +2588,43 @@ html.gallery-ready .gallery-track {
   .testimonial-rating::after { min-height: 17px; padding: 0 6px; font-size: 9px; }
   .testimonial-card p { margin: 11px 0 13px; font-size: 12px; line-height: 1.45; }
   .testimonial-card span { font-size: 10px; }
-  .inquiry-page-heading { margin: 8px auto 14px; }
-  .inquiry-page-heading h1 { font-size: clamp(28px, 8vw, 36px); }
-  .inquiry-page-heading p { max-width: 330px; font-size: 12px; line-height: 1.45; }
-  .inquiry-panel { gap: 12px; padding: 14px 11px 12px; border-radius: 24px; }
+  .inquiry-page-heading { margin: 8px auto 16px; }
+  .inquiry-page-heading h1 { font-size: clamp(32px, 9vw, 43px); line-height: 1.08; }
+  .inquiry-page-heading p { max-width: 340px; font-size: 13.2px; line-height: 1.5; }
+  .inquiry-panel { gap: 14px; padding: 16px 12px 14px; border-radius: 24px; }
   .inquiry-copy { margin-bottom: 0; }
-  .inquiry-eyebrow { min-height: 23px; font-size: 8px; letter-spacing: 0.1em; }
-  .inquiry-copy h2 { margin: 8px 0 5px; font-size: clamp(21px, 6vw, 28px); }
-  .inquiry-copy p { max-width: 310px; font-size: 11px; line-height: 1.42; }
-  .inquiry-form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
-  .field { gap: 4px; }
-  .field span { font-size: 9.5px; }
+  .inquiry-eyebrow { min-height: 26px; padding: 0 12px; font-size: 9.6px; letter-spacing: 0.1em; }
+  .inquiry-copy h2 { margin: 9px auto 6px; font-size: clamp(27px, 7.2vw, 35px); line-height: 1.08; }
+  .inquiry-copy p { max-width: 318px; font-size: 12.2px; line-height: 1.48; }
+  .inquiry-form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .field { gap: 5px; }
+  .field span { font-size: 11.2px; line-height: 1.22; }
   .field input,
   .field select,
-  .field textarea { min-height: 36px; padding: 0 10px; border-radius: 13px; font-size: 11px; }
-  .field textarea { min-height: 52px; padding-top: 10px; }
-  .inquiry-actions { gap: 8px; margin-top: 6px; }
+  .field textarea { min-height: 43px; padding: 0 12px; border-radius: 15px; font-size: 12.8px; line-height: 1.22; }
+  .field textarea { min-height: 68px; padding-top: 12px; }
+  .inquiry-actions { gap: 9px; margin-top: 8px; }
   .inquiry-button {
-    min-height: 38px;
-    padding: 0 13px;
-    gap: 7px;
+    min-height: 43px;
+    padding: 0 15px;
+    gap: 8px;
     color: #1d1d1f;
-    font-size: 11px;
+    font-size: 12.4px;
     font-weight: 880;
   }
   .inquiry-button-icon {
-    width: 18px;
-    height: 18px;
-    border-radius: 5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
   }
   .inquiry-button[data-channel="telegram"] .inquiry-button-icon {
     border-radius: 50%;
   }
   .inquiry-button-primary {
-    min-width: 142px;
+    min-width: 156px;
     color: #143524;
   }
-  .inquiry-status { font-size: 10px; }
+  .inquiry-status { font-size: 11.6px; line-height: 1.42; }
 }
 
 @media (max-width: 360px) {
