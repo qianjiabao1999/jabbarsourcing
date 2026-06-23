@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.jabbarsourcing.com/sitemap.xml
+Sitemap: https://jabbarsourcing.com/sitemap.xml
