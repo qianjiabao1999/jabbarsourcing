@@ -1,6 +1,6 @@
 # Jabbar Sourcing
 
-Static GitHub Pages website for `jabbarsourcing.com`.
+Static GitHub Pages website for `www.jabbarsourcing.com`.
 
 ## What This Site Includes
 
@@ -43,18 +43,18 @@ The included workflow is:
 After deployment:
 
 1. Open Google Search Console.
-2. Add `https://jabbarsourcing.com/` as a property.
+2. Add `https://www.jabbarsourcing.com/` as a property.
 3. Submit:
 
 ```text
-https://jabbarsourcing.com/sitemap.xml
+https://www.jabbarsourcing.com/sitemap.xml
 ```
 
 4. Test:
 
 ```text
-https://jabbarsourcing.com/robots.txt
-https://jabbarsourcing.com/sitemap.xml
+https://www.jabbarsourcing.com/robots.txt
+https://www.jabbarsourcing.com/sitemap.xml
 ```
 
 5. Use URL Inspection in Search Console for the home page and request indexing.
@@ -67,11 +67,11 @@ In GitHub:
 Settings -> Pages -> Enforce HTTPS
 ```
 
-For the custom domain, keep DNS pointed to GitHub Pages and confirm the apex domain works and `www` redirects back to it:
+For the custom domain, keep DNS pointed to GitHub Pages and confirm `www` works and the apex domain redirects back to it:
 
 ```text
-https://jabbarsourcing.com
 https://www.jabbarsourcing.com
+https://jabbarsourcing.com
 ```
 
 ## Cloudflare Speed Settings

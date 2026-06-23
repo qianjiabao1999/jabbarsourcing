@@ -71,11 +71,11 @@ https://YOUR_GITHUB_USERNAME.github.io/jabbarsourcing/
 ## 5. 在 GitHub 绑定域名
 
 1. 回到仓库 **Settings → Pages**。
-2. Custom domain 填写 `jabbarsourcing.com`，点击 **Save**。
+2. Custom domain 填写 `www.jabbarsourcing.com`，点击 **Save**。
 3. 等待 DNS check successful。
 4. 勾选 **Enforce HTTPS**。
 
-本项目根目录已经包含 `CNAME` 文件，内容为 `jabbarsourcing.com`。
+本项目根目录已经包含 `CNAME` 文件，内容为 `www.jabbarsourcing.com`。
 
 如果 GitHub 在首次发布时暂时提示 DNS 检查失败，不要反复删除和添加域名；先等待 DNS 记录传播后再重新检查。
 
@@ -84,7 +84,7 @@ https://YOUR_GITHUB_USERNAME.github.io/jabbarsourcing/
 - 在 GitHub 的 Pages 页面完成域名验证，降低域名被其他仓库占用的风险
 - 开通 `hello@jabbarsourcing.com` 企业邮箱后测试询盘按钮
 - 将真实邮箱设置为 SPF、DKIM 和 DMARC，避免客户邮件进入垃圾箱
-- 上线后测试 `https://jabbarsourcing.com` 可打开，并确认 `https://www.jabbarsourcing.com` 会跳转回主域
+- 上线后测试 `https://www.jabbarsourcing.com` 可打开，并确认 `https://jabbarsourcing.com` 会跳转回 `www` 主域
 
 ## 官方说明
 
