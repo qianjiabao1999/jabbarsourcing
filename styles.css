@@ -1225,7 +1225,7 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   width: max-content;
   gap: 18px;
   padding: 10px clamp(32px, calc((100vw - clamp(620px, 88vw, 1180px) - 36px) / 2), 112px) 26px;
-  animation: galleryMarquee 24s ease-in-out infinite alternate;
+  animation: galleryMarquee 14s ease-in-out infinite alternate;
   animation-play-state: paused;
   will-change: transform;
 }
@@ -1234,7 +1234,7 @@ html.gallery-ready .gallery-track {
 }
 .gallery-block-portrait .gallery-track {
   padding-inline: clamp(32px, calc((100vw - clamp(736px, 84vw, 1200px) - 54px) / 2), 96px);
-  animation-duration: 22s;
+  animation-duration: 13s;
 }
 .gallery-rail:hover .gallery-track,
 .gallery-rail:focus-within .gallery-track {
@@ -2761,9 +2761,9 @@ html.gallery-ready .gallery-track {
   .gallery-track {
     gap: 10px;
     padding: 6px 10px 18px;
-    animation-duration: 18s;
+    animation-duration: 11s;
   }
-  .gallery-block-portrait .gallery-track { animation-duration: 16s; }
+  .gallery-block-portrait .gallery-track { animation-duration: 10s; }
   .gallery-block-landscape .gallery-frame {
     width: min(78vw, 330px);
     border-radius: 22px;
