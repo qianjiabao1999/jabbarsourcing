@@ -1709,6 +1709,8 @@ html.gallery-ready .gallery-track {
 .testimonial-card {
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   min-height: 210px;
   padding: 24px;
   background:
@@ -1735,6 +1737,7 @@ html.gallery-ready .gallery-track {
 .testimonial-person {
   display: flex;
   align-items: center;
+  justify-content: center;
   margin: 0 0 14px;
 }
 .testimonial-avatar {
@@ -1754,6 +1757,7 @@ html.gallery-ready .gallery-track {
   z-index: 1;
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 7px;
   margin: 14px 0 0;
 }
@@ -1780,11 +1784,21 @@ html.gallery-ready .gallery-track {
   white-space: nowrap;
 }
 .testimonial-card p {
+  flex: 1 1 auto;
   margin: 18px 0 22px;
   color: #1d1d1f;
   font-size: 17px;
   font-weight: 780;
   line-height: 1.55;
+  text-align: center;
+}
+.testimonial-card footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 20px;
+  margin-top: auto;
+  text-align: center;
 }
 .testimonial-card span {
   display: block;
