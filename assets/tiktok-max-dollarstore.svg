@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+  <title id="title">Max Dollarstore TikTok profile</title>
+  <desc id="desc">TikTok style placeholder avatar for Max Dollarstore.</desc>
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="20%" r="80%">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.42" stop-color="#f8fbff"/>
+      <stop offset="1" stop-color="#edf3ff"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="32" y1="32" x2="208" y2="208">
+      <stop offset="0" stop-color="#25f4ee"/>
+      <stop offset="0.5" stop-color="#111"/>
+      <stop offset="1" stop-color="#fe2c55"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#111" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <circle cx="120" cy="120" r="112" fill="url(#bg)"/>
+  <circle cx="120" cy="120" r="102" fill="none" stroke="url(#ring)" stroke-width="8" opacity="0.95"/>
+  <g filter="url(#shadow)">
+    <rect x="58" y="64" width="124" height="86" rx="28" fill="#111"/>
+    <path d="M137 79c2 15 11 24 26 25v22c-10 0-19-3-26-8v42a41 41 0 1 1-36-40v22a20 20 0 1 0 15 18V79h21Z" fill="#fff"/>
+    <path d="M137 79c2 15 11 24 26 25v22c-10 0-19-3-26-8v42a41 41 0 1 1-36-40v22a20 20 0 1 0 15 18V79h21Z" fill="none" stroke="#25f4ee" stroke-width="5" transform="translate(-4 0)" opacity="0.85"/>
+    <path d="M137 79c2 15 11 24 26 25v22c-10 0-19-3-26-8v42a41 41 0 1 1-36-40v22a20 20 0 1 0 15 18V79h21Z" fill="none" stroke="#fe2c55" stroke-width="5" transform="translate(4 0)" opacity="0.75"/>
+  </g>
+  <text x="120" y="184" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="800" fill="#17191f">MAX</text>
+  <text x="120" y="211" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#5f6673">@max.dollarstore</text>
+</svg>
