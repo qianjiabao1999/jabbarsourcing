@@ -1,0 +1,120 @@
+{
+  "updatedAt": "2026-06-27T19:58:03.749Z",
+  "qualityGate": {
+    "minSourceSize": 400,
+    "outputSize": 560
+  },
+  "changed": [
+    "xiaohongshu-haoduobao.webp"
+  ],
+  "results": [
+    {
+      "assetName": "douyin-haoduobao.webp",
+      "platform": "douyin",
+      "changed": false,
+      "reason": "no avatar candidates"
+    },
+    {
+      "assetName": "douyin-jiangjie-avatar.webp",
+      "platform": "douyin",
+      "changed": false,
+      "reason": "no avatar candidates"
+    },
+    {
+      "assetName": "douyin-73178679666.webp",
+      "platform": "douyin",
+      "changed": false,
+      "reason": "no avatar candidates"
+    },
+    {
+      "assetName": "douyin-275644598.webp",
+      "platform": "douyin",
+      "changed": false,
+      "reason": "no avatar candidates"
+    },
+    {
+      "assetName": "douyin-05280606.webp",
+      "platform": "douyin",
+      "changed": false,
+      "reason": "no avatar candidates"
+    },
+    {
+      "assetName": "douyin-138411321.webp",
+      "platform": "douyin",
+      "changed": false,
+      "reason": "no avatar candidates"
+    },
+    {
+      "assetName": "xiaohongshu-haoduobao.webp",
+      "platform": "xiaohongshu",
+      "changed": true,
+      "sourceSize": "540x540"
+    },
+    {
+      "assetName": "grace-from-yiwu.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "vincent-en-yiwu.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "lesley-in-yiwu.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "haoduobao456.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "yiwu-wholesale-vincent.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "alice-goods777.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "jessica-in-yiwu.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "leo-mr-20cents.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "max-dollarstore.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "shawnnwjxnc.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    },
+    {
+      "assetName": "mollyadventure6.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "reason": "fetch failed"
+    }
+  ]
+}
