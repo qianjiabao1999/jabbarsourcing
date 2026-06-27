@@ -3064,6 +3064,55 @@ html.gallery-ready .gallery-track {
   .inquiry-form { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 620px) {
+  .social-platform-group-douyin {
+    grid-column: 1 / -1;
+  }
+
+  .social-platform-group-douyin .team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: min(390px, 100%);
+    gap: 24px 16px;
+  }
+
+  .social-platform-group-douyin .team-card-body > strong {
+    font-size: clamp(18px, 4.8vw, 21px);
+  }
+
+  .social-platform-group-douyin .team-handle {
+    font-size: clamp(13px, 3.42vw, 14.6px);
+  }
+}
+
+.social-platform-group-douyin,
+.social-platform-group-xhs {
+  grid-column: 1 / -1;
+}
+
+.social-platform-group-douyin .team-grid {
+  grid-template-columns: repeat(3, minmax(0, 260px));
+  max-width: 820px;
+}
+
+@media (max-width: 820px) {
+  .social-platform-group-douyin .team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 620px) {
+  .social-platform-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .social-platform-group-xhs .team-grid {
+    grid-template-columns: minmax(0, 177px);
+    max-width: min(390px, 100%);
+    justify-content: center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
