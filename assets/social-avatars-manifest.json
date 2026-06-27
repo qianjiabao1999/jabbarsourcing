@@ -1,23 +1,89 @@
 {
-  "updatedAt": "2026-06-27T20:14:32.137Z",
+  "updatedAt": "2026-06-27T23:43:38.052Z",
   "qualityGate": {
     "minSourceSize": 400,
     "outputSize": 560
   },
   "changed": [
-    "grace-from-yiwu.webp",
-    "vincent-en-yiwu.webp",
-    "lesley-in-yiwu.webp",
-    "haoduobao456.webp",
-    "yiwu-wholesale-vincent.webp",
-    "alice-goods777.webp",
-    "jessica-in-yiwu.webp",
-    "leo-mr-20cents.webp",
-    "max-dollarstore.webp",
-    "shawnnwjxnc.webp",
-    "mollyadventure6.webp"
+    "max-dollarstore.webp"
   ],
   "results": [
+    {
+      "assetName": "grace-from-yiwu.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
+    },
+    {
+      "assetName": "vincent-en-yiwu.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
+    },
+    {
+      "assetName": "lesley-in-yiwu.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "1014x1014",
+      "reason": "unchanged"
+    },
+    {
+      "assetName": "haoduobao456.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
+    },
+    {
+      "assetName": "yiwu-wholesale-vincent.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
+    },
+    {
+      "assetName": "alice-goods777.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
+    },
+    {
+      "assetName": "jessica-in-yiwu.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
+    },
+    {
+      "assetName": "leo-mr-20cents.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "940x940",
+      "reason": "unchanged"
+    },
+    {
+      "assetName": "max-dollarstore.webp",
+      "platform": "tiktok",
+      "changed": true,
+      "sourceSize": "828x828"
+    },
+    {
+      "assetName": "shawnnwjxnc.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
+    },
+    {
+      "assetName": "mollyadventure6.webp",
+      "platform": "tiktok",
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
+    },
     {
       "assetName": "douyin-haoduobao.webp",
       "platform": "douyin",
@@ -60,72 +126,6 @@
       "changed": false,
       "sourceSize": "540x540",
       "reason": "unchanged"
-    },
-    {
-      "assetName": "grace-from-yiwu.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
-    },
-    {
-      "assetName": "vincent-en-yiwu.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
-    },
-    {
-      "assetName": "lesley-in-yiwu.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1014x1014"
-    },
-    {
-      "assetName": "haoduobao456.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
-    },
-    {
-      "assetName": "yiwu-wholesale-vincent.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
-    },
-    {
-      "assetName": "alice-goods777.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
-    },
-    {
-      "assetName": "jessica-in-yiwu.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
-    },
-    {
-      "assetName": "leo-mr-20cents.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "940x940"
-    },
-    {
-      "assetName": "max-dollarstore.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "828x828"
-    },
-    {
-      "assetName": "shawnnwjxnc.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
-    },
-    {
-      "assetName": "mollyadventure6.webp",
-      "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
     }
   ]
 }
