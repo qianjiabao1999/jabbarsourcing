@@ -265,25 +265,28 @@ async function main() {
     await updateHtmlAvatarVersion(`avatar-${stamp}`);
   }
 
-  await fs.writeFile(
-    MANIFEST_FILE,
-    JSON.stringify(
-      {
-        updatedAt: new Date().toISOString(),
-        qualityGate: { minSourceSize: MIN_SOURCE_SIZE, outputSize: OUTPUT_SIZE },
-        changed: changed.map((result) => result.assetName),
-        results: results.map((result) => ({
-          assetName: result.assetName,
-          platform: result.platform,
-          changed: result.changed,
-          sourceSize: result.sourceSize,
-          reason: result.reason,
-        })),
-      },
-      null,
-      2,
-    ) + "\n",
-  );
+  const manifestExists = await fs.access(MANIFEST_FILE).then(() => true).catch(() => false);
+  if (changed.length || !manifestExists) {
+    await fs.writeFile(
+      MANIFEST_FILE,
+      JSON.stringify(
+        {
+          updatedAt: new Date().toISOString(),
+          qualityGate: { minSourceSize: MIN_SOURCE_SIZE, outputSize: OUTPUT_SIZE },
+          changed: changed.map((result) => result.assetName),
+          results: results.map((result) => ({
+            assetName: result.assetName,
+            platform: result.platform,
+            changed: result.changed,
+            sourceSize: result.sourceSize,
+            reason: result.reason,
+          })),
+        },
+        null,
+        2,
+      ) + "\n",
+    );
+  }
 
   console.log(`Checked ${results.length} social avatars; changed ${changed.length}.`);
   for (const result of results) {
