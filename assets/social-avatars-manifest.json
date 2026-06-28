@@ -1,124 +1,119 @@
 {
-  "updatedAt": "2026-06-27T23:43:38.052Z",
+  "updatedAt": "2026-06-28T09:40:11.775Z",
   "qualityGate": {
     "minSourceSize": 400,
     "outputSize": 560
   },
   "changed": [
-    "max-dollarstore.webp"
+    "douyin-haoduobao.webp",
+    "douyin-jiangjie-avatar.webp",
+    "douyin-73178679666.webp",
+    "douyin-275644598.webp",
+    "douyin-05280606.webp",
+    "douyin-138411321.webp"
   ],
   "results": [
     {
       "assetName": "grace-from-yiwu.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "1080x1080",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "vincent-en-yiwu.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "1080x1080",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "lesley-in-yiwu.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "1014x1014",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "haoduobao456.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "1080x1080",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "yiwu-wholesale-vincent.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "1080x1080",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "alice-goods777.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "1080x1080",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "jessica-in-yiwu.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "1080x1080",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "leo-mr-20cents.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "940x940",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "max-dollarstore.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "828x828"
+      "changed": false,
+      "reason": "fetch failed"
     },
     {
       "assetName": "shawnnwjxnc.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "1080x1080",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "mollyadventure6.webp",
       "platform": "tiktok",
       "changed": false,
-      "sourceSize": "1080x1080",
-      "reason": "unchanged"
+      "reason": "fetch failed"
     },
     {
       "assetName": "douyin-haoduobao.webp",
       "platform": "douyin",
-      "changed": false,
-      "reason": "no avatar candidates"
+      "changed": true,
+      "sourceSize": "886x886"
     },
     {
       "assetName": "douyin-jiangjie-avatar.webp",
       "platform": "douyin",
-      "changed": false,
-      "reason": "no avatar candidates"
+      "changed": true,
+      "sourceSize": "1125x1125"
     },
     {
       "assetName": "douyin-73178679666.webp",
       "platform": "douyin",
-      "changed": false,
-      "reason": "no avatar candidates"
+      "changed": true,
+      "sourceSize": "2000x2000"
     },
     {
       "assetName": "douyin-275644598.webp",
       "platform": "douyin",
-      "changed": false,
-      "reason": "no avatar candidates"
+      "changed": true,
+      "sourceSize": "940x940"
     },
     {
       "assetName": "douyin-05280606.webp",
       "platform": "douyin",
-      "changed": false,
-      "reason": "no avatar candidates"
+      "changed": true,
+      "sourceSize": "3024x3024"
     },
     {
       "assetName": "douyin-138411321.webp",
       "platform": "douyin",
-      "changed": false,
-      "reason": "no avatar candidates"
+      "changed": true,
+      "sourceSize": "940x940"
     },
     {
       "assetName": "xiaohongshu-haoduobao.webp",

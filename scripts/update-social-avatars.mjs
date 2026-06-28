@@ -16,6 +16,9 @@ const REQUEST_TIMEOUT_MS = 15000;
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+const DOUYIN_MOBILE_USER_AGENT =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 " +
+  "(KHTML, like Gecko) Mobile/15E148 aweme_28.0.0";
 
 const ACCOUNT_HINTS = {
   "douyin-haoduobao.webp": {
@@ -85,6 +88,26 @@ async function fetchText(url) {
   }
 }
 
+async function resolveRedirectUrl(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      redirect: "manual",
+      signal: controller.signal,
+      headers: {
+        "user-agent": DOUYIN_MOBILE_USER_AGENT,
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+    });
+    const location = res.headers.get("location");
+    return location ? new URL(location, url).toString() : res.url || url;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchImage(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -103,6 +126,69 @@ async function fetchImage(url) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+function extractDouyinSecUid(value) {
+  if (!value) return "";
+  const cleaned = cleanImageUrl(value);
+  try {
+    const url = new URL(cleaned);
+    const queryUid = url.searchParams.get("sec_uid") || url.searchParams.get("sec_user_id");
+    if (queryUid) return queryUid;
+    const match = url.pathname.match(/\/(?:user|share\/user)\/([^/?#]+)/);
+    return match ? decodeURIComponent(match[1]) : "";
+  } catch {
+    const match = cleaned.match(/(?:sec_uid|sec_user_id)=([^&#]+)/) || cleaned.match(/\/(?:user|share\/user)\/([^/?#]+)/);
+    return match ? decodeURIComponent(match[1]) : "";
+  }
+}
+
+async function fetchDouyinAvatarCandidates(account) {
+  let secUid = extractDouyinSecUid(account.profileUrl);
+  if (!secUid && account.profileUrl.includes("v.douyin.com")) {
+    const resolved = await resolveRedirectUrl(account.profileUrl);
+    secUid = extractDouyinSecUid(resolved);
+  }
+  if (!secUid) return [];
+
+  const apiUrl = `https://www.iesdouyin.com/web/api/v2/user/info/?sec_uid=${encodeURIComponent(secUid)}&aid=1128`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let data;
+  try {
+    const res = await fetch(apiUrl, {
+      redirect: "follow",
+      signal: controller.signal,
+      headers: {
+        "user-agent": DOUYIN_MOBILE_USER_AGENT,
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+        accept: "application/json,text/plain,*/*",
+      },
+    });
+    if (!res.ok) return [];
+    data = await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const user = data?.user_info || {};
+  const uris = unique([
+    user.avatar_larger?.uri,
+    user.avatar_medium?.uri,
+    user.avatar_thumb?.uri,
+  ]);
+  const hosts = ["p3.douyinpic.com", "p11.douyinpic.com", "p26.douyinpic.com"];
+  const candidates = [];
+  for (const uri of uris) {
+    for (const host of hosts) {
+      candidates.push(`https://${host}/img/${uri}~tplv-dy-aweme-images:q75.webp`);
+      candidates.push(`https://${host}/img/${uri}~tplv-dy-aweme-images:q75.jpeg`);
+      candidates.push(`https://${host}/aweme/1080x1080/${uri}.jpeg?from=2956013662`);
+      candidates.push(`https://${host}/img/${uri}~c5_720x720.jpeg`);
+      candidates.push(`https://${host}/img/${uri}~tplv-dy-resize-walign-adapt-aq:540:q75.webp`);
+    }
+  }
+  return unique(candidates);
 }
 
 function extractAvatarCandidates(html) {
@@ -199,8 +285,14 @@ async function buildAvatarBuffer(sourceBuffer) {
 }
 
 async function refreshAccount(account) {
-  const pageHtml = await fetchText(account.profileUrl);
-  const candidates = preferLargeAvatarUrls(extractAvatarCandidates(pageHtml));
+  let candidates = [];
+  if (account.platform === "douyin") {
+    candidates = await fetchDouyinAvatarCandidates(account);
+  }
+  if (!candidates.length) {
+    const pageHtml = await fetchText(account.profileUrl);
+    candidates = preferLargeAvatarUrls(extractAvatarCandidates(pageHtml));
+  }
   if (!candidates.length) return { ...account, changed: false, reason: "no avatar candidates" };
 
   for (const candidate of candidates.slice(0, 16)) {
