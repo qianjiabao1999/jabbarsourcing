@@ -1,10 +1,11 @@
 {
-  "updatedAt": "2026-06-28T09:40:11.775Z",
+  "updatedAt": "2026-06-28T10:16:42.636Z",
   "qualityGate": {
     "minSourceSize": 400,
     "outputSize": 560
   },
   "changed": [
+    "max-dollarstore.webp",
     "douyin-haoduobao.webp",
     "douyin-jiangjie-avatar.webp",
     "douyin-73178679666.webp",
@@ -17,67 +18,77 @@
       "assetName": "grace-from-yiwu.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "vincent-en-yiwu.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "lesley-in-yiwu.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "1014x1014",
+      "reason": "unchanged"
     },
     {
       "assetName": "haoduobao456.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "yiwu-wholesale-vincent.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "alice-goods777.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "jessica-in-yiwu.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "leo-mr-20cents.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "940x940",
+      "reason": "unchanged"
     },
     {
       "assetName": "max-dollarstore.webp",
       "platform": "tiktok",
-      "changed": false,
-      "reason": "fetch failed"
+      "changed": true,
+      "sourceSize": "828x828"
     },
     {
       "assetName": "shawnnwjxnc.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "mollyadventure6.webp",
       "platform": "tiktok",
       "changed": false,
-      "reason": "fetch failed"
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-haoduobao.webp",
