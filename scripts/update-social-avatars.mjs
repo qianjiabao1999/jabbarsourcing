@@ -31,7 +31,7 @@ const ACCOUNT_HINTS = {
   },
   "douyin-73178679666.webp": {
     platform: "douyin",
-    profileUrl: "https://v.douyin.com/nP85mlDfIqQ/",
+    profileUrl: "https://v.douyin.com/t5F4hqJGUR0/",
   },
   "douyin-275644598.webp": {
     platform: "douyin",
@@ -39,7 +39,7 @@ const ACCOUNT_HINTS = {
   },
   "douyin-05280606.webp": {
     platform: "douyin",
-    profileUrl: "https://v.douyin.com/zecgS6vTGJo/",
+    profileUrl: "https://v.douyin.com/Q97JohONIKI/",
   },
   "douyin-138411321.webp": {
     platform: "douyin",
@@ -48,6 +48,78 @@ const ACCOUNT_HINTS = {
   "xiaohongshu-haoduobao.webp": {
     platform: "xiaohongshu",
     profileUrl: "https://www.xiaohongshu.com/user/profile/5af044554eacab1175529438",
+  },
+  "douyin-89144212942.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/S99_Tv9at_I/",
+  },
+  "douyin-dg661661.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/Yk8-Ra0NoRg/",
+  },
+  "douyin-999999q99999.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/vyPKT52O7iE/",
+  },
+  "douyin-95088908057.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/gkax0pMz5Es/",
+  },
+  "douyin-64412023244.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/TmdHBDpwtbg/",
+  },
+  "douyin-87296762727.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/r0lB8iDyYLA/",
+  },
+  "douyin-92340484988.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/nWx5ble0CXs/",
+  },
+  "douyin-90267896705.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/exytlqpiZCY/",
+  },
+  "douyin-160463933.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/0Dryk2y8bNM/",
+  },
+  "douyin-41184831028.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/LA2C1TIky_c/",
+  },
+  "xiaohongshu-yw-source-supply.webp": {
+    platform: "xiaohongshu",
+    profileUrl: "https://www.xiaohongshu.com/user/profile/6844fc06000000001b01b6e5",
+  },
+  "xiaohongshu-yiwu-ranran.webp": {
+    platform: "xiaohongshu",
+    profileUrl: "https://www.xiaohongshu.com/user/profile/69f829370000000002002407",
+  },
+  "xiaohongshu-yaoge.webp": {
+    platform: "xiaohongshu",
+    profileUrl: "https://www.xiaohongshu.com/user/profile/5597cae1e4b1cf1a56ddfeb3",
+  },
+  "xiaohongshu-zhu-manager.webp": {
+    platform: "xiaohongshu",
+    profileUrl: "https://www.xiaohongshu.com/user/profile/6148830c0000000002018858",
+  },
+  "xiaohongshu-2yuan10yuan.webp": {
+    platform: "xiaohongshu",
+    profileUrl: "https://www.xiaohongshu.com/user/profile/60e5bece000000000101c270",
+  },
+  "xiaohongshu-95017297811.webp": {
+    platform: "xiaohongshu",
+    profileUrl: "https://www.xiaohongshu.com/user/profile/683443ec000000001d016a86",
+  },
+  "xiaohongshu-26205931510.webp": {
+    platform: "xiaohongshu",
+    profileUrl: "https://www.xiaohongshu.com/user/profile/67888fd4000000000801d1f9",
+  },
+  "xiaohongshu-635230302.webp": {
+    platform: "xiaohongshu",
+    profileUrl: "https://www.xiaohongshu.com/user/profile/5a4c800d11be101f60868823",
   },
 };
 
