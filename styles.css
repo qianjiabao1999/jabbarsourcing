@@ -3227,20 +3227,43 @@ html.gallery-ready .gallery-track {
     font-size: clamp(11.5px, 3.1vw, 14px);
     line-height: 1.08;
     letter-spacing: -0.035em;
-    white-space: nowrap;
+    min-height: 2.16em;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-wrap: nowrap;
+    text-wrap: balance;
+    word-break: normal;
+    line-break: anywhere;
+    overflow-wrap: anywhere;
   }
 
-  .team-title,
-  .team-title-name,
-  .team-title-line {
-    display: block;
+  .team-card-body > strong .team-title,
+  .team-card-body > strong .team-title-name,
+  .team-card-body > strong .team-title-line,
+  .social-platform-group-tiktok .team-card-body > strong .team-title,
+  .social-platform-group-tiktok .team-card-body > strong .team-title-name,
+  .social-platform-group-tiktok .team-card-body > strong .team-title-line,
+  .social-platform-group-instagram .team-card-body > strong .team-title,
+  .social-platform-group-instagram .team-card-body > strong .team-title-name,
+  .social-platform-group-instagram .team-card-body > strong .team-title-line,
+  .social-platform-group-douyin .team-card-body > strong .team-title,
+  .social-platform-group-douyin .team-card-body > strong .team-title-name,
+  .social-platform-group-douyin .team-card-body > strong .team-title-line,
+  .social-platform-group-xhs .team-card-body > strong .team-title,
+  .social-platform-group-xhs .team-card-body > strong .team-title-name,
+  .social-platform-group-xhs .team-card-body > strong .team-title-line {
+    display: inline;
+    width: auto;
     max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: normal;
+    line-break: anywhere;
+    overflow-wrap: anywhere;
   }
 
   .team-handle,
