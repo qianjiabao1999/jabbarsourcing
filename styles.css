@@ -3141,6 +3141,132 @@ html.gallery-ready .gallery-track {
   }
 }
 
+@media (max-width: 620px) {
+  .hero-member-roster {
+    width: min(100%, 390px);
+    grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+    gap: 7px;
+    margin: 8px auto 12px;
+  }
+
+  .hero-member-card {
+    padding: 3px;
+  }
+
+  .social-platform-groups {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    max-width: min(398px, 100%);
+    margin: 16px auto 38px;
+  }
+
+  .social-platform-group {
+    gap: 12px;
+  }
+
+  .social-platform-title {
+    min-height: 34px;
+    padding: 0 14px 0 9px;
+    font-size: 13.5px;
+  }
+
+  .social-platform-symbol {
+    width: 22px;
+    height: 22px;
+  }
+
+  .social-platform-group .team-grid,
+  .social-platform-group-tiktok .team-grid,
+  .social-platform-group-instagram .team-grid,
+  .social-platform-group-douyin .team-grid,
+  .social-platform-group-xhs .team-grid {
+    grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+    max-width: min(398px, 100%);
+    gap: 20px 8px;
+    align-items: start;
+  }
+
+  .team-card,
+  .team-card:only-child,
+  .team-card:last-child:nth-child(odd),
+  .team-card:last-child:nth-child(3n + 1),
+  .team-card:nth-last-child(2):nth-child(3n + 1),
+  .social-platform-group-douyin .team-card:only-child,
+  .social-platform-group-xhs .team-card:only-child {
+    grid-column: auto;
+    width: auto;
+    min-width: 0;
+    justify-self: stretch;
+  }
+
+  .team-card-media,
+  .social-platform-group-tiktok .team-card-media,
+  .social-platform-group-instagram .team-card-media,
+  .social-platform-group-douyin .team-card-media,
+  .social-platform-group-xhs .team-card-media {
+    width: clamp(56px, 72%, 76px);
+    margin: 7px auto 8px;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.9),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.05),
+      0 5px 14px rgba(0, 0, 0, 0.075);
+  }
+
+  .team-card-body,
+  .social-platform-group-tiktok .team-card-body {
+    padding: 5px 2px 7px;
+  }
+
+  .team-card-body > strong,
+  .social-platform-group-tiktok .team-card-body > strong,
+  .social-platform-group-instagram .team-card-body > strong,
+  .social-platform-group-douyin .team-card-body > strong,
+  .social-platform-group-xhs .team-card-body > strong {
+    margin: 0 0 2px;
+    max-width: 100%;
+    font-size: clamp(11.5px, 3.1vw, 14px);
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+  }
+
+  .team-title,
+  .team-title-name,
+  .team-title-line {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .team-handle,
+  .social-platform-group-tiktok .team-handle,
+  .social-platform-group-instagram .team-handle,
+  .social-platform-group-douyin .team-handle,
+  .social-platform-group-xhs .team-handle {
+    font-size: clamp(9.5px, 2.55vw, 11.2px);
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+  }
+
+  .team-link,
+  .social-platform-group-tiktok .team-link {
+    width: min(94px, calc(100% + 10px));
+    max-width: none;
+    min-height: 25px;
+    margin-inline: auto;
+    padding: 5px 5px;
+    font-size: clamp(8.6px, 2.25vw, 9.5px);
+    line-height: 1.05;
+    letter-spacing: -0.055em;
+    white-space: nowrap;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
