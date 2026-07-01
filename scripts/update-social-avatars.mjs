@@ -21,10 +21,6 @@ const DOUYIN_MOBILE_USER_AGENT =
   "(KHTML, like Gecko) Mobile/15E148 aweme_28.0.0";
 
 const ACCOUNT_HINTS = {
-  "jabbar-yiwu.webp": {
-    platform: "tiktok",
-    profileUrl: "https://www.tiktok.com/@jabbaryiwu",
-  },
   "douyin-haoduobao.webp": {
     platform: "douyin",
     profileUrl: "https://www.douyin.com/user/MS4wLjABAAAA5SfL1RgN5bWEbuIK7ZFCb8CocFC1f5Ao6EHPD290b8T_eTvglSqBvGL9gXScTj7C",
