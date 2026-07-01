@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-01T11:57:43.756Z",
+  "updatedAt": "2026-07-01T18:28:44.870Z",
   "qualityGate": {
     "minSourceSize": 400,
     "outputSize": 560
@@ -29,12 +29,7 @@
     "douyin-90267896705.webp",
     "douyin-160463933.webp",
     "douyin-41184831028.webp",
-    "xiaohongshu-yiwu-ranran.webp",
-    "xiaohongshu-zhu-manager.webp",
-    "xiaohongshu-2yuan10yuan.webp",
-    "xiaohongshu-95017297811.webp",
-    "xiaohongshu-26205931510.webp",
-    "xiaohongshu-635230302.webp"
+    "xiaohongshu-yiwu-ranran.webp"
   ],
   "results": [
     {
@@ -239,32 +234,32 @@
     {
       "assetName": "xiaohongshu-zhu-manager.webp",
       "platform": "xiaohongshu",
-      "changed": true,
-      "sourceSize": "540x540"
+      "changed": false,
+      "reason": "no candidate passed quality gate"
     },
     {
       "assetName": "xiaohongshu-2yuan10yuan.webp",
       "platform": "xiaohongshu",
-      "changed": true,
-      "sourceSize": "540x540"
+      "changed": false,
+      "reason": "no candidate passed quality gate"
     },
     {
       "assetName": "xiaohongshu-95017297811.webp",
       "platform": "xiaohongshu",
-      "changed": true,
-      "sourceSize": "540x540"
+      "changed": false,
+      "reason": "no candidate passed quality gate"
     },
     {
       "assetName": "xiaohongshu-26205931510.webp",
       "platform": "xiaohongshu",
-      "changed": true,
-      "sourceSize": "540x540"
+      "changed": false,
+      "reason": "no candidate passed quality gate"
     },
     {
       "assetName": "xiaohongshu-635230302.webp",
       "platform": "xiaohongshu",
-      "changed": true,
-      "sourceSize": "480x480"
+      "changed": false,
+      "reason": "no candidate passed quality gate"
     }
   ]
 }
