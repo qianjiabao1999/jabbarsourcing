@@ -1,0 +1,24 @@
+{
+  "name": "jabbarsourcing-main",
+  "version": "1.0.0",
+  "description": "Static GitHub Pages website for `www.jabbarsourcing.com`.",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qianjiabao1999/jabbarsourcing.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/qianjiabao1999/jabbarsourcing/issues"
+  },
+  "homepage": "https://github.com/qianjiabao1999/jabbarsourcing#readme",
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}

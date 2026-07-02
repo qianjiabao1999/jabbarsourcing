@@ -168,7 +168,7 @@ a { color: inherit; text-decoration: none; }
   --member-glow: 0, 113, 227;
   width: min(1100px, 100%);
   min-height: 0;
-  margin: clamp(14px, 1.8vw, 22px) auto clamp(18px, 2.2vw, 28px);
+  margin: clamp(30px, 3.2vw, 46px) auto clamp(18px, 2.2vw, 28px);
   display: grid;
   grid-template-columns: repeat(auto-fit, clamp(70px, 5.8vw, 94px));
   align-items: center;
@@ -410,14 +410,14 @@ a { color: inherit; text-decoration: none; }
 
 .team-heading {
   max-width: min(100%, 1040px);
-  margin: 28px auto 50px;
+  margin: 22px auto 44px;
   padding: 0 8px;
   text-align: center;
   opacity: 0;
   animation: riseIn 0.8s var(--motion) 0.15s forwards;
 }
 .team-heading h1 {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   padding-bottom: 0.08em;
   font-family: ui-rounded, "SF Pro Rounded", "Avenir Next Rounded", "Nunito Sans", "PingFang SC", "Microsoft YaHei", var(--display);
   font-size: clamp(42px, 5.55vw, 74px);
@@ -454,7 +454,7 @@ a { color: inherit; text-decoration: none; }
   display: block;
   max-width: min(94vw, 860px);
   margin-inline: auto;
-  margin-top: 8px;
+  margin-top: 0;
   font-size: clamp(20px, 2.2vw, 30px);
   font-weight: 900;
   line-height: 1.28;
@@ -482,7 +482,7 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
   max-width: min(92vw, 760px);
   min-height: 34px;
-  margin-top: 10px;
+  margin-top: 8px;
   padding: 6px 16px;
   color: #1d1d1f;
   background:
@@ -541,7 +541,7 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 12px;
   max-width: 960px;
-  margin: 22px auto 0;
+  margin: 18px auto 0;
 }
 .contact-link {
   --contact-rgb: 10, 132, 255;
@@ -3259,6 +3259,57 @@ html.gallery-ready .gallery-track {
     font-size: clamp(9.8px, 2.65vw, 10.8px);
     line-height: 1;
     white-space: nowrap;
+  }
+}
+
+/* Final layout guard: quote/contact block sits before the avatar roster on every language page. */
+.team-heading .quote-entry {
+  margin: clamp(16px, 2vw, 22px) auto 0;
+}
+
+.team-heading .quote-entry .inquiry-entry-card {
+  width: min(100%, 800px);
+}
+
+.inquiry-page > .container {
+  padding-top: 10px;
+}
+
+.inquiry-panel {
+  margin-top: 10px;
+}
+
+@media (max-width: 620px) {
+  .team-heading {
+    margin: 12px auto 30px;
+  }
+
+  .team-heading .hero-social {
+    margin-top: 0;
+  }
+
+  .contact-actions {
+    margin-top: 14px;
+  }
+
+  .team-heading .quote-entry {
+    margin-top: 14px;
+  }
+
+  .hero-member-roster {
+    margin: 20px auto 14px;
+  }
+
+  .inquiry-page {
+    padding-top: 30px;
+  }
+
+  .inquiry-page > .container {
+    padding-top: 26px;
+  }
+
+  .inquiry-panel {
+    margin-top: 12px;
   }
 }
 
