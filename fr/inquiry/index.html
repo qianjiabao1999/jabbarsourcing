@@ -58,17 +58,57 @@
     <link rel="alternate" hreflang="ur" href="https://www.jabbarsourcing.com/ur/inquiry/" />
     <link rel="alternate" hreflang="ha" href="https://www.jabbarsourcing.com/ha/inquiry/" />
     <link rel="alternate" hreflang="kk" href="https://www.jabbarsourcing.com/kk/inquiry/" />
-    <link rel="icon" href="../../assets/favicon.png?v=jabbar-4" type="image/png" sizes="32x32" />
-    <link rel="icon" href="../../assets/favicon-192.png?v=jabbar-4" type="image/png" sizes="192x192" />
-    <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-4" />
-    <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-4" sizes="180x180" />
-    <link rel="manifest" href="../../site.webmanifest?v=jabbar-4" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-115" />
+    <link rel="icon" href="../../assets/favicon.png?v=jabbar-5" type="image/png" sizes="32x32" />
+    <link rel="icon" href="../../assets/favicon-192.png?v=jabbar-5" type="image/png" sizes="192x192" />
+    <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
+    <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
+    <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-117" />
+    <!-- Analytics placeholders: replace IDs before launch -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+      gtag("config", "G-XXXXXXXXXX");
+    </script>
+    <script>
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "CLARITY_ID");
+    </script>
+    <script>
+      window.jabbarTrack = function (eventName, params) {
+        if (typeof window.gtag === "function") window.gtag("event", eventName, params || {});
+      };
+      document.addEventListener("click", function (event) {
+        var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp, .sticky-contact-whatsapp');
+        if (whatsappLink) {
+          window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
+        }
+        var inquiryButton = event.target.closest(".js-inquiry-send");
+        if (inquiryButton) {
+          window.jabbarTrack("inquiry_submit", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
+        }
+      }, true);
+    </script>
   </head>
   <body>
-    <main>
-      <section class="team inquiry-page" id="inquiry">
-        <details class="language-switch language-menu">
+    <header class="site-nav" aria-label="Jabbar Sourcing navigation">
+      <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
+        <img src="../../assets/jabbar-sourcing-logo-320.webp" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" />
+        <span>Jabbar Sourcing</span>
+      </a>
+      <nav class="site-nav-links" aria-label="Primary navigation">
+        <a href="../#services">Services</a>
+        <a href="../#how-it-works">Fonctionnement</a>
+        <a href="../#reviews">Avis</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a class="site-nav-quote" href="./">Devis gratuit</a>
+      <details class="language-switch language-menu site-nav-language">
           <summary>Français</summary>
           <nav class="language-options" aria-label="Sélecteur de langue">
             <a href="/inquiry/" lang="zh-CN">中文</a>
@@ -92,7 +132,18 @@
             <a href="/kk/inquiry/" lang="kk">Қазақша</a>
           </nav>
         </details>
-        <a class="inquiry-back inquiry-language-back" href="../">Retour accueil</a>
+      <details class="site-nav-mobile-menu">
+        <summary aria-label="Menu"><span></span><span></span><span></span></summary>
+        <nav class="site-nav-mobile-panel" aria-label="Mobile navigation">
+          <a href="../#services">Services</a>
+          <a href="../#how-it-works">Fonctionnement</a>
+          <a href="../#reviews">Avis</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </details>
+    </header>
+    <main>
+      <section class="team inquiry-page" id="inquiry">
         <div class="container">
           <header class="team-heading inquiry-page-heading">
             <h1 class="sr-only">Demande de sourcing</h1>
@@ -104,10 +155,10 @@
                 <h2 id="inquiry-title">Dites-nous ce que vous voulez acheter</h2>
                 <p>Indiquez vos produits, quantités et coordonnées. Nous vous proposerons des fournisseurs de Yiwu, des prix et des options de sourcing.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="Veuillez renseigner au minimum les produits et le contact." data-copied-message="Copié. Ouvrez WeChat, recherchez 18658925544 et collez la demande." data-copy-fail-message="Copie impossible. Veuillez copier la demande manuellement." data-telegram-copied-message="Demande copiee. Collez-la dans Telegram apres ouverture du chat.">
+              <form class="inquiry-form js-inquiry-form" data-required-message="Veuillez renseigner au minimum les produits et le contact." data-copied-message="Copié. Ouvrez WeChat, recherchez 18658925544 et collez la demande." data-copy-fail-message="Copie impossible. Veuillez copier la demande manuellement." data-telegram-copied-message="Demande copiee. Collez-la dans Telegram apres ouverture du chat." data-product-required-message="Veuillez indiquer les produits à sourcer." data-contact-required-message="Veuillez indiquer vos coordonnées.">
                 <label class="field field-wide">
                   <span>Produits recherchés</span>
-                  <input name="product" type="text" placeholder="Ex. articles discount, cuisine, jouets, rangement…" autocomplete="off" />
+                  <input name="product" type="text" required placeholder="Ex. articles discount, cuisine, jouets, rangement…" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>Catégorie</span>
@@ -136,7 +187,7 @@
                 </label>
                 <label class="field">
                   <span>Contact</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / e-mail / WeChat ID" autocomplete="off" />
+                  <input name="contact" type="text" required placeholder="WhatsApp / e-mail / WeChat ID" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>Nom / société</span>
@@ -147,10 +198,10 @@
                   <textarea name="note" rows="3" placeholder="Couleur, emballage, images, délai…"></textarea>
                 </label>
                 <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" /><span>Envoyer sur WhatsApp</span></button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail"><img class="inquiry-button-icon" src="../../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" decoding="async" /><span>Envoyer par Gmail</span></button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat"><img class="inquiry-button-icon" src="../../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" decoding="async" /><span>Copier pour WeChat</span></button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram"><img class="inquiry-button-icon" src="../../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" decoding="async" /><span>Envoyer sur Telegram</span></button>
+                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Envoyer sur WhatsApp</span></button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail"><img class="inquiry-button-icon" src="../../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Envoyer par Gmail</span></button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat"><img class="inquiry-button-icon" src="../../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Copier pour WeChat</span></button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram"><img class="inquiry-button-icon" src="../../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Envoyer sur Telegram</span></button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
@@ -162,11 +213,38 @@
 
       <nav class="sticky-contact-group" aria-label="Quick contact">
         <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
-          <img loading="lazy" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
+          <img loading="lazy" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
           <span>WhatsApp</span>
         </a>
       </nav>
-    </main>
+
+      <footer class="site-footer" id="contact">
+        <div class="site-footer-inner">
+          <div class="site-footer-brand">
+            <strong>Jabbar Sourcing</strong>
+            <a href="https://www.google.com/maps/search/?api=1&amp;query=Yiwu%2C%20Zhejiang%2C%20China" target="_blank" rel="noopener noreferrer">Yiwu, Zhejiang, China</a>
+          </div>
+          <div class="site-footer-contact">
+            <a href="mailto:info@jabbarsourcing.com">info@jabbarsourcing.com</a>
+            <a href="https://wa.me/8618658925544" target="_blank" rel="noopener noreferrer">WhatsApp +86 186 5892 5544</a>
+          </div>
+          <nav class="site-footer-socials" aria-label="Réseaux">
+          <a href="https://www.tiktok.com/@jabbaryiwu" target="_blank" rel="noopener noreferrer external" class="site-footer-social site-footer-social-tiktok"><span>TikTok</span></a>
+          <a href="https://www.instagram.com/vincentfromyiwu" target="_blank" rel="noopener noreferrer external" class="site-footer-social site-footer-social-instagram"><span>Instagram</span></a>
+          </nav>
+          <nav class="site-footer-languages" aria-label="Langues">
+            <a href="/inquiry/">中文</a>
+            <a href="/en/inquiry/">English</a>
+            <a href="/es/inquiry/">Español</a>
+            <a href="/ar/inquiry/">العربية</a>
+            <a href="/fr/inquiry/">Français</a>
+            <a href="/pt/inquiry/">Português</a>
+            <a href="/ru/inquiry/">Русский</a>
+          </nav>
+          <p>© 2026 Jabbar Sourcing. Tous droits réservés.</p>
+        </div>
+      </footer>
+</main>
     <script>
       (function () {
         document.querySelectorAll(".language-options a").forEach(function (link) {
@@ -195,14 +273,41 @@
             return lines.join("\n");
           };
           var setStatus = function (message) { if (status) status.textContent = message || ""; };
+          var clearFieldErrors = function () {
+            form.querySelectorAll(".field-invalid").forEach(function (field) { field.classList.remove("field-invalid"); });
+            form.querySelectorAll(".field-error").forEach(function (error) { error.textContent = ""; });
+          };
+          var setFieldError = function (name, message) {
+            var control = form.elements[name];
+            if (!control) return;
+            var field = control.closest(".field");
+            if (!field) return;
+            field.classList.add("field-invalid");
+            var error = field.querySelector(".field-error");
+            if (!error) {
+              error = document.createElement("span");
+              error.className = "field-error";
+              field.appendChild(error);
+            }
+            error.textContent = message;
+          };
+          var validateRequired = function () {
+            clearFieldErrors();
+            var ok = true;
+            if (!getValue("product")) {
+              setFieldError("product", form.getAttribute("data-product-required-message") || form.getAttribute("data-required-message"));
+              ok = false;
+            }
+            if (!getValue("contact")) {
+              setFieldError("contact", form.getAttribute("data-contact-required-message") || form.getAttribute("data-required-message"));
+              ok = false;
+            }
+            setStatus(ok ? "" : form.getAttribute("data-required-message"));
+            return ok;
+          };
           form.querySelectorAll(".js-inquiry-send").forEach(function (button) {
             button.addEventListener("click", function () {
-              var product = getValue("product");
-              var contact = getValue("contact");
-              if (!product || !contact) {
-                setStatus(form.getAttribute("data-required-message"));
-                return;
-              }
+              if (!validateRequired()) return;
               var message = buildMessage();
               var channel = button.getAttribute("data-channel");
               if (channel === "whatsapp") {

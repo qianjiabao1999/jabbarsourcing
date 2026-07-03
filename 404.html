@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="description" content="Page not found. Return to Jabbar Sourcing or contact us on WhatsApp for Yiwu sourcing support." />
+    <meta name="theme-color" content="#ffffff" />
+    <meta property="og:site_name" content="Jabbar Sourcing" />
+    <meta property="og:title" content="Page Not Found | Jabbar Sourcing" />
+    <meta property="og:description" content="This page does not exist. Return to Jabbar Sourcing or contact us on WhatsApp." />
+    <meta property="og:image" content="https://www.jabbarsourcing.com/assets/og-cover.jpg" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Page Not Found | Jabbar Sourcing" />
+    <meta name="twitter:description" content="This page does not exist. Return to Jabbar Sourcing or contact us on WhatsApp." />
+    <meta name="twitter:image" content="https://www.jabbarsourcing.com/assets/og-cover.jpg" />
+    <title>Page Not Found | Jabbar Sourcing</title>
+    <link rel="canonical" href="https://www.jabbarsourcing.com/404.html" />
+    <link rel="icon" href="assets/favicon.png?v=jabbar-5" type="image/png" sizes="32x32" />
+    <link rel="icon" href="assets/favicon-192.png?v=jabbar-5" type="image/png" sizes="192x192" />
+    <link rel="shortcut icon" href="favicon.ico?v=jabbar-5" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
+    <link rel="manifest" href="site.webmanifest?v=jabbar-5" />
+    <link rel="stylesheet" href="styles.min.css?v=apple-117" />
+    <!-- Analytics placeholders: replace IDs before launch -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+      gtag("config", "G-XXXXXXXXXX");
+    </script>
+    <script>
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "CLARITY_ID");
+    </script>
+    <script>
+      window.jabbarTrack = function (eventName, params) {
+        if (typeof window.gtag === "function") window.gtag("event", eventName, params || {});
+      };
+      document.addEventListener("click", function (event) {
+        var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp, .sticky-contact-whatsapp');
+        if (whatsappLink) {
+          window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
+        }
+        var inquiryButton = event.target.closest(".js-inquiry-send");
+        if (inquiryButton) {
+          window.jabbarTrack("inquiry_submit", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
+        }
+      }, true);
+    </script>
+  </head>
+  <body class="not-found-body">
+    <main class="not-found-main">
+      <section class="not-found-panel" aria-labelledby="not-found-title">
+        <a class="not-found-logo" href="/en/" aria-label="Return to Jabbar Sourcing homepage">
+          <img src="assets/jabbar-sourcing-logo-320.webp" alt="Jabbar Sourcing Team" width="320" height="320" decoding="async" loading="eager" fetchpriority="high" />
+        </a>
+        <p class="not-found-eyebrow">404</p>
+        <h1 id="not-found-title">Page Not Found <span>页面不存在</span></h1>
+        <p>The link may be outdated or typed incorrectly. You can return to the homepage or contact us directly for Yiwu sourcing support.</p>
+        <div class="not-found-actions">
+          <a class="inquiry-entry-button" href="/en/">Return Home / 返回首页</a>
+          <a class="inquiry-entry-button" href="https://wa.me/8618658925544" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        </div>
+      </section>
+      <nav class="sticky-contact-group" aria-label="Quick contact">
+        <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
+          <img loading="lazy" src="assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
+          <span>WhatsApp</span>
+        </a>
+      </nav>
+    </main>
+    <script>
+      (function () {
+        document.querySelectorAll(".js-app-open").forEach(function (link) {
+          link.addEventListener("click", function (event) {
+            var appLink = link.getAttribute("data-app-link");
+            var webLink = link.getAttribute("data-web-link") || link.getAttribute("href");
+            if (!appLink) return;
+            event.preventDefault();
+            window.location.href = appLink;
+            window.setTimeout(function () {
+              if (webLink) window.location.href = webLink;
+            }, 1400);
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

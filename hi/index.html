@@ -58,17 +58,13 @@
     <link rel="alternate" hreflang="ur" href="https://www.jabbarsourcing.com/ur/" />
     <link rel="alternate" hreflang="ha" href="https://www.jabbarsourcing.com/ha/" />
     <link rel="alternate" hreflang="kk" href="https://www.jabbarsourcing.com/kk/" />
-    <link rel="icon" href="../assets/favicon.png?v=jabbar-4" type="image/png" sizes="32x32" />
-    <link rel="icon" href="../assets/favicon-192.png?v=jabbar-4" type="image/png" sizes="192x192" />
-    <link rel="shortcut icon" href="../favicon.ico?v=jabbar-4" />
-    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-4" sizes="180x180" />
-    <link rel="manifest" href="../site.webmanifest?v=jabbar-4" />
+    <link rel="icon" href="../assets/favicon.png?v=jabbar-5" type="image/png" sizes="32x32" />
+    <link rel="icon" href="../assets/favicon-192.png?v=jabbar-5" type="image/png" sizes="192x192" />
+    <link rel="shortcut icon" href="../favicon.ico?v=jabbar-5" />
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
+    <link rel="manifest" href="../site.webmanifest?v=jabbar-5" />
 
-
-    <!-- gallery-preload -->
-    <link rel="preload" as="image" href="../assets/gallery/landscape-02.webp" imagesrcset="../assets/gallery/thumb/landscape-02.webp 620w, ../assets/gallery/landscape-02.webp 1280w" imagesizes="(max-width: 620px) 90vw, 45vw" fetchpriority="high" type="image/webp" />
-    <!-- /gallery-preload -->
-    <link rel="stylesheet" href="../styles.min.css?v=apple-115" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-117" />
     <script type="application/ld+json">
 {
             "@context": "https://schema.org",
@@ -111,6 +107,36 @@
             ]
 }
     </script>
+    <!-- Analytics placeholders: replace IDs before launch -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+      gtag("config", "G-XXXXXXXXXX");
+    </script>
+    <script>
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "CLARITY_ID");
+    </script>
+    <script>
+      window.jabbarTrack = function (eventName, params) {
+        if (typeof window.gtag === "function") window.gtag("event", eventName, params || {});
+      };
+      document.addEventListener("click", function (event) {
+        var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp, .sticky-contact-whatsapp');
+        if (whatsappLink) {
+          window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
+        }
+        var inquiryButton = event.target.closest(".js-inquiry-send");
+        if (inquiryButton) {
+          window.jabbarTrack("inquiry_submit", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <main>
@@ -143,7 +169,7 @@
           <header class="team-heading">
             <div class="hero-visual-lockup" aria-label="Jabbar Sourcing Team logo">
               <div class="site-logo-lockup site-logo-lockup-brand" aria-label="Jabbar Sourcing Team logo">
-                <img src="../assets/jabbar-sourcing-logo.webp" alt="Jabbar Sourcing Team" width="512" height="512" decoding="async" fetchpriority="high" />
+                <img src="../assets/jabbar-sourcing-logo-320.webp" alt="Jabbar Sourcing Team" width="512" height="512" decoding="async" fetchpriority="high" />
               </div>
             </div>
             <h1>Jabbar <span>Sourcing Team</span></h1>
@@ -152,19 +178,19 @@
             <p class="hero-proof"><span>30,000+ SKU · 50,000 m² warehouse · Douyin/Xiaohongshu/TikTok/Instagram/Facebook</span></p>
             <div class="contact-actions" aria-label="Contact options">
               <a class="contact-link contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="Contact on WhatsApp: +8618658925544">
-                <img loading="lazy" class="brand-icon brand-icon-whatsapp" src="../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
+                <img loading="lazy" class="brand-icon brand-icon-whatsapp" src="../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
                 <span class="contact-text"><span class="contact-name">WhatsApp</span><span class="contact-value">+8618658925544</span></span>
               </a>
               <a class="contact-link contact-gmail js-app-open" href="mailto:qianjiabao1999@gmail.com" data-app-link="mailto:qianjiabao1999@gmail.com" data-web-link="mailto:qianjiabao1999@gmail.com" data-copy-text="qianjiabao1999@gmail.com" target="_blank" rel="noopener noreferrer" aria-label="Send email with Gmail: qianjiabao1999@gmail.com">
-                <img loading="lazy" class="brand-icon brand-icon-gmail" src="../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" />
+                <img loading="lazy" class="brand-icon brand-icon-gmail" src="../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
                 <span class="contact-text"><span class="contact-name">Gmail</span><span class="contact-value">qianjiabao1999@gmail.com</span></span>
               </a>
               <a class="contact-link contact-telegram js-app-open" href="https://t.me/Jabbar199901" data-app-link="tg://resolve?domain=Jabbar199901" data-web-link="https://t.me/Jabbar199901" data-copy-text="@Jabbar199901" target="_blank" rel="noopener noreferrer" aria-label="Open Telegram: @Jabbar199901">
-                <img loading="lazy" class="brand-icon brand-icon-telegram" src="../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" />
+                <img loading="lazy" class="brand-icon brand-icon-telegram" src="../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" width="64" height="64" />
                 <span class="contact-text"><span class="contact-name">Telegram</span><span class="contact-value">@Jabbar199901</span></span>
               </a>
               <a class="contact-link contact-wechat js-contact-modal-open" href="#wechat-modal" data-modal-target="wechat-modal" data-copy-text="18658925544" aria-label="Add on WeChat: 18658925544">
-                <img loading="lazy" class="brand-icon brand-icon-wechat" src="../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" />
+                <img loading="lazy" class="brand-icon brand-icon-wechat" src="../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
                 <span class="contact-text"><span class="contact-name">WeChat</span><span class="contact-value">18658925544</span></span>
               </a>
             </div>
@@ -179,57 +205,57 @@
           </section>
             <div class="hero-member-roster" aria-label="Jabbar Sourcing social account avatars">
               <div class="hero-member-card">
-                <img src="../assets/grace-from-yiwu.webp?v=avatar-20260701T235343Z" alt="Grace from Yiwu" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/grace-from-yiwu-116.webp?v=avatar-116-20260703" alt="Grace from Yiwu" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/grace-from-yiwu-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/grace-from-yiwu-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/lesley-in-yiwu.webp?v=avatar-20260701T235343Z" alt="Lesley in Yiwu" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/lesley-in-yiwu-116.webp?v=avatar-116-20260703" alt="Lesley in Yiwu" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/lesley-in-yiwu-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/lesley-in-yiwu-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/haoduobao456.webp?v=avatar-20260701T235343Z" alt="Alice in Yiwu" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/haoduobao456-116.webp?v=avatar-116-20260703" alt="Alice in Yiwu" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/haoduobao456-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/haoduobao456-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/yiwu-wholesale-vincent.webp?v=avatar-20260701T235343Z" alt="Yiwu-Vincent" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/yiwu-wholesale-vincent-116.webp?v=avatar-116-20260703" alt="Yiwu-Vincent" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/yiwu-wholesale-vincent-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/yiwu-wholesale-vincent-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/jessica-in-yiwu.webp?v=avatar-20260701T235343Z" alt="Jessica in Yiwu" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/jessica-in-yiwu-116.webp?v=avatar-116-20260703" alt="Jessica in Yiwu" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/jessica-in-yiwu-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/jessica-in-yiwu-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/leo-mr-20cents.webp?v=avatar-20260701T235343Z" alt="Leo 20cents" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/leo-mr-20cents-116.webp?v=avatar-116-20260703" alt="Leo 20cents" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/leo-mr-20cents-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/leo-mr-20cents-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/max-dollarstore.webp?v=avatar-20260701T235343Z" alt="Max One Dollar Store" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/max-dollarstore-116.webp?v=avatar-116-20260703" alt="Max One Dollar Store" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/max-dollarstore-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/max-dollarstore-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/shawnnwjxnc.webp?v=avatar-20260701T235343Z" alt="Shawn Wholesale" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/shawnnwjxnc-116.webp?v=avatar-116-20260703" alt="Shawn Wholesale" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/shawnnwjxnc-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/shawnnwjxnc-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/mollyadventure6.webp?v=avatar-20260701T235343Z" alt="mollyadventure" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/mollyadventure6-116.webp?v=avatar-116-20260703" alt="mollyadventure" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/mollyadventure6-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/mollyadventure6-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/douyin-jiangjie-avatar.webp?v=avatar-20260701T235343Z" alt="好多宝董事长" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/douyin-jiangjie-avatar-116.webp?v=avatar-116-20260703" alt="好多宝董事长" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-jiangjie-avatar-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-jiangjie-avatar-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/douyin-138411321.webp?v=avatar-20260701T235343Z" alt="好多宝金俊生" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/douyin-138411321-116.webp?v=avatar-116-20260703" alt="好多宝金俊生" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-138411321-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-138411321-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/douyin-dg661661.webp?v=avatar-20260701T235343Z" alt="豹哥百货严选" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/douyin-dg661661-116.webp?v=avatar-116-20260703" alt="豹哥百货严选" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-dg661661-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-dg661661-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/douyin-64412023244.webp?v=avatar-20260701T235343Z" alt="全品类百货总仓" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/douyin-64412023244-116.webp?v=avatar-116-20260703" alt="全品类百货总仓" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-64412023244-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-64412023244-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/douyin-87296762727.webp?v=avatar-20260701T235343Z" alt="义乌百货然然" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/douyin-87296762727-116.webp?v=avatar-116-20260703" alt="义乌百货然然" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-87296762727-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-87296762727-232.webp?v=avatar-232-20260703 2x" />
               </div>
               <div class="hero-member-card">
-                <img src="../assets/douyin-90267896705.webp?v=avatar-20260701T235343Z" alt="好多宝欧后康" width="560" height="560" loading="lazy" decoding="async" />
-              </div>
-              
-              <div class="hero-member-card">
-                <img src="../assets/xiaohongshu-yw-source-supply.webp?v=avatar-20260701T235343Z" alt="好多宝高智" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/douyin-90267896705-116.webp?v=avatar-116-20260703" alt="好多宝欧后康" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-90267896705-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-90267896705-232.webp?v=avatar-232-20260703 2x" />
               </div>
               
               <div class="hero-member-card">
-                <img src="../assets/xiaohongshu-2yuan10yuan.webp?v=avatar-20260701T235343Z" alt="好多宝韦帮杰" width="560" height="560" loading="lazy" decoding="async" />
+                <img src="../assets/social-116/xiaohongshu-yw-source-supply-116.webp?v=avatar-116-20260703" alt="好多宝高智" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/xiaohongshu-yw-source-supply-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-yw-source-supply-232.webp?v=avatar-232-20260703 2x" />
+              </div>
+              
+              <div class="hero-member-card">
+                <img src="../assets/social-116/xiaohongshu-2yuan10yuan-116.webp?v=avatar-116-20260703" alt="好多宝韦帮杰" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/xiaohongshu-2yuan10yuan-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-2yuan10yuan-232.webp?v=avatar-232-20260703 2x" />
               </div>
             </div>
           </header>
@@ -240,28 +266,28 @@
               <div class="gallery-rail" aria-label="स्क्रॉल होने वाली लैंडस्केप फोटो गैलरी">
                 <div class="gallery-track">
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/landscape-02.webp" type="image/webp" /><img src="../assets/gallery/landscape-02.webp" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 1" loading="eager" decoding="async" fetchpriority="high" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/landscape-02.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/landscape-02-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 1" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/landscape-02-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/landscape-02-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="720" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/landscape-03.webp" type="image/webp" /><img src="../assets/gallery/landscape-03.webp" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 3" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/landscape-03.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/landscape-03-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 3" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/landscape-03-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/landscape-03-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="640" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/landscape-04.webp" type="image/webp" /><img src="../assets/gallery/landscape-04.webp" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 4" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/landscape-04.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/landscape-04-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 4" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/landscape-04-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/landscape-04-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="640" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/landscape-05.webp" type="image/webp" /><img src="../assets/gallery/landscape-05.webp" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 5" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/landscape-05.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/landscape-05-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 5" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/landscape-05-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/landscape-05-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="720" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/landscape-06.webp" type="image/webp" /><img src="../assets/gallery/landscape-06.webp" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 6" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/landscape-06.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/landscape-06-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 6" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/landscape-06-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/landscape-06-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="675" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/landscape-07.webp" type="image/webp" /><img src="../assets/gallery/landscape-07.webp" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 7" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/landscape-07.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/landscape-07-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 7" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/landscape-07-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/landscape-07-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="640" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/landscape-08.webp" type="image/webp" /><img src="../assets/gallery/landscape-08.webp" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 8" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/landscape-08.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/landscape-08-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 8" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/landscape-08-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/landscape-08-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="720" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/landscape-10.webp" type="image/webp" /><img src="../assets/gallery/landscape-10.webp" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 10" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/landscape-10.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/landscape-10-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing लैंडस्केप सोर्सिंग फोटो 10" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/landscape-10-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/landscape-10-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="720" /></picture>
                     </figure>
                 </div>
               </div>
@@ -271,19 +297,19 @@
               <div class="gallery-rail" aria-label="स्क्रॉल होने वाली पोर्ट्रेट फोटो गैलरी">
                 <div class="gallery-track">
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/portrait-01.webp" type="image/webp" /><img src="../assets/gallery/portrait-01.webp" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 1" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/portrait-01.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/portrait-01-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 1" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/portrait-01-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/portrait-01-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="1280" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/portrait-03.webp" type="image/webp" /><img src="../assets/gallery/portrait-03.webp" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 3" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/portrait-03.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/portrait-03-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 3" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/portrait-03-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/portrait-03-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="1280" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/portrait-04.webp" type="image/webp" /><img src="../assets/gallery/portrait-04.webp" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 4" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/portrait-04.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/portrait-04-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 4" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/portrait-04-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/portrait-04-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="1280" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/portrait-06.webp" type="image/webp" /><img src="../assets/gallery/portrait-06.webp" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 6" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/portrait-06.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/portrait-06-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 6" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/portrait-06-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/portrait-06-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="1280" /></picture>
                     </figure>
                     <figure class="gallery-frame">
-                      <picture><source media="(max-width: 620px)" srcset="../assets/gallery/thumb/portrait-07.webp" type="image/webp" /><img src="../assets/gallery/portrait-07.webp" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 7" loading="lazy" decoding="async" fetchpriority="low" /></picture>
+                      <picture><source media="(max-width: 620px)" data-srcset="../assets/gallery/thumb/portrait-07.webp" type="image/webp" /><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-src="../assets/gallery/responsive/portrait-07-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing पोर्ट्रेट सोर्सिंग फोटो 7" loading="lazy" decoding="async" fetchpriority="low" data-srcset="../assets/gallery/responsive/portrait-07-480.webp?v=gallery-480-20260703 480w, ../assets/gallery/responsive/portrait-07-960.webp?v=gallery-960-20260703 960w" sizes="(max-width: 620px) 82vw, 520px" width="960" height="1280" /></picture>
                     </figure>
                 </div>
               </div>
@@ -304,7 +330,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@jabbaryiwu" target="_blank" rel="noopener noreferrer external" aria-label="View Jabbar Yiwu on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/jabbar-cartoon-smile.webp?v=avatar-20260701T235343Z" alt="Jabbar Yiwu" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/jabbar-cartoon-smile-116.webp?v=avatar-116-20260703" alt="Jabbar Yiwu" width="116" height="116" srcset="../assets/social-116/jabbar-cartoon-smile-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/jabbar-cartoon-smile-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Jabbar Yiwu</strong>
@@ -314,7 +340,7 @@
             </a>
 <a class="team-card" href="https://www.tiktok.com/@grace.from.yiwu" target="_blank" rel="noopener noreferrer external" aria-label="View Grace from Yiwu on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/grace-from-yiwu.webp?v=avatar-20260701T235343Z" alt="Grace from Yiwu" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/grace-from-yiwu-116.webp?v=avatar-116-20260703" alt="Grace from Yiwu" width="116" height="116" srcset="../assets/social-116/grace-from-yiwu-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/grace-from-yiwu-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Grace from Yiwu</strong>
@@ -326,7 +352,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@vincent.en.yiwu" target="_blank" rel="noopener noreferrer external" aria-label="View Vincent en Yiwu on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/vincent-en-yiwu.webp?v=avatar-20260701T235343Z" alt="Vincent en Yiwu" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/vincent-en-yiwu-116.webp?v=avatar-116-20260703" alt="Vincent en Yiwu" width="116" height="116" srcset="../assets/social-116/vincent-en-yiwu-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/vincent-en-yiwu-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Vincent en Yiwu</strong>
@@ -338,7 +364,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@lesley.in.yiwu" target="_blank" rel="noopener noreferrer external" aria-label="View Lesley in Yiwu on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/lesley-in-yiwu.webp?v=avatar-20260701T235343Z" alt="Lesley in Yiwu" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/lesley-in-yiwu-116.webp?v=avatar-116-20260703" alt="Lesley in Yiwu" width="116" height="116" srcset="../assets/social-116/lesley-in-yiwu-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/lesley-in-yiwu-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Lesley in Yiwu</strong>
@@ -350,7 +376,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@haoduobao456" target="_blank" rel="noopener noreferrer external" aria-label="View Alice in Yiwu on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/haoduobao456.webp?v=avatar-20260701T235343Z" alt="Alice in Yiwu" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/haoduobao456-116.webp?v=avatar-116-20260703" alt="Alice in Yiwu" width="116" height="116" srcset="../assets/social-116/haoduobao456-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/haoduobao456-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Alice in Yiwu</strong>
@@ -362,7 +388,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@yiwu.wholesale.vincent" target="_blank" rel="noopener noreferrer external" aria-label="View Yiwu-Vincent on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/yiwu-wholesale-vincent.webp?v=avatar-20260701T235343Z" alt="Yiwu-Vincent" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/yiwu-wholesale-vincent-116.webp?v=avatar-116-20260703" alt="Yiwu-Vincent" width="116" height="116" srcset="../assets/social-116/yiwu-wholesale-vincent-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/yiwu-wholesale-vincent-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Yiwu-Vincent</strong>
@@ -374,7 +400,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@alice.goods777" target="_blank" rel="noopener noreferrer external" aria-label="View Alice goods777 on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/alice-goods777.webp?v=avatar-20260701T235343Z" alt="Alice goods777" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/alice-goods777-116.webp?v=avatar-116-20260703" alt="Alice goods777" width="116" height="116" srcset="../assets/social-116/alice-goods777-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/alice-goods777-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Alice goods777</strong>
@@ -386,7 +412,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@jessica.in.yiwu" target="_blank" rel="noopener noreferrer external" aria-label="View Jessica in Yiwu on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/jessica-in-yiwu.webp?v=avatar-20260701T235343Z" alt="Jessica in Yiwu" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/jessica-in-yiwu-116.webp?v=avatar-116-20260703" alt="Jessica in Yiwu" width="116" height="116" srcset="../assets/social-116/jessica-in-yiwu-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/jessica-in-yiwu-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Jessica in Yiwu</strong>
@@ -397,7 +423,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@leo_mr_20cents" target="_blank" rel="noopener noreferrer external" aria-label="View Leo 20cents on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/leo-mr-20cents.webp?v=avatar-20260701T235343Z" alt="Leo 20cents" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/leo-mr-20cents-116.webp?v=avatar-116-20260703" alt="Leo 20cents" width="116" height="116" srcset="../assets/social-116/leo-mr-20cents-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/leo-mr-20cents-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Leo 20cents</strong>
@@ -408,7 +434,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@max.dollarstore" target="_blank" rel="noopener noreferrer external" aria-label="View Max One Dollar Store on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/max-dollarstore.webp?v=avatar-20260701T235343Z" alt="Max One Dollar Store" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/max-dollarstore-116.webp?v=avatar-116-20260703" alt="Max One Dollar Store" width="116" height="116" srcset="../assets/social-116/max-dollarstore-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/max-dollarstore-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Max One Dollar Store</strong>
@@ -420,7 +446,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@shawnnwjxnc" target="_blank" rel="noopener noreferrer external" aria-label="View Shawn Wholesale on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/shawnnwjxnc.webp?v=avatar-20260701T235343Z" alt="Shawn Wholesale" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/shawnnwjxnc-116.webp?v=avatar-116-20260703" alt="Shawn Wholesale" width="116" height="116" srcset="../assets/social-116/shawnnwjxnc-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/shawnnwjxnc-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Shawn Wholesale</strong>
@@ -432,7 +458,7 @@
 
             <a class="team-card" href="https://www.tiktok.com/@mollyadventure6" target="_blank" rel="noopener noreferrer external" aria-label="View mollyadventure on TikTok">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/mollyadventure6.webp?v=avatar-20260701T235343Z" alt="mollyadventure" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/mollyadventure6-116.webp?v=avatar-116-20260703" alt="mollyadventure" width="116" height="116" srcset="../assets/social-116/mollyadventure6-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/mollyadventure6-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>mollyadventure</strong>
@@ -451,7 +477,7 @@
 
             <a class="team-card" href="https://www.instagram.com/vincent130801/" target="_blank" rel="noopener noreferrer external" aria-label="Instagram पर Vincent 130801 देखें">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/vincent-en-yiwu.webp?v=avatar-20260701T235343Z" alt="Vincent 130801" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/vincent-en-yiwu-116.webp?v=avatar-116-20260703" alt="Vincent 130801" width="116" height="116" srcset="../assets/social-116/vincent-en-yiwu-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/vincent-en-yiwu-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Vincent 130801</strong>
@@ -463,7 +489,7 @@
 
             <a class="team-card" href="https://www.instagram.com/vincentfromyiwu/" target="_blank" rel="noopener noreferrer external" aria-label="Instagram पर Vincent from Yiwu देखें">
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/yiwu-wholesale-vincent.webp?v=avatar-20260701T235343Z" alt="Vincent from Yiwu" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/yiwu-wholesale-vincent-116.webp?v=avatar-116-20260703" alt="Vincent from Yiwu" width="116" height="116" srcset="../assets/social-116/yiwu-wholesale-vincent-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/yiwu-wholesale-vincent-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong>Vincent from Yiwu</strong>
@@ -487,7 +513,7 @@
               aria-label="查看好多宝官方账号抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-haoduobao.webp?v=avatar-20260701T235343Z" alt="好多宝官方账号头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-haoduobao-116.webp?v=avatar-116-20260703" alt="好多宝官方账号头像" width="116" height="116" srcset="../assets/social-116/douyin-haoduobao-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-haoduobao-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -507,7 +533,7 @@
               aria-label="查看好多宝-董事长抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-jiangjie-avatar.webp?v=avatar-20260701T235343Z" alt="好多宝-董事长头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-jiangjie-avatar-116.webp?v=avatar-116-20260703" alt="好多宝-董事长头像" width="116" height="116" srcset="../assets/social-116/douyin-jiangjie-avatar-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-jiangjie-avatar-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -527,7 +553,7 @@
               aria-label="查看好多宝-朱世祥抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-73178679666.webp?v=avatar-20260701T235343Z" alt="好多宝-朱世祥头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-73178679666-116.webp?v=avatar-116-20260703" alt="好多宝-朱世祥头像" width="116" height="116" srcset="../assets/social-116/douyin-73178679666-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-73178679666-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -547,7 +573,7 @@
               aria-label="查看好多宝-金俊生抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-275644598.webp?v=avatar-20260701T235343Z" alt="好多宝-金俊生头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-275644598-116.webp?v=avatar-116-20260703" alt="好多宝-金俊生头像" width="116" height="116" srcset="../assets/social-116/douyin-275644598-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-275644598-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -567,7 +593,7 @@
               aria-label="查看高经理百货供应链抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-05280606.webp?v=avatar-20260701T235343Z" alt="高经理百货供应链头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-05280606-116.webp?v=avatar-116-20260703" alt="高经理百货供应链头像" width="116" height="116" srcset="../assets/social-116/douyin-05280606-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-05280606-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -587,7 +613,7 @@
               aria-label="查看李哥谈百货创业抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-138411321.webp?v=avatar-20260701T235343Z" alt="李哥谈百货创业头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-138411321-116.webp?v=avatar-116-20260703" alt="李哥谈百货创业头像" width="116" height="116" srcset="../assets/social-116/douyin-138411321-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-138411321-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -607,7 +633,7 @@
               aria-label="查看豹哥百货批发全球供应抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-89144212942.webp?v=avatar-20260701T235343Z" alt="豹哥百货批发全球供应头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-89144212942-116.webp?v=avatar-116-20260703" alt="豹哥百货批发全球供应头像" width="116" height="116" srcset="../assets/social-116/douyin-89144212942-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-89144212942-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -627,7 +653,7 @@
               aria-label="查看豹哥百货严选抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-dg661661.webp?v=avatar-20260701T235343Z" alt="豹哥百货严选头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-dg661661-116.webp?v=avatar-116-20260703" alt="豹哥百货严选头像" width="116" height="116" srcset="../assets/social-116/douyin-dg661661-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-dg661661-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -647,7 +673,7 @@
               aria-label="查看全球百货供应链耀哥抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-999999q99999.webp?v=avatar-20260701T235343Z" alt="全球百货供应链耀哥头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-999999q99999-116.webp?v=avatar-116-20260703" alt="全球百货供应链耀哥头像" width="116" height="116" srcset="../assets/social-116/douyin-999999q99999-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-999999q99999-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -667,7 +693,7 @@
               aria-label="查看好多宝-许可抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-95088908057.webp?v=avatar-20260701T235343Z" alt="好多宝-许可头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-95088908057-116.webp?v=avatar-116-20260703" alt="好多宝-许可头像" width="116" height="116" srcset="../assets/social-116/douyin-95088908057-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-95088908057-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -687,7 +713,7 @@
               aria-label="查看全品类百货总仓抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-64412023244.webp?v=avatar-20260701T235343Z" alt="全品类百货总仓头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-64412023244-116.webp?v=avatar-116-20260703" alt="全品类百货总仓头像" width="116" height="116" srcset="../assets/social-116/douyin-64412023244-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-64412023244-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -707,7 +733,7 @@
               aria-label="查看义乌百货然然抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-87296762727.webp?v=avatar-20260701T235343Z" alt="义乌百货然然头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-87296762727-116.webp?v=avatar-116-20260703" alt="义乌百货然然头像" width="116" height="116" srcset="../assets/social-116/douyin-87296762727-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-87296762727-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -727,7 +753,7 @@
               aria-label="查看好多宝-柏松抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-92340484988.webp?v=avatar-20260701T235343Z" alt="好多宝-柏松头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-92340484988-116.webp?v=avatar-116-20260703" alt="好多宝-柏松头像" width="116" height="116" srcset="../assets/social-116/douyin-92340484988-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-92340484988-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -747,7 +773,7 @@
               aria-label="查看好多宝-欧后康抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-90267896705.webp?v=avatar-20260701T235343Z" alt="好多宝-欧后康头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-90267896705-116.webp?v=avatar-116-20260703" alt="好多宝-欧后康头像" width="116" height="116" srcset="../assets/social-116/douyin-90267896705-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-90267896705-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -767,7 +793,7 @@
               aria-label="查看全球百货供应链莉娅抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-160463933.webp?v=avatar-20260701T235343Z" alt="全球百货供应链莉娅头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-160463933-116.webp?v=avatar-116-20260703" alt="全球百货供应链莉娅头像" width="116" height="116" srcset="../assets/social-116/douyin-160463933-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-160463933-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -787,7 +813,7 @@
               aria-label="查看义乌莉娅百货精选抖音主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/douyin-41184831028.webp?v=avatar-20260701T235343Z" alt="义乌莉娅百货精选头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/douyin-41184831028-116.webp?v=avatar-116-20260703" alt="义乌莉娅百货精选头像" width="116" height="116" srcset="../assets/social-116/douyin-41184831028-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/douyin-41184831028-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -814,7 +840,7 @@
               aria-label="查看好多宝官方账号小红书主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/xiaohongshu-haoduobao.webp?v=avatar-20260701T235343Z" alt="好多宝官方账号头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/xiaohongshu-haoduobao-116.webp?v=avatar-116-20260703" alt="好多宝官方账号头像" width="116" height="116" srcset="../assets/social-116/xiaohongshu-haoduobao-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-haoduobao-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -834,7 +860,7 @@
               aria-label="查看好多宝-高智小红书主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/xiaohongshu-yw-source-supply.webp?v=avatar-20260701T235343Z" alt="好多宝-高智头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/xiaohongshu-yw-source-supply-116.webp?v=avatar-116-20260703" alt="好多宝-高智头像" width="116" height="116" srcset="../assets/social-116/xiaohongshu-yw-source-supply-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-yw-source-supply-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -854,7 +880,7 @@
               aria-label="查看义乌然然小红书主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/xiaohongshu-yiwu-ranran.webp?v=avatar-20260701T235343Z" alt="义乌然然头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/xiaohongshu-yiwu-ranran-116.webp?v=avatar-116-20260703" alt="义乌然然头像" width="116" height="116" srcset="../assets/social-116/xiaohongshu-yiwu-ranran-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-yiwu-ranran-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -874,7 +900,7 @@
               aria-label="查看全球百货供应链耀哥小红书主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/xiaohongshu-yaoge.webp?v=avatar-20260701T235343Z" alt="全球百货供应链耀哥头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/xiaohongshu-yaoge-116.webp?v=avatar-116-20260703" alt="全球百货供应链耀哥头像" width="116" height="116" srcset="../assets/social-116/xiaohongshu-yaoge-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-yaoge-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -894,7 +920,7 @@
               aria-label="查看朱经理供货总部小红书主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/xiaohongshu-zhu-manager.webp?v=avatar-20260701T235343Z" alt="朱经理供货总部头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/xiaohongshu-zhu-manager-116.webp?v=avatar-116-20260703" alt="朱经理供货总部头像" width="116" height="116" srcset="../assets/social-116/xiaohongshu-zhu-manager-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-zhu-manager-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -914,7 +940,7 @@
               aria-label="查看好多宝-韦帮杰小红书主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/xiaohongshu-2yuan10yuan.webp?v=avatar-20260701T235343Z" alt="好多宝-韦帮杰头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/xiaohongshu-2yuan10yuan-116.webp?v=avatar-116-20260703" alt="好多宝-韦帮杰头像" width="116" height="116" srcset="../assets/social-116/xiaohongshu-2yuan10yuan-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-2yuan10yuan-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -934,7 +960,7 @@
               aria-label="查看lesley yiwu goods小红书主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/xiaohongshu-95017297811.webp?v=avatar-20260701T235343Z" alt="lesley yiwu goods 头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/xiaohongshu-95017297811-116.webp?v=avatar-116-20260703" alt="lesley yiwu goods 头像" width="116" height="116" srcset="../assets/social-116/xiaohongshu-95017297811-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-95017297811-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -954,7 +980,7 @@
               aria-label="查看阿松带你聊百货小红书主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/xiaohongshu-26205931510.webp?v=avatar-20260701T235343Z" alt="阿松带你聊百货头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/xiaohongshu-26205931510-116.webp?v=avatar-116-20260703" alt="阿松带你聊百货头像" width="116" height="116" srcset="../assets/social-116/xiaohongshu-26205931510-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-26205931510-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -974,7 +1000,7 @@
               aria-label="查看义乌莉娅小红书主页"
             >
               <span class="team-card-media">
-                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/xiaohongshu-635230302.webp?v=avatar-20260701T235343Z" alt="义乌莉娅头像" width="560" height="560" />
+                <img loading="eager" decoding="async" fetchpriority="auto" src="../assets/social-116/xiaohongshu-635230302-116.webp?v=avatar-116-20260703" alt="义乌莉娅头像" width="116" height="116" srcset="../assets/social-116/xiaohongshu-635230302-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/xiaohongshu-635230302-232.webp?v=avatar-232-20260703 2x" />
               </span>
               <span class="team-card-body">
                 <strong class="team-title">
@@ -1084,7 +1110,7 @@
         <div class="contact-modal-backdrop" data-close-modal></div>
         <section class="contact-modal-card" role="dialog" aria-modal="true" aria-label="WeChat">
           <button class="contact-modal-close" type="button" data-close-modal aria-label="Close">×</button>
-          <img loading="lazy" class="contact-modal-icon" src="../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" />
+          <img loading="lazy" class="contact-modal-icon" src="../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
           <h2>WeChat</h2>
           <p>WeChat ID</p>
           <strong>18658925544</strong>
@@ -1096,11 +1122,11 @@
 
       <nav class="sticky-contact-group" aria-label="Quick contact">
         <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
-          <img loading="lazy" src="../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
+          <img loading="lazy" src="../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
           <span>WhatsApp</span>
         </a>
         <a class="sticky-contact sticky-contact-telegram js-app-open" href="https://t.me/Jabbar199901" data-app-link="tg://resolve?domain=Jabbar199901" data-web-link="https://t.me/Jabbar199901" data-copy-text="@Jabbar199901" target="_blank" rel="noopener noreferrer" aria-label="Telegram @Jabbar199901">
-          <img loading="lazy" src="../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" />
+          <img loading="lazy" src="../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" width="64" height="64" />
           <span>Telegram</span>
         </a>
       </nav>
@@ -1128,25 +1154,63 @@
         }
 
 
-        var galleryImages = Array.prototype.slice.call(document.querySelectorAll(".sourcing-gallery img"));
-        if (galleryImages.length) {
-          var firstRunImages = galleryImages.filter(function (img, index) {
-            return index < 3;
-          });
-          var decodeImage = function (img) {
-            if (img.complete && img.naturalWidth) return Promise.resolve();
-            if (img.decode) return img.decode().catch(function () {});
-            return new Promise(function (resolve) {
-              img.addEventListener("load", resolve, { once: true });
-              img.addEventListener("error", resolve, { once: true });
+        var gallery = document.querySelector(".sourcing-gallery");
+        if (gallery) {
+          var loadGallery = function () {
+            if (gallery.dataset.loaded === "1") return;
+            gallery.dataset.loaded = "1";
+            gallery.querySelectorAll("source[data-srcset]").forEach(function (source) {
+              source.setAttribute("srcset", source.getAttribute("data-srcset"));
+              source.removeAttribute("data-srcset");
             });
+            var galleryImages = Array.prototype.slice.call(gallery.querySelectorAll("img[data-src]"));
+            galleryImages.forEach(function (img) {
+              var srcset = img.getAttribute("data-srcset");
+              if (srcset) {
+                img.setAttribute("srcset", srcset);
+                img.removeAttribute("data-srcset");
+              }
+              img.setAttribute("src", img.getAttribute("data-src"));
+              img.removeAttribute("data-src");
+            });
+            var firstRunImages = galleryImages.filter(function (img, index) {
+              return index < 3;
+            });
+            var decodeImage = function (img) {
+              if (img.complete && img.naturalWidth) return Promise.resolve();
+              if (img.decode) return img.decode().catch(function () {});
+              return new Promise(function (resolve) {
+                img.addEventListener("load", resolve, { once: true });
+                img.addEventListener("error", resolve, { once: true });
+              });
+            };
+            Promise.all(firstRunImages.map(decodeImage)).then(function () {
+              document.documentElement.classList.add("gallery-ready");
+            });
+            window.setTimeout(function () {
+              document.documentElement.classList.add("gallery-ready");
+            }, 1200);
           };
-          Promise.all(firstRunImages.map(decodeImage)).then(function () {
-            document.documentElement.classList.add("gallery-ready");
-          });
-          window.setTimeout(function () {
-            document.documentElement.classList.add("gallery-ready");
-          }, 1800);
+          var shouldLoadGallery = function () {
+            var rect = gallery.getBoundingClientRect();
+            return window.scrollY > 120 && rect.top < window.innerHeight + 220;
+          };
+          var removeGalleryWatchers = function () {
+            window.removeEventListener("scroll", onGalleryScroll);
+            window.removeEventListener("resize", onGalleryScroll);
+          };
+          var onGalleryScroll = function () {
+            if (!shouldLoadGallery()) return;
+            loadGallery();
+            removeGalleryWatchers();
+          };
+          if (window.location.hash && window.location.hash.indexOf("gallery") !== -1) {
+            loadGallery();
+          } else {
+            window.addEventListener("scroll", onGalleryScroll, { passive: true });
+            window.addEventListener("resize", onGalleryScroll, { passive: true });
+            window.setTimeout(onGalleryScroll, 1200);
+          }
         }
 
 
