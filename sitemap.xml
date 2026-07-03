@@ -988,4 +988,16 @@
     <xhtml:link rel="alternate" hreflang="ha" href="https://www.jabbarsourcing.com/ha/inquiry/" />
     <xhtml:link rel="alternate" hreflang="kk" href="https://www.jabbarsourcing.com/kk/inquiry/" />
   </url>
+  <url>
+    <loc>https://www.jabbarsourcing.com/privacy-policy.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.jabbarsourcing.com/support.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
 </urlset>

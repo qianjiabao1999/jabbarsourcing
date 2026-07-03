@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "UTK2FMQHMH.com.jabbarsourcing.erm",
+        "paths": [
+          "/wechat/*",
+          "/auth/wechat/*",
+          "/app/*"
+        ]
+      }
+    ]
+  }
+}
