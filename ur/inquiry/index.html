@@ -58,12 +58,42 @@
     <link rel="alternate" hreflang="ur" href="https://www.jabbarsourcing.com/ur/inquiry/" />
     <link rel="alternate" hreflang="ha" href="https://www.jabbarsourcing.com/ha/inquiry/" />
     <link rel="alternate" hreflang="kk" href="https://www.jabbarsourcing.com/kk/inquiry/" />
-    <link rel="icon" href="../../assets/favicon.png?v=jabbar-4" type="image/png" sizes="32x32" />
-    <link rel="icon" href="../../assets/favicon-192.png?v=jabbar-4" type="image/png" sizes="192x192" />
-    <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-4" />
-    <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-4" sizes="180x180" />
-    <link rel="manifest" href="../../site.webmanifest?v=jabbar-4" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-115" />
+    <link rel="icon" href="../../assets/favicon.png?v=jabbar-5" type="image/png" sizes="32x32" />
+    <link rel="icon" href="../../assets/favicon-192.png?v=jabbar-5" type="image/png" sizes="192x192" />
+    <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
+    <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
+    <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-117" />
+    <!-- Analytics placeholders: replace IDs before launch -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+      gtag("config", "G-XXXXXXXXXX");
+    </script>
+    <script>
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "CLARITY_ID");
+    </script>
+    <script>
+      window.jabbarTrack = function (eventName, params) {
+        if (typeof window.gtag === "function") window.gtag("event", eventName, params || {});
+      };
+      document.addEventListener("click", function (event) {
+        var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp, .sticky-contact-whatsapp');
+        if (whatsappLink) {
+          window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
+        }
+        var inquiryButton = event.target.closest(".js-inquiry-send");
+        if (inquiryButton) {
+          window.jabbarTrack("inquiry_submit", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <main>
@@ -147,10 +177,10 @@
                   <textarea name="note" rows="3" placeholder="رنگ، پیکنگ، ریفرنس تصاویر، ڈیلیوری وقت…"></textarea>
                 </label>
                 <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" /><span>WhatsApp پر بھیجیں</span></button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail"><img class="inquiry-button-icon" src="../../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" decoding="async" /><span>Gmail سے بھیجیں</span></button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat"><img class="inquiry-button-icon" src="../../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" decoding="async" /><span>WeChat کے لیے کاپی کریں</span></button>
-                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram"><img class="inquiry-button-icon" src="../../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" decoding="async" /><span>Telegram پر بھیجیں</span></button>
+                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>WhatsApp پر بھیجیں</span></button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail"><img class="inquiry-button-icon" src="../../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Gmail سے بھیجیں</span></button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat"><img class="inquiry-button-icon" src="../../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>WeChat کے لیے کاپی کریں</span></button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram"><img class="inquiry-button-icon" src="../../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Telegram پر بھیجیں</span></button>
                 </div>
                 <p class="inquiry-status" aria-live="polite"></p>
               </form>
@@ -162,7 +192,7 @@
 
       <nav class="sticky-contact-group" aria-label="Quick contact">
         <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
-          <img loading="lazy" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" />
+          <img loading="lazy" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
           <span>WhatsApp</span>
         </a>
       </nav>
