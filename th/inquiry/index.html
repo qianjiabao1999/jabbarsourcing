@@ -63,7 +63,57 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-121" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-122" />
+    <script type="application/ld+json">
+      {
+            "@context": "https://schema.org",
+            "@type": "ContactPage",
+            "name": "ขอใบเสนอราคา Sourcing จีนฟรี | Jabbar Sourcing",
+            "url": "https://www.jabbarsourcing.com/th/inquiry/",
+            "inLanguage": "th",
+            "about": {
+                  "@type": "Organization",
+                  "name": "Jabbar Sourcing",
+                  "url": "https://www.jabbarsourcing.com/",
+                  "logo": "https://www.jabbarsourcing.com/assets/jabbar-sourcing-logo-320.webp",
+                  "email": "qianjiabao1999@gmail.com",
+                  "telephone": "+8618658925544",
+                  "contactPoint": {
+                        "@type": "ContactPoint",
+                        "telephone": "+8618658925544",
+                        "contactType": "customer service",
+                        "availableLanguage": [
+                              "Thai",
+                              "Chinese",
+                              "English",
+                              "Spanish",
+                              "Arabic",
+                              "French",
+                              "Portuguese",
+                              "Russian",
+                              "German",
+                              "Italian",
+                              "Turkish",
+                              "Japanese",
+                              "Korean",
+                              "Hindi",
+                              "Indonesian",
+                              "Vietnamese",
+                              "Urdu",
+                              "Hausa",
+                              "Kazakh"
+                        ]
+                  },
+                  "address": {
+                        "@type": "PostalAddress",
+                        "streetAddress": "Building 3, No. 219 Sufu Road, Suxi Town",
+                        "addressLocality": "Yiwu",
+                        "addressRegion": "Zhejiang",
+                        "addressCountry": "CN"
+                  }
+            }
+      }
+    </script>
     <!-- Analytics placeholders: replace IDs before launch -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6X14RZHNZ"></script>
     <script>
@@ -137,7 +187,7 @@
               <form class="inquiry-form js-inquiry-form" data-required-message="กรุณากรอกอย่างน้อยสินค้าและช่องทางติดต่อ" data-copied-message="คัดลอกแล้ว เปิด WeChat ค้นหา 18658925544 แล้ววางคำขอ" data-copy-fail-message="คัดลอกไม่สำเร็จ กรุณาคัดลอกคำขอด้วยตนเอง" data-telegram-copied-message="คัดลอกคำขอแล้ว วางใน Telegram หลังจากเปิดแชท">
                 <label class="field field-wide">
                   <span>สินค้าที่ต้องการ</span>
-                  <input name="product" type="text" placeholder="เช่น สินค้าร้านราคาเดียว เครื่องครัว ของเล่น ของใช้จัดเก็บ…" autocomplete="off" />
+                  <input name="product" type="text" placeholder="เช่น สินค้าร้านราคาเดียว เครื่องครัว ของเล่น ของใช้จัดเก็บ…" autocomplete="off"  required/>
                 </label>
                 <label class="field">
                   <span>หมวดหมู่สินค้า</span>
@@ -166,7 +216,7 @@
                 </label>
                 <label class="field">
                   <span>ช่องทางติดต่อ</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / อีเมล / WeChat ID" autocomplete="off" />
+                  <input name="contact" type="text" placeholder="WhatsApp / อีเมล / WeChat ID" autocomplete="off"  required/>
                 </label>
                 <label class="field">
                   <span>ชื่อ / บริษัท</span>
@@ -219,6 +269,9 @@
           var setStatus = function (message) { if (status) status.textContent = message || ""; };
           form.querySelectorAll(".js-inquiry-send").forEach(function (button) {
             button.addEventListener("click", function () {
+              if (typeof form.reportValidity === "function" && !form.reportValidity()) {
+                return;
+              }
               var product = getValue("product");
               var contact = getValue("contact");
               if (!product || !contact) {

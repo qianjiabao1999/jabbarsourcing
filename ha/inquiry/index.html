@@ -63,7 +63,57 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-121" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-122" />
+    <script type="application/ld+json">
+      {
+            "@context": "https://schema.org",
+            "@type": "ContactPage",
+            "name": "Farashin Sourcing na China Kyauta | Jabbar Sourcing",
+            "url": "https://www.jabbarsourcing.com/ha/inquiry/",
+            "inLanguage": "ha",
+            "about": {
+                  "@type": "Organization",
+                  "name": "Jabbar Sourcing",
+                  "url": "https://www.jabbarsourcing.com/",
+                  "logo": "https://www.jabbarsourcing.com/assets/jabbar-sourcing-logo-320.webp",
+                  "email": "qianjiabao1999@gmail.com",
+                  "telephone": "+8618658925544",
+                  "contactPoint": {
+                        "@type": "ContactPoint",
+                        "telephone": "+8618658925544",
+                        "contactType": "customer service",
+                        "availableLanguage": [
+                              "Hausa",
+                              "Chinese",
+                              "English",
+                              "Spanish",
+                              "Arabic",
+                              "French",
+                              "Portuguese",
+                              "Russian",
+                              "German",
+                              "Italian",
+                              "Turkish",
+                              "Japanese",
+                              "Korean",
+                              "Hindi",
+                              "Indonesian",
+                              "Vietnamese",
+                              "Thai",
+                              "Urdu",
+                              "Kazakh"
+                        ]
+                  },
+                  "address": {
+                        "@type": "PostalAddress",
+                        "streetAddress": "Building 3, No. 219 Sufu Road, Suxi Town",
+                        "addressLocality": "Yiwu",
+                        "addressRegion": "Zhejiang",
+                        "addressCountry": "CN"
+                  }
+            }
+      }
+    </script>
     <!-- Analytics placeholders: replace IDs before launch -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6X14RZHNZ"></script>
     <script>
@@ -137,7 +187,7 @@
               <form class="inquiry-form js-inquiry-form" data-required-message="Aƙalla ku cika samfurin da kuke nema da hanyar tuntuɓa." data-copied-message="An kwafe. Ku buɗe WeChat, ku binciki 18658925544, sannan ku liƙa buƙatar." data-copy-fail-message="Kwafi ya gagara. Ku kwafe bayanin buƙatar da hannu." data-telegram-copied-message="An kwafe bukatar. Manna ta a Telegram bayan tattaunawar ta bude.">
                 <label class="field field-wide">
                   <span>Kayayyakin da ake nema</span>
-                  <input name="product" type="text" placeholder="misali: kayan shagon farashi ɗaya, kayan kitchen, toys, kayan ajiya…" autocomplete="off" />
+                  <input name="product" type="text" placeholder="misali: kayan shagon farashi ɗaya, kayan kitchen, toys, kayan ajiya…" autocomplete="off"  required/>
                 </label>
                 <label class="field">
                   <span>Rukunin samfur</span>
@@ -166,7 +216,7 @@
                 </label>
                 <label class="field">
                   <span>Hanyar tuntuɓa</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / imel / WeChat ID" autocomplete="off" />
+                  <input name="contact" type="text" placeholder="WhatsApp / imel / WeChat ID" autocomplete="off"  required/>
                 </label>
                 <label class="field">
                   <span>Suna / kamfani</span>
@@ -219,6 +269,9 @@
           var setStatus = function (message) { if (status) status.textContent = message || ""; };
           form.querySelectorAll(".js-inquiry-send").forEach(function (button) {
             button.addEventListener("click", function () {
+              if (typeof form.reportValidity === "function" && !form.reportValidity()) {
+                return;
+              }
               var product = getValue("product");
               var contact = getValue("contact");
               if (!product || !contact) {
