@@ -38,7 +38,10 @@ document.querySelector('#contact-form')?.addEventListener('submit', (event) => {
   const message = form.get('message');
   const subject = encodeURIComponent(`Sourcing enquiry from ${name}`);
   const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nProject details:\n${message}`);
-  window.location.href = `mailto:hello@jabbarsourcing.com?subject=${subject}&body=${body}`;
+  window.location.href = `mailto:qianjiabao1999@gmail.com?subject=${subject}&body=${body}`;
 });
 
-document.querySelector('#year').textContent = new Date().getFullYear();
+const yearNode = document.querySelector('#year');
+if (yearNode) {
+  yearNode.textContent = new Date().getFullYear();
+}

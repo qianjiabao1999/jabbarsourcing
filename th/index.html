@@ -64,7 +64,7 @@
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-5" />
 
-    <link rel="stylesheet" href="../styles.min.css?v=apple-117" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-119" />
     <script type="application/ld+json">
 {
             "@context": "https://schema.org",
@@ -75,10 +75,12 @@
             "description": "ตัวแทน sourcing ในจีนสำหรับสินค้าขายส่ง Yiwu: จับคู่ซัพพลายเออร์ ตรวจคุณภาพ คลังสินค้า และจัดส่งระหว่างประเทศ",
             "areaServed": "Worldwide",
             "address": {
-                        "@type": "PostalAddress",
-                        "addressLocality": "Yiwu",
-                        "addressCountry": "CN"
-            },
+        "@type": "PostalAddress",
+        "streetAddress": "浙江省金华市义乌市苏溪镇苏福路219号3号楼",
+        "addressLocality": "Yiwu",
+        "addressRegion": "Zhejiang",
+        "addressCountry": "CN"
+      },
             "review": [
                         {
                                     "@type": "Review",
@@ -108,26 +110,26 @@
 }
     </script>
     <!-- Analytics placeholders: replace IDs before launch -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6X14RZHNZ"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag("js", new Date());
-      gtag("config", "G-XXXXXXXXXX");
+      gtag("config", "G-C6X14RZHNZ");
     </script>
     <script>
       (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
         t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "CLARITY_ID");
+      })(window, document, "clarity", "script", "xgsjhmd527");
     </script>
     <script>
       window.jabbarTrack = function (eventName, params) {
         if (typeof window.gtag === "function") window.gtag("event", eventName, params || {});
       };
       document.addEventListener("click", function (event) {
-        var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp, .sticky-contact-whatsapp');
+        var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp');
         if (whatsappLink) {
           window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
         }
@@ -175,25 +177,7 @@
             <h1>Jabbar <span>Sourcing Team</span></h1>
                         
             <p class="hero-social">พาร์ทเนอร์ sourcing ใน Yiwu: หาซัพพลายเออร์ ต่อรองราคา QC คลังสินค้า และส่งทั่วโลก</p>
-            <p class="hero-proof"><span>30,000+ SKU · คลัง 50,000 ตร.ม. · Douyin/Xiaohongshu/TikTok/Instagram/Facebook</span></p>
-            <div class="contact-actions" aria-label="Contact options">
-              <a class="contact-link contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="Contact on WhatsApp: +8618658925544">
-                <img loading="lazy" class="brand-icon brand-icon-whatsapp" src="../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
-                <span class="contact-text"><span class="contact-name">WhatsApp</span><span class="contact-value">+8618658925544</span></span>
-              </a>
-              <a class="contact-link contact-gmail js-app-open" href="mailto:qianjiabao1999@gmail.com" data-app-link="mailto:qianjiabao1999@gmail.com" data-web-link="mailto:qianjiabao1999@gmail.com" data-copy-text="qianjiabao1999@gmail.com" target="_blank" rel="noopener noreferrer" aria-label="Send email with Gmail: qianjiabao1999@gmail.com">
-                <img loading="lazy" class="brand-icon brand-icon-gmail" src="../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
-                <span class="contact-text"><span class="contact-name">Gmail</span><span class="contact-value">qianjiabao1999@gmail.com</span></span>
-              </a>
-              <a class="contact-link contact-telegram js-app-open" href="https://t.me/Jabbar199901" data-app-link="tg://resolve?domain=Jabbar199901" data-web-link="https://t.me/Jabbar199901" data-copy-text="@Jabbar199901" target="_blank" rel="noopener noreferrer" aria-label="Open Telegram: @Jabbar199901">
-                <img loading="lazy" class="brand-icon brand-icon-telegram" src="../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" width="64" height="64" />
-                <span class="contact-text"><span class="contact-name">Telegram</span><span class="contact-value">@Jabbar199901</span></span>
-              </a>
-              <a class="contact-link contact-wechat js-contact-modal-open" href="#wechat-modal" data-modal-target="wechat-modal" data-copy-text="18658925544" aria-label="Add on WeChat: 18658925544">
-                <img loading="lazy" class="brand-icon brand-icon-wechat" src="../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
-                <span class="contact-text"><span class="contact-name">WeChat</span><span class="contact-value">18658925544</span></span>
-              </a>
-            </div>
+            <p class="hero-address"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%B5%99%E6%B1%9F%E7%9C%81%E9%87%91%E5%8D%8E%E5%B8%82%E4%B9%89%E4%B9%8C%E5%B8%82%E8%8B%8F%E6%BA%AA%E9%95%87%E8%8B%8F%E7%A6%8F%E8%B7%AF219%E5%8F%B73%E5%8F%B7%E6%A5%BC" target="_blank" rel="noopener noreferrer">📍 Company location: Building 3, No. 219 Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, China</a></p>
 
           <section class="inquiry-entry quote-entry" aria-label="ใบเสนอราคาจัดหาสินค้าฟรี">
             <a class="inquiry-entry-card inquiry-entry-card-cta" href="inquiry/">
@@ -203,6 +187,8 @@
               <span class="inquiry-entry-button">รับใบเสนอราคาฟรี <span aria-hidden="true">↗</span></span>
             </a>
           </section>
+            <a class="team-members-jump" href="#social-accounts">Jabbar Team Members</a>
+
             <div class="hero-member-roster" aria-label="Jabbar Sourcing social account avatars">
               <div class="hero-member-card">
                 <img src="../assets/social-116/grace-from-yiwu-116.webp?v=avatar-116-20260703" alt="Grace from Yiwu" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/grace-from-yiwu-116.webp?v=avatar-116-20260703 1x, ../assets/social-116/grace-from-yiwu-232.webp?v=avatar-232-20260703 2x" />
@@ -319,7 +305,7 @@
 
 
 
-          <div class="social-platform-groups">
+          <div class="social-platform-groups" id="social-accounts">
             <section class="social-platform-group social-platform-group-tiktok" aria-labelledby="social-tiktok-title">
               <div class="social-platform-heading">
                 <span class="social-platform-title" id="social-tiktok-title"><span class="social-platform-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.6 3c.3 2.3 1.7 3.7 4 3.9v3.2c-1.5 0-2.8-.4-4-1.2v6.3a6.2 6.2 0 1 1-5.4-6.1v3.3a3 3 0 1 0 2.2 2.8V3h3.2Z" /></svg></span><span>TikTok</span></span>
@@ -1118,18 +1104,6 @@
           <span class="contact-modal-hint">เปิด WeChat แล้วค้นหา ID นี้เพื่อเพิ่มเรา</span>
         </section>
       </div>
-
-
-      <nav class="sticky-contact-group" aria-label="Quick contact">
-        <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
-          <img loading="lazy" src="../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
-          <span>WhatsApp</span>
-        </a>
-        <a class="sticky-contact sticky-contact-telegram js-app-open" href="https://t.me/Jabbar199901" data-app-link="tg://resolve?domain=Jabbar199901" data-web-link="https://t.me/Jabbar199901" data-copy-text="@Jabbar199901" target="_blank" rel="noopener noreferrer" aria-label="Telegram @Jabbar199901">
-          <img loading="lazy" src="../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" width="64" height="64" />
-          <span>Telegram</span>
-        </a>
-      </nav>
     </main>
     <script>
       (function () {

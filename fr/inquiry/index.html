@@ -63,28 +63,28 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-117" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-119" />
     <!-- Analytics placeholders: replace IDs before launch -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6X14RZHNZ"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag("js", new Date());
-      gtag("config", "G-XXXXXXXXXX");
+      gtag("config", "G-C6X14RZHNZ");
     </script>
     <script>
       (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
         t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "CLARITY_ID");
+      })(window, document, "clarity", "script", "xgsjhmd527");
     </script>
     <script>
       window.jabbarTrack = function (eventName, params) {
         if (typeof window.gtag === "function") window.gtag("event", eventName, params || {});
       };
       document.addEventListener("click", function (event) {
-        var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp, .sticky-contact-whatsapp');
+        var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp');
         if (whatsappLink) {
           window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
         }
@@ -99,7 +99,7 @@
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
         <img src="../../assets/jabbar-sourcing-logo-320.webp" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" />
-        <span>Jabbar Sourcing</span>
+        <span>Jabbar Sourcing Team</span>
       </a>
       <nav class="site-nav-links" aria-label="Primary navigation">
         <a href="../#services">Services</a>
@@ -210,38 +210,20 @@
         </div>
       </section>
 
-
-      <nav class="sticky-contact-group" aria-label="Quick contact">
-        <a class="sticky-contact sticky-contact-whatsapp js-app-open" href="https://wa.me/8618658925544" data-app-link="whatsapp://send?phone=8618658925544" data-web-link="https://wa.me/8618658925544" data-copy-text="+8618658925544" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp +8618658925544">
-          <img loading="lazy" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
-          <span>WhatsApp</span>
-        </a>
-      </nav>
-
-      <footer class="site-footer" id="contact">
+      <footer class="site-footer" id="contact" aria-label="Pied de page">
         <div class="site-footer-inner">
           <div class="site-footer-brand">
-            <strong>Jabbar Sourcing</strong>
-            <a href="https://www.google.com/maps/search/?api=1&amp;query=Yiwu%2C%20Zhejiang%2C%20China" target="_blank" rel="noopener noreferrer">Yiwu, Zhejiang, China</a>
+            <strong>Jabbar Sourcing Team</strong>
+            <a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%B5%99%E6%B1%9F%E7%9C%81%E9%87%91%E5%8D%8E%E5%B8%82%E4%B9%89%E4%B9%8C%E5%B8%82%E8%8B%8F%E6%BA%AA%E9%95%87%E8%8B%8F%E7%A6%8F%E8%B7%AF219%E5%8F%B73%E5%8F%B7%E6%A5%BC" target="_blank" rel="noopener noreferrer">📍 Adresse de l’entreprise : Building 3, No. 219 Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, China</a>
           </div>
           <div class="site-footer-contact">
-            <a href="mailto:info@jabbarsourcing.com">info@jabbarsourcing.com</a>
-            <a href="https://wa.me/8618658925544" target="_blank" rel="noopener noreferrer">WhatsApp +86 186 5892 5544</a>
+            <a href="mailto:qianjiabao1999@gmail.com">qianjiabao1999@gmail.com</a>
+            <a class="js-app-open" href="tel:+8618658925544" data-app-link="tel:+8618658925544" data-web-link="tel:+8618658925544" data-copy-text="+8618658925544" rel="nofollow">+8618658925544</a>
           </div>
-          <nav class="site-footer-socials" aria-label="Réseaux">
-          <a href="https://www.tiktok.com/@jabbaryiwu" target="_blank" rel="noopener noreferrer external" class="site-footer-social site-footer-social-tiktok"><span>TikTok</span></a>
-          <a href="https://www.instagram.com/vincentfromyiwu" target="_blank" rel="noopener noreferrer external" class="site-footer-social site-footer-social-instagram"><span>Instagram</span></a>
-          </nav>
-          <nav class="site-footer-languages" aria-label="Langues">
-            <a href="/inquiry/">中文</a>
-            <a href="/en/inquiry/">English</a>
-            <a href="/es/inquiry/">Español</a>
-            <a href="/ar/inquiry/">العربية</a>
-            <a href="/fr/inquiry/">Français</a>
-            <a href="/pt/inquiry/">Português</a>
-            <a href="/ru/inquiry/">Русский</a>
-          </nav>
-          <p>© 2026 Jabbar Sourcing. Tous droits réservés.</p>
+          <div class="site-footer-order">
+            <a href="https://www.haoduobao123.com/" target="_blank" rel="noopener noreferrer">Site de commande : www.haoduobao123.com</a>
+          </div>
+          <p>Copyright © 2026 Jabbar Sourcing Team. Tous droits réservés.</p>
         </div>
       </footer>
 </main>
