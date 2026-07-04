@@ -4629,6 +4629,12 @@ html.gallery-ready .gallery-track {
   font-weight: 900;
 }
 
+.footer-social-whatsapp {
+  color: #ffffff;
+  background: #25d366;
+  box-shadow: 0 8px 18px rgba(37, 211, 102, 0.28);
+}
+
 .site-footer .bottom-contact-block {
   margin-top: clamp(24px, 4vw, 42px);
 }
