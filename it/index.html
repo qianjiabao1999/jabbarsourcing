@@ -48,7 +48,7 @@
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-5" />
 
-    <link rel="stylesheet" href="../styles.min.css?v=apple-128" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-130" />
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -222,6 +222,7 @@
         <a href="#how-it-works">Come funziona</a>
         <a href="#reviews">Recensioni</a>
         <a href="#contact">Contatti</a>
+        <a class="site-nav-calculator" href="calculator/">Calcolatore CBM</a>
         <a class="site-nav-team" href="#social-accounts">Membri del team Jabbar</a>
       </nav>
       <a class="site-nav-quote" href="inquiry/">Preventivo gratuito</a>
@@ -248,6 +249,7 @@
           <a href="#how-it-works">Come funziona</a>
           <a href="#reviews">Recensioni</a>
           <a href="#contact">Contatti</a>
+          <a href="calculator/">Calcolatore CBM</a>
           <a href="#social-accounts">Membri del Team Jabbar</a>
         </nav>
       </details>
@@ -303,32 +305,6 @@
               </div>
               <div class="hero-member-card">
                 <img src="../assets/social-116/mollyadventure6-116.webp?v=avatar-20260704T121705Z" alt="mollyadventure" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/mollyadventure6-116.webp?v=avatar-20260704T121705Z" />
-              </div>
-              <div class="hero-member-card">
-                <img src="../assets/social-116/douyin-jiangjie-avatar-116.webp?v=avatar-20260704T121705Z" alt="好多宝董事长" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-jiangjie-avatar-116.webp?v=avatar-20260704T121705Z" />
-              </div>
-              <div class="hero-member-card">
-                <img src="../assets/social-116/douyin-138411321-116.webp?v=avatar-20260704T121705Z" alt="好多宝金俊生" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-138411321-116.webp?v=avatar-20260704T121705Z" />
-              </div>
-              <div class="hero-member-card">
-                <img src="../assets/social-116/douyin-dg661661-116.webp?v=avatar-20260704T121705Z" alt="豹哥百货严选" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-dg661661-116.webp?v=avatar-20260704T121705Z" />
-              </div>
-              <div class="hero-member-card">
-                <img src="../assets/social-116/douyin-64412023244-116.webp?v=avatar-20260704T121705Z" alt="全品类百货总仓" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-64412023244-116.webp?v=avatar-20260704T121705Z" />
-              </div>
-              <div class="hero-member-card">
-                <img src="../assets/social-116/douyin-87296762727-116.webp?v=avatar-20260704T121705Z" alt="义乌百货然然" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-87296762727-116.webp?v=avatar-20260704T121705Z" />
-              </div>
-              <div class="hero-member-card">
-                <img src="../assets/social-116/douyin-90267896705-116.webp?v=avatar-20260704T121705Z" alt="好多宝欧后康" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/douyin-90267896705-116.webp?v=avatar-20260704T121705Z" />
-              </div>
-
-              <div class="hero-member-card">
-                <img src="../assets/social-116/xiaohongshu-yw-source-supply-116.webp?v=avatar-20260704T121705Z" alt="好多宝高智" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/xiaohongshu-yw-source-supply-116.webp?v=avatar-20260704T121705Z" />
-              </div>
-
-              <div class="hero-member-card">
-                <img src="../assets/social-116/xiaohongshu-2yuan10yuan-116.webp?v=avatar-20260704T121705Z" alt="好多宝韦帮杰" width="116" height="116" loading="lazy" decoding="async" srcset="../assets/social-116/xiaohongshu-2yuan10yuan-116.webp?v=avatar-20260704T121705Z" />
               </div>
             </div>
           </header>
@@ -944,8 +920,8 @@
               return;
             }
             var copyText = link.getAttribute("data-copy-text");
-            var isDouyinApp = /^snssdk1128:\/\//.test(appLink);
-            var noFallback = link.getAttribute("data-no-fallback") === "true" || isDouyinApp;
+            var isNativeAppIntent = /^snssdk1128:\/\//.test(appLink);
+            var noFallback = link.getAttribute("data-no-fallback") === "true" || isNativeAppIntent;
             if (!appLink) {
               if (link.classList && link.classList.contains("team-card") && webLink) {
                 event.preventDefault();
