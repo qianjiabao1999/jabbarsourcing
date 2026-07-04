@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/qianjiabao1999/jabbarsourcing#readme",
   "devDependencies": {
+    "lightningcss-cli": "^1.32.0",
     "playwright": "^1.61.1"
   }
 }
