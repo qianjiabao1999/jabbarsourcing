@@ -48,7 +48,7 @@
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="site.webmanifest?v=jabbar-5" />
 
-    <link rel="stylesheet" href="styles.min.css?v=apple-128" />
+    <link rel="stylesheet" href="styles.min.css?v=apple-130" />
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -224,6 +224,7 @@
         <a href="#how-it-works">合作流程</a>
         <a href="#reviews">客户评价</a>
         <a href="#contact">联系我们</a>
+        <a class="site-nav-calculator" href="calculator/">体积估算器</a>
         <a class="site-nav-team" href="#social-accounts">Jabbar Team 成员</a>
       </nav>
       <a class="site-nav-quote" href="inquiry/">免费报价</a>
@@ -250,6 +251,7 @@
           <a href="#how-it-works">合作流程</a>
           <a href="#reviews">客户评价</a>
           <a href="#contact">联系我们</a>
+          <a href="calculator/">体积估算器</a>
           <a href="#social-accounts">Jabbar Team 成员</a>
         </nav>
       </details>
@@ -1311,8 +1313,8 @@
               return;
             }
             var copyText = link.getAttribute("data-copy-text");
-            var isDouyinApp = /^snssdk1128:\/\//.test(appLink);
-            var noFallback = link.getAttribute("data-no-fallback") === "true" || isDouyinApp;
+            var isNativeAppIntent = /^snssdk1128:\/\//.test(appLink);
+            var noFallback = link.getAttribute("data-no-fallback") === "true" || isNativeAppIntent;
             if (!appLink) {
               if (link.classList && link.classList.contains("team-card") && webLink) {
                 event.preventDefault();
