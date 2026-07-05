@@ -1295,26 +1295,14 @@
           });
         });
 
-        document.querySelectorAll(".js-app-open, .team-card[href]").forEach(function (link) {
+        document.querySelectorAll(".js-app-open").forEach(function (link) {
           link.addEventListener("click", function (event) {
             var appLink = link.getAttribute("data-app-link");
             var webLink = link.getAttribute("data-web-link") || link.getAttribute("href");
-            var isDesktopPointer = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
-            if (isDesktopPointer && webLink && (webLink.indexOf("http://") === 0 || webLink.indexOf("https://") === 0)) {
-              event.preventDefault();
-              window.open(webLink, "_blank", "noopener,noreferrer");
-              return;
-            }
             var copyText = link.getAttribute("data-copy-text");
             var isNativeAppIntent = /^snssdk1128:\/\//.test(appLink);
             var noFallback = link.getAttribute("data-no-fallback") === "true" || isNativeAppIntent;
-            if (!appLink) {
-              if (link.classList && link.classList.contains("team-card") && webLink) {
-                event.preventDefault();
-                window.location.href = webLink;
-              }
-              return;
-            }
+            if (!appLink) return;
             event.preventDefault();
             if (copyText && navigator.clipboard && window.isSecureContext) {
               navigator.clipboard.writeText(copyText).catch(function () {});
