@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-07-04T20:16:34.156Z",
+  "updatedAt": "2026-07-05T09:49:06.851Z",
   "qualityGate": {
     "minSourceSize": 400,
     "outputSize": 560
   },
   "changed": [
-    "douyin-160463933-116.webp"
+    "douyin-64412023244-116.webp"
   ],
   "results": [
     {
@@ -165,9 +165,8 @@
     {
       "assetName": "douyin-64412023244-116.webp",
       "platform": "douyin",
-      "changed": false,
-      "sourceSize": "2000x2000",
-      "reason": "unchanged"
+      "changed": true,
+      "sourceSize": "1080x1080"
     },
     {
       "assetName": "douyin-87296762727-116.webp",
@@ -193,8 +192,9 @@
     {
       "assetName": "douyin-160463933-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-41184831028-116.webp",
