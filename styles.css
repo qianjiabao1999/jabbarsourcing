@@ -6267,3 +6267,550 @@ html.gallery-ready .gallery-track {
     overflow-wrap: normal;
   }
 }
+
+/* 2026-07-05 footer icon cleanup and about-section balance pass. */
+.site-footer-social {
+  display: none !important;
+}
+
+.site-footer .site-footer-main {
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(36px, 6vw, 88px);
+}
+
+.site-footer .site-footer-links {
+  gap: 18px;
+}
+
+.site-footer .bottom-contact-block {
+  margin-top: 36px;
+  padding-top: 30px;
+}
+
+.site-footer .contact-actions {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 14px;
+}
+
+.site-footer .contact-link {
+  min-height: 76px;
+  padding: 12px 16px;
+  color: #122033;
+  background:
+    radial-gradient(120% 150% at 8% 0%, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.72) 44%, transparent 64%),
+    radial-gradient(100% 130% at 100% 100%, rgba(var(--contact-rgb), 0.13), transparent 58%),
+    linear-gradient(145deg, #ffffff, #f6fbff 56%, #edf7ff);
+  border-color: rgba(var(--contact-rgb), 0.24);
+  outline-color: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.05),
+    0 10px 24px rgba(15, 23, 42, 0.14),
+    0 14px 32px rgba(var(--contact-rgb), 0.12);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.site-footer .contact-link::before {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.92), transparent 38%, rgba(255, 255, 255, 0.62) 52%, transparent 66%);
+  opacity: 0.82;
+}
+
+.site-footer .contact-link:hover {
+  background:
+    radial-gradient(120% 150% at 8% 0%, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.78) 44%, transparent 64%),
+    radial-gradient(100% 130% at 100% 100%, rgba(var(--contact-rgb), 0.18), transparent 58%),
+    linear-gradient(145deg, #ffffff, #f8fcff 56%, #eaf6ff);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.05),
+    0 14px 30px rgba(15, 23, 42, 0.16),
+    0 18px 36px rgba(var(--contact-rgb), 0.15);
+}
+
+.site-footer .contact-name {
+  color: #142033;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.site-footer .contact-value {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+  font-size: 10px;
+}
+
+.brand-icon-phone-ios {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(70% 80% at 28% 18%, rgba(255, 255, 255, 0.7), transparent 44%),
+    linear-gradient(180deg, #44f26c 0%, #1ed760 48%, #08b64f 100%);
+  border-radius: 9px;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(22, 163, 74, 0.28);
+}
+
+.brand-icon-phone-ios svg {
+  width: 78%;
+  height: 78%;
+  display: block;
+}
+
+.brand-icon-phone-ios svg path {
+  fill: #ffffff;
+}
+
+@media (min-width: 1181px) {
+  .company-intro-layout.company-intro-metrics-layout {
+    width: min(100% - 64px, 1140px);
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
+    grid-template-areas:
+      "story photo"
+      "metrics metrics";
+    align-items: stretch;
+    gap: 26px;
+  }
+
+  .company-story {
+    grid-area: story;
+    min-height: 420px;
+    padding: clamp(44px, 4vw, 72px);
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .company-story h3 {
+    font-size: clamp(2.1rem, 3.2vw, 3.25rem);
+    line-height: 1.08;
+    color: transparent;
+    background: linear-gradient(100deg, #18233a 0%, #3e65bf 42%, #0e7a91 74%, #7c4f84 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .company-story p {
+    max-width: 32em;
+    font-size: clamp(1.12rem, 1.35vw, 1.32rem);
+    line-height: 1.9;
+  }
+
+  .company-photo-card {
+    grid-area: photo;
+    min-height: 420px;
+    max-height: 420px;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 34px;
+  }
+
+  .company-photo-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 42%;
+  }
+
+  .company-metrics {
+    grid-area: metrics;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .company-metric-card {
+    min-height: 132px;
+    padding: 24px 18px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .company-metric-card strong {
+    max-width: 100%;
+    color: transparent;
+    background: linear-gradient(100deg, #1f3a8a 0%, #2563eb 44%, #0891b2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: clamp(1.85rem, 2.35vw, 2.75rem);
+    line-height: 1.06;
+    white-space: normal;
+  }
+
+  .company-metric-card span {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .site-footer .contact-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-footer .contact-link {
+    min-height: 68px;
+  }
+}
+
+@media (max-width: 760px) {
+  .company-intro-layout.company-intro-metrics-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas: "story" "photo" "metrics";
+    width: min(100% - 28px, 560px);
+    gap: 16px;
+  }
+
+  .company-story {
+    min-height: auto;
+    padding: 28px 22px;
+    text-align: center;
+    align-items: center;
+  }
+
+  .company-story h3 {
+    font-size: clamp(1.85rem, 8vw, 2.55rem);
+  }
+
+  .company-photo-card {
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 16 / 10;
+    border-radius: 24px;
+  }
+
+  .company-photo-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .company-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .company-metric-card {
+    min-height: 112px;
+    padding: 18px 12px;
+  }
+
+  .company-metric-card strong {
+    font-size: clamp(1.55rem, 8vw, 2.1rem);
+  }
+
+  .site-footer .contact-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 2026-07-05 final UI lock: stable about grid and white footer contact capsules. */
+#services .company-intro-layout.company-intro-metrics-layout {
+  width: min(1140px, calc(100% - 48px)) !important;
+  max-width: 1140px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-template-areas:
+    "story photo"
+    "metrics metrics" !important;
+  align-items: stretch !important;
+  gap: 24px !important;
+  margin-inline: auto !important;
+  overflow: visible !important;
+}
+
+#services .company-story {
+  grid-area: story !important;
+  min-width: 0 !important;
+  min-height: 360px !important;
+  justify-content: center !important;
+  padding: clamp(36px, 4vw, 58px) !important;
+}
+
+#services .company-photo-card {
+  grid-area: photo !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 360px !important;
+  max-height: 390px !important;
+  aspect-ratio: 16 / 9 !important;
+  border-radius: 30px !important;
+}
+
+#services .company-photo-card img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center 46% !important;
+}
+
+#services .company-metrics {
+  grid-area: metrics !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+
+#services .company-metric-card {
+  min-width: 0 !important;
+  min-height: 126px !important;
+  padding: 20px 12px !important;
+  overflow: hidden !important;
+}
+
+#services .company-metric-card strong {
+  max-width: 100% !important;
+  font-size: clamp(1.65rem, 2.05vw, 2.35rem) !important;
+  line-height: 1.08 !important;
+  letter-spacing: 0 !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+  text-wrap: balance !important;
+  color: transparent !important;
+  background: linear-gradient(100deg, #1f3a8a 0%, #2563eb 44%, #0891b2 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+#services .company-metric-card:nth-child(4) strong,
+#services .company-metric-card:nth-child(5) strong {
+  font-size: clamp(1.28rem, 1.52vw, 1.72rem) !important;
+  line-height: 1.16 !important;
+}
+
+#services .company-metric-card span {
+  color: #243449 !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+}
+
+.site-footer .contact-link {
+  background-color: #ffffff !important;
+  background-image:
+    radial-gradient(120% 150% at 8% 0%, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.86) 44%, rgba(255, 255, 255, 0) 64%),
+    radial-gradient(100% 130% at 100% 100%, rgba(var(--contact-rgb), 0.12), rgba(255, 255, 255, 0) 58%),
+    linear-gradient(145deg, #ffffff, #f7fbff 58%, #edf7ff) !important;
+}
+
+@media (max-width: 1180px) {
+  #services .company-intro-layout.company-intro-metrics-layout {
+    width: min(100% - 32px, 720px) !important;
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "story"
+      "photo"
+      "metrics" !important;
+    gap: 16px !important;
+  }
+
+  #services .company-story {
+    min-height: auto !important;
+    padding: 28px 22px !important;
+    text-align: center !important;
+    align-items: center !important;
+  }
+
+  #services .company-photo-card {
+    min-height: 0 !important;
+    max-height: none !important;
+    aspect-ratio: 16 / 10 !important;
+    border-radius: 24px !important;
+  }
+
+  #services .company-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  #services .company-metric-card {
+    min-height: 112px !important;
+    padding: 18px 10px !important;
+  }
+
+  #services .company-metric-card strong {
+    font-size: clamp(1.5rem, 7vw, 2.05rem) !important;
+  }
+
+  #services .company-metric-card:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 2026-07-05 service/footer visual correction: balanced service cards, no clipped metrics. */
+#services.company-intro {
+  padding-top: clamp(52px, 7vw, 92px) !important;
+}
+
+#services .company-intro-heading {
+  margin-bottom: clamp(24px, 3vw, 34px) !important;
+}
+
+#services .company-intro-layout.company-intro-metrics-layout {
+  width: min(1180px, calc(100% - 64px)) !important;
+  max-width: 1180px !important;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr) !important;
+  gap: clamp(20px, 2.4vw, 34px) !important;
+}
+
+#services .company-story {
+  min-height: 0 !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding: clamp(40px, 4.2vw, 64px) !important;
+  border-color: rgba(37, 99, 235, 0.18) !important;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(59, 130, 246, 0.14), transparent 34%),
+    radial-gradient(circle at 92% 88%, rgba(14, 165, 233, 0.16), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(239, 248, 255, 0.8)) !important;
+}
+
+#services .company-story h3 {
+  font-size: clamp(2rem, 3vw, 3.1rem) !important;
+  line-height: 1.1 !important;
+  color: transparent !important;
+  background: linear-gradient(100deg, #172554 0%, #2563eb 52%, #0891b2 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+#services .company-story p {
+  max-width: 680px !important;
+  margin-top: 24px !important;
+  color: #1f2937 !important;
+  font-size: clamp(1.05rem, 1.26vw, 1.28rem) !important;
+  line-height: 1.9 !important;
+  font-weight: 760 !important;
+  text-align: left !important;
+}
+
+#services .company-photo-card {
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: 3 / 2 !important;
+  border-radius: 30px !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(232, 244, 255, 0.72)) !important;
+}
+
+#services .company-photo-card img {
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
+#services .company-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(186px, 1fr)) !important;
+  gap: clamp(14px, 1.4vw, 18px) !important;
+}
+
+#services .company-metric-card {
+  min-height: 140px !important;
+  justify-content: center !important;
+  padding: 22px 16px !important;
+  overflow: visible !important;
+}
+
+#services .company-metric-card strong {
+  font-size: clamp(1.5rem, 1.95vw, 2.25rem) !important;
+  line-height: 1.12 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
+}
+
+#services .company-metric-card:nth-child(4) strong,
+#services .company-metric-card:nth-child(5) strong {
+  font-size: clamp(1.32rem, 1.58vw, 1.8rem) !important;
+  line-height: 1.2 !important;
+}
+
+#services .company-metric-card span {
+  margin-top: 12px !important;
+}
+
+.site-footer .site-footer-links > a[href^="mailto:"],
+.site-footer .site-footer-links > a[href^="tel:"] {
+  display: none !important;
+}
+
+.site-footer .contact-link {
+  background-color: #fff !important;
+  background-image:
+    linear-gradient(145deg, rgba(255, 255, 255, 1), rgba(248, 251, 255, 0.96)) !important;
+  border-color: rgba(var(--contact-rgb), 0.26) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 12px 28px rgba(15, 23, 42, 0.12) !important;
+}
+
+.site-footer .contact-name {
+  color: #172033 !important;
+}
+
+.site-footer .contact-value {
+  color: #475569 !important;
+}
+
+@media (max-width: 1180px) {
+  #services .company-intro-layout.company-intro-metrics-layout {
+    width: min(100% - 32px, 760px) !important;
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "story"
+      "photo"
+      "metrics" !important;
+  }
+
+  #services .company-story {
+    align-items: center !important;
+    text-align: center !important;
+    padding: 32px 22px !important;
+  }
+
+  #services .company-story p {
+    text-align: center !important;
+    font-size: 1.02rem !important;
+    line-height: 1.75 !important;
+  }
+
+  #services .company-photo-card {
+    aspect-ratio: 3 / 2 !important;
+  }
+
+  #services .company-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  #services .company-metric-card {
+    min-height: 122px !important;
+  }
+
+  #services .company-metric-card:nth-child(3),
+  #services .company-metric-card:nth-child(4),
+  #services .company-metric-card:nth-child(5) {
+    grid-column: 1 / -1 !important;
+  }
+
+  #services .company-metric-card strong,
+  #services .company-metric-card:nth-child(4) strong,
+  #services .company-metric-card:nth-child(5) strong {
+    font-size: clamp(1.35rem, 5.6vw, 1.82rem) !important;
+    overflow-wrap: normal !important;
+  }
+}
