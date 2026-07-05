@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-07-05T09:49:06.851Z",
+  "updatedAt": "2026-07-05T15:03:43.539Z",
   "qualityGate": {
     "minSourceSize": 400,
     "outputSize": 560
   },
   "changed": [
-    "douyin-64412023244-116.webp"
+    "douyin-41184831028-116.webp"
   ],
   "results": [
     {
@@ -165,8 +165,9 @@
     {
       "assetName": "douyin-64412023244-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-87296762727-116.webp",
@@ -199,9 +200,8 @@
     {
       "assetName": "douyin-41184831028-116.webp",
       "platform": "douyin",
-      "changed": false,
-      "sourceSize": "1170x1170",
-      "reason": "unchanged"
+      "changed": true,
+      "sourceSize": "2160x2160"
     },
     {
       "assetName": "xiaohongshu-yaoge-116.webp",
