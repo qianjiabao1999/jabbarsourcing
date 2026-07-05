@@ -5629,3 +5629,641 @@ html.gallery-ready .gallery-track {
     margin-top: 14px;
   }
 }
+
+/* Audit pass: conversion copy, about proof block, and footer alignment. */
+.company-intro-layout.company-intro-metrics-layout {
+  max-width: min(1140px, calc(100vw - 48px));
+  grid-template-columns: minmax(0, 1.06fr) minmax(300px, 0.94fr);
+  grid-template-areas:
+    "story metrics"
+    "photo photo";
+  align-items: stretch;
+  margin-inline: auto;
+}
+
+.company-story {
+  min-height: 300px;
+  align-items: flex-start;
+  text-align: left;
+  background:
+    radial-gradient(80% 120% at 0% 0%, rgba(255, 255, 255, 0.98), transparent 52%),
+    radial-gradient(120% 120% at 100% 100%, rgba(15, 139, 141, 0.14), transparent 62%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(239, 248, 255, 0.78));
+}
+
+.company-story h3 {
+  max-width: 100%;
+  margin-bottom: 14px;
+  letter-spacing: 0;
+}
+
+.company-story p {
+  max-width: 42em;
+  color: #203047;
+  font-size: clamp(18px, 1.18vw, 21px);
+  font-weight: 760;
+  line-height: 1.85;
+}
+
+.company-photo-card {
+  min-height: 260px;
+  max-height: 360px;
+  aspect-ratio: 21 / 8;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(232, 244, 255, 0.68));
+}
+
+.company-photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+}
+
+.company-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: stretch;
+}
+
+.company-metric-card {
+  min-height: 136px;
+  overflow: hidden;
+}
+
+.company-metric-card strong {
+  font-size: clamp(30px, 2.45vw, 46px);
+  word-break: keep-all;
+}
+
+.company-metric-card span {
+  font-size: 15px;
+}
+
+.site-footer {
+  background:
+    radial-gradient(90% 120% at 10% 0%, rgba(37, 99, 235, 0.18), transparent 46%),
+    linear-gradient(135deg, #081120 0%, #111c31 100%);
+}
+
+.site-footer-inner {
+  width: min(1140px, calc(100vw - 48px));
+}
+
+.site-footer-main {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  align-items: start;
+  gap: clamp(32px, 6vw, 88px);
+}
+
+.site-footer-brand,
+.site-footer-links {
+  min-width: 0;
+}
+
+.site-footer-brand strong {
+  display: block;
+  margin-bottom: 18px;
+  font-size: clamp(24px, 2vw, 34px);
+  line-height: 1.15;
+}
+
+.site-footer-order-link {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 16px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+}
+
+.site-footer-location-link,
+.site-footer-copy {
+  max-width: 34em;
+}
+
+.site-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.site-footer-social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.site-footer-social a {
+  width: 48px;
+  height: 48px;
+  color: #f8fafc;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.site-footer-languages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 560px;
+}
+
+.site-footer-languages a {
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(248, 250, 252, 0.88);
+  text-decoration: none;
+}
+
+.site-footer .bottom-contact-block {
+  width: 100%;
+  margin-top: clamp(28px, 4vw, 46px);
+  padding-top: clamp(24px, 3vw, 34px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.site-footer .contact-actions {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.site-footer .contact-link {
+  min-width: 0;
+  min-height: 68px;
+  padding: 10px 16px;
+  color: #ffffff;
+  background:
+    radial-gradient(140% 160% at 12% 0%, rgba(255, 255, 255, 0.36), transparent 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08));
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.32),
+    0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+.site-footer .contact-link .brand-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+}
+
+.site-footer .contact-label {
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.15;
+}
+
+.site-footer .contact-value {
+  max-width: 100%;
+  font-size: 12px;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+  word-break: break-word;
+}
+
+@media (max-width: 1180px) {
+  .company-intro-layout.company-intro-metrics-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "story"
+      "photo"
+      "metrics";
+  }
+
+  .company-photo-card {
+    aspect-ratio: 16 / 9;
+    max-height: none;
+  }
+
+  .company-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .site-footer .contact-actions {
+    grid-template-columns: repeat(3, minmax(170px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .company-intro-layout.company-intro-metrics-layout,
+  .site-footer-inner {
+    width: min(100% - 32px, 560px);
+  }
+
+  .company-story {
+    min-height: 0;
+    align-items: center;
+    text-align: center;
+    padding: 26px 20px;
+  }
+
+  .company-story h3,
+  .company-story p {
+    text-align: center;
+  }
+
+  .company-photo-card {
+    aspect-ratio: 4 / 3;
+    min-height: 0;
+  }
+
+  .company-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .company-metric-card {
+    min-height: 112px;
+  }
+
+  .site-footer-main {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .site-footer .contact-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final stability pass: footer/contact readability and anchor-safe sections. */
+#services,
+#how-it-works,
+#reviews,
+#contact,
+#social-accounts,
+#about {
+  scroll-margin-top: 96px;
+}
+
+.site-footer .contact-actions {
+  justify-items: stretch;
+}
+
+.site-footer .contact-link {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  justify-content: flex-start;
+  color: #f8fafc;
+  text-decoration: none;
+  background-color: rgba(248, 250, 252, 0.18);
+}
+
+.site-footer .contact-link::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.08)),
+    radial-gradient(100% 140% at 0% 0%, rgba(255, 255, 255, 0.42), transparent 48%);
+}
+
+.site-footer .contact-text {
+  min-width: 0;
+  color: #f8fafc;
+}
+
+.site-footer .contact-name {
+  display: block;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.12;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
+}
+
+.site-footer .contact-value {
+  display: block;
+  margin-top: 3px;
+  color: rgba(248, 250, 252, 0.9);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.22;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.22);
+}
+
+.site-footer-social svg,
+.site-footer-social svg * {
+  fill: currentColor;
+  stroke: none;
+}
+
+.company-photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+@media (min-width: 1181px) {
+  .site-footer .contact-actions {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+    font-size: 10.5px;
+  }
+}
+
+@media (max-width: 760px) {
+  body:has(.mobile-conversion-bar) {
+    padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .site-footer {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .site-footer .contact-link {
+    min-height: 70px;
+    padding: 12px 18px;
+  }
+
+  .site-footer .contact-link .brand-icon {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .site-footer .contact-name {
+    font-size: 16px;
+  }
+
+  .site-footer .contact-value {
+    font-size: 12px;
+  }
+}
+
+/* 2026-07-05 final polish: align the about block and footer on one stable grid. */
+@media (min-width: 1181px) {
+  .company-intro-layout.company-intro-metrics-layout {
+    width: min(100% - 64px, 1140px);
+    grid-template-columns: minmax(0, 1.04fr) minmax(300px, 0.92fr) minmax(240px, 0.68fr);
+    grid-template-areas: "story photo metrics";
+    align-items: stretch;
+    gap: 22px;
+  }
+
+  .company-photo-card {
+    grid-area: photo;
+    min-height: 520px;
+    max-height: 620px;
+    aspect-ratio: auto;
+  }
+
+  .company-metrics {
+    grid-area: metrics;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .company-metric-card {
+    min-height: 96px;
+    padding: 22px 20px;
+  }
+}
+
+.company-story {
+  justify-content: center;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(236, 248, 255, 0.72)),
+    radial-gradient(100% 130% at 0% 0%, rgba(8, 126, 164, 0.1), transparent 52%);
+}
+
+.company-story h3 {
+  color: #1e3a5f;
+}
+
+.company-story h3 span,
+.company-story h3 strong,
+.company-story h3 em {
+  color: #0e7490;
+}
+
+.company-story p {
+  color: #243244;
+}
+
+.company-metric-card {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(225, 244, 255, 0.78)),
+    radial-gradient(110% 120% at 100% 0%, rgba(14, 116, 144, 0.14), transparent 48%);
+  border-color: rgba(14, 116, 144, 0.22);
+}
+
+.company-metric-card strong {
+  display: block;
+  color: #0f1f33;
+  font-size: clamp(2rem, 4.2vw, 3.75rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.company-metric-card span {
+  color: #334155;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.company-photo-card {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.company-photo-card img {
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(1.05) contrast(1.03);
+}
+
+.site-footer {
+  background:
+    radial-gradient(900px 360px at 78% 0%, rgba(14, 116, 144, 0.16), transparent 60%),
+    linear-gradient(135deg, #101b2f, #08111f);
+}
+
+.site-footer-inner {
+  width: min(100% - 64px, 1140px);
+}
+
+.site-footer-main {
+  grid-template-columns: minmax(260px, 0.95fr) minmax(0, 1.25fr);
+  align-items: start;
+  gap: 72px;
+}
+
+.site-footer-links {
+  align-items: flex-start;
+}
+
+.site-footer-social a {
+  color: #e5edf8;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.site-footer-social a:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.site-footer-social svg,
+.site-footer-social svg * {
+  fill: currentColor;
+}
+
+.site-footer-social a[aria-label="WhatsApp"] {
+  color: #22c55e;
+}
+
+.site-footer-social a[aria-label="Instagram"] {
+  color: #f472b6;
+}
+
+.site-footer-social a[aria-label="TikTok"],
+.site-footer-social a[aria-label="Douyin"] {
+  color: #e5edf8;
+}
+
+.site-footer-social a[aria-label="Xiaohongshu"] {
+  color: #fb2d55;
+}
+
+.site-footer .bottom-contact-block {
+  margin-top: 44px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(226, 232, 240, 0.16);
+}
+
+.site-footer .contact-actions {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.site-footer .contact-link {
+  min-height: 72px;
+  padding: 12px 18px;
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.site-footer .contact-link::before {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.22) 44%, rgba(255, 255, 255, 0.1)),
+    radial-gradient(110% 140% at 0% 0%, rgba(255, 255, 255, 0.5), transparent 50%);
+}
+
+.site-footer .contact-name {
+  font-size: 16px;
+}
+
+.site-footer .contact-value {
+  font-size: 12px;
+  color: rgba(248, 250, 252, 0.94);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+  font-size: 9.5px;
+}
+
+@media (max-width: 1180px) {
+  .company-story {
+    text-align: center;
+  }
+
+  .site-footer-main {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .site-footer-links {
+    align-items: flex-start;
+  }
+
+  .site-footer .contact-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .company-intro-layout.company-intro-metrics-layout {
+    width: min(100% - 28px, 560px);
+    gap: 16px;
+  }
+
+  .company-photo-card {
+    aspect-ratio: 16 / 10;
+  }
+
+  .company-metric-card strong {
+    font-size: clamp(1.85rem, 10vw, 2.55rem);
+  }
+
+  .company-metric-card span {
+    font-size: 13px;
+  }
+
+  .site-footer-inner {
+    width: min(100% - 28px, 560px);
+  }
+
+  .site-footer .contact-actions {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* 2026-07-05 about-section final pass: prevent metric text from awkward wrapping. */
+@media (min-width: 1181px) {
+  .company-intro-layout.company-intro-metrics-layout {
+    grid-template-columns: minmax(0, 0.95fr) minmax(360px, 0.85fr);
+    grid-template-areas:
+      "story photo"
+      "metrics metrics";
+    align-items: stretch;
+    gap: 24px;
+  }
+
+  .company-photo-card {
+    min-height: 420px;
+    max-height: 480px;
+  }
+
+  .company-metrics {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .company-metric-card {
+    min-height: 124px;
+    padding: 22px 18px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .company-metric-card strong {
+    font-size: clamp(1.8rem, 2.45vw, 2.75rem);
+    line-height: 1.04;
+    word-break: keep-all;
+    overflow-wrap: normal;
+  }
+}
