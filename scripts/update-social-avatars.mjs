@@ -8,10 +8,14 @@ const sharp = require("sharp");
 const ROOT = process.cwd();
 const INDEX_FILE = path.join(ROOT, "index.html");
 const ASSETS_DIR = path.join(ROOT, "assets");
+const SOCIAL_AVATAR_DIR = path.join(ASSETS_DIR, "social-116");
 const MANIFEST_FILE = path.join(ASSETS_DIR, "social-avatars-manifest.json");
 
 const MIN_SOURCE_SIZE = 400;
-const OUTPUT_SIZE = 560;
+const OUTPUT_SIZES = [
+  { suffix: "116", size: 116, quality: 78 },
+  { suffix: "232", size: 232, quality: 84 },
+];
 const REQUEST_TIMEOUT_MS = 15000;
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
@@ -317,8 +321,9 @@ async function findSocialAccounts() {
     const markup = card[0];
     const src = markup.match(/<img[^>]+src="([^"]+)"/)?.[1];
     if (!src || !src.includes("assets/")) continue;
-    const assetName = path.basename(src.split("?")[0]);
-    if (!assetName.endsWith(".webp")) continue;
+    const renderedAssetName = path.basename(src.split("?")[0]);
+    if (!renderedAssetName.endsWith("-116.webp")) continue;
+    const assetName = renderedAssetName.replace(/-116\.webp$/, ".webp");
 
     const href = markup.match(/\shref="([^"]+)"/)?.[1]?.replace(/&amp;/g, "&");
     const dataWebLink = markup.match(/\sdata-web-link="([^"]+)"/)?.[1]?.replace(/&amp;/g, "&");
@@ -329,14 +334,18 @@ async function findSocialAccounts() {
     if (!profileUrl || !["tiktok", "douyin", "xiaohongshu"].includes(platform)) continue;
     accounts.push({
       assetName,
+      renderedAssetName,
       platform,
       profileUrl,
-      outputPath: path.join(ASSETS_DIR, assetName),
+      outputPaths: {
+        116: path.join(SOCIAL_AVATAR_DIR, renderedAssetName),
+        232: path.join(SOCIAL_AVATAR_DIR, renderedAssetName.replace(/-116\.webp$/, "-232.webp")),
+      },
     });
   }
 
   const byAsset = new Map();
-  for (const account of accounts) byAsset.set(account.assetName, account);
+  for (const account of accounts) byAsset.set(account.renderedAssetName, account);
   return [...byAsset.values()];
 }
 
@@ -347,13 +356,16 @@ async function buildAvatarBuffer(sourceBuffer) {
     return { ok: false, reason: `source too small: ${metadata.width}x${metadata.height}` };
   }
 
-  const output = await sharp(sourceBuffer)
-    .resize({ width: OUTPUT_SIZE, height: OUTPUT_SIZE, fit: "cover", kernel: sharp.kernel.lanczos3 })
-    .sharpen({ sigma: 0.55, m1: 0.8, m2: 1.15 })
-    .webp({ quality: 90, effort: 6, smartSubsample: true })
-    .toBuffer();
+  const outputs = {};
+  for (const target of OUTPUT_SIZES) {
+    outputs[target.suffix] = await sharp(sourceBuffer)
+      .resize({ width: target.size, height: target.size, fit: "cover", kernel: sharp.kernel.lanczos3 })
+      .sharpen({ sigma: 0.45, m1: 0.75, m2: 1.1 })
+      .webp({ quality: target.quality, effort: 6, smartSubsample: true })
+      .toBuffer();
+  }
 
-  return { ok: true, output, sourceSize: `${metadata.width}x${metadata.height}` };
+  return { ok: true, outputs, sourceSize: `${metadata.width}x${metadata.height}` };
 }
 
 async function refreshAccount(account) {
@@ -376,12 +388,17 @@ async function refreshAccount(account) {
         continue;
       }
 
-      const current = await fs.readFile(account.outputPath).catch(() => null);
-      if (current && Buffer.compare(current, built.output) === 0) {
+      const current116 = await fs.readFile(account.outputPaths[116]).catch(() => null);
+      const current232 = await fs.readFile(account.outputPaths[232]).catch(() => null);
+      const same116 = current116 && Buffer.compare(current116, built.outputs[116]) === 0;
+      const same232 = current232 && Buffer.compare(current232, built.outputs[232]) === 0;
+      if (same116 && same232) {
         return { ...account, changed: false, source: candidate, sourceSize: built.sourceSize, reason: "unchanged" };
       }
 
-      await fs.writeFile(account.outputPath, built.output);
+      await fs.mkdir(SOCIAL_AVATAR_DIR, { recursive: true });
+      await fs.writeFile(account.outputPaths[116], built.outputs[116]);
+      await fs.writeFile(account.outputPaths[232], built.outputs[232]);
       return { ...account, changed: true, source: candidate, sourceSize: built.sourceSize };
     } catch (error) {
       await sleep(250);
@@ -407,7 +424,18 @@ async function updateHtmlAvatarVersion(version) {
   for (const page of pages) {
     const filePath = path.join(ROOT, page);
     let html = await fs.readFile(filePath, "utf8");
-    const next = html.replace(/\?v=avatar-[^"]+/g, `?v=${version}`);
+    let next = html.replace(/\?v=avatar-[^"]+/g, `?v=${version}`);
+    next = next.replace(/<img\b[^>]*src="([^"]*assets\/social-116\/)([^/"?]+)-116\.webp\?v=[^"]+"[^>]*>/g, (tag, prefix, name) => {
+      const src116 = `${prefix}${name}-116.webp?v=${version}`;
+      const src232 = `${prefix}${name}-232.webp?v=${version}`;
+      let updated = tag.replace(/src="[^"]+"/, `src="${src116}"`);
+      if (/\ssrcset="/.test(updated)) {
+        updated = updated.replace(/\ssrcset="[^"]*"/, ` srcset="${src116} 1x, ${src232} 2x"`);
+      } else {
+        updated = updated.replace(/\s*\/?>$/, ` srcset="${src116} 1x, ${src232} 2x" />`);
+      }
+      return updated;
+    });
     if (next !== html) await fs.writeFile(filePath, next);
   }
 }
@@ -436,10 +464,10 @@ async function main() {
       JSON.stringify(
         {
           updatedAt: new Date().toISOString(),
-          qualityGate: { minSourceSize: MIN_SOURCE_SIZE, outputSize: OUTPUT_SIZE },
-          changed: changed.map((result) => result.assetName),
+          qualityGate: { minSourceSize: MIN_SOURCE_SIZE, outputSizes: OUTPUT_SIZES },
+          changed: changed.map((result) => result.renderedAssetName),
           results: results.map((result) => ({
-            assetName: result.assetName,
+            assetName: result.renderedAssetName,
             platform: result.platform,
             changed: result.changed,
             sourceSize: result.sourceSize,
@@ -454,7 +482,7 @@ async function main() {
 
   console.log(`Checked ${results.length} social avatars; changed ${changed.length}.`);
   for (const result of results) {
-    console.log(`${result.changed ? "UPDATED" : "SKIPPED"} ${result.assetName}: ${result.sourceSize || result.reason || "no change"}`);
+    console.log(`${result.changed ? "UPDATED" : "SKIPPED"} ${result.renderedAssetName}: ${result.sourceSize || result.reason || "no change"}`);
   }
 }
 
