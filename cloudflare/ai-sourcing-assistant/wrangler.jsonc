@@ -6,6 +6,12 @@
   "ai": {
     "binding": "AI"
   },
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMIT_KV",
+      "id": "abe99b1995ac4cfdbd8a8024b1a057da"
+    }
+  ],
   "vars": {
     "ALLOWED_ORIGIN": "https://www.jabbarsourcing.com",
     "WHATSAPP_PHONE": "8618658925544",
