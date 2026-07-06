@@ -11,6 +11,9 @@ Cloudflare Workers AI backend for the Jabbar Sourcing website chat widget.
 
 ## Deploy
 
+Cloudflare requires the account email to be verified before Workers can be deployed. If `npx wrangler deploy`
+returns error `10034`, verify the Cloudflare account email first, then rerun the deploy command.
+
 1. Log in once:
 
    ```bash
@@ -58,4 +61,3 @@ Default model:
 ```
 
 You can change `AI_MODEL` in `wrangler.jsonc` without editing `worker.js`.
-
