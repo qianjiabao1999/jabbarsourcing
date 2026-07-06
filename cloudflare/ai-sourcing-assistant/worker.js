@@ -63,6 +63,14 @@ function cleanText(value, max = MAX_MESSAGE_LENGTH) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
 }
 
+function cleanAssistantReply(value, max = 2000) {
+  const withoutThinking = String(value || "")
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/<think>[\s\S]*/gi, "");
+
+  return cleanText(withoutThinking, max);
+}
+
 function buildSystemPrompt(lang) {
   const languageName = LANGUAGE_NAMES[lang] || "English";
   return [
@@ -158,7 +166,7 @@ export default {
       }, 502, corsHeaders);
     }
 
-    const reply = cleanText(aiResult.response || aiResult.result || aiResult.text || QUICK_REPLIES[lang] || QUICK_REPLIES.en, 2000);
+    const reply = cleanAssistantReply(aiResult.response || aiResult.result || aiResult.text || QUICK_REPLIES[lang] || QUICK_REPLIES.en);
     const whatsappText = buildWhatsappText(lang, message, reply);
     const whatsappUrl = `https://wa.me/${env.WHATSAPP_PHONE || "8618658925544"}?text=${encodeURIComponent(whatsappText)}`;
 
