@@ -18,7 +18,6 @@ const LANGUAGE_NAMES = {
   de: "German",
   it: "Italian",
   tr: "Turkish",
-  ja: "Japanese",
 };
 
 const QUICK_REPLIES = {
@@ -32,7 +31,6 @@ const QUICK_REPLIES = {
   de: "Nennen Sie Produkt, Menge, Zielland und Budget. Ich formuliere daraus eine Einkaufsanfrage.",
   it: "Dimmi prodotto, quantita, paese di destinazione e budget. Lo trasformero in una richiesta di sourcing.",
   tr: "Urunu, adedi, hedef ulkeyi ve butceyi yazin. Bunu satin alma talebine donusturecegim.",
-  ja: "商品名、数量、販売国、予算を教えてください。仕入れ依頼として整理します。",
 };
 
 function jsonResponse(body, status = 200, corsHeaders = {}) {
@@ -69,7 +67,6 @@ function detectLanguageFromText(value, fallback = "en") {
   const text = String(value || "").trim();
   if (!text) return normalizeLanguage(fallback);
   if (/[\u4e00-\u9fff]/.test(text)) return "zh";
-  if (/[\u3040-\u30ff]/.test(text)) return "ja";
   if (/[\u0600-\u06ff]/.test(text)) return "ar";
   if (/[\u0400-\u04ff]/.test(text)) return "ru";
   if (/[ıİğĞüÜşŞöÖçÇ]/.test(text)) return "tr";
@@ -209,7 +206,6 @@ function refusalReply(lang) {
     de: "Ich kann nur bei Yiwu-Sourcing, Angeboten, Inspektion und Logistik helfen; nennen Sie bitte Produkt, Menge und Zielmarkt.",
     it: "Posso aiutare solo con sourcing a Yiwu, preventivi, ispezione e logistica; indicami prodotto, quantità e mercato target.",
     tr: "Yalnızca Yiwu tedarik, teklif, denetim ve lojistik konularında yardımcı olabilirim; lütfen ürün, adet ve hedef pazarı yazın.",
-    ja: "義烏仕入れ、見積もり、検品、物流に関する内容のみ対応できます。商品、数量、販売先市場を教えてください。",
   }[lang] || "I can only help with Yiwu sourcing, quotes, inspection, and logistics; please tell me the product, quantity, and target market.";
 }
 
@@ -225,7 +221,6 @@ function buildWhatsappText(lang, userMessage, reply) {
     de: "Hallo, ich mochte eine Anfrage fur Yiwu/China-Sourcing stellen:",
     it: "Buongiorno, vorrei richiedere sourcing da Yiwu/Cina:",
     tr: "Merhaba, Yiwu/Cin sourcing icin bilgi almak istiyorum:",
-    ja: "こんにちは。中国・義烏の仕入れについて相談したいです：",
   }[lang] || "Hello, I would like to ask about China/Yiwu sourcing:";
 
   return `${intro}\n\n${userMessage}\n\nAI summary:\n${reply}`.slice(0, 1800);

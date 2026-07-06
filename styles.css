@@ -16,7 +16,6 @@
   --glass-shadow: 0.09;
   --font-latin: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   --font-cjk: "PingFang SC", "Hiragino Sans GB", "HarmonyOS Sans SC", "HarmonyOS Sans", "MiSans", "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", var(--font-latin);
-  --font-japanese: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", var(--font-latin);
   --font-korean: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", var(--font-latin);
   --font-thai: "Thonburi", "Sarabun", "Noto Sans Thai", "Tahoma", var(--font-latin);
   --font-devanagari: "Kohinoor Devanagari", "Devanagari Sangam MN", "Nirmala UI", "Noto Sans Devanagari", var(--font-latin);
@@ -41,10 +40,6 @@ html[lang^="zh"] {
 html[lang="ar"] {
   --sans: var(--font-arabic);
   --display: var(--font-arabic);
-}
-html[lang="ja"] {
-  --sans: var(--font-japanese);
-  --display: var(--font-japanese);
 }
 html[lang="ko"] {
   --sans: var(--font-korean);
@@ -7751,5 +7746,41 @@ body {
 
   .site-footer .contact-link:last-child {
     max-width: none !important;
+  }
+}
+
+#social-accounts .team-card-body > strong,
+#social-accounts .team-handle,
+#social-accounts .team-title-line {
+  max-width: 100% !important;
+  letter-spacing: 0 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+#social-accounts .team-handle {
+  line-height: 1.25 !important;
+}
+
+#social-accounts .team-link,
+#social-accounts .team-link-label {
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.2 !important;
+}
+
+@media (max-width: 560px) {
+  #social-accounts .team-grid,
+  #social-accounts .team-grid-more,
+  #social-accounts.social-platform-groups .team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 18px 14px !important;
+  }
+
+  #social-accounts .team-card {
+    min-width: 0 !important;
   }
 }

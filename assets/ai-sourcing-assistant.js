@@ -14,7 +14,6 @@
     de: { title: "KI Einkaufsassistent", placeholder: "Was mochten Sie einkaufen?", send: "Senden", open: "KI Assistent", whatsapp: "An WhatsApp" },
     it: { title: "Assistente acquisti AI", placeholder: "Dimmi cosa vuoi acquistare...", send: "Invia", open: "Assistente AI", whatsapp: "Invia WhatsApp" },
     tr: { title: "AI Satın Alma Asistanı", placeholder: "Ne tedarik etmek istiyorsunuz?", send: "Gonder", open: "AI Asistan", whatsapp: "WhatsApp'a Gonder" },
-    ja: { title: "AI仕入れアシスタント", placeholder: "仕入れたい商品を入力してください...", send: "送信", open: "AIアシスタント", whatsapp: "WhatsAppへ" },
   };
   var copy = labels[lang] || labels.en;
   var history = [];
@@ -82,6 +81,13 @@
     log.scrollTop = log.scrollHeight;
   }
 
+  function cleanReplyText(text) {
+    return String(text || "")
+      .replace(/\*\*([^*\n][\s\S]*?)\*\*/g, "$1")
+      .replace(/\*\*/g, "")
+      .trim();
+  }
+
   function setWhatsapp(url) {
     lastWhatsappUrl = url || "";
     whatsapp.href = lastWhatsappUrl;
@@ -114,7 +120,7 @@
     })
       .then(function (response) { return response.json(); })
       .then(function (data) {
-        var reply = data.reply || "Please try again.";
+        var reply = cleanReplyText(data.reply || "Please try again.");
         addMessage("assistant", reply);
         history.push({ role: "user", content: message }, { role: "assistant", content: reply });
         setWhatsapp(data.whatsappUrl);
