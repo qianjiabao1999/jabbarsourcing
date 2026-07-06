@@ -116,6 +116,31 @@ function historyToMessages(history) {
   }).filter((item) => item.content);
 }
 
+function incomingMessages(body) {
+  if (Array.isArray(body.messages)) return body.messages;
+  if (Array.isArray(body.history)) return body.history;
+  return [];
+}
+
+function normalizeRawText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function latestUserMessageRaw(body) {
+  const directMessage = normalizeRawText(body.message);
+  if (directMessage) return directMessage;
+
+  const messages = incomingMessages(body);
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const item = messages[index];
+    if (!item || item.role === "assistant") continue;
+    const content = normalizeRawText(item.content);
+    if (content) return content;
+  }
+
+  return "";
+}
+
 function countUserTurns(history) {
   if (!Array.isArray(history)) return 0;
   return history.filter((item) => item && item.role !== "assistant" && cleanText(item.content, MAX_MESSAGE_LENGTH)).length;
@@ -232,9 +257,14 @@ export default {
     }
 
     const requestedLang = normalizeLanguage(body.lang);
-    const message = cleanText(body.message);
+    const rawMessage = latestUserMessageRaw(body);
+    const message = cleanText(rawMessage);
     const lang = detectLanguageFromText(message, requestedLang);
-    const history = historyToMessages(body.history);
+    const historySource = incomingMessages(body);
+    const history = historyToMessages(historySource).filter((item, index, items) => {
+      if (index !== items.length - 1) return true;
+      return item.role === "assistant" || item.content !== message;
+    });
 
     if (!message) {
       return jsonResponse({
@@ -243,11 +273,11 @@ export default {
       }, 200, corsHeaders);
     }
 
-    if (String(body.message || "").trim().length > MAX_MESSAGE_LENGTH) {
+    if (rawMessage.length > MAX_MESSAGE_LENGTH) {
       return jsonResponse({ reply: LIMIT_MESSAGE, whatsappUrl: `https://wa.me/${env.WHATSAPP_PHONE || "8618658925544"}` }, 429, corsHeaders);
     }
 
-    if (countUserTurns(body.history) >= MAX_SESSION_TURNS) {
+    if (countUserTurns(historySource) >= MAX_SESSION_TURNS) {
       return jsonResponse({ reply: LIMIT_MESSAGE, whatsappUrl: `https://wa.me/${env.WHATSAPP_PHONE || "8618658925544"}` }, 429, corsHeaders);
     }
 
