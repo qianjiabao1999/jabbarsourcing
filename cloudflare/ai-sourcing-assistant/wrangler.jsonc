@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jabbar-sourcing-ai-assistant",
+  "main": "worker.js",
+  "compatibility_date": "2026-07-06",
+  "ai": {
+    "binding": "AI"
+  },
+  "vars": {
+    "ALLOWED_ORIGIN": "https://www.jabbarsourcing.com",
+    "WHATSAPP_PHONE": "8618658925544",
+    "AI_MODEL": "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b"
+  }
+}
