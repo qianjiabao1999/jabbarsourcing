@@ -7761,6 +7761,8 @@ body {
 
 #social-accounts .team-handle {
   line-height: 1.25 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
 }
 
 #social-accounts .team-link,
