@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-06T07:41:17.362Z",
+  "updatedAt": "2026-07-06T13:06:34.223Z",
   "qualityGate": {
     "minSourceSize": 400,
     "outputSizes": [
@@ -16,111 +16,100 @@
     ]
   },
   "changed": [
-    "jabbar-cartoon-smile-116.webp",
-    "grace-from-yiwu-116.webp",
-    "vincent-en-yiwu-116.webp",
-    "lesley-in-yiwu-116.webp",
-    "haoduobao456-116.webp",
-    "yiwu-wholesale-vincent-116.webp",
-    "alice-goods777-116.webp",
-    "jessica-in-yiwu-116.webp",
-    "leo-mr-20cents-116.webp",
-    "max-dollarstore-116.webp",
-    "shawnnwjxnc-116.webp",
-    "mollyadventure6-116.webp",
     "douyin-haoduobao-116.webp",
-    "douyin-jiangjie-avatar-116.webp",
-    "douyin-73178679666-116.webp",
-    "douyin-275644598-116.webp",
-    "douyin-05280606-116.webp",
     "douyin-138411321-116.webp",
     "douyin-89144212942-116.webp",
-    "douyin-dg661661-116.webp",
     "douyin-999999q99999-116.webp",
-    "douyin-95088908057-116.webp",
-    "douyin-64412023244-116.webp",
     "douyin-87296762727-116.webp",
     "douyin-92340484988-116.webp",
     "douyin-90267896705-116.webp",
-    "douyin-160463933-116.webp",
     "douyin-41184831028-116.webp",
-    "xiaohongshu-haoduobao-116.webp",
-    "xiaohongshu-yw-source-supply-116.webp",
-    "xiaohongshu-yiwu-ranran-116.webp",
-    "xiaohongshu-yaoge-116.webp"
+    "xiaohongshu-yiwu-ranran-116.webp"
   ],
   "results": [
     {
       "assetName": "jabbar-cartoon-smile-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "grace-from-yiwu-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "vincent-en-yiwu-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "lesley-in-yiwu-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1014x1014"
+      "changed": false,
+      "sourceSize": "1014x1014",
+      "reason": "unchanged"
     },
     {
       "assetName": "haoduobao456-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "yiwu-wholesale-vincent-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "alice-goods777-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "jessica-in-yiwu-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "leo-mr-20cents-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "940x940"
+      "changed": false,
+      "sourceSize": "940x940",
+      "reason": "unchanged"
     },
     {
       "assetName": "max-dollarstore-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "828x828"
+      "changed": false,
+      "sourceSize": "828x828",
+      "reason": "unchanged"
     },
     {
       "assetName": "shawnnwjxnc-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "mollyadventure6-116.webp",
       "platform": "tiktok",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-haoduobao-116.webp",
@@ -131,26 +120,30 @@
     {
       "assetName": "douyin-jiangjie-avatar-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1125x1125"
+      "changed": false,
+      "sourceSize": "1125x1125",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-73178679666-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "2000x2000"
+      "changed": false,
+      "sourceSize": "2000x2000",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-275644598-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "940x940"
+      "changed": false,
+      "sourceSize": "940x940",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-05280606-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1161x1161"
+      "changed": false,
+      "sourceSize": "1161x1161",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-138411321-116.webp",
@@ -167,8 +160,9 @@
     {
       "assetName": "douyin-dg661661-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1535x2732"
+      "changed": false,
+      "sourceSize": "1535x2732",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-999999q99999-116.webp",
@@ -179,20 +173,22 @@
     {
       "assetName": "douyin-95088908057-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "981x981"
+      "changed": false,
+      "sourceSize": "981x981",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-64412023244-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-87296762727-116.webp",
       "platform": "douyin",
       "changed": true,
-      "sourceSize": "1728x1728"
+      "sourceSize": "1206x1206"
     },
     {
       "assetName": "douyin-92340484988-116.webp",
@@ -209,8 +205,9 @@
     {
       "assetName": "douyin-160463933-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1080x1080"
+      "changed": false,
+      "sourceSize": "1080x1080",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-41184831028-116.webp",
@@ -221,14 +218,16 @@
     {
       "assetName": "xiaohongshu-haoduobao-116.webp",
       "platform": "xiaohongshu",
-      "changed": true,
-      "sourceSize": "540x540"
+      "changed": false,
+      "sourceSize": "540x540",
+      "reason": "unchanged"
     },
     {
       "assetName": "xiaohongshu-yw-source-supply-116.webp",
       "platform": "xiaohongshu",
-      "changed": true,
-      "sourceSize": "540x540"
+      "changed": false,
+      "sourceSize": "540x540",
+      "reason": "unchanged"
     },
     {
       "assetName": "xiaohongshu-yiwu-ranran-116.webp",
@@ -239,8 +238,9 @@
     {
       "assetName": "xiaohongshu-yaoge-116.webp",
       "platform": "xiaohongshu",
-      "changed": true,
-      "sourceSize": "540x540"
+      "changed": false,
+      "sourceSize": "540x540",
+      "reason": "unchanged"
     },
     {
       "assetName": "xiaohongshu-zhu-manager-116.webp",
@@ -269,17 +269,8 @@
     {
       "assetName": "xiaohongshu-635230302-116.webp",
       "platform": "xiaohongshu",
-      "changed": true,
-      "reason": "manual refresh from current xiaohongshu profile avatar",
-      "sourceSize": "480x480"
-    }
-  ],
-  "manualUpdates": [
-    {
-      "assetName": "xiaohongshu-635230302-116.webp",
-      "updatedAt": "2026-07-06T07:41:17.362Z",
-      "source": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo32275jaim7o6g4a0krs00r213avs3s1o?imageView2/2/w/540/format/webp|imageMogr2/strip2",
-      "sourceSize": "480x480"
+      "changed": false,
+      "reason": "no candidate passed quality gate"
     }
   ]
 }
