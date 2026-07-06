@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-06T06:28:40.274Z",
+  "updatedAt": "2026-07-06T07:41:17.362Z",
   "qualityGate": {
     "minSourceSize": 400,
     "outputSizes": [
@@ -269,8 +269,17 @@
     {
       "assetName": "xiaohongshu-635230302-116.webp",
       "platform": "xiaohongshu",
-      "changed": false,
-      "reason": "no candidate passed quality gate"
+      "changed": true,
+      "reason": "manual refresh from current xiaohongshu profile avatar",
+      "sourceSize": "480x480"
+    }
+  ],
+  "manualUpdates": [
+    {
+      "assetName": "xiaohongshu-635230302-116.webp",
+      "updatedAt": "2026-07-06T07:41:17.362Z",
+      "source": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo32275jaim7o6g4a0krs00r213avs3s1o?imageView2/2/w/540/format/webp|imageMogr2/strip2",
+      "sourceSize": "480x480"
     }
   ]
 }
