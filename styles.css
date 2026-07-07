@@ -7786,3 +7786,87 @@ body {
     min-width: 0 !important;
   }
 }
+
+.site-nav {
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto auto !important;
+  column-gap: clamp(10px, 1.15vw, 18px) !important;
+  padding-inline: clamp(18px, 2.5vw, 48px) !important;
+}
+
+.site-nav-brand {
+  max-width: min(360px, 28vw) !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+.site-nav-brand span {
+  display: block !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.site-nav-links {
+  flex-wrap: nowrap !important;
+  gap: clamp(10px, 1.05vw, 18px) !important;
+  overflow: visible !important;
+}
+
+.site-nav-links > a {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  line-height: 1.12 !important;
+}
+
+.site-nav-calculator,
+.site-nav-team,
+.site-nav-home-pill,
+.site-nav-quote {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1800px) {
+  .site-nav {
+    grid-template-columns: minmax(0, 1fr) auto auto auto !important;
+  }
+
+  .site-nav-links {
+    display: none !important;
+  }
+
+  .site-nav-mobile-menu {
+    display: block !important;
+  }
+
+  .site-nav-brand {
+    max-width: min(420px, 46vw) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .site-nav-brand span {
+    display: none !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .site-nav {
+    gap: 8px !important;
+    padding-inline: 12px !important;
+  }
+
+  .site-nav-quote {
+    min-height: 38px !important;
+    padding-inline: 13px !important;
+    font-size: 13px !important;
+  }
+
+  .site-nav .language-switch summary {
+    min-height: 38px !important;
+    padding-inline: 12px !important;
+  }
+}
