@@ -93,6 +93,10 @@ const ACCOUNT_HINTS = {
     platform: "douyin",
     profileUrl: "https://v.douyin.com/LA2C1TIky_c/",
   },
+  "douyin-a05505566.webp": {
+    platform: "douyin",
+    profileUrl: "https://v.douyin.com/ihAmAIBBPXk/",
+  },
   "xiaohongshu-yw-source-supply.webp": {
     platform: "xiaohongshu",
     profileUrl: "https://www.xiaohongshu.com/user/profile/6844fc06000000001b01b6e5",
