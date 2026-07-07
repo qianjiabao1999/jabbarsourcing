@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const sharp = require("sharp");
+const { chromium } = require("playwright");
 
 const ROOT = process.cwd();
 const INDEX_FILE = path.join(ROOT, "index.html");
@@ -17,6 +18,7 @@ const OUTPUT_SIZES = [
   { suffix: "232", size: 232, quality: 84 },
 ];
 const REQUEST_TIMEOUT_MS = 15000;
+const INSTAGRAM_MIN_SOURCE_SIZE = 100;
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
@@ -271,16 +273,71 @@ async function fetchDouyinAvatarCandidates(account) {
   return unique(candidates);
 }
 
+async function fetchInstagramAvatarCandidates(account) {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 900 },
+      locale: "en-US",
+      userAgent: USER_AGENT,
+    });
+    try {
+      const page = await context.newPage();
+      await page.goto(account.profileUrl, { waitUntil: "domcontentloaded", timeout: REQUEST_TIMEOUT_MS * 3 });
+      await page.waitForLoadState("load", { timeout: REQUEST_TIMEOUT_MS }).catch(() => {});
+      await page.waitForTimeout(1800);
+      const candidates = await page.evaluate(() => {
+        const urls = [];
+        const og = document.querySelector('meta[property="og:image"], meta[name="twitter:image"]')?.content;
+        if (og) urls.push(og);
+        for (const img of document.images) {
+          const src = img.currentSrc || img.src;
+          const alt = img.alt || "";
+          if (src && (/profile picture/i.test(alt) || /t51\.82787-19/.test(src))) urls.push(src);
+        }
+        return urls;
+      });
+      return unique(candidates.map(cleanImageUrl)).sort((a, b) => {
+        const score = (value) => (value.includes("s150x150") ? 2 : 0) - (value.includes("s100x100") ? 1 : 0);
+        return score(b) - score(a);
+      });
+    } finally {
+      await context.close();
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
 function extractAvatarCandidates(html) {
   const candidates = [];
   const decoded = cleanImageUrl(html);
 
-  for (const key of ["avatarLarger", "avatarMedium", "avatarThumb", "avatar_300x300", "avatar_larger", "avatar_medium", "avatar_thumb"]) {
+  for (const match of decoded.matchAll(/<meta\b[^>]*(?:property|name)=["'](?:og:image|twitter:image)["'][^>]*content=["']([^"']+)["'][^>]*>/gi)) {
+    candidates.push(cleanImageUrl(match[1]));
+  }
+  for (const match of decoded.matchAll(/<meta\b[^>]*content=["']([^"']+)["'][^>]*(?:property|name)=["'](?:og:image|twitter:image)["'][^>]*>/gi)) {
+    candidates.push(cleanImageUrl(match[1]));
+  }
+
+  for (const key of [
+    "avatarLarger",
+    "avatarMedium",
+    "avatarThumb",
+    "avatar_300x300",
+    "avatar_larger",
+    "avatar_medium",
+    "avatar_thumb",
+    "profile_pic_url",
+    "profile_pic_url_hd",
+    "profilePicUrl",
+    "profilePicUrlHd",
+  ]) {
     const pattern = new RegExp(`"${key}"\\s*:\\s*"([^"]+)"`, "g");
     for (const match of decoded.matchAll(pattern)) candidates.push(cleanImageUrl(match[1]));
   }
 
-  for (const match of decoded.matchAll(/https?:\/\/[^"'<>\s]+(?:tiktokcdn|tiktokcdn-us|douyinpic|snssdk|xhscdn)[^"'<>\s]+/gi)) {
+  for (const match of decoded.matchAll(/https?:\/\/[^"'<>\s]+(?:tiktokcdn|tiktokcdn-us|douyinpic|snssdk|xhscdn|cdninstagram|fbcdn|scontent)[^"'<>\s]+/gi)) {
     const url = cleanImageUrl(match[0]);
     if (/avatar|tos|profile|image|sns-avatar/i.test(url)) candidates.push(url);
   }
@@ -335,7 +392,7 @@ async function findSocialAccounts() {
     const profileUrl = hint.profileUrl || dataWebLink || href;
     const platform = hint.platform || accountPlatformFromUrl(profileUrl || "");
 
-    if (!profileUrl || !["tiktok", "douyin", "xiaohongshu"].includes(platform)) continue;
+    if (!profileUrl || !["tiktok", "douyin", "xiaohongshu", "instagram"].includes(platform)) continue;
     accounts.push({
       assetName,
       renderedAssetName,
@@ -353,10 +410,11 @@ async function findSocialAccounts() {
   return [...byAsset.values()];
 }
 
-async function buildAvatarBuffer(sourceBuffer) {
+async function buildAvatarBuffer(sourceBuffer, options = {}) {
+  const minSourceSize = options.minSourceSize || MIN_SOURCE_SIZE;
   const metadata = await sharp(sourceBuffer).metadata();
   const sourceSize = Math.min(metadata.width || 0, metadata.height || 0);
-  if (sourceSize < MIN_SOURCE_SIZE) {
+  if (sourceSize < minSourceSize) {
     return { ok: false, reason: `source too small: ${metadata.width}x${metadata.height}` };
   }
 
@@ -377,6 +435,9 @@ async function refreshAccount(account) {
   if (account.platform === "douyin") {
     candidates = await fetchDouyinAvatarCandidates(account);
   }
+  if (account.platform === "instagram") {
+    candidates = await fetchInstagramAvatarCandidates(account);
+  }
   if (!candidates.length) {
     const pageHtml = await fetchText(account.profileUrl);
     candidates = preferLargeAvatarUrls(extractAvatarCandidates(pageHtml));
@@ -386,7 +447,9 @@ async function refreshAccount(account) {
   for (const candidate of candidates.slice(0, 16)) {
     try {
       const image = await fetchImage(candidate);
-      const built = await buildAvatarBuffer(image);
+      const built = await buildAvatarBuffer(image, {
+        minSourceSize: account.platform === "instagram" ? INSTAGRAM_MIN_SOURCE_SIZE : MIN_SOURCE_SIZE,
+      });
       if (!built.ok) {
         await sleep(250);
         continue;
