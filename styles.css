@@ -7829,7 +7829,56 @@ body {
   white-space: nowrap !important;
 }
 
-@media (max-width: 1800px) {
+@media (min-width: 961px) and (max-width: 1180px) {
+  .site-nav {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto auto !important;
+    column-gap: 8px !important;
+    min-height: 64px !important;
+    padding-inline: 12px !important;
+  }
+
+  .site-nav-brand {
+    max-width: min(220px, 22vw) !important;
+    gap: 8px !important;
+    font-size: 15px !important;
+  }
+
+  .site-nav-brand img {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+  }
+
+  .site-nav-links {
+    justify-content: flex-end !important;
+    gap: 7px !important;
+    font-size: 13px !important;
+  }
+
+  .site-nav-calculator,
+  .site-nav-team {
+    min-height: 34px !important;
+    padding-inline: 10px !important;
+    font-size: 13px !important;
+  }
+
+  .site-nav-calculator::before {
+    display: none !important;
+  }
+
+  .site-nav-quote {
+    min-height: 38px !important;
+    padding-inline: 13px !important;
+    font-size: 13px !important;
+  }
+
+  .site-nav .language-switch summary {
+    min-height: 38px !important;
+    padding-inline: 12px !important;
+  }
+}
+
+@media (max-width: 960px) {
   .site-nav {
     grid-template-columns: minmax(0, 1fr) auto auto auto !important;
   }
