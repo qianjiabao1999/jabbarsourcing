@@ -7844,7 +7844,42 @@ body {
   line-height: 1.2 !important;
 }
 
+/* 2026-07-08 compact the social-card tail before the footer. */
+#social-accounts.social-platform-groups {
+  margin-bottom: clamp(18px, 2.4vw, 36px) !important;
+  padding-bottom: 0 !important;
+}
+
+#social-accounts .social-platform-group:last-child,
+#social-accounts .team-grid:last-child,
+#social-accounts .team-grid-more:last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#team.team {
+  padding-bottom: clamp(18px, 2vw, 30px) !important;
+}
+
+.site-footer {
+  margin-top: 0 !important;
+}
+
+.site-footer-inner {
+  padding-top: clamp(30px, 3.2vw, 48px) !important;
+  padding-bottom: clamp(30px, 3.2vw, 48px) !important;
+}
+
+.site-footer .bottom-contact-block {
+  margin-top: clamp(20px, 2vw, 28px) !important;
+  padding-top: clamp(20px, 2vw, 28px) !important;
+}
+
 @media (max-width: 560px) {
+  #social-accounts.social-platform-groups {
+    margin-bottom: 22px !important;
+  }
+
   #social-accounts .team-grid,
   #social-accounts .team-grid-more,
   #social-accounts.social-platform-groups .team-grid {
