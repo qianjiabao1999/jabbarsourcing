@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-07T11:26:24.468Z",
+  "updatedAt": "2026-07-09T22:54:07.810Z",
   "qualityGate": {
     "minSourceSize": 400,
     "outputSizes": [
@@ -16,16 +16,7 @@
     ]
   },
   "changed": [
-    "douyin-haoduobao-116.webp",
-    "douyin-05280606-116.webp",
-    "douyin-138411321-116.webp",
-    "douyin-89144212942-116.webp",
-    "douyin-999999q99999-116.webp",
-    "douyin-87296762727-116.webp",
-    "douyin-92340484988-116.webp",
-    "douyin-90267896705-116.webp",
-    "douyin-41184831028-116.webp",
-    "douyin-a05505566-116.webp"
+    "douyin-41184831028-116.webp"
   ],
   "results": [
     {
@@ -127,8 +118,9 @@
     {
       "assetName": "douyin-haoduobao-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "886x886"
+      "changed": false,
+      "sourceSize": "886x886",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-jiangjie-avatar-116.webp",
@@ -154,20 +146,23 @@
     {
       "assetName": "douyin-05280606-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1170x1170"
+      "changed": false,
+      "sourceSize": "1170x1170",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-138411321-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "3072x3072"
+      "changed": false,
+      "sourceSize": "3072x3072",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-89144212942-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "4284x4284"
+      "changed": false,
+      "sourceSize": "4284x4284",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-dg661661-116.webp",
@@ -179,8 +174,9 @@
     {
       "assetName": "douyin-999999q99999-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1536x1536"
+      "changed": false,
+      "sourceSize": "1536x1536",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-95088908057-116.webp",
@@ -199,20 +195,23 @@
     {
       "assetName": "douyin-87296762727-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1206x1206"
+      "changed": false,
+      "sourceSize": "1206x1206",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-92340484988-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1279x1279"
+      "changed": false,
+      "sourceSize": "1279x1279",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-90267896705-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "3672x3672"
+      "changed": false,
+      "sourceSize": "3672x3672",
+      "reason": "unchanged"
     },
     {
       "assetName": "douyin-160463933-116.webp",
@@ -230,8 +229,9 @@
     {
       "assetName": "douyin-a05505566-116.webp",
       "platform": "douyin",
-      "changed": true,
-      "sourceSize": "1290x1267"
+      "changed": false,
+      "sourceSize": "1290x1267",
+      "reason": "unchanged"
     },
     {
       "assetName": "xiaohongshu-haoduobao-116.webp",
