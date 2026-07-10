@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
-  "checkedAt": "2026-07-10T09:05:50.716Z",
+  "checkedAt": "2026-07-10T10:38:18.937Z",
   "status": "partial",
-  "avatarVersion": "avatar-20260710T090550Z",
+  "avatarVersion": "avatar-20260710T103818Z",
   "qualityGate": {
     "minSourceSize": 400,
     "maxAspectRatio": 1.2,
@@ -27,37 +27,47 @@
   },
   "counts": {
     "checked": 40,
-    "changed": 12,
-    "avatarChanged": 12,
-    "failed": 10
+    "changed": 17,
+    "avatarChanged": 17,
+    "failed": 4
   },
   "changed": [
-    "jabbar-cartoon-smile-116.webp",
-    "grace-from-yiwu-116.webp",
-    "vincent-en-yiwu-116.webp",
     "lesley-in-yiwu-116.webp",
-    "haoduobao456-116.webp",
-    "yiwu-wholesale-vincent-116.webp",
-    "alice-goods777-116.webp",
-    "jessica-in-yiwu-116.webp",
-    "leo-mr-20cents-116.webp",
-    "max-dollarstore-116.webp",
-    "shawnnwjxnc-116.webp",
-    "mollyadventure6-116.webp"
+    "instagram-vincent130801-116.webp",
+    "instagram-vincentfromyiwu-116.webp",
+    "douyin-05280606-116.webp",
+    "douyin-138411321-116.webp",
+    "douyin-89144212942-116.webp",
+    "douyin-999999q99999-116.webp",
+    "douyin-87296762727-116.webp",
+    "douyin-92340484988-116.webp",
+    "douyin-90267896705-116.webp",
+    "douyin-41184831028-116.webp",
+    "douyin-a05505566-116.webp",
+    "xiaohongshu-haoduobao-116.webp",
+    "xiaohongshu-yw-source-supply-116.webp",
+    "xiaohongshu-yiwu-ranran-116.webp",
+    "xiaohongshu-yaoge-116.webp",
+    "xiaohongshu-635230302-116.webp"
   ],
   "avatarChanged": [
-    "jabbar-cartoon-smile-116.webp",
-    "grace-from-yiwu-116.webp",
-    "vincent-en-yiwu-116.webp",
     "lesley-in-yiwu-116.webp",
-    "haoduobao456-116.webp",
-    "yiwu-wholesale-vincent-116.webp",
-    "alice-goods777-116.webp",
-    "jessica-in-yiwu-116.webp",
-    "leo-mr-20cents-116.webp",
-    "max-dollarstore-116.webp",
-    "shawnnwjxnc-116.webp",
-    "mollyadventure6-116.webp"
+    "instagram-vincent130801-116.webp",
+    "instagram-vincentfromyiwu-116.webp",
+    "douyin-05280606-116.webp",
+    "douyin-138411321-116.webp",
+    "douyin-89144212942-116.webp",
+    "douyin-999999q99999-116.webp",
+    "douyin-87296762727-116.webp",
+    "douyin-92340484988-116.webp",
+    "douyin-90267896705-116.webp",
+    "douyin-41184831028-116.webp",
+    "douyin-a05505566-116.webp",
+    "xiaohongshu-haoduobao-116.webp",
+    "xiaohongshu-yw-source-supply-116.webp",
+    "xiaohongshu-yiwu-ranran-116.webp",
+    "xiaohongshu-yaoge-116.webp",
+    "xiaohongshu-635230302-116.webp"
   ],
   "versionedPages": [
     "ar/index.html",
@@ -76,11 +86,11 @@
       "assetName": "jabbar-cartoon-smile-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@jabbaryiwu",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/5a3ff30cee03d66d2df6f69b073c7cc9~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=82d7bd31&x-expires=1783846800&x-signature=OGRIYHNnvSGlFbmZTyshV52KrVA%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/5a3ff30cee03d66d2df6f69b073c7cc9~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=37598a43&x-expires=1783850400&x-signature=X2u5i0JCDoFEEntkpszOIhmXBp0%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1080x1080",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -101,20 +111,18 @@
           "sha256": "7f07941c1c3477617a2af0eb51c0786a4c94aa12e22841d5c1e43ab51bc21690"
         }
       },
-      "reason": null,
-      "failures": [
-        "profile HTML fallback: fetch failed"
-      ]
+      "reason": "unchanged",
+      "failures": []
     },
     {
       "assetName": "grace-from-yiwu-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@grace.from.yiwu",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/58caabd305f302d8282d60d5e2cb83e0~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=cf9f3730&x-expires=1783846800&x-signature=obwtHxW3b8xKdzxhc1CoXah9zkU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/58caabd305f302d8282d60d5e2cb83e0~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=de74db37&x-expires=1783850400&x-signature=DZ6eUjqL1nmwuLTWTpRocb%2BcX9E%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1080x1080",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -135,20 +143,18 @@
           "sha256": "53f2ded6cf074649d77b05e0c86e9337d15801650cc352d872bfc272b34f0f83"
         }
       },
-      "reason": null,
-      "failures": [
-        "profile HTML fallback: fetch failed"
-      ]
+      "reason": "unchanged",
+      "failures": []
     },
     {
       "assetName": "vincent-en-yiwu-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@vincent.en.yiwu",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/6c96ba392c27ec9e49b59feb962e5416~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=00832c32&x-expires=1783846800&x-signature=o6%2F66gLbwaVGaE26pzUQrlDcwLo%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/6c96ba392c27ec9e49b59feb962e5416~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=60c9ae08&x-expires=1783850400&x-signature=yKzuHLynnjQRUciYO%2FcUDr4QgCw%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1080x1080",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -169,10 +175,8 @@
           "sha256": "6f35cb4b83a45cc462e07c445cfaab2dce05bb035c644b60ddfc47b72de75f68"
         }
       },
-      "reason": null,
-      "failures": [
-        "profile HTML fallback: fetch failed"
-      ]
+      "reason": "unchanged",
+      "failures": []
     },
     {
       "assetName": "lesley-in-yiwu-116.webp",
@@ -180,58 +184,52 @@
       "profileUrl": "https://www.tiktok.com/@lesley.in.yiwu",
       "status": "updated",
       "changed": true,
-      "sourceChanged": true,
+      "sourceChanged": false,
       "outputChanged": true,
-      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/e8fdd5af0f3c4b33e5f6b0c318abd94e~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=e55b3835&x-expires=1783846800&x-signature=ztq1%2Bm%2B97F3r0rK99r17PfY7kj8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/e8fdd5af0f3c4b33e5f6b0c318abd94e~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=55926047&x-expires=1783850400&x-signature=zs8XdOOaLfJpGSW2pfwU5Qr%2F9xg%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1014x1014",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
       "sourcePath": "assets/social-source/lesley-in-yiwu.webp",
       "hashes": {
-        "116": "d49dba5dca363cba768cde84b9cd2f6da8f80aac5f42567ecd99c239e4c840c7",
-        "232": "5f9a3522824d0365adb5a7a15e510640e9632518b04ae2c6bfbe241e1daed7e6",
+        "116": "73bea1333e77cc6a04c309ceba3fb6083ad9ede57b9d312ff1218ad3ef8cf958",
+        "232": "b2b21f6140b11e50355960d296c657d932a1814ef62a253e3d38373e0e110bfa",
         "fetched": "a265d9935e3fa698045c8263949480ff223c072e73bbfb1d2fc0a044c53ccaee",
         "source": "5117cdd6286272540a57b35a57308351eb9cbaa244765ea0146ba2257d1abfbc"
       },
       "outputs": {
         "116": {
           "path": "assets/social-116/lesley-in-yiwu-116.webp",
-          "sha256": "d49dba5dca363cba768cde84b9cd2f6da8f80aac5f42567ecd99c239e4c840c7"
+          "sha256": "73bea1333e77cc6a04c309ceba3fb6083ad9ede57b9d312ff1218ad3ef8cf958"
         },
         "232": {
           "path": "assets/social-116/lesley-in-yiwu-232.webp",
-          "sha256": "5f9a3522824d0365adb5a7a15e510640e9632518b04ae2c6bfbe241e1daed7e6"
+          "sha256": "b2b21f6140b11e50355960d296c657d932a1814ef62a253e3d38373e0e110bfa"
         }
       },
       "reason": null,
       "failures": [
-        "profile HTML fallback: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/e8fdd5af0f3c4b33e5f6b0c318abd94e~tplv-tiktokx-cropcenter:720:720.jpeg?dr=9640&refresh_token=61e22b50&x-expires=1783846800&x-signature=rZ90cBGcCcG%2Br9xWxcIbyMxmbb8%3D&t=4d5b0474&ps=13740610&shp=a5d480: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/7306f458345f77c207ef6fb53eb59720~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=4fb4eb08&x-expires=1783846800&x-signature=3I5ZMyHK8SSk6rmOOmH3U%2BewS%2BQ%3D&t=4d5b0474&ps=13740610&shp: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/e8fdd5af0f3c4b33e5f6b0c318abd94e~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=68a3de81&x-expires=1783846800&x-signature=eCGQFAihu902BRnk%2FYbezVOf%2B1A%3D&t=4d5b0474&ps=13740610&shp=a5d4: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/secsdk/secsdk-lastest.umd.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/tiktok-infra/csp/sdk-pre/slardar.web.pre.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js?bid=tiktok_webapp&globalName=SlardarClient: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins//common-monitors.1.16.6.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.1.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.16.7.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.5.js: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/edaffea743a0969526d19cdbc2503db3~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=c16943d1&x-expires=1783846800&x-signature=qGZTuRZcGiBPH0l5TvOtksbw77w%3D&t=4d5b0474&ps=13740610&shp=a5d: fetch failed",
-        "https://p19-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/7310298084372660270~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=74be4f59&x-expires=1783846800&x-signature=zHv5S3y9CsdJrJpCiVCcczdmyaE%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-maliva-avt-0068/7310325298631802885~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=5ecc713b&x-expires=1783846800&x-signature=bcth1%2Fnq37al2X5rgzJ2vcd%2BCgA%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81: fetch failed"
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/e8fdd5af0f3c4b33e5f6b0c318abd94e~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=29bdea99&x-expires=1783850400&x-signature=gET%2BksRkgbRKZv7N8JZ8jNI75CY%3D&t=4d5b0474&ps=13740610&shp=a5d480: source too small: 100x100",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins: HTTP 404",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/secsdk/secsdk-lastest.umd.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/tiktok-infra/csp/sdk-pre/slardar.web.pre.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js?bid=tiktok_webapp&globalName=SlardarClient: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins//common-monitors.1.16.6.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.1.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.16.7.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.5.js: Input buffer contains unsupported image format"
       ]
     },
     {
       "assetName": "haoduobao456-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@haoduobao456",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/82afc1a27a96aa1a19372ccb278a2010~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=8d99ec5d&x-expires=1783846800&x-signature=tv8mu7A%2FHy%2FtJ3aIMDpwLIvNPO0%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/82afc1a27a96aa1a19372ccb278a2010~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=ae437de9&x-expires=1783850400&x-signature=RlGRQ6iM5ifJYlacT53N2H4pbTI%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1080x1080",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -252,20 +250,18 @@
           "sha256": "7c2b89cc270ca5eb5544de6ad8e8bfc58b811415036c14978410601d6a73750e"
         }
       },
-      "reason": null,
-      "failures": [
-        "profile HTML fallback: fetch failed"
-      ]
+      "reason": "unchanged",
+      "failures": []
     },
     {
       "assetName": "yiwu-wholesale-vincent-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@yiwu.wholesale.vincent",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/484f1edab7b693a5c5018ad729f34a34~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=713a2444&x-expires=1783846800&x-signature=VAaE7aeUbDNBx3yQXy79aWenRY4%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/484f1edab7b693a5c5018ad729f34a34~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=ebd9c27e&x-expires=1783850400&x-signature=u2QUXaWix86ASF2fsHqScjvT4k8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1080x1080",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -286,20 +282,18 @@
           "sha256": "6f35cb4b83a45cc462e07c445cfaab2dce05bb035c644b60ddfc47b72de75f68"
         }
       },
-      "reason": null,
-      "failures": [
-        "profile HTML fallback: fetch failed"
-      ]
+      "reason": "unchanged",
+      "failures": []
     },
     {
       "assetName": "alice-goods777-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@alice.goods777",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/d2f5c5cd886d03861f582747010268c5~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=a92408be&x-expires=1783846800&x-signature=XoPhjqYtqg2xGJql1OQ%2FrbKHtBI%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/d2f5c5cd886d03861f582747010268c5~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=5f38c05d&x-expires=1783850400&x-signature=3eiL1n2%2B65TlYyGv7NRwwA9jrJ8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1080x1080",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -320,20 +314,18 @@
           "sha256": "a909965c8249f1f39e9d2d8525c5e4607efe2a268b3f2730bd6fbaaf2eb583e3"
         }
       },
-      "reason": null,
-      "failures": [
-        "profile HTML fallback: fetch failed"
-      ]
+      "reason": "unchanged",
+      "failures": []
     },
     {
       "assetName": "jessica-in-yiwu-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@jessica.in.yiwu",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/3b14962c4d5396eaf0f83465ac0a2e55~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=c65e45aa&x-expires=1783846800&x-signature=pD1zuMk1YqM0lasucJkfA4r20fM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/3b14962c4d5396eaf0f83465ac0a2e55~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=abcc8557&x-expires=1783850400&x-signature=EDCjciYtQ%2FhNIZMg31aP%2FZYf568%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1080x1080",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -354,20 +346,18 @@
           "sha256": "c297432bb6dead1e5a9f82a64f21ef73a9dfb91b41a7354bd4e8be23d31570e4"
         }
       },
-      "reason": null,
-      "failures": [
-        "profile HTML fallback: fetch failed"
-      ]
+      "reason": "unchanged",
+      "failures": []
     },
     {
       "assetName": "leo-mr-20cents-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@leo_mr_20cents",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/ca49e2579a171c38fd790a7f2d5f20fc~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=2aa698f8&x-expires=1783846800&x-signature=GKSQs7bEEeLMwxvlGpkcUJg0VJU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/ca49e2579a171c38fd790a7f2d5f20fc~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=d0ad6dcd&x-expires=1783850400&x-signature=S4hSbXZWGLG5ou2blmg43Vr7E0I%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "940x940",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -388,35 +378,29 @@
           "sha256": "7cd1f5b6bebbd11b0f722519f5ff01c33b9db246eb44eed75571fbb96747e7ac"
         }
       },
-      "reason": null,
+      "reason": "unchanged",
       "failures": [
-        "profile HTML fallback: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/ca49e2579a171c38fd790a7f2d5f20fc~tplv-tiktokx-cropcenter:720:720.jpeg?dr=9640&refresh_token=6cca1f3b&x-expires=1783846800&x-signature=T%2BSlg6%2B77fdOys3fXPtaJO07mkA%3D&t=4d5b0474&ps=13740610&sh: fetch failed",
-        "https://p19-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/7306f458345f77c207ef6fb53eb59720~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=09a48aef&x-expires=1783846800&x-signature=EZKo1dbLSka9TjfW%2FoOKa9hY3Rw%3D&t=4d5b0474&ps=13740610&shp=a: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/ca49e2579a171c38fd790a7f2d5f20fc~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=3b8bd70f&x-expires=1783846800&x-signature=dtzbUAYLiWV9ciAmNWNEuthBHK0%3D&t=4d5b0474&ps=13740610&shp=a5: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/secsdk/secsdk-lastest.umd.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/tiktok-infra/csp/sdk-pre/slardar.web.pre.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js?bid=tiktok_webapp&globalName=SlardarClient: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.16.7.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins//common-monitors.1.16.6.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.1.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.5.js: fetch failed",
-        "https://p19-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/edaffea743a0969526d19cdbc2503db3~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=d12e610d&x-expires=1783846800&x-signature=oWO8rfCBHBSa0w1PssbxVC4xOEc%3D&t=4d5b0474&ps=13740610&shp=a5d: fetch failed",
-        "https://p19-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/7310298084372660270~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=74be4f59&x-expires=1783846800&x-signature=zHv5S3y9CsdJrJpCiVCcczdmyaE%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81: fetch failed",
-        "https://p19-common-sign.tiktokcdn-us.com/tos-maliva-avt-0068/7310325298631802885~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=1afca6e8&x-expires=1783846800&x-signature=taarQgMMbmYxBEbrR%2BXzXJlngwM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f8: fetch failed"
+        "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/ca49e2579a171c38fd790a7f2d5f20fc~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=b7428799&x-expires=1783850400&x-signature=ObHkYF0R7hA6jjU0u32r0E5se5s%3D&t=4d5b0474&ps=13740610&shp=a5: source too small: 100x100",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins: HTTP 404",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/secsdk/secsdk-lastest.umd.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/tiktok-infra/csp/sdk-pre/slardar.web.pre.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js?bid=tiktok_webapp&globalName=SlardarClient: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins//common-monitors.1.16.6.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.1.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.16.7.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.5.js: Input buffer contains unsupported image format"
       ]
     },
     {
       "assetName": "max-dollarstore-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@max.dollarstore",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/52746b56f5804919b1c55eb3be9d5d7f~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=1d27c1e5&x-expires=1783846800&x-signature=DP6MyNNbhIGx9S6RicPzd61%2FeNs%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/52746b56f5804919b1c55eb3be9d5d7f~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=6e950955&x-expires=1783850400&x-signature=dNLPDxDWnDyx5dnlZJEKQmuCUV8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "828x828",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -437,35 +421,30 @@
           "sha256": "f9ed28f6b9d16b1645301a0b43d154072b0fac4ba5ad86faf57ffb0502a23305"
         }
       },
-      "reason": null,
+      "reason": "unchanged",
       "failures": [
-        "profile HTML fallback: fetch failed",
-        "https://p19-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/52746b56f5804919b1c55eb3be9d5d7f~tplv-tiktokx-cropcenter:720:720.jpeg?dr=9640&refresh_token=db90938d&x-expires=1783846800&x-signature=2ChkqOX9NgkFielKi4zpBifGPq0%3D&t=4d5b0474&ps=13740610&shp=a5: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/7306f458345f77c207ef6fb53eb59720~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=4fb4eb08&x-expires=1783846800&x-signature=3I5ZMyHK8SSk6rmOOmH3U%2BewS%2BQ%3D&t=4d5b0474&ps=13740610&shp: fetch failed",
-        "https://p19-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/52746b56f5804919b1c55eb3be9d5d7f~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=f62cd6c2&x-expires=1783846800&x-signature=zNTHw49TldRUq%2B668n656xhe7PI%3D&t=4d5b0474&ps=13740610&shp=: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/secsdk/secsdk-lastest.umd.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/tiktok-infra/csp/sdk-pre/slardar.web.pre.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js?bid=tiktok_webapp&globalName=SlardarClient: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins//common-monitors.1.16.6.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.1.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.16.7.js: fetch failed",
-        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.5.js: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/edaffea743a0969526d19cdbc2503db3~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=c16943d1&x-expires=1783846800&x-signature=qGZTuRZcGiBPH0l5TvOtksbw77w%3D&t=4d5b0474&ps=13740610&shp=a5d: fetch failed",
-        "https://p19-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/7310298084372660270~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=74be4f59&x-expires=1783846800&x-signature=zHv5S3y9CsdJrJpCiVCcczdmyaE%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81: fetch failed",
-        "https://p16-common-sign.tiktokcdn-us.com/tos-maliva-avt-0068/7310325298631802885~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=5ecc713b&x-expires=1783846800&x-signature=bcth1%2Fnq37al2X5rgzJ2vcd%2BCgA%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81: fetch failed"
+        "https://p16-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/52746b56f5804919b1c55eb3be9d5d7f~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=be84b574&x-expires=1783850400&x-signature=lp5575So3FMLK1wz2yVueNvMU54%3D&t=4d5b0474&ps=13740610&shp=a5: source too small: 100x100",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins: HTTP 404",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/secsdk/secsdk-lastest.umd.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/tiktok-infra/csp/sdk-pre/slardar.web.pre.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js?bid=tiktok_webapp&globalName=SlardarClient: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins//common-monitors.1.16.6.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.1.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.16.7.js: Input buffer contains unsupported image format",
+        "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.14.5.js: Input buffer contains unsupported image format",
+        "https://p19-common-sign.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/52746b56f5804919b1c55eb3be9d5d7f~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=c819cd08&x-expires=1783850400&x-signature=j57xkRF1tL9KvUmlqLMKNNDgISg%3D&t=4d5b0474&ps=13740610&shp=a5: source too small: 100x100"
       ]
     },
     {
       "assetName": "shawnnwjxnc-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@shawnnwjxnc",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/6cf1349d04e447b402084d2dcedee2d3~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=d985a176&x-expires=1783846800&x-signature=MN1dd3BCaPN5twacGsBiVDaSJJg%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/6cf1349d04e447b402084d2dcedee2d3~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=99a06b9f&x-expires=1783850400&x-signature=3NQSfj6Vuj1lL3hikTNJhQ%2Fy26U%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1080x1080",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -486,20 +465,18 @@
           "sha256": "d16cb0d2881987db285140985413bad79e18ac38776df8f779e7a6ebce3fb77c"
         }
       },
-      "reason": null,
-      "failures": [
-        "profile HTML fallback: fetch failed"
-      ]
+      "reason": "unchanged",
+      "failures": []
     },
     {
       "assetName": "mollyadventure6-116.webp",
       "platform": "tiktok",
       "profileUrl": "https://www.tiktok.com/@mollyadventure6",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/64274fa71d5e48959b3dd873231ebe66~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=22d46aa7&x-expires=1783846800&x-signature=LqkTuj1r4Pn0Pq7bRQni2qYqx2U%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "status": "unchanged",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": "https://p19-common-sign.tiktokcdn-us.com/tos-useast5-avt-0068-tx/64274fa71d5e48959b3dd873231ebe66~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=ea2fb3e3&x-expires=1783850400&x-signature=HSWrwRaxmUCmkDY6Xnsh5k2ns3M%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
       "sourceSize": "1080x1080",
       "fetchedFormat": "jpeg",
       "sourceFormat": "webp",
@@ -520,74 +497,72 @@
           "sha256": "646d8482bc2bb21e4165e4f81991ea12278f17bf231ca62bbf85bf6d021384d4"
         }
       },
-      "reason": null,
-      "failures": [
-        "profile HTML fallback: fetch failed"
-      ]
+      "reason": "unchanged",
+      "failures": []
     },
     {
       "assetName": "instagram-vincent130801-116.webp",
       "platform": "instagram",
       "profileUrl": "https://www.instagram.com/vincent130801/",
-      "status": "failed",
-      "changed": false,
-      "sourceChanged": false,
-      "outputChanged": false,
-      "sourceUrl": null,
-      "sourceSize": null,
-      "fetchedFormat": null,
-      "sourceFormat": null,
+      "status": "updated",
+      "changed": true,
+      "sourceChanged": true,
+      "outputChanged": true,
+      "sourceUrl": "https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png",
+      "sourceSize": "4168x4168",
+      "fetchedFormat": "png",
+      "sourceFormat": "webp",
       "sourcePath": "assets/social-source/instagram-vincent130801.webp",
-      "hashes": null,
+      "hashes": {
+        "116": "63206084a73905d1bea3993dad1513e24355b510d3a11b4e26a0a6fe889dd6ad",
+        "232": "b172169fc6fccd087f704fb018f39925303e6de712829d3d06d7db1ec97010bb",
+        "fetched": "b421b00fd1791a1d1ab70dd1e9667f40ca79a8c8673989864f1be092295cd7da",
+        "source": "42a0c0becf77061bb5a0920acc7cdaadecf727c169ad4b4dcbe30f46ca23024e"
+      },
       "outputs": {
         "116": {
           "path": "assets/social-116/instagram-vincent130801-116.webp",
-          "sha256": null
+          "sha256": "63206084a73905d1bea3993dad1513e24355b510d3a11b4e26a0a6fe889dd6ad"
         },
         "232": {
           "path": "assets/social-116/instagram-vincent130801-232.webp",
-          "sha256": null
+          "sha256": "b172169fc6fccd087f704fb018f39925303e6de712829d3d06d7db1ec97010bb"
         }
       },
-      "reason": "no candidate passed quality gate",
-      "failures": [
-        "profile HTML fallback: fetch failed",
-        "https://scontent-lax3-1.cdninstagram.com/v/t51.82787-19/654558437_18060400682451602_2728570596977079030_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=scontent-lax3-1.cdninstagram.com&_nc_cat=102&_nc_oc=Q6: fetch failed",
-        "https://scontent-lax3-1.cdninstagram.com/v/t51.82787-19/654558437_18060400682451602_2728570596977079030_n.jpg?stp=dst-jpg_s320x320_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=scontent-lax3-1.cdninstagram.com&_nc_cat=102&_nc_oc=Q6: This operation was aborted",
-        "https://scontent-lax3-1.cdninstagram.com/v/t51.82787-19/654558437_18060400682451602_2728570596977079030_n.jpg?stp=dst-jpg_s100x100_tt6&_nc_cat=109&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=cn5STXRSJvEQ7kNvwHU: This operation was aborted"
-      ]
+      "reason": null,
+      "failures": []
     },
     {
       "assetName": "instagram-vincentfromyiwu-116.webp",
       "platform": "instagram",
       "profileUrl": "https://www.instagram.com/vincentfromyiwu/",
-      "status": "failed",
-      "changed": false,
-      "sourceChanged": false,
-      "outputChanged": false,
-      "sourceUrl": null,
-      "sourceSize": null,
-      "fetchedFormat": null,
-      "sourceFormat": null,
+      "status": "updated",
+      "changed": true,
+      "sourceChanged": true,
+      "outputChanged": true,
+      "sourceUrl": "https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png",
+      "sourceSize": "4168x4168",
+      "fetchedFormat": "png",
+      "sourceFormat": "webp",
       "sourcePath": "assets/social-source/instagram-vincentfromyiwu.webp",
-      "hashes": null,
+      "hashes": {
+        "116": "63206084a73905d1bea3993dad1513e24355b510d3a11b4e26a0a6fe889dd6ad",
+        "232": "b172169fc6fccd087f704fb018f39925303e6de712829d3d06d7db1ec97010bb",
+        "fetched": "b421b00fd1791a1d1ab70dd1e9667f40ca79a8c8673989864f1be092295cd7da",
+        "source": "42a0c0becf77061bb5a0920acc7cdaadecf727c169ad4b4dcbe30f46ca23024e"
+      },
       "outputs": {
         "116": {
           "path": "assets/social-116/instagram-vincentfromyiwu-116.webp",
-          "sha256": null
+          "sha256": "63206084a73905d1bea3993dad1513e24355b510d3a11b4e26a0a6fe889dd6ad"
         },
         "232": {
           "path": "assets/social-116/instagram-vincentfromyiwu-232.webp",
-          "sha256": null
+          "sha256": "b172169fc6fccd087f704fb018f39925303e6de712829d3d06d7db1ec97010bb"
         }
       },
-      "reason": "no candidate passed quality gate",
-      "failures": [
-        "profile HTML fallback: fetch failed",
-        "https://scontent-lax7-1.cdninstagram.com/v/t51.82787-19/683465641_18100875214823117_1806677567329941075_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4zMjAuYzIifQ&_nc_ht=scontent-lax7-1.cdninstagram.com&_nc_cat=105&_nc_oc=Q6c: fetch failed",
-        "https://scontent-lax7-1.cdninstagram.com/v/t51.82787-19/683465641_18100875214823117_1806677567329941075_n.jpg?stp=dst-jpg_s320x320_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4zMjAuYzIifQ&_nc_ht=scontent-lax7-1.cdninstagram.com&_nc_cat=105&_nc_oc=Q6c: fetch failed",
-        "https://scontent-lax3-1.cdninstagram.com/v/t51.82787-19/683465641_18100875214823117_1806677567329941075_n.jpg?stp=dst-jpg_s100x100_tt6&_nc_cat=102&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4zMjAuQzMifQ%3D%3D&_nc_ohc=f8TW3bhpGdsQ7kNvw: fetch failed"
-      ]
+      "reason": null,
+      "failures": []
     },
     {
       "assetName": "douyin-haoduobao-116.webp",
@@ -721,96 +696,96 @@
       "assetName": "douyin-05280606-116.webp",
       "platform": "douyin",
       "profileUrl": "https://v.douyin.com/Q97JohONIKI/",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_2912679ce2d899c89d5634cabdf62ff4~tplv-dy-aweme-images:q75.webp",
       "sourceSize": "1170x1170",
       "fetchedFormat": "webp",
       "sourceFormat": "webp",
       "sourcePath": "assets/social-source/douyin-05280606.webp",
       "hashes": {
-        "116": "a89649e8da68fe25b9c2df02d28cef3466860579250f0d386a43ef8a25fc2693",
-        "232": "6e2ff953d35936399677538e430dbcd97ba77fce4cba9e377e16a0a893d82b0f",
+        "116": "21194316b50100fe1daf2c3aaea875ba429efbc3cd6fde766f436185f3beb70b",
+        "232": "f1915f537d675d44dd72f6d2ab956ab963f06ff4a2a0083a3dc5df6cd133d4b6",
         "fetched": "b604e097b7c79b5ffe9b7924e309eae4c61c551cffa819e81ecaa272faa38dc0",
         "source": "54fbb3030346dda26a8597b96cd01efd02184862ce98da73a735f672c3830d13"
       },
       "outputs": {
         "116": {
           "path": "assets/social-116/douyin-05280606-116.webp",
-          "sha256": "a89649e8da68fe25b9c2df02d28cef3466860579250f0d386a43ef8a25fc2693"
+          "sha256": "21194316b50100fe1daf2c3aaea875ba429efbc3cd6fde766f436185f3beb70b"
         },
         "232": {
           "path": "assets/social-116/douyin-05280606-232.webp",
-          "sha256": "6e2ff953d35936399677538e430dbcd97ba77fce4cba9e377e16a0a893d82b0f"
+          "sha256": "f1915f537d675d44dd72f6d2ab956ab963f06ff4a2a0083a3dc5df6cd133d4b6"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     },
     {
       "assetName": "douyin-138411321-116.webp",
       "platform": "douyin",
       "profileUrl": "https://v.douyin.com/7jZSnH9WikI/",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-i-0813_oAIB1IA0bo2cACowG3EAWOAAiBDmDdAEjgfieg~tplv-dy-aweme-images:q75.webp",
       "sourceSize": "3072x3072",
       "fetchedFormat": "webp",
       "sourceFormat": "webp",
       "sourcePath": "assets/social-source/douyin-138411321.webp",
       "hashes": {
-        "116": "6d416cdbda9616ea59f17b1f04b1f638ae4c38e935689b61cd6b04d7be13c636",
-        "232": "ad67d549f87964f65e64c858cc0fe8eeb12791a5f73e19784e7df65a890b1ea2",
+        "116": "c5304894365b9b0b8cf6b3f37235db51d032ae8149ab97116d6af620da5a20eb",
+        "232": "9b10742bf08b24e0b693892f0be245bc04899a634fd8005ebb48eb2535221103",
         "fetched": "a551692940e2b98261f1b02b41b6a52a4b108da608424a17898d76fbff60afe4",
         "source": "57907c28874df3a7f6196ddcd40828829592841c1ea01db32eef4e1aa2cea874"
       },
       "outputs": {
         "116": {
           "path": "assets/social-116/douyin-138411321-116.webp",
-          "sha256": "6d416cdbda9616ea59f17b1f04b1f638ae4c38e935689b61cd6b04d7be13c636"
+          "sha256": "c5304894365b9b0b8cf6b3f37235db51d032ae8149ab97116d6af620da5a20eb"
         },
         "232": {
           "path": "assets/social-116/douyin-138411321-232.webp",
-          "sha256": "ad67d549f87964f65e64c858cc0fe8eeb12791a5f73e19784e7df65a890b1ea2"
+          "sha256": "9b10742bf08b24e0b693892f0be245bc04899a634fd8005ebb48eb2535221103"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     },
     {
       "assetName": "douyin-89144212942-116.webp",
       "platform": "douyin",
       "profileUrl": "https://v.douyin.com/S99_Tv9at_I/",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_218a92aa360d4b544eaf3c22776e1936~tplv-dy-aweme-images:q75.webp",
       "sourceSize": "4284x4284",
       "fetchedFormat": "webp",
       "sourceFormat": "webp",
       "sourcePath": "assets/social-source/douyin-89144212942.webp",
       "hashes": {
-        "116": "0419ae7190b93ea843e7e3df0b38676e480d7395b613d401837841ea00236b6e",
-        "232": "d7de00d94c55339f2e7dd69c791329abbab402cddc3fab5d4e3e5c41dc6da6b4",
+        "116": "a94ebbacb5e1f057f8292f8e72ea12603aed08e8665c93eacc80bc6f6b48bcfc",
+        "232": "e41c932fd13f75f418a07006a41b3eb59a86d61d45373cb13fb0d55cab078b84",
         "fetched": "d00c993e8727d873344b369928aff1371829ccd8d5c580a7b82d5f7a962f1d21",
         "source": "920ae76e973e777bd77649cd5b8205405d8dd5e5f9081b541af083101acfaf65"
       },
       "outputs": {
         "116": {
           "path": "assets/social-116/douyin-89144212942-116.webp",
-          "sha256": "0419ae7190b93ea843e7e3df0b38676e480d7395b613d401837841ea00236b6e"
+          "sha256": "a94ebbacb5e1f057f8292f8e72ea12603aed08e8665c93eacc80bc6f6b48bcfc"
         },
         "232": {
           "path": "assets/social-116/douyin-89144212942-232.webp",
-          "sha256": "d7de00d94c55339f2e7dd69c791329abbab402cddc3fab5d4e3e5c41dc6da6b4"
+          "sha256": "e41c932fd13f75f418a07006a41b3eb59a86d61d45373cb13fb0d55cab078b84"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     },
     {
@@ -852,10 +827,10 @@
       "assetName": "douyin-999999q99999-116.webp",
       "platform": "douyin",
       "profileUrl": "https://v.douyin.com/vyPKT52O7iE/",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-i-0813_oIIAom3DfIIAEA2abYQAFLICeRGLf0ADSe8x7I~tplv-dy-aweme-images:q75.webp",
       "sourceSize": "1536x1536",
       "fetchedFormat": "webp",
@@ -863,7 +838,7 @@
       "sourcePath": "assets/social-source/douyin-999999q99999.webp",
       "hashes": {
         "116": "8194aacbcecfdc8a94180b48344e4e5ea04d7b287582e0b2c14cee6ea05f405d",
-        "232": "4d4380c76a532de93f4ccca3f73c53c85a9aa8eb326576a1b6bbd9e6f649cf3a",
+        "232": "994d81927f9c60d0c401c5a35c3be0b97e2e08322c3eeb7c8ea158ccd968e438",
         "fetched": "cf02b85e69b374f88633816d9724779916192d1c7071881b8e0498652692638e",
         "source": "750080e4a48a7af3bcaca2d79524696dc14708eeba02801faeb7f2c7c80a8d24"
       },
@@ -874,10 +849,10 @@
         },
         "232": {
           "path": "assets/social-116/douyin-999999q99999-232.webp",
-          "sha256": "4d4380c76a532de93f4ccca3f73c53c85a9aa8eb326576a1b6bbd9e6f649cf3a"
+          "sha256": "994d81927f9c60d0c401c5a35c3be0b97e2e08322c3eeb7c8ea158ccd968e438"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     },
     {
@@ -948,42 +923,42 @@
       "assetName": "douyin-87296762727-116.webp",
       "platform": "douyin",
       "profileUrl": "https://v.douyin.com/r0lB8iDyYLA/",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_b8a22a76ff4b4decae8ceb553aaa4448~tplv-dy-aweme-images:q75.webp",
       "sourceSize": "1206x1206",
       "fetchedFormat": "webp",
       "sourceFormat": "webp",
       "sourcePath": "assets/social-source/douyin-87296762727.webp",
       "hashes": {
-        "116": "b8b6b749e9fd1d0ec146932f06e4ad183137f351a4d3c5fec99d8d8a9ac826e4",
-        "232": "a7391c19f9d8d85bd7d73f383b27131eb8f8b7dc0e8396ed8e34a754feafbf64",
+        "116": "ed7622f82a014fe0e7e7bb0873a7d9415204b1f101b44ece7a8c9996355d3852",
+        "232": "f60f4301a60b87cf867c307923a14a2c75a71d0ea699131f612266954c61e8d2",
         "fetched": "0d9eb1769b5d475fefcab82400bee9f269e1e3c8007cc682c40654e1b77bd68c",
         "source": "a355a4e34d74eb7dd686aadbda113932c6aefc4753e7219fa3eb5610a971de86"
       },
       "outputs": {
         "116": {
           "path": "assets/social-116/douyin-87296762727-116.webp",
-          "sha256": "b8b6b749e9fd1d0ec146932f06e4ad183137f351a4d3c5fec99d8d8a9ac826e4"
+          "sha256": "ed7622f82a014fe0e7e7bb0873a7d9415204b1f101b44ece7a8c9996355d3852"
         },
         "232": {
           "path": "assets/social-116/douyin-87296762727-232.webp",
-          "sha256": "a7391c19f9d8d85bd7d73f383b27131eb8f8b7dc0e8396ed8e34a754feafbf64"
+          "sha256": "f60f4301a60b87cf867c307923a14a2c75a71d0ea699131f612266954c61e8d2"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     },
     {
       "assetName": "douyin-92340484988-116.webp",
       "platform": "douyin",
       "profileUrl": "https://v.douyin.com/nWx5ble0CXs/",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_e586575e63f6234275dd57127c62cf61~tplv-dy-aweme-images:q75.webp",
       "sourceSize": "1279x1279",
       "fetchedFormat": "webp",
@@ -991,7 +966,7 @@
       "sourcePath": "assets/social-source/douyin-92340484988.webp",
       "hashes": {
         "116": "8ca96a90884b8ee036ba995f599ef7a35d6e590ee11301e1c1c71b40a743193b",
-        "232": "6124eceb2186941276578e7aa043e39e47a2e27a4c3fd9e3e8282d36f394f988",
+        "232": "8535fd452ff7b82bef05a224d268c4c3cc96ff70387e3d65bf0cfede1bd36f4b",
         "fetched": "07694b63810f1e02b1d64a403aadd0b7e22956ea375fd80e69f2e550c48c4111",
         "source": "a1a860252c93be8543a78cecd444217abd4fcca73f69ad02dc7895aaada2d38a"
       },
@@ -1002,42 +977,42 @@
         },
         "232": {
           "path": "assets/social-116/douyin-92340484988-232.webp",
-          "sha256": "6124eceb2186941276578e7aa043e39e47a2e27a4c3fd9e3e8282d36f394f988"
+          "sha256": "8535fd452ff7b82bef05a224d268c4c3cc96ff70387e3d65bf0cfede1bd36f4b"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     },
     {
       "assetName": "douyin-90267896705-116.webp",
       "platform": "douyin",
       "profileUrl": "https://v.douyin.com/exytlqpiZCY/",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_3b972e6558ac4871f5dd3610f49c7953~tplv-dy-aweme-images:q75.webp",
       "sourceSize": "3672x3672",
       "fetchedFormat": "webp",
       "sourceFormat": "webp",
       "sourcePath": "assets/social-source/douyin-90267896705.webp",
       "hashes": {
-        "116": "49388caff21228dc6c8b23840f3008f49357c53998246f56aaa4c610ac7d889a",
-        "232": "ce06d16c80a38029ba2153b078d6569fc0a866ab01d7c136027f40d88e0fe7f8",
+        "116": "821173f16002ddff9bfe1696551099fdda5efc00b3b267d35622a34fc9f093e8",
+        "232": "73f0cfefb70c0291f6dcd2274386bd35cf306a9c97d3f5f122ca011e5f7f1488",
         "fetched": "cc54e8ae6b446b17040b5ab1911791fb32de660b23727b24ff7c66f2c3275db4",
         "source": "b3868846481f134b368a5e8ba23e14fde885bed98656fa6ff6b5c344cb6c6027"
       },
       "outputs": {
         "116": {
           "path": "assets/social-116/douyin-90267896705-116.webp",
-          "sha256": "49388caff21228dc6c8b23840f3008f49357c53998246f56aaa4c610ac7d889a"
+          "sha256": "821173f16002ddff9bfe1696551099fdda5efc00b3b267d35622a34fc9f093e8"
         },
         "232": {
           "path": "assets/social-116/douyin-90267896705-232.webp",
-          "sha256": "ce06d16c80a38029ba2153b078d6569fc0a866ab01d7c136027f40d88e0fe7f8"
+          "sha256": "73f0cfefb70c0291f6dcd2274386bd35cf306a9c97d3f5f122ca011e5f7f1488"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     },
     {
@@ -1076,17 +1051,17 @@
       "assetName": "douyin-41184831028-116.webp",
       "platform": "douyin",
       "profileUrl": "https://v.douyin.com/LA2C1TIky_c/",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_2c8d0b460212ec0aa2a9a9da8aa295bb~tplv-dy-aweme-images:q75.webp",
       "sourceSize": "2160x2160",
       "fetchedFormat": "webp",
       "sourceFormat": "webp",
       "sourcePath": "assets/social-source/douyin-41184831028.webp",
       "hashes": {
-        "116": "fa9f8b8c6bba3b60adb95247432a6f85f569e5a68eb5bd78abbcb187b6df0340",
+        "116": "ac86f8e05dbf0a3cc6a6a7663d71a114866e93e1e4e0129b375ad32ec3a228bb",
         "232": "78192c2d684a08382c9b142be0fda44bc6e22eabb44ee723b7017cf64990a682",
         "fetched": "583bee22279ccde7a5f207d722c55fbc2e05082ba5adce8e9b6364a056f5501e",
         "source": "2461fc1e195cce7be429bd97fa7b483ca72ba0bf3ea814a23020198693baf746"
@@ -1094,155 +1069,178 @@
       "outputs": {
         "116": {
           "path": "assets/social-116/douyin-41184831028-116.webp",
-          "sha256": "fa9f8b8c6bba3b60adb95247432a6f85f569e5a68eb5bd78abbcb187b6df0340"
+          "sha256": "ac86f8e05dbf0a3cc6a6a7663d71a114866e93e1e4e0129b375ad32ec3a228bb"
         },
         "232": {
           "path": "assets/social-116/douyin-41184831028-232.webp",
           "sha256": "78192c2d684a08382c9b142be0fda44bc6e22eabb44ee723b7017cf64990a682"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     },
     {
       "assetName": "douyin-a05505566-116.webp",
       "platform": "douyin",
       "profileUrl": "https://v.douyin.com/ihAmAIBBPXk/",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ddabaf4729ea107c55b3511f53dfe1fa~tplv-dy-aweme-images:q75.webp",
       "sourceSize": "1290x1267",
       "fetchedFormat": "webp",
       "sourceFormat": "webp",
       "sourcePath": "assets/social-source/douyin-a05505566.webp",
       "hashes": {
-        "116": "5246e88d23bf40d27d86d9de6dc68e9cae39e1371d9710eea61b54cd181f7ba6",
-        "232": "11928a4480f975c4a869b502561ff6bcb50455ad4cd6a901476cd6aa2c5e06ce",
+        "116": "fcbb990c8929a64a95a6b1bef6e0ac4a7d382529bf7a3b54f562c3210f7f4249",
+        "232": "543e6e320569d04de6c151af92119022f79a27b4fbe44bac182513c0b24d134b",
         "fetched": "1175cf23cf61b5351acb657b05c4c39abc226fe580ae54794497246be29742b1",
         "source": "4a0af65fc4c0686e1150e382e6588a1190f54482121314c271aa1fac514f9872"
       },
       "outputs": {
         "116": {
           "path": "assets/social-116/douyin-a05505566-116.webp",
-          "sha256": "5246e88d23bf40d27d86d9de6dc68e9cae39e1371d9710eea61b54cd181f7ba6"
+          "sha256": "fcbb990c8929a64a95a6b1bef6e0ac4a7d382529bf7a3b54f562c3210f7f4249"
         },
         "232": {
           "path": "assets/social-116/douyin-a05505566-232.webp",
-          "sha256": "11928a4480f975c4a869b502561ff6bcb50455ad4cd6a901476cd6aa2c5e06ce"
+          "sha256": "543e6e320569d04de6c151af92119022f79a27b4fbe44bac182513c0b24d134b"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     },
     {
       "assetName": "xiaohongshu-haoduobao-116.webp",
       "platform": "xiaohongshu",
       "profileUrl": "https://www.xiaohongshu.com/user/profile/5af044554eacab1175529438",
-      "status": "failed",
-      "changed": false,
-      "sourceChanged": false,
-      "outputChanged": false,
-      "sourceUrl": null,
-      "sourceSize": null,
-      "fetchedFormat": null,
-      "sourceFormat": null,
+      "status": "updated",
+      "changed": true,
+      "sourceChanged": true,
+      "outputChanged": true,
+      "sourceUrl": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo31l2402ngiu004a54ju25b51o6jcvvq8",
+      "sourceSize": "1320x1320",
+      "fetchedFormat": "jpeg",
+      "sourceFormat": "webp",
       "sourcePath": "assets/social-source/xiaohongshu-haoduobao.webp",
-      "hashes": null,
+      "hashes": {
+        "116": "e8fd5dfd91661799645e84c6cbf4b06975e2b9635027f5c44177ba6132d8782c",
+        "232": "fb9a8a9068c4fc8c5621c66004b79dc255692ac97b84abb2e4d9fafa84e4ef30",
+        "fetched": "1ac986c2460b1866883c4d7d6bfc20ed44fae0bc7ff18ee1351e8ea77456022f",
+        "source": "3a7c7147c778e845516bafddd7a253ef12f450aeb93b229094539b9f8788ebe9"
+      },
       "outputs": {
         "116": {
           "path": "assets/social-116/xiaohongshu-haoduobao-116.webp",
-          "sha256": null
+          "sha256": "e8fd5dfd91661799645e84c6cbf4b06975e2b9635027f5c44177ba6132d8782c"
         },
         "232": {
           "path": "assets/social-116/xiaohongshu-haoduobao-232.webp",
-          "sha256": null
+          "sha256": "fb9a8a9068c4fc8c5621c66004b79dc255692ac97b84abb2e4d9fafa84e4ef30"
         }
       },
-      "reason": "no avatar candidates",
+      "reason": null,
       "failures": []
     },
     {
       "assetName": "xiaohongshu-yw-source-supply-116.webp",
       "platform": "xiaohongshu",
       "profileUrl": "https://www.xiaohongshu.com/user/profile/6844fc06000000001b01b6e5",
-      "status": "failed",
-      "changed": false,
-      "sourceChanged": false,
-      "outputChanged": false,
-      "sourceUrl": null,
-      "sourceSize": null,
-      "fetchedFormat": null,
-      "sourceFormat": null,
+      "status": "updated",
+      "changed": true,
+      "sourceChanged": true,
+      "outputChanged": true,
+      "sourceUrl": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo322alcpnr7a005q24vg36rdn5lgtkss8",
+      "sourceSize": "1170x1170",
+      "fetchedFormat": "jpeg",
+      "sourceFormat": "webp",
       "sourcePath": "assets/social-source/xiaohongshu-yw-source-supply.webp",
-      "hashes": null,
+      "hashes": {
+        "116": "2937b0cd49651dc74985658e3be05856cdca11a16d2e2f575e817b192551dd21",
+        "232": "02941ca0f9b70239bc9e3f232c8e05984067d61c26ebaf766edc7d3920bb195c",
+        "fetched": "0ca4b307e3b991b822fa669e7fa4924e1e6a9fa05732f393d2bd9f9e4c731b78",
+        "source": "20bac8a0f84ea540786109edb697aa20c13f36a9d41837f6da78110148ad377d"
+      },
       "outputs": {
         "116": {
           "path": "assets/social-116/xiaohongshu-yw-source-supply-116.webp",
-          "sha256": null
+          "sha256": "2937b0cd49651dc74985658e3be05856cdca11a16d2e2f575e817b192551dd21"
         },
         "232": {
           "path": "assets/social-116/xiaohongshu-yw-source-supply-232.webp",
-          "sha256": null
+          "sha256": "02941ca0f9b70239bc9e3f232c8e05984067d61c26ebaf766edc7d3920bb195c"
         }
       },
-      "reason": "no avatar candidates",
+      "reason": null,
       "failures": []
     },
     {
       "assetName": "xiaohongshu-yiwu-ranran-116.webp",
       "platform": "xiaohongshu",
       "profileUrl": "https://www.xiaohongshu.com/user/profile/69f829370000000002002407",
-      "status": "failed",
-      "changed": false,
-      "sourceChanged": false,
-      "outputChanged": false,
-      "sourceUrl": null,
-      "sourceSize": null,
-      "fetchedFormat": null,
-      "sourceFormat": null,
+      "status": "updated",
+      "changed": true,
+      "sourceChanged": true,
+      "outputChanged": true,
+      "sourceUrl": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo3229acvhg7a005qfo54rgg90762o94ug",
+      "sourceSize": "1172x1172",
+      "fetchedFormat": "jpeg",
+      "sourceFormat": "webp",
       "sourcePath": "assets/social-source/xiaohongshu-yiwu-ranran.webp",
-      "hashes": null,
+      "hashes": {
+        "116": "62deaa2542e1a3135da836542233da2e83683e6250377b027c4635c902b6bf43",
+        "232": "47507c6094a9365672e6035efaec7116ac104d9a64808eeb99d73c606b4ebe93",
+        "fetched": "faaecec625d5ce87df42a47d5197eb9762f53d2e35d5cc2241c8d40f97c36d95",
+        "source": "fca854a3f1238bc89271fdbbbdba3de09ee76c94ed65afc43a6f7b221c04770e"
+      },
       "outputs": {
         "116": {
           "path": "assets/social-116/xiaohongshu-yiwu-ranran-116.webp",
-          "sha256": null
+          "sha256": "62deaa2542e1a3135da836542233da2e83683e6250377b027c4635c902b6bf43"
         },
         "232": {
           "path": "assets/social-116/xiaohongshu-yiwu-ranran-232.webp",
-          "sha256": null
+          "sha256": "47507c6094a9365672e6035efaec7116ac104d9a64808eeb99d73c606b4ebe93"
         }
       },
-      "reason": "no avatar candidates",
+      "reason": null,
       "failures": []
     },
     {
       "assetName": "xiaohongshu-yaoge-116.webp",
       "platform": "xiaohongshu",
       "profileUrl": "https://www.xiaohongshu.com/user/profile/5597cae1e4b1cf1a56ddfeb3",
-      "status": "failed",
-      "changed": false,
-      "sourceChanged": false,
-      "outputChanged": false,
-      "sourceUrl": null,
-      "sourceSize": null,
-      "fetchedFormat": null,
-      "sourceFormat": null,
+      "status": "updated",
+      "changed": true,
+      "sourceChanged": true,
+      "outputChanged": true,
+      "sourceUrl": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo31tljlu176o6g40tq3d5e3vljrh06ssg",
+      "sourceSize": "560x560",
+      "fetchedFormat": "jpeg",
+      "sourceFormat": "webp",
       "sourcePath": "assets/social-source/xiaohongshu-yaoge.webp",
-      "hashes": null,
+      "hashes": {
+        "116": "17e1ace622bfdbdd5f76c6358d6d4a978c73e517f82a73130b62cbe635a8f3d4",
+        "232": "6562aeb96e4d34391a1fd8b86c380261ee3dda9718286da20b1d9a725146d603",
+        "fetched": "359a8ce5e48418df374b465c287a1bfdcdfe4081dcc91015bcc35ddf11974e6a",
+        "source": "86aa486270218b73f0c34adbe891d5b2381dede46799de60e587bae72d97c421"
+      },
       "outputs": {
         "116": {
           "path": "assets/social-116/xiaohongshu-yaoge-116.webp",
-          "sha256": null
+          "sha256": "17e1ace622bfdbdd5f76c6358d6d4a978c73e517f82a73130b62cbe635a8f3d4"
         },
         "232": {
           "path": "assets/social-116/xiaohongshu-yaoge-232.webp",
-          "sha256": null
+          "sha256": "6562aeb96e4d34391a1fd8b86c380261ee3dda9718286da20b1d9a725146d603"
         }
       },
-      "reason": "no avatar candidates",
-      "failures": []
+      "reason": null,
+      "failures": [
+        "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo31tljlu176o6g40tq3d5e3vljrh06ssg?imageView2/2/w/60/format/jpg|imageMogr2/strip: source too small: 60x60",
+        "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo31tljlu176o6g40tq3d5e3vljrh06ssg?imageView2/2/w/360/format/webp: source too small: 360x360"
+      ]
     },
     {
       "assetName": "xiaohongshu-zhu-manager-116.webp",
@@ -1356,10 +1354,10 @@
       "assetName": "xiaohongshu-635230302-116.webp",
       "platform": "xiaohongshu",
       "profileUrl": "https://www.xiaohongshu.com/user/profile/5a4c800d11be101f60868823",
-      "status": "unchanged",
-      "changed": false,
+      "status": "updated",
+      "changed": true,
       "sourceChanged": false,
-      "outputChanged": false,
+      "outputChanged": true,
       "sourceUrl": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo32275jaim7o6g4a0krs00r213avs3s1o",
       "sourceSize": "480x480",
       "fetchedFormat": "jpeg",
@@ -1367,7 +1365,7 @@
       "sourcePath": "assets/social-source/xiaohongshu-635230302.webp",
       "hashes": {
         "116": "b7f7a84ac0ec15a358993ef33665075c2774bcb2b27a23aa08b98883107ef53d",
-        "232": "4575ce8581637a1a235c844178118535b1192935b7927c8f00e13aab20d49d1c",
+        "232": "1f2a88d9b459219d9034a70fd2364a5fd9a4a4ae855543cbd7591c939ba4ed9b",
         "fetched": "e51f4dfb19b0090b4add3f8d4685225211cdd213fb5250b97804bd66be5ae463",
         "source": "37c3d99f2c7271eed80894d720868ee95c9f820d1585cfb6236d345d378eb4ab"
       },
@@ -1378,10 +1376,10 @@
         },
         "232": {
           "path": "assets/social-116/xiaohongshu-635230302-232.webp",
-          "sha256": "4575ce8581637a1a235c844178118535b1192935b7927c8f00e13aab20d49d1c"
+          "sha256": "1f2a88d9b459219d9034a70fd2364a5fd9a4a4ae855543cbd7591c939ba4ed9b"
         }
       },
-      "reason": "unchanged",
+      "reason": null,
       "failures": []
     }
   ]
