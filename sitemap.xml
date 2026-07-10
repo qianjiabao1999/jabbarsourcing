@@ -510,4 +510,16 @@
     <xhtml:link rel="alternate" hreflang="it" href="https://www.jabbarsourcing.com/it/calculator/" />
     <xhtml:link rel="alternate" hreflang="tr" href="https://www.jabbarsourcing.com/tr/calculator/" />
   </url>
+  <url>
+    <loc>https://www.jabbarsourcing.com/privacy-policy.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.jabbarsourcing.com/support.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
 </urlset>

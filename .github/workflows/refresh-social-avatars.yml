@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
+    inputs:
+      commit_changes:
+        description: "Write verified avatar changes and commit them to main"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -29,10 +35,16 @@ jobs:
           npm install --no-save sharp
           npx playwright install --with-deps chromium
 
-      - name: Refresh avatars when high quality sources are available
+      - name: Audit avatars without writing files
+        if: github.event_name == 'schedule' || inputs.commit_changes != true
+        run: node scripts/update-social-avatars.mjs --audit
+
+      - name: Refresh avatars when explicitly approved
+        if: github.event_name == 'workflow_dispatch' && inputs.commit_changes == true
         run: node scripts/update-social-avatars.mjs
 
       - name: Commit refreshed avatars
+        if: github.event_name == 'workflow_dispatch' && inputs.commit_changes == true
         run: |
           git add assets/social-116
           if [ -d assets/social-source ]; then

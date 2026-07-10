@@ -4,9 +4,11 @@ Cloudflare Workers AI backend for the Jabbar Sourcing website chat widget.
 
 ## What It Does
 
-- Answers sourcing questions in the current website language.
+- Answers in the language used by the buyer's latest message.
 - Collects product, quantity, target market, budget, specs/photos, and deadline.
-- Produces a WhatsApp-ready sourcing inquiry summary.
+- Produces a short, plain-text WhatsApp-ready sourcing inquiry summary.
+- Refuses unrelated requests and role/prompt override attempts.
+- Removes Markdown asterisks before sending replies to the website.
 - Uses Cloudflare Workers AI through the native `AI` binding.
 
 ## Deploy
@@ -57,7 +59,8 @@ The Worker requires this binding in `wrangler.jsonc`:
 Default model:
 
 ```text
-@cf/deepseek-ai/deepseek-r1-distill-qwen-32b
+@cf/meta/llama-3.1-8b-instruct-fp8
 ```
 
 You can change `AI_MODEL` in `wrangler.jsonc` without editing `worker.js`.
+Model calls are capped at 12 seconds. If Workers AI is unavailable or exceeds that limit, the Worker returns a localized WhatsApp fallback instead of leaving the visitor waiting.

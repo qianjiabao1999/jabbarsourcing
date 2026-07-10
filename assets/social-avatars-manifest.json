@@ -27,14 +27,12 @@
   },
   "counts": {
     "checked": 40,
-    "changed": 17,
-    "avatarChanged": 17,
-    "failed": 4
+    "changed": 15,
+    "avatarChanged": 15,
+    "failed": 6
   },
   "changed": [
     "lesley-in-yiwu-116.webp",
-    "instagram-vincent130801-116.webp",
-    "instagram-vincentfromyiwu-116.webp",
     "douyin-05280606-116.webp",
     "douyin-138411321-116.webp",
     "douyin-89144212942-116.webp",
@@ -52,8 +50,6 @@
   ],
   "avatarChanged": [
     "lesley-in-yiwu-116.webp",
-    "instagram-vincent130801-116.webp",
-    "instagram-vincentfromyiwu-116.webp",
     "douyin-05280606-116.webp",
     "douyin-138411321-116.webp",
     "douyin-89144212942-116.webp",
@@ -504,65 +500,69 @@
       "assetName": "instagram-vincent130801-116.webp",
       "platform": "instagram",
       "profileUrl": "https://www.instagram.com/vincent130801/",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png",
-      "sourceSize": "4168x4168",
-      "fetchedFormat": "png",
-      "sourceFormat": "webp",
+      "status": "failed",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": null,
+      "sourceSize": null,
+      "fetchedFormat": null,
+      "sourceFormat": null,
       "sourcePath": "assets/social-source/instagram-vincent130801.webp",
       "hashes": {
-        "116": "63206084a73905d1bea3993dad1513e24355b510d3a11b4e26a0a6fe889dd6ad",
-        "232": "b172169fc6fccd087f704fb018f39925303e6de712829d3d06d7db1ec97010bb",
-        "fetched": "b421b00fd1791a1d1ab70dd1e9667f40ca79a8c8673989864f1be092295cd7da",
-        "source": "42a0c0becf77061bb5a0920acc7cdaadecf727c169ad4b4dcbe30f46ca23024e"
+        "116": "0dc3cc9736d4546f8ded908efb2908db229241abeaf909c0ec77029ee1788b10",
+        "232": "98aff2147959fe28837e6fd94835754991e8950c1f187a6720ac29bff56eef8f",
+        "fetched": null,
+        "source": null
       },
       "outputs": {
         "116": {
           "path": "assets/social-116/instagram-vincent130801-116.webp",
-          "sha256": "63206084a73905d1bea3993dad1513e24355b510d3a11b4e26a0a6fe889dd6ad"
+          "sha256": "0dc3cc9736d4546f8ded908efb2908db229241abeaf909c0ec77029ee1788b10"
         },
         "232": {
           "path": "assets/social-116/instagram-vincent130801-232.webp",
-          "sha256": "b172169fc6fccd087f704fb018f39925303e6de712829d3d06d7db1ec97010bb"
+          "sha256": "98aff2147959fe28837e6fd94835754991e8950c1f187a6720ac29bff56eef8f"
         }
       },
-      "reason": null,
-      "failures": []
+      "reason": "platform placeholder rejected; retained last-known-good rendered avatar",
+      "failures": [
+        "Instagram profile metadata exposed only platform placeholder artwork"
+      ]
     },
     {
       "assetName": "instagram-vincentfromyiwu-116.webp",
       "platform": "instagram",
       "profileUrl": "https://www.instagram.com/vincentfromyiwu/",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": true,
-      "outputChanged": true,
-      "sourceUrl": "https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png",
-      "sourceSize": "4168x4168",
-      "fetchedFormat": "png",
-      "sourceFormat": "webp",
+      "status": "failed",
+      "changed": false,
+      "sourceChanged": false,
+      "outputChanged": false,
+      "sourceUrl": null,
+      "sourceSize": null,
+      "fetchedFormat": null,
+      "sourceFormat": null,
       "sourcePath": "assets/social-source/instagram-vincentfromyiwu.webp",
       "hashes": {
-        "116": "63206084a73905d1bea3993dad1513e24355b510d3a11b4e26a0a6fe889dd6ad",
-        "232": "b172169fc6fccd087f704fb018f39925303e6de712829d3d06d7db1ec97010bb",
-        "fetched": "b421b00fd1791a1d1ab70dd1e9667f40ca79a8c8673989864f1be092295cd7da",
-        "source": "42a0c0becf77061bb5a0920acc7cdaadecf727c169ad4b4dcbe30f46ca23024e"
+        "116": "57e48fdb497320f1e5b94c940fd27f500a6ef2aa871a4d89b799f510d7685c26",
+        "232": "d9b8cec3c35728f0dddb40c76753bbe2f298e5277fdb4f1ab45e1479a2e3a8de",
+        "fetched": null,
+        "source": null
       },
       "outputs": {
         "116": {
           "path": "assets/social-116/instagram-vincentfromyiwu-116.webp",
-          "sha256": "63206084a73905d1bea3993dad1513e24355b510d3a11b4e26a0a6fe889dd6ad"
+          "sha256": "57e48fdb497320f1e5b94c940fd27f500a6ef2aa871a4d89b799f510d7685c26"
         },
         "232": {
           "path": "assets/social-116/instagram-vincentfromyiwu-232.webp",
-          "sha256": "b172169fc6fccd087f704fb018f39925303e6de712829d3d06d7db1ec97010bb"
+          "sha256": "d9b8cec3c35728f0dddb40c76753bbe2f298e5277fdb4f1ab45e1479a2e3a8de"
         }
       },
-      "reason": null,
-      "failures": []
+      "reason": "platform placeholder rejected; retained last-known-good rendered avatar",
+      "failures": [
+        "Instagram profile metadata exposed only platform placeholder artwork"
+      ]
     },
     {
       "assetName": "douyin-haoduobao-116.webp",

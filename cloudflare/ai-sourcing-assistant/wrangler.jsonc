@@ -15,6 +15,6 @@
   "vars": {
     "ALLOWED_ORIGIN": "https://www.jabbarsourcing.com",
     "WHATSAPP_PHONE": "8618658925544",
-    "AI_MODEL": "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b"
+    "AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8"
   }
 }
