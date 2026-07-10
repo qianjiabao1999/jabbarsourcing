@@ -1,24 +1,34 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import crypto from "node:crypto";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const sharp = require("sharp");
-const { chromium } = require("playwright");
+let chromium = null;
+let playwrightLoadError = null;
+try {
+  ({ chromium } = require("playwright"));
+} catch (error) {
+  playwrightLoadError = error;
+}
 
 const ROOT = process.cwd();
 const INDEX_FILE = path.join(ROOT, "index.html");
 const ASSETS_DIR = path.join(ROOT, "assets");
 const SOCIAL_AVATAR_DIR = path.join(ASSETS_DIR, "social-116");
+const SOCIAL_SOURCE_DIR = path.join(ASSETS_DIR, "social-source");
 const MANIFEST_FILE = path.join(ASSETS_DIR, "social-avatars-manifest.json");
+const BROWSER_IMAGE_CACHE = new Map();
 
 const MIN_SOURCE_SIZE = 400;
+const MAX_SOURCE_ASPECT_RATIO = 1.2;
+const MAX_CANDIDATES = 16;
 const OUTPUT_SIZES = [
   { suffix: "116", size: 116, quality: 78 },
   { suffix: "232", size: 232, quality: 84 },
 ];
 const REQUEST_TIMEOUT_MS = 15000;
-const INSTAGRAM_MIN_SOURCE_SIZE = 100;
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
@@ -130,10 +140,83 @@ const ACCOUNT_HINTS = {
   "xiaohongshu-635230302.webp": {
     platform: "xiaohongshu",
     profileUrl: "https://www.xiaohongshu.com/user/profile/5a4c800d11be101f60868823",
+    fallbackAvatarUrl: "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo32275jaim7o6g4a0krs00r213avs3s1o",
   },
 };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function sha256(buffer) {
+  return crypto.createHash("sha256").update(buffer).digest("hex");
+}
+
+function relativePath(filePath) {
+  return path.relative(ROOT, filePath).split(path.sep).join("/");
+}
+
+function formatError(error) {
+  return String(error?.message || error || "unknown error")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 600);
+}
+
+async function readFileIfExists(filePath) {
+  return fs.readFile(filePath).catch((error) => {
+    if (error?.code === "ENOENT") return null;
+    throw error;
+  });
+}
+
+async function pathExists(filePath) {
+  return fs.access(filePath).then(() => true).catch(() => false);
+}
+
+async function replaceFilesAtomically(files) {
+  if (!files.length) return;
+
+  const token = `${process.pid}-${Date.now()}-${crypto.randomBytes(5).toString("hex")}`;
+  const states = files.map(({ filePath, buffer }) => ({
+    filePath,
+    buffer,
+    tempPath: `${filePath}.tmp-${token}`,
+    backupPath: `${filePath}.bak-${token}`,
+    hadOriginal: false,
+    replaced: false,
+  }));
+
+  try {
+    for (const state of states) {
+      await fs.mkdir(path.dirname(state.filePath), { recursive: true });
+      await fs.writeFile(state.tempPath, state.buffer, { flag: "wx" });
+    }
+
+    for (const state of states) {
+      state.hadOriginal = await pathExists(state.filePath);
+      if (state.hadOriginal) await fs.rename(state.filePath, state.backupPath);
+      await fs.rename(state.tempPath, state.filePath);
+      state.replaced = true;
+    }
+  } catch (error) {
+    const rollbackErrors = [];
+    for (const state of [...states].reverse()) {
+      try {
+        if (state.replaced) await fs.rm(state.filePath, { force: true });
+        if (state.hadOriginal && await pathExists(state.backupPath)) {
+          await fs.rename(state.backupPath, state.filePath);
+        }
+      } catch (rollbackError) {
+        rollbackErrors.push(`${relativePath(state.filePath)}: ${formatError(rollbackError)}`);
+      }
+    }
+    const suffix = rollbackErrors.length ? `; rollback failed: ${rollbackErrors.join(" | ")}` : "";
+    throw new Error(`atomic avatar write failed: ${formatError(error)}${suffix}`);
+  } finally {
+    await Promise.all(states.map((state) => fs.rm(state.tempPath, { force: true }).catch(() => {})));
+  }
+
+  await Promise.all(states.map((state) => fs.rm(state.backupPath, { force: true }).catch(() => {})));
+}
 
 function cleanImageUrl(value) {
   if (!value) return "";
@@ -191,6 +274,9 @@ async function resolveRedirectUrl(url) {
 }
 
 async function fetchImage(url) {
+  const cached = BROWSER_IMAGE_CACHE.get(cleanImageUrl(url));
+  if (cached) return cached;
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
@@ -274,6 +360,7 @@ async function fetchDouyinAvatarCandidates(account) {
 }
 
 async function fetchInstagramAvatarCandidates(account) {
+  if (!chromium) throw new Error(`Playwright unavailable: ${formatError(playwrightLoadError)}`);
   const browser = await chromium.launch({ headless: true });
   try {
     const context = await browser.newContext({
@@ -286,21 +373,81 @@ async function fetchInstagramAvatarCandidates(account) {
       await page.goto(account.profileUrl, { waitUntil: "domcontentloaded", timeout: REQUEST_TIMEOUT_MS * 3 });
       await page.waitForLoadState("load", { timeout: REQUEST_TIMEOUT_MS }).catch(() => {});
       await page.waitForTimeout(1800);
-      const candidates = await page.evaluate(() => {
+      const domCandidates = await page.evaluate(() => {
         const urls = [];
         const og = document.querySelector('meta[property="og:image"], meta[name="twitter:image"]')?.content;
         if (og) urls.push(og);
         for (const img of document.images) {
           const src = img.currentSrc || img.src;
           const alt = img.alt || "";
-          if (src && (/profile picture/i.test(alt) || /t51\.82787-19/.test(src))) urls.push(src);
+          if (!src || !(/profile picture/i.test(alt) || /t51\.82787-19/.test(src))) continue;
+          urls.push(src, img.src);
+          for (const item of (img.srcset || "").split(",")) {
+            const candidate = item.trim().split(/\s+/)[0];
+            if (candidate) urls.push(candidate);
+          }
         }
         return urls;
       });
-      return unique(candidates.map(cleanImageUrl)).sort((a, b) => {
-        const score = (value) => (value.includes("s150x150") ? 2 : 0) - (value.includes("s100x100") ? 1 : 0);
-        return score(b) - score(a);
+      const pageHtml = await page.content();
+      return preferLargeAvatarUrls([
+        ...domCandidates.map(cleanImageUrl),
+        ...extractAvatarCandidates(pageHtml),
+      ]);
+    } finally {
+      await context.close();
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
+async function fetchBrowserAvatarCandidates(account) {
+  if (!chromium) throw new Error(`Playwright unavailable: ${formatError(playwrightLoadError)}`);
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 900 },
+      locale: "en-US",
+      userAgent: USER_AGENT,
+    });
+    try {
+      const page = await context.newPage();
+      const browserImageResponses = [];
+      page.on("response", (response) => {
+        const responseUrl = cleanImageUrl(response.url());
+        if (
+          response.request().resourceType() !== "image" ||
+          !/(?:tiktokcdn|tiktokcdn-us)/i.test(responseUrl) ||
+          !/cropcenter:(?:720|1080)/i.test(responseUrl)
+        ) return;
+        browserImageResponses.push(
+          response.body()
+            .then((buffer) => {
+              if (buffer.length) BROWSER_IMAGE_CACHE.set(responseUrl, buffer);
+              return responseUrl;
+            })
+            .catch(() => ""),
+        );
       });
+      await page.goto(account.profileUrl, { waitUntil: "domcontentloaded", timeout: REQUEST_TIMEOUT_MS * 3 });
+      await page.waitForLoadState("load", { timeout: REQUEST_TIMEOUT_MS }).catch(() => {});
+      await page.waitForFunction(
+        () => [...document.images].some((image) =>
+          image.naturalWidth >= 400 && /tiktokcdn/i.test(image.currentSrc || image.src)),
+        { timeout: REQUEST_TIMEOUT_MS },
+      ).catch(() => {});
+      const renderedCandidates = await page.evaluate(() =>
+        [...document.images]
+          .filter((image) => image.naturalWidth >= 400 && /tiktokcdn/i.test(image.currentSrc || image.src))
+          .map((image) => image.currentSrc || image.src),
+      );
+      const pageHtml = await page.content();
+      await Promise.allSettled(browserImageResponses);
+      return preferLargeAvatarUrls([
+        ...renderedCandidates.map(cleanImageUrl),
+        ...extractAvatarCandidates(pageHtml),
+      ]);
     } finally {
       await context.close();
     }
@@ -332,6 +479,8 @@ function extractAvatarCandidates(html) {
     "profile_pic_url_hd",
     "profilePicUrl",
     "profilePicUrlHd",
+    "avatar",
+    "imageb",
   ]) {
     const pattern = new RegExp(`"${key}"\\s*:\\s*"([^"]+)"`, "g");
     for (const match of decoded.matchAll(pattern)) candidates.push(cleanImageUrl(match[1]));
@@ -344,7 +493,18 @@ function extractAvatarCandidates(html) {
 
   return unique(candidates)
     .map((url) => url.replace(/\\+"/g, ""))
-    .filter((url) => /^https?:\/\//.test(url));
+    .filter((url) => /^https?:\/\//.test(url))
+    .filter((url) => {
+      try {
+        const parsed = new URL(url);
+        if (parsed.hostname.endsWith("xhscdn.com") && parsed.hostname.includes("avatar")) {
+          return parsed.pathname.startsWith("/avatar/");
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    });
 }
 
 function preferLargeAvatarUrls(urls) {
@@ -369,9 +529,20 @@ function preferLargeAvatarUrls(urls) {
 function accountPlatformFromUrl(url) {
   if (url.includes("tiktok.com")) return "tiktok";
   if (url.includes("douyin.com") || url.includes("v.douyin.com")) return "douyin";
-  if (url.includes("xiaohongshu.com")) return "xiaohongshu";
+  if (url.includes("xiaohongshu.com") || url.includes("xhslink.com")) return "xiaohongshu";
   if (url.includes("instagram.com")) return "instagram";
   return "unknown";
+}
+
+function normalizeProfileUrl(value) {
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    url.pathname = url.pathname.replace(/\/+$/, "") || "/";
+    return url.toString();
+  } catch {
+    return value;
+  }
 }
 
 async function findSocialAccounts() {
@@ -389,15 +560,27 @@ async function findSocialAccounts() {
     const href = markup.match(/\shref="([^"]+)"/)?.[1]?.replace(/&amp;/g, "&");
     const dataWebLink = markup.match(/\sdata-web-link="([^"]+)"/)?.[1]?.replace(/&amp;/g, "&");
     const hint = ACCOUNT_HINTS[assetName] || {};
-    const profileUrl = hint.profileUrl || dataWebLink || href;
+    const linkedProfileUrl = dataWebLink || href;
+    const linkedPlatform = accountPlatformFromUrl(linkedProfileUrl || "");
+    if (hint.platform && linkedPlatform !== "unknown" && hint.platform !== linkedPlatform) {
+      throw new Error(
+        `social avatar file linked across platforms: ${renderedAssetName} ` +
+        `(${hint.platform} hint vs ${linkedPlatform} page link)`,
+      );
+    }
+    const profileUrl = hint.profileUrl || linkedProfileUrl;
     const platform = hint.platform || accountPlatformFromUrl(profileUrl || "");
 
     if (!profileUrl || !["tiktok", "douyin", "xiaohongshu", "instagram"].includes(platform)) continue;
+    const stem = renderedAssetName.replace(/-116\.webp$/, "");
     accounts.push({
       assetName,
       renderedAssetName,
       platform,
       profileUrl,
+      normalizedProfileUrl: normalizeProfileUrl(linkedProfileUrl || profileUrl),
+      fallbackAvatarUrl: hint.fallbackAvatarUrl || null,
+      sourcePath: path.join(SOCIAL_SOURCE_DIR, `${stem}.webp`),
       outputPaths: {
         116: path.join(SOCIAL_AVATAR_DIR, renderedAssetName),
         232: path.join(SOCIAL_AVATAR_DIR, renderedAssetName.replace(/-116\.webp$/, "-232.webp")),
@@ -406,150 +589,373 @@ async function findSocialAccounts() {
   }
 
   const byAsset = new Map();
-  for (const account of accounts) byAsset.set(account.renderedAssetName, account);
+  for (const account of accounts) {
+    const existing = byAsset.get(account.renderedAssetName);
+    if (existing) {
+      const sameAccount = existing.platform === account.platform &&
+        existing.normalizedProfileUrl === account.normalizedProfileUrl;
+      if (!sameAccount) {
+        throw new Error(
+          `social avatar file reused across accounts: ${account.renderedAssetName} ` +
+          `(${existing.platform} ${existing.profileUrl} vs ${account.platform} ${account.profileUrl})`,
+        );
+      }
+      continue;
+    }
+    byAsset.set(account.renderedAssetName, account);
+  }
   return [...byAsset.values()];
 }
 
-async function buildAvatarBuffer(sourceBuffer, options = {}) {
-  const minSourceSize = options.minSourceSize || MIN_SOURCE_SIZE;
+async function inspectAvatarBuffer(sourceBuffer) {
   const metadata = await sharp(sourceBuffer).metadata();
-  const sourceSize = Math.min(metadata.width || 0, metadata.height || 0);
-  if (sourceSize < minSourceSize) {
+  const width = metadata.width || 0;
+  const height = metadata.height || 0;
+  const sourceSize = Math.min(width, height);
+  if (sourceSize < MIN_SOURCE_SIZE) {
     return { ok: false, reason: `source too small: ${metadata.width}x${metadata.height}` };
   }
+  const aspectRatio = Math.max(width, height) / sourceSize;
+  if (!Number.isFinite(aspectRatio) || aspectRatio > MAX_SOURCE_ASPECT_RATIO) {
+    return {
+      ok: false,
+      reason: `source is not square enough: ${width}x${height} (ratio ${aspectRatio.toFixed(3)})`,
+    };
+  }
+
+  return { ok: true, width, height, sourceSize, aspectRatio, format: metadata.format || "unknown" };
+}
+
+async function buildAvatarBuffer(sourceBuffer, inspection) {
+  const source = await sharp(sourceBuffer)
+    .rotate()
+    .webp({ quality: 95, effort: 6, smartSubsample: true })
+    .toBuffer();
 
   const outputs = {};
   for (const target of OUTPUT_SIZES) {
-    outputs[target.suffix] = await sharp(sourceBuffer)
-      .resize({ width: target.size, height: target.size, fit: "cover", kernel: sharp.kernel.lanczos3 })
+    outputs[target.suffix] = await sharp(source)
+      .resize({
+        width: target.size,
+        height: target.size,
+        fit: "cover",
+        kernel: sharp.kernel.lanczos3,
+        withoutEnlargement: true,
+      })
       .sharpen({ sigma: 0.45, m1: 0.75, m2: 1.1 })
       .webp({ quality: target.quality, effort: 6, smartSubsample: true })
       .toBuffer();
   }
 
-  return { ok: true, outputs, sourceSize: `${metadata.width}x${metadata.height}` };
+  return {
+    source,
+    outputs,
+    sourceSize: `${inspection.width}x${inspection.height}`,
+    hashes: {
+      fetched: sha256(sourceBuffer),
+      source: sha256(source),
+      116: sha256(outputs[116]),
+      232: sha256(outputs[232]),
+    },
+  };
 }
 
 async function refreshAccount(account) {
   let candidates = [];
+  const failures = [];
   if (account.platform === "douyin") {
-    candidates = await fetchDouyinAvatarCandidates(account);
+    try {
+      candidates.push(...await fetchDouyinAvatarCandidates(account));
+    } catch (error) {
+      failures.push(`douyin API: ${formatError(error)}`);
+    }
   }
   if (account.platform === "instagram") {
-    candidates = await fetchInstagramAvatarCandidates(account);
+    try {
+      candidates.push(...await fetchInstagramAvatarCandidates(account));
+    } catch (error) {
+      failures.push(`instagram Playwright: ${formatError(error)}`);
+    }
   }
-  if (!candidates.length) {
-    const pageHtml = await fetchText(account.profileUrl);
-    candidates = preferLargeAvatarUrls(extractAvatarCandidates(pageHtml));
+  if (account.platform === "tiktok") {
+    try {
+      candidates.push(...await fetchBrowserAvatarCandidates(account));
+    } catch (error) {
+      failures.push(`tiktok Playwright: ${formatError(error)}`);
+    }
   }
-  if (!candidates.length) return { ...account, changed: false, reason: "no avatar candidates" };
 
-  for (const candidate of candidates.slice(0, 16)) {
+  try {
+    const pageHtml = await fetchText(account.profileUrl);
+    candidates.push(...preferLargeAvatarUrls(extractAvatarCandidates(pageHtml)));
+  } catch (error) {
+    failures.push(`profile HTML fallback: ${formatError(error)}`);
+  }
+  if (account.fallbackAvatarUrl) candidates.push(account.fallbackAvatarUrl);
+  candidates = unique(candidates.map(cleanImageUrl));
+  if (!candidates.length) {
+    return {
+      ...account,
+      success: false,
+      changed: false,
+      outputChanged: false,
+      sourceChanged: false,
+      reason: "no avatar candidates",
+      failures,
+    };
+  }
+
+  let best = null;
+  for (const candidate of candidates.slice(0, MAX_CANDIDATES)) {
     try {
       const image = await fetchImage(candidate);
-      const built = await buildAvatarBuffer(image, {
-        minSourceSize: account.platform === "instagram" ? INSTAGRAM_MIN_SOURCE_SIZE : MIN_SOURCE_SIZE,
-      });
-      if (!built.ok) {
+      const inspection = await inspectAvatarBuffer(image);
+      if (!inspection.ok) {
+        failures.push(`${candidate.slice(0, 260)}: ${inspection.reason}`);
         await sleep(250);
         continue;
       }
 
-      const current116 = await fs.readFile(account.outputPaths[116]).catch(() => null);
-      const current232 = await fs.readFile(account.outputPaths[232]).catch(() => null);
-      const same116 = current116 && Buffer.compare(current116, built.outputs[116]) === 0;
-      const same232 = current232 && Buffer.compare(current232, built.outputs[232]) === 0;
-      if (same116 && same232) {
-        return { ...account, changed: false, source: candidate, sourceSize: built.sourceSize, reason: "unchanged" };
+      const score = inspection.sourceSize * inspection.sourceSize;
+      if (!best || score > best.score) {
+        best = { candidate, image, inspection, score };
       }
-
-      await fs.mkdir(SOCIAL_AVATAR_DIR, { recursive: true });
-      await fs.writeFile(account.outputPaths[116], built.outputs[116]);
-      await fs.writeFile(account.outputPaths[232], built.outputs[232]);
-      return { ...account, changed: true, source: candidate, sourceSize: built.sourceSize };
+      if (inspection.sourceSize >= 1080 && inspection.aspectRatio <= 1.05) break;
     } catch (error) {
+      failures.push(`${candidate.slice(0, 260)}: ${formatError(error)}`);
       await sleep(250);
     }
   }
 
-  return { ...account, changed: false, reason: "no candidate passed quality gate" };
+  if (!best) {
+    return {
+      ...account,
+      success: false,
+      changed: false,
+      outputChanged: false,
+      sourceChanged: false,
+      reason: "no candidate passed quality gate",
+      failures: failures.slice(0, MAX_CANDIDATES + 4),
+    };
+  }
+
+  const built = await buildAvatarBuffer(best.image, best.inspection);
+  const currentSource = await readFileIfExists(account.sourcePath);
+  const current116 = await readFileIfExists(account.outputPaths[116]);
+  const current232 = await readFileIfExists(account.outputPaths[232]);
+  const sameSource = Boolean(currentSource && Buffer.compare(currentSource, built.source) === 0);
+  const same116 = Boolean(current116 && Buffer.compare(current116, built.outputs[116]) === 0);
+  const same232 = Boolean(current232 && Buffer.compare(current232, built.outputs[232]) === 0);
+  const sourceChanged = !sameSource;
+  const outputChanged = !same116 || !same232;
+
+  const pendingWrites = [];
+  if (!sameSource) pendingWrites.push({ filePath: account.sourcePath, buffer: built.source });
+  if (!same116) pendingWrites.push({ filePath: account.outputPaths[116], buffer: built.outputs[116] });
+  if (!same232) pendingWrites.push({ filePath: account.outputPaths[232], buffer: built.outputs[232] });
+  await replaceFilesAtomically(pendingWrites);
+
+  return {
+    ...account,
+    success: true,
+    changed: sourceChanged || outputChanged,
+    sourceChanged,
+    outputChanged,
+    sourceUrl: best.candidate,
+    sourceSize: built.sourceSize,
+    fetchedFormat: best.inspection.format,
+    hashes: built.hashes,
+    failures: failures.slice(0, MAX_CANDIDATES + 4),
+    reason: sourceChanged || outputChanged ? undefined : "unchanged",
+  };
+}
+
+const HTML_SKIP_DIRS = new Set([".git", ".playwright-cli", "node_modules", "_site", "output", "artifacts"]);
+
+async function findHtmlPages(directory = ROOT) {
+  const pages = [];
+  for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (!HTML_SKIP_DIRS.has(entry.name)) pages.push(...await findHtmlPages(path.join(directory, entry.name)));
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith(".html")) pages.push(path.join(directory, entry.name));
+  }
+  return pages;
+}
+
+async function readCurrentAvatarVersion() {
+  const html = await fs.readFile(INDEX_FILE, "utf8");
+  return html.match(/assets\/social-116\/[^"'?\s,]+-(?:116|232)\.webp\?v=(avatar-[A-Za-z0-9TZ-]+)/)?.[1] || null;
 }
 
 async function updateHtmlAvatarVersion(version) {
-  const entries = await fs.readdir(ROOT, { withFileTypes: true });
-  const pages = ["index.html"];
-  for (const entry of entries) {
-    if (entry.isDirectory()) {
-      const candidate = path.join(entry.name, "index.html");
-      try {
-        await fs.access(path.join(ROOT, candidate));
-        pages.push(candidate);
-      } catch {}
+  const pages = await findHtmlPages();
+  const writes = [];
+  const modifiedPages = [];
+  const referencePattern = /(assets\/social-116\/[^/"'?\s,]+-(?:116|232)\.webp)(?:\?[^"'\s,]+)?/g;
+
+  for (const filePath of pages) {
+    const html = await fs.readFile(filePath, "utf8");
+    const next = html.replace(referencePattern, `$1?v=${version}`);
+    for (const match of next.matchAll(/assets\/social-116\/[^/"'?\s,]+-(?:116|232)\.webp(?:\?v=([^"'\s,]+))?/g)) {
+      if (match[1] !== version) {
+        throw new Error(`avatar cache version did not update in ${relativePath(filePath)}: ${match[0]}`);
+      }
+    }
+    if (next !== html) {
+      writes.push({ filePath, buffer: Buffer.from(next) });
+      modifiedPages.push(relativePath(filePath));
     }
   }
 
-  for (const page of pages) {
-    const filePath = path.join(ROOT, page);
-    let html = await fs.readFile(filePath, "utf8");
-    let next = html.replace(/\?v=avatar-[^"]+/g, `?v=${version}`);
-    next = next.replace(/<img\b[^>]*src="([^"]*assets\/social-116\/)([^/"?]+)-116\.webp\?v=[^"]+"[^>]*>/g, (tag, prefix, name) => {
-      const src116 = `${prefix}${name}-116.webp?v=${version}`;
-      const src232 = `${prefix}${name}-232.webp?v=${version}`;
-      let updated = tag.replace(/src="[^"]+"/, `src="${src116}"`);
-      if (/\ssrcset="/.test(updated)) {
-        updated = updated.replace(/\ssrcset="[^"]*"/, ` srcset="${src116} 1x, ${src232} 2x"`);
-      } else {
-        updated = updated.replace(/\s*\/?>$/, ` srcset="${src116} 1x, ${src232} 2x" />`);
-      }
-      return updated;
-    });
-    if (next !== html) await fs.writeFile(filePath, next);
-  }
+  await replaceFilesAtomically(writes);
+  return modifiedPages;
+}
+
+function manifestResult(result) {
+  return {
+    assetName: result.renderedAssetName,
+    platform: result.platform,
+    profileUrl: result.profileUrl,
+    status: result.success ? (result.changed ? "updated" : "unchanged") : "failed",
+    changed: Boolean(result.changed),
+    sourceChanged: Boolean(result.sourceChanged),
+    outputChanged: Boolean(result.outputChanged),
+    sourceUrl: result.sourceUrl || null,
+    sourceSize: result.sourceSize || null,
+    fetchedFormat: result.fetchedFormat || null,
+    sourceFormat: result.success ? "webp" : null,
+    sourcePath: relativePath(result.sourcePath),
+    hashes: result.hashes || null,
+    outputs: {
+      116: { path: relativePath(result.outputPaths[116]), sha256: result.hashes?.[116] || null },
+      232: { path: relativePath(result.outputPaths[232]), sha256: result.hashes?.[232] || null },
+    },
+    reason: result.reason || null,
+    failures: result.failures || [],
+  };
+}
+
+async function writeManifest(value) {
+  const buffer = Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
+  await replaceFilesAtomically([{ filePath: MANIFEST_FILE, buffer }]);
+}
+
+function qualityGateManifest() {
+  return {
+    minSourceSize: MIN_SOURCE_SIZE,
+    maxAspectRatio: MAX_SOURCE_ASPECT_RATIO,
+    withoutEnlargement: true,
+    outputSizes: OUTPUT_SIZES,
+    sourceFormat: { format: "webp", quality: 95, resized: false },
+  };
 }
 
 async function main() {
-  const accounts = await findSocialAccounts();
+  const checkedAt = new Date().toISOString();
+  const stamp = checkedAt.replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
+  const previousAvatarVersion = await readCurrentAvatarVersion();
+  let avatarVersion = previousAvatarVersion || `avatar-${stamp}`;
+  let accounts;
+
+  try {
+    accounts = await findSocialAccounts();
+  } catch (error) {
+    await writeManifest({
+      schemaVersion: 2,
+      checkedAt,
+      status: "failed",
+      avatarVersion,
+      qualityGate: qualityGateManifest(),
+      failure: formatError(error),
+      changed: [],
+      avatarChanged: [],
+      versionedPages: [],
+      results: [],
+    });
+    throw error;
+  }
+
   const results = [];
-  for (const account of accounts) {
+  for (const [index, account] of accounts.entries()) {
+    console.log(`[${index + 1}/${accounts.length}] Checking ${account.platform} ${account.renderedAssetName}...`);
     try {
-      results.push(await refreshAccount(account));
+      const result = await refreshAccount(account);
+      results.push(result);
+      console.log(
+        `[${index + 1}/${accounts.length}] ${result.success ? (result.changed ? "UPDATED" : "UNCHANGED") : "FAILED"} ` +
+        `${account.renderedAssetName}: ${result.sourceSize || result.reason || "no change"}`,
+      );
     } catch (error) {
-      results.push({ ...account, changed: false, reason: error.message });
+      const result = {
+        ...account,
+        success: false,
+        changed: false,
+        outputChanged: false,
+        sourceChanged: false,
+        reason: formatError(error),
+        failures: [formatError(error)],
+      };
+      results.push(result);
+      console.log(`[${index + 1}/${accounts.length}] FAILED ${account.renderedAssetName}: ${result.reason}`);
     }
   }
 
   const changed = results.filter((result) => result.changed);
-  if (changed.length) {
-    const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
-    await updateHtmlAvatarVersion(`avatar-${stamp}`);
+  const avatarChanged = results.filter((result) => result.outputChanged);
+  let versionedPages = [];
+  try {
+    if (avatarChanged.length || !previousAvatarVersion) {
+      avatarVersion = `avatar-${stamp}`;
+    }
+    versionedPages = await updateHtmlAvatarVersion(avatarVersion);
+  } catch (error) {
+    const failed = results.filter((result) => !result.success);
+    await writeManifest({
+      schemaVersion: 2,
+      checkedAt,
+      status: "failed",
+      failure: `avatar version update: ${formatError(error)}`,
+      avatarVersion,
+      qualityGate: qualityGateManifest(),
+      counts: {
+        checked: results.length,
+        changed: changed.length,
+        avatarChanged: avatarChanged.length,
+        failed: failed.length,
+      },
+      changed: changed.map((result) => result.renderedAssetName),
+      avatarChanged: avatarChanged.map((result) => result.renderedAssetName),
+      versionedPages: [],
+      results: results.map(manifestResult),
+    });
+    throw error;
   }
 
-  const manifestExists = await fs.access(MANIFEST_FILE).then(() => true).catch(() => false);
-  if (changed.length || !manifestExists) {
-    await fs.writeFile(
-      MANIFEST_FILE,
-      JSON.stringify(
-        {
-          updatedAt: new Date().toISOString(),
-          qualityGate: { minSourceSize: MIN_SOURCE_SIZE, outputSizes: OUTPUT_SIZES },
-          changed: changed.map((result) => result.renderedAssetName),
-          results: results.map((result) => ({
-            assetName: result.renderedAssetName,
-            platform: result.platform,
-            changed: result.changed,
-            sourceSize: result.sourceSize,
-            reason: result.reason,
-          })),
-        },
-        null,
-        2,
-      ) + "\n",
-    );
-  }
+  const failed = results.filter((result) => !result.success);
+  await writeManifest({
+    schemaVersion: 2,
+    checkedAt,
+    status: failed.length ? "partial" : "complete",
+    avatarVersion,
+    qualityGate: qualityGateManifest(),
+    counts: {
+      checked: results.length,
+      changed: changed.length,
+      avatarChanged: avatarChanged.length,
+      failed: failed.length,
+    },
+    changed: changed.map((result) => result.renderedAssetName),
+    avatarChanged: avatarChanged.map((result) => result.renderedAssetName),
+    versionedPages,
+    results: results.map(manifestResult),
+  });
 
-  console.log(`Checked ${results.length} social avatars; changed ${changed.length}.`);
+  console.log(`Checked ${results.length} social avatars; changed ${changed.length}; failed ${failed.length}.`);
   for (const result of results) {
-    console.log(`${result.changed ? "UPDATED" : "SKIPPED"} ${result.renderedAssetName}: ${result.sourceSize || result.reason || "no change"}`);
+    const state = result.success ? (result.changed ? "UPDATED" : "UNCHANGED") : "FAILED";
+    console.log(`${state} ${result.renderedAssetName}: ${result.sourceSize || result.reason || "no change"}`);
   }
 }
 
