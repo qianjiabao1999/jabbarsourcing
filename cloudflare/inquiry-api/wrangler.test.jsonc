@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "jabbar-sourcing-inquiry-api-test",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "INQUIRY_IDEMPOTENCY",
+        "class_name": "InquiryIdempotency"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["InquiryIdempotency"]
+    }
+  ],
+  "vars": {
+    "ALLOWED_ORIGINS": "https://www.jabbarsourcing.com,https://jabbarsourcing.com",
+    "ALLOWED_HOSTNAMES": "www.jabbarsourcing.com,jabbarsourcing.com",
+    "INQUIRY_RECIPIENT": "qianjiabao1999@gmail.com",
+    "INQUIRY_FROM": "inquiry@jabbarsourcing.com",
+    "PRIVACY_VERSION": "2026-07-12"
+  }
+}

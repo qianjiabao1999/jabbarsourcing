@@ -1,0 +1,72 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "jabbar-sourcing-inquiry-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "services": [
+    {
+      "binding": "TURNSTILE_SITEVERIFY",
+      "service": "turnstile-siteverify-jabbar-sourcing"
+    }
+  ],
+  "send_email": [
+    {
+      "name": "INQUIRY_EMAIL",
+      "destination_address": "qianjiabao1999@gmail.com",
+      "allowed_sender_addresses": ["inquiry@jabbarsourcing.com"]
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "INQUIRY_IDEMPOTENCY",
+        "class_name": "InquiryIdempotency"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["InquiryIdempotency"]
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "INQUIRY_CONTACT_RATE_LIMIT",
+      "namespace_id": "2026071201",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    },
+    {
+      "name": "INQUIRY_EDGE_RATE_LIMIT",
+      "namespace_id": "2026071202",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    }
+  ],
+  "vars": {
+    "ALLOWED_ORIGINS": "https://www.jabbarsourcing.com,https://jabbarsourcing.com",
+    "ALLOWED_HOSTNAMES": "www.jabbarsourcing.com,jabbarsourcing.com",
+    "INQUIRY_RECIPIENT": "qianjiabao1999@gmail.com",
+    "INQUIRY_FROM": "inquiry@jabbarsourcing.com",
+    "PRIVACY_VERSION": "2026-07-12"
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.05
+    }
+  }
+}
