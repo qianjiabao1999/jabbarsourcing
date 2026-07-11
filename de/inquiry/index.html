@@ -47,7 +47,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-151" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-152" />
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20260712a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -179,10 +181,10 @@
                 <h2 id="inquiry-title">Sagen Sie uns, was Sie kaufen möchten</h2>
                 <p>Teilen Sie Produktbedarf, Menge und Kontaktdaten. Wir finden Yiwu-Lieferanten, Preise und Optionen.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="Bitte mindestens Produktbedarf und Kontaktdaten ausfüllen." data-copied-message="Kopiert. Öffnen Sie WeChat, suchen Sie 18658925544 und fügen Sie die Anfrage ein." data-copy-fail-message="Kopieren fehlgeschlagen. Bitte kopieren Sie die Anfrage manuell." data-telegram-copied-message="Anfrage kopiert. Fuegen Sie sie in Telegram ein, sobald der Chat geoeffnet ist.">
+              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="de" data-inquiry-source="/de/inquiry/" data-privacy-version="2026-07-12" data-required-message="Bitte mindestens Produktbedarf und Kontaktdaten ausfüllen." data-copied-message="Kopiert. Öffnen Sie WeChat, suchen Sie 18658925544 und fügen Sie die Anfrage ein." data-copy-fail-message="Kopieren fehlgeschlagen. Bitte kopieren Sie die Anfrage manuell." data-telegram-copied-message="Anfrage kopiert. Fuegen Sie sie in Telegram ein, sobald der Chat geoeffnet ist.">
                 <label class="field field-wide">
                   <span>Gewünschte Produkte</span>
-                  <input name="product" type="text" placeholder="z. B. Dollar-Store-Waren, Küchenartikel, Spielzeug, Aufbewahrung…" autocomplete="off"  required/>
+                  <input name="product" type="text" maxlength="300" placeholder="z. B. Dollar-Store-Waren, Küchenartikel, Spielzeug, Aufbewahrung…" autocomplete="off"  required/>
                 </label>
                 <label class="field">
                   <span>Produktkategorie</span>
@@ -199,30 +201,40 @@
                 </label>
                 <label class="field">
                   <span>Geschätzte Menge</span>
-                  <input name="quantity" type="text" placeholder="z. B. 1.000 Stück / ein Container / Testbestellung" autocomplete="off" />
+                  <input name="quantity" type="text" maxlength="120" placeholder="z. B. 1.000 Stück / ein Container / Testbestellung" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>Budgetrahmen</span>
-                  <input name="budget" type="text" placeholder="z. B. USD 5.000 oder Zielstückpreis" autocomplete="off" />
+                  <input name="budget" type="text" maxlength="120" placeholder="z. B. USD 5.000 oder Zielstückpreis" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>Zielmarkt</span>
-                  <input name="market" type="text" placeholder="z. B. USA, Frankreich, Saudi-Arabien, Russland…" autocomplete="off" />
+                  <input name="market" type="text" maxlength="120" placeholder="z. B. USA, Frankreich, Saudi-Arabien, Russland…" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>Kontaktdaten</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / E-Mail / WeChat-ID" autocomplete="off"  required/>
+                  <input name="contact" type="text" maxlength="200" placeholder="WhatsApp / E-Mail / WeChat-ID" autocomplete="off"  required/>
                 </label>
                 <label class="field">
                   <span>Name / Firma</span>
-                  <input name="company" type="text" placeholder="Ihr Name oder Firmenname" autocomplete="organization" />
+                  <input name="company" type="text" maxlength="160" placeholder="Ihr Name oder Firmenname" autocomplete="organization" />
                 </label>
                 <label class="field field-wide">
                   <span>Notizen</span>
-                  <textarea name="note" rows="3" placeholder="Farbe, Verpackung, Referenzbilder, Lieferzeit…"></textarea>
+                  <textarea name="note" rows="3" maxlength="1500" placeholder="Farbe, Verpackung, Referenzbilder, Lieferzeit…"></textarea>
                 </label>
+                <div class="inquiry-direct-panel field-wide">
+                  <label class="inquiry-privacy">
+                    <input class="js-inquiry-privacy" type="checkbox" aria-required="true" aria-invalid="false" />
+                    <span>Ich habe die <a href="/privacy-policy.html#website-inquiries">Datenschutzerklärung</a> gelesen und stimme zu, dass Jabbar Sourcing meine Angaben zur Bearbeitung und Beantwortung dieser Anfrage verwendet.</span>
+                  </label>
+                  <p class="inquiry-privacy-error js-inquiry-privacy-error" aria-live="polite"></p>
+                  <div class="inquiry-turnstile js-inquiry-turnstile" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="de"></div>
+                  <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Anfrage direkt senden</button>
+                </div>
+                <p class="inquiry-fallback-label field-wide">Oder nutzen Sie eine der folgenden Optionen</p>
                 <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Per WhatsApp senden</span></button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Per WhatsApp senden</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail"><img class="inquiry-button-icon" src="../../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Per Gmail senden</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat"><img class="inquiry-button-icon" src="../../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Für WeChat kopieren</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram"><img class="inquiry-button-icon" src="../../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Per Telegram senden</span></button>

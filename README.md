@@ -5,7 +5,8 @@ Static GitHub Pages website for `www.jabbarsourcing.com`.
 ## What This Site Includes
 
 - Multilingual landing pages for Jabbar Sourcing
-- Static sourcing request forms that open WhatsApp, Gmail, or WeChat copy flow
+- Direct sourcing inquiry submission through Cloudflare Turnstile and Workers
+- WhatsApp, Gmail, WeChat, and Telegram fallback contact flows
 - WebP image assets for faster loading
 - `robots.txt` and `sitemap.xml` for Google Search Console
 - SEO title, meta description, Open Graph tags, and canonical URLs on the main pages
@@ -25,7 +26,7 @@ http://127.0.0.1:4173/
 
 ## Deployment
 
-This is a pure static site. It does not need WordPress, plugins, a database, or a build step.
+The public website is static and does not need WordPress or a site database. Direct inquiry delivery is handled by the independent Cloudflare Worker in `cloudflare/inquiry-api/`.
 
 GitHub Pages options:
 
@@ -85,19 +86,25 @@ GitHub Pages already uses a CDN. If Cloudflare is added, enable:
 
 Set Cloudflare proxy only after GitHub Pages HTTPS is working.
 
-## Contact Form Options
+## Inquiry Form
 
-Current static form behavior:
+Current form behavior:
 
+- Direct submit: validates Turnstile in a Cloudflare Worker and sends the inquiry to `qianjiabao1999@gmail.com`
 - WhatsApp: opens `wa.me`
 - Gmail: opens a prefilled compose window
 - WeChat: copies the request text and asks the buyer to add the WeChat ID
+- Telegram: copies the request and opens the Telegram contact
 
-To use Formspree:
+The public contact mailbox remains `qianjiabao1999@gmail.com`. `inquiry@jabbarsourcing.com` is only the technical sender used by the Worker Email binding.
 
-1. Create a form at `https://formspree.io`.
-2. Add the Formspree endpoint to the inquiry form.
-3. Test that submissions arrive in email.
+Frontend checks:
+
+```bash
+npm run test:inquiry-frontend
+python3 -m http.server 4173
+npm run qa:inquiry
+```
 
 To use Tawk.to:
 
@@ -129,6 +136,8 @@ done
 - `index.html`: Chinese/default home page
 - `en/index.html`: English home page
 - `inquiry/index.html`: default quote form
+- `assets/inquiry-form.js`: shared direct-submit and Turnstile client logic
+- `cloudflare/inquiry-api/`: direct inquiry Cloudflare Worker
 - `styles.css`: shared design and responsive source styles
 - `styles.min.css`: minified CSS served by the HTML pages
 - `robots.txt`: crawler rules

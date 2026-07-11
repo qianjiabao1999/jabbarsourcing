@@ -47,7 +47,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-151" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-152" />
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20260712a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -179,10 +181,10 @@
                 <h2 id="inquiry-title">Ne satın almak istediğinizi yazın</h2>
                 <p>Ürün, miktar ve iletişim bilgilerinizi paylaşın. Size Yiwu tedarikçileri, fiyat ve seçenekleri bulalım.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="Lütfen en az ürün ihtiyacını ve iletişim bilgilerini doldurun." data-copied-message="Kopyalandı. WeChat’i açın, 18658925544 arayın ve talebi yapıştırın." data-copy-fail-message="Kopyalama başarısız. Lütfen talebi manuel kopyalayın." data-telegram-copied-message="Talep kopyalandi. Telegram acilinca yapistirip gonderin.">
+              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="tr" data-inquiry-source="/tr/inquiry/" data-privacy-version="2026-07-12" data-required-message="Lütfen en az ürün ihtiyacını ve iletişim bilgilerini doldurun." data-copied-message="Kopyalandı. WeChat’i açın, 18658925544 arayın ve talebi yapıştırın." data-copy-fail-message="Kopyalama başarısız. Lütfen talebi manuel kopyalayın." data-telegram-copied-message="Talep kopyalandi. Telegram acilinca yapistirip gonderin.">
                 <label class="field field-wide">
                   <span>Gerekli ürünler</span>
-                  <input name="product" type="text" placeholder="örn. tek fiyat mağazası ürünleri, mutfak, oyuncak, düzenleme…" autocomplete="off"  required/>
+                  <input name="product" type="text" maxlength="300" placeholder="örn. tek fiyat mağazası ürünleri, mutfak, oyuncak, düzenleme…" autocomplete="off"  required/>
                 </label>
                 <label class="field">
                   <span>Ürün kategorisi</span>
@@ -199,30 +201,40 @@
                 </label>
                 <label class="field">
                   <span>Tahmini miktar</span>
-                  <input name="quantity" type="text" placeholder="örn. 1.000 adet / bir konteyner / deneme siparişi" autocomplete="off" />
+                  <input name="quantity" type="text" maxlength="120" placeholder="örn. 1.000 adet / bir konteyner / deneme siparişi" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>Bütçe aralığı</span>
-                  <input name="budget" type="text" placeholder="örn. USD 5.000 veya hedef birim fiyat" autocomplete="off" />
+                  <input name="budget" type="text" maxlength="120" placeholder="örn. USD 5.000 veya hedef birim fiyat" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>Hedef pazar</span>
-                  <input name="market" type="text" placeholder="örn. ABD, Fransa, Suudi Arabistan, Rusya…" autocomplete="off" />
+                  <input name="market" type="text" maxlength="120" placeholder="örn. ABD, Fransa, Suudi Arabistan, Rusya…" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>İletişim bilgileri</span>
-                  <input name="contact" type="text" placeholder="WhatsApp / e-posta / WeChat ID" autocomplete="off"  required/>
+                  <input name="contact" type="text" maxlength="200" placeholder="WhatsApp / e-posta / WeChat ID" autocomplete="off"  required/>
                 </label>
                 <label class="field">
                   <span>Ad / şirket</span>
-                  <input name="company" type="text" placeholder="Adınız veya şirket adınız" autocomplete="organization" />
+                  <input name="company" type="text" maxlength="160" placeholder="Adınız veya şirket adınız" autocomplete="organization" />
                 </label>
                 <label class="field field-wide">
                   <span>Notlar</span>
-                  <textarea name="note" rows="3" placeholder="Renk, ambalaj, referans görsel, teslim süresi…"></textarea>
+                  <textarea name="note" rows="3" maxlength="1500" placeholder="Renk, ambalaj, referans görsel, teslim süresi…"></textarea>
                 </label>
+                <div class="inquiry-direct-panel field-wide">
+                  <label class="inquiry-privacy">
+                    <input class="js-inquiry-privacy" type="checkbox" aria-required="true" aria-invalid="false" />
+                    <span><a href="/privacy-policy.html#website-inquiries">Gizlilik Politikası</a>’nı okudum ve Jabbar Sourcing’in bilgilerimi bu talebi işlemek ve yanıtlamak için kullanmasını kabul ediyorum.</span>
+                  </label>
+                  <p class="inquiry-privacy-error js-inquiry-privacy-error" aria-live="polite"></p>
+                  <div class="inquiry-turnstile js-inquiry-turnstile" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="tr"></div>
+                  <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Talebi doğrudan gönder</button>
+                </div>
+                <p class="inquiry-fallback-label field-wide">Veya aşağıdaki seçeneklerden birini kullanın</p>
                 <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>WhatsApp ile gönder</span></button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>WhatsApp ile gönder</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail"><img class="inquiry-button-icon" src="../../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Gmail ile gönder</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat"><img class="inquiry-button-icon" src="../../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>WeChat için kopyala</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram"><img class="inquiry-button-icon" src="../../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Telegram ile gönder</span></button>

@@ -82,7 +82,8 @@ https://YOUR_GITHUB_USERNAME.github.io/jabbarsourcing/
 ## 6. 建议的额外设置
 
 - 在 GitHub 的 Pages 页面完成域名验证，降低域名被其他仓库占用的风险
-- 开通 `hello@jabbarsourcing.com` 企业邮箱后测试询盘按钮
+- 公开联系邮箱保持 `qianjiabao1999@gmail.com`，并在 Cloudflare 中验证为 Worker Email Binding 的唯一收件地址
+- `inquiry@jabbarsourcing.com` 仅作为询盘 Worker 的技术发件地址，不替换网站公开邮箱
 - 将真实邮箱设置为 SPF、DKIM 和 DMARC，避免客户邮件进入垃圾箱
 - 上线后测试 `https://www.jabbarsourcing.com` 可打开，并确认 `https://jabbarsourcing.com` 会跳转回 `www` 主域
 

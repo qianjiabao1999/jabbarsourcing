@@ -6,6 +6,12 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "inquiry-api.jabbarsourcing.com",
+      "custom_domain": true
+    }
+  ],
   "services": [
     {
       "binding": "TURNSTILE_SITEVERIFY",

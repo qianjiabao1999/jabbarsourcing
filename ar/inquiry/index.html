@@ -47,7 +47,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-151" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-152" />
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20260712a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -179,10 +181,10 @@
                 <h2 id="inquiry-title">أخبرنا بما تريد شراءه</h2>
                 <p>اكتب المنتجات والكمية وبيانات التواصل، وسنقترح لك موردين وأسعاراً وخيارات توريد من ييوو.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-required-message="يرجى تعبئة المنتجات وبيانات التواصل على الأقل." data-copied-message="تم النسخ. افتح WeChat وابحث عن 18658925544 ثم الصق الطلب." data-copy-fail-message="تعذر النسخ. يرجى نسخ الطلب يدوياً." data-telegram-copied-message="تم نسخ الطلب. الصقه في Telegram بعد فتح المحادثة." data-product-required-message="يرجى إدخال المنتجات المطلوبة." data-contact-required-message="يرجى إدخال بيانات التواصل.">
+              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="ar" data-inquiry-source="/ar/inquiry/" data-privacy-version="2026-07-12" data-required-message="يرجى تعبئة المنتجات وبيانات التواصل على الأقل." data-copied-message="تم النسخ. افتح WeChat وابحث عن 18658925544 ثم الصق الطلب." data-copy-fail-message="تعذر النسخ. يرجى نسخ الطلب يدوياً." data-telegram-copied-message="تم نسخ الطلب. الصقه في Telegram بعد فتح المحادثة." data-product-required-message="يرجى إدخال المنتجات المطلوبة." data-contact-required-message="يرجى إدخال بيانات التواصل.">
                 <label class="field field-wide">
                   <span>المنتجات المطلوبة</span>
-                  <input name="product" type="text" required placeholder="مثال: منتجات يومية، أدوات مطبخ، ألعاب، تخزين…" autocomplete="off" />
+                  <input name="product" type="text" maxlength="300" required placeholder="مثال: منتجات يومية، أدوات مطبخ، ألعاب، تخزين…" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>الفئة</span>
@@ -199,30 +201,40 @@
                 </label>
                 <label class="field">
                   <span>الكمية المتوقعة</span>
-                  <input name="quantity" type="text" placeholder="مثال: 1000 قطعة / حاوية / طلب تجريبي" autocomplete="off" />
+                  <input name="quantity" type="text" maxlength="120" placeholder="مثال: 1000 قطعة / حاوية / طلب تجريبي" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>الميزانية</span>
-                  <input name="budget" type="text" placeholder="مثال: USD 5,000 أو سعر مستهدف" autocomplete="off" />
+                  <input name="budget" type="text" maxlength="120" placeholder="مثال: USD 5,000 أو سعر مستهدف" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>الدولة / السوق</span>
-                  <input name="market" type="text" placeholder="مثال: أمريكا، فرنسا، السعودية، روسيا…" autocomplete="off" />
+                  <input name="market" type="text" maxlength="120" placeholder="مثال: أمريكا، فرنسا، السعودية، روسيا…" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>بيانات التواصل</span>
-                  <input name="contact" type="text" required placeholder="WhatsApp / بريد / WeChat ID" autocomplete="off" />
+                  <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp / بريد / WeChat ID" autocomplete="off" />
                 </label>
                 <label class="field">
                   <span>الاسم / الشركة</span>
-                  <input name="company" type="text" placeholder="اسمك أو اسم الشركة" autocomplete="organization" />
+                  <input name="company" type="text" maxlength="160" placeholder="اسمك أو اسم الشركة" autocomplete="organization" />
                 </label>
                 <label class="field field-wide">
                   <span>ملاحظات</span>
-                  <textarea name="note" rows="3" placeholder="اللون، التغليف، صور مرجعية، موعد التسليم…"></textarea>
+                  <textarea name="note" rows="3" maxlength="1500" placeholder="اللون، التغليف، صور مرجعية، موعد التسليم…"></textarea>
                 </label>
+                <div class="inquiry-direct-panel field-wide">
+                  <label class="inquiry-privacy">
+                    <input class="js-inquiry-privacy" type="checkbox" aria-required="true" aria-invalid="false" />
+                    <span>قرأت <a href="/privacy-policy.html#website-inquiries">سياسة الخصوصية</a> وأوافق على أن تستخدم <bdi dir="ltr">Jabbar Sourcing</bdi> معلوماتي لمعالجة هذا الطلب والرد عليه.</span>
+                  </label>
+                  <p class="inquiry-privacy-error js-inquiry-privacy-error" aria-live="polite"></p>
+                  <div class="inquiry-turnstile js-inquiry-turnstile" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="ar"></div>
+                  <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">إرسال الطلب مباشرةً</button>
+                </div>
+                <p class="inquiry-fallback-label field-wide">أو استخدم أحد الخيارات أدناه</p>
                 <div class="inquiry-actions">
-                  <button type="button" class="inquiry-button inquiry-button-primary js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>إرسال عبر WhatsApp</span></button>
+                  <button type="button" class="inquiry-button js-inquiry-send" data-channel="whatsapp"><img class="inquiry-button-icon" src="../../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>إرسال عبر WhatsApp</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="gmail"><img class="inquiry-button-icon" src="../../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>إرسال عبر Gmail</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat"><img class="inquiry-button-icon" src="../../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>نسخ لـ WeChat</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram"><img class="inquiry-button-icon" src="../../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>إرسال عبر Telegram</span></button>

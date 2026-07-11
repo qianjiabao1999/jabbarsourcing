@@ -21,7 +21,7 @@ It does not replace the existing WhatsApp, Gmail, WeChat, or Telegram fallback b
 - Gives every lease a separate claim ID so a stale Worker cannot overwrite a newer delivery state.
 - Sends through a restricted Cloudflare Email binding to one Gmail destination.
 - Does not persist inquiry bodies, names, contacts, tokens, or IP addresses in KV, D1, Durable Objects, or logs.
-- Keeps only random request and lease-claim IDs, a submission-ID-salted SHA-256 fingerprint, timestamps, and `pending`/`sent`/`failed` delivery state.
+- Keeps only random request and lease-claim IDs, a SHA-256 fingerprint that includes the random submission ID, timestamps, and `pending`/`sent`/`failed` delivery state.
 - Treats this state as expired after 24 hours and schedules an alarm to remove it; cleanup failures are explicitly rescheduled.
 - Does not accept attachments.
 
@@ -47,7 +47,7 @@ Do not deploy until all prerequisites are ready:
 
 Do not add `localhost` or `127.0.0.1` to the production widget or Worker allowlists. Local browser testing must use Cloudflare's published test keys or a separate development widget and development configuration.
 
-The account API token must be limited to the intended Cloudflare account and include Turnstile Edit, Workers Scripts Edit, and Email Sending Edit. Store it outside the repository.
+Wrangler OAuth can deploy the Worker without storing an API token. If an account API token is used instead, limit it to the intended Cloudflare account and include only Turnstile Edit, Workers Scripts Edit, and Email Sending Edit; store it outside the repository.
 
 ## Local validation
 
