@@ -30,12 +30,27 @@ jobs:
           rm -rf _site
           mkdir -p _site
           rsync -a \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='node_modules' \
-            --exclude='output' \
-            --exclude='artifacts' \
-            --exclude='_site' \
+            --exclude='/.git/' \
+            --exclude='/.github/' \
+            --exclude='/.gitignore' \
+            --exclude='/cloudflare/' \
+            --exclude='/node_modules/' \
+            --exclude='/scripts/' \
+            --exclude='/output/' \
+            --exclude='/outputs/' \
+            --exclude='/artifacts/' \
+            --exclude='/_site/' \
+            --exclude='/README.md' \
+            --exclude='/DEPLOY.md' \
+            --exclude='/PROJECT_HANDOFF.md' \
+            --exclude='/package.json' \
+            --exclude='/package-lock.json' \
+            --exclude='/_config.yml' \
+            --exclude='/.env' \
+            --exclude='/.env.*' \
+            --exclude='/.dev.vars' \
+            --exclude='/.dev.vars.*' \
+            --exclude='/.wrangler/' \
             --exclude='.DS_Store' \
             ./ _site/
           find _site -name '.DS_Store' -delete
