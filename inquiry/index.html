@@ -9,6 +9,7 @@
     <meta property="og:title" content="免费采购报价｜Jabbar Sourcing 义乌采购代理" />
     <meta property="og:description" content="提交采购需求，获取义乌货源匹配、批发报价、验货质检、仓储和国际发货支持。" />
     <meta property="og:image" content="https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg" />
+    <meta property="og:image:alt" content="Jabbar Sourcing Team" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:url" content="https://www.jabbarsourcing.com/inquiry/" />
@@ -27,6 +28,7 @@
     <meta name="twitter:title" content="免费采购报价｜Jabbar Sourcing 义乌采购代理" />
     <meta name="twitter:description" content="提交采购需求，获取义乌货源匹配、批发报价、验货质检、仓储和国际发货支持。" />
     <meta name="twitter:image" content="https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg" />
+    <meta name="twitter:image:alt" content="Jabbar Sourcing Team" />
     <title>免费采购报价｜Jabbar Sourcing 义乌采购代理</title>
     <link rel="canonical" href="https://www.jabbarsourcing.com/inquiry/" />
     <link rel="alternate" hreflang="x-default" href="https://www.jabbarsourcing.com/en/inquiry/" />
@@ -45,7 +47,7 @@
     <link rel="shortcut icon" href="../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../styles.min.css?v=apple-150" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-151" />
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -81,7 +83,7 @@
                   },
                   "address": {
                         "@type": "PostalAddress",
-                        "streetAddress": "Building 3, No. 219 Sufu Road, Suxi Town",
+                        "streetAddress": "浙江省金华市义乌市苏溪镇苏福路219号3号楼",
                         "addressLocality": "Yiwu",
                         "addressRegion": "Zhejiang",
                         "addressCountry": "CN"
@@ -232,7 +234,19 @@
         </div>
       </section>
 
-            <footer class="site-footer" aria-label="Footer">
+            <div class="contact-modal" id="wechat-modal" hidden data-copied-label="已复制">
+        <div class="contact-modal-backdrop" data-close-modal></div>
+        <section class="contact-modal-card" role="dialog" aria-modal="true" aria-label="微信">
+          <button class="contact-modal-close" type="button" data-close-modal aria-label="Close">×</button>
+          <img loading="lazy" class="contact-modal-icon" src="../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
+          <p class="contact-modal-title">微信</p>
+          <p>微信号</p>
+          <strong>18658925544</strong>
+          <button class="contact-modal-copy" type="button" data-copy-contact="18658925544">复制微信号</button>
+          <span class="contact-modal-hint">请打开微信，搜索这个微信号添加好友。</span>
+        </section>
+      </div>
+      <footer class="site-footer" aria-label="Footer">
         <div class="site-footer-inner container-wide">
           <div class="site-footer-main">
             <div class="site-footer-brand">
@@ -275,6 +289,51 @@
 </main>
     <script>
       (function () {
+        var openContactModal = function (id) {
+          var modal = document.getElementById(id);
+          if (!modal) return;
+          modal.hidden = false;
+          window.setTimeout(function () { modal.classList.add("is-open"); }, 20);
+        };
+        var closeContactModal = function (modal) {
+          if (!modal) return;
+          modal.classList.remove("is-open");
+          window.setTimeout(function () { modal.hidden = true; }, 220);
+        };
+        document.querySelectorAll(".js-contact-modal-open").forEach(function (link) {
+          link.addEventListener("click", function (event) {
+            event.preventDefault();
+            var modalId = link.getAttribute("data-modal-target");
+            var copyText = link.getAttribute("data-copy-text");
+            if (copyText && navigator.clipboard && window.isSecureContext) {
+              navigator.clipboard.writeText(copyText).catch(function () {});
+            }
+            openContactModal(modalId);
+          });
+        });
+        document.querySelectorAll("[data-close-modal]").forEach(function (control) {
+          control.addEventListener("click", function () {
+            closeContactModal(control.closest(".contact-modal"));
+          });
+        });
+        document.querySelectorAll("[data-copy-contact]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var value = button.getAttribute("data-copy-contact");
+            var modal = button.closest(".contact-modal");
+            var copied = modal && modal.getAttribute("data-copied-label");
+            var original = button.textContent;
+            var done = function () {
+              if (copied) button.textContent = copied;
+              window.setTimeout(function () { button.textContent = original; }, 1400);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+              navigator.clipboard.writeText(value).then(done).catch(done);
+            } else {
+              done();
+            }
+          });
+        });
+
         document.querySelectorAll(".language-options a").forEach(function (link) {
           link.addEventListener("click", function () {
             try { sessionStorage.setItem("jabbarManualLanguage", "1"); } catch (error) {}
