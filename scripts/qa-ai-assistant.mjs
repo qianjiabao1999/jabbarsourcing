@@ -7,6 +7,7 @@ import { chromium, webkit } from "playwright";
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_AI_OUTPUT_DIR || "/tmp/jabbar-ai-qa";
 const AI_VERSION = "ai-20260712b";
+const UI_VERSION = "ui-20260712a";
 const PAGES = [
   { locale: "zh", path: "/" },
   { locale: "en", path: "/en/" },
@@ -57,6 +58,7 @@ async function measure(page) {
       documentWidth: document.documentElement.scrollWidth,
       activeClass: document.activeElement?.className || "",
       scriptVersion: document.querySelector('script[src*="ai-sourcing-assistant.js"]')?.getAttribute("src") || "",
+      uiScriptVersion: document.querySelector('script[src*="site-enhancements.js"]')?.getAttribute("src") || "",
       compact: document.querySelector(".jabbar-ai-panel")?.classList.contains("is-compact") || false,
       bodyPaddingBottom: Number.parseFloat(getComputedStyle(document.body).paddingBottom),
       bodyAiOpen: document.body.classList.contains("jabbar-ai-open"),
@@ -66,6 +68,8 @@ async function measure(page) {
       },
       elements: {
         toggle: readRect(".jabbar-ai-toggle"),
+        launcher: readRect(".contact-speed-dial-main"),
+        dial: readRect(".contact-speed-dial"),
         panel: readRect(".jabbar-ai-panel"),
         input: readRect(".jabbar-ai-input"),
         send: readRect(".jabbar-ai-send"),
@@ -126,8 +130,8 @@ function assertMobileConversionBar(metrics, scope) {
   assert(metrics.links.quote.includes("/inquiry/"), `${scope} quote URL is wrong: ${metrics.links.quote}`);
   assert(metrics.bodyPaddingBottom >= 56, `${scope} body padding-bottom is ${metrics.bodyPaddingBottom}px`);
   assert.equal(metrics.bodyAiOpen, false, `${scope} body retained the AI-open state after closing`);
-  assert(metrics.elements.toggle.height >= 48, `${scope} AI toggle height is ${metrics.elements.toggle.height}px`);
-  assert(metrics.elements.toggle.bottom <= bar.top - 15, `${scope} AI toggle overlaps or crowds the conversion bar`);
+  assert(metrics.elements.launcher.height >= 56, `${scope} contact launcher height is ${metrics.elements.launcher.height}px`);
+  assert(metrics.elements.launcher.bottom <= bar.top - 15, `${scope} contact launcher overlaps or crowds the conversion bar`);
 }
 
 function assertSocialContainer(metrics, scope) {
@@ -143,15 +147,17 @@ function assertSocialContainer(metrics, scope) {
 
 async function openAssistant(page, path) {
   await page.goto(`${BASE_URL}${path}`, { waitUntil: "domcontentloaded" });
-  await page.locator(".jabbar-ai-toggle").waitFor({ state: "visible" });
-  await page.locator(".jabbar-ai-toggle").click();
+  await page.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
+  await page.locator(".contact-speed-dial-main").click();
+  await page.waitForFunction(() => document.querySelector(".contact-speed-dial-main")?.getAttribute("aria-expanded") === "true");
+  await page.locator(".contact-speed-dial-ai").click();
   await page.waitForFunction(() => {
     const panel = document.querySelector(".jabbar-ai-panel");
     return panel?.classList.contains("is-open") && document.activeElement?.classList.contains("jabbar-ai-input");
   });
   await page.waitForFunction(() => {
-    const toggle = document.querySelector(".jabbar-ai-toggle");
-    const style = toggle && getComputedStyle(toggle);
+    const dial = document.querySelector(".contact-speed-dial");
+    const style = dial && getComputedStyle(dial);
     return style?.opacity === "0" && style.pointerEvents === "none";
   });
 }
@@ -159,15 +165,17 @@ async function openAssistant(page, path) {
 async function checkCurrentLayout(page, scope, compactExpected) {
   const metrics = await measure(page);
   assert(metrics.scriptVersion.endsWith(`?v=${AI_VERSION}`), `${scope} has stale AI script version: ${metrics.scriptVersion}`);
+  assert(metrics.uiScriptVersion.endsWith(`?v=${UI_VERSION}`), `${scope} has stale UI script version: ${metrics.uiScriptVersion}`);
   assert.equal(metrics.activeClass, "jabbar-ai-input", `${scope} AI input did not receive focus`);
   assert(metrics.documentWidth <= metrics.innerWidth + 1, `${scope} document has horizontal overflow`);
   assert.equal(metrics.compact, compactExpected, `${scope} compact mode mismatch`);
   if (compactExpected) {
     assert(metrics.elements.input.fontSize >= 16, `${scope} mobile AI input is ${metrics.elements.input.fontSize}px`);
   }
-  assert(metrics.elements.toggle.opacity === 0, `${scope} toggle remains visible behind the open panel`);
-  assert.equal(metrics.elements.toggle.pointerEvents, "none", `${scope} hidden toggle still receives pointer events`);
-  assert(metrics.elements.toggle.height >= 48, `${scope} AI toggle height is ${metrics.elements.toggle.height}px`);
+  assert.equal(metrics.elements.toggle.display, "none", `${scope} legacy AI toggle is still visible`);
+  assert(metrics.elements.dial.opacity === 0, `${scope} contact launcher remains visible behind the open panel`);
+  assert.equal(metrics.elements.dial.pointerEvents, "none", `${scope} hidden contact launcher still receives pointer events`);
+  assert(metrics.elements.launcher.height >= 56, `${scope} contact launcher height is ${metrics.elements.launcher.height}px`);
   assert(metrics.bodyAiOpen, `${scope} body is missing the AI-open state`);
   if (metrics.elements.conversionBar && metrics.elements.conversionBar.display !== "none") {
     assert.equal(metrics.elements.conversionBar.visibility, "hidden", `${scope} conversion bar remains visible behind the AI panel`);
@@ -209,8 +217,8 @@ for (const item of PAGES) {
   await page.locator(".jabbar-ai-close").click();
   await page.waitForFunction(() => !document.querySelector(".jabbar-ai-panel")?.classList.contains("is-open"));
   await page.waitForFunction(() => {
-    const toggle = document.querySelector(".jabbar-ai-toggle");
-    const style = toggle && getComputedStyle(toggle);
+    const launcher = document.querySelector(".contact-speed-dial-main");
+    const style = launcher && getComputedStyle(launcher);
     return style?.visibility === "visible" && Number.parseFloat(style.opacity) > 0.99 && style.pointerEvents !== "none";
   });
   if (item.locale !== "calculator") {
@@ -221,7 +229,7 @@ for (const item of PAGES) {
     });
   }
   const closed = await measure(page);
-  assertInsideViewport(closed, ["toggle"], `${item.locale} closed toggle`);
+  assertInsideViewport(closed, ["launcher"], `${item.locale} closed contact launcher`);
   if (item.locale === "calculator") {
     assert.equal(closed.elements.conversionBar, null, "Calculator must not include the mobile conversion bar");
   } else {
@@ -238,13 +246,13 @@ for (const item of PAGES) {
       });
       await page.waitForFunction(() => Math.abs(window.scrollY - (document.documentElement.scrollHeight - window.innerHeight)) <= 2);
       await page.waitForFunction(() => {
-        const toggle = document.querySelector(".jabbar-ai-toggle");
-        const style = toggle && getComputedStyle(toggle);
+        const dial = document.querySelector(".contact-speed-dial");
+        const style = dial && getComputedStyle(dial);
         return style?.visibility === "hidden" && style.opacity === "0" && style.pointerEvents === "none";
       });
       const footerMetrics = await measure(page);
       assert(footerMetrics.elements.footer.bottom <= footerMetrics.elements.conversionBar.top + 1, "Mobile conversion bar obscures the footer end");
-      assert.equal(footerMetrics.elements.toggle.visibility, "hidden", "AI toggle remains visible over the mobile footer");
+      assert.equal(footerMetrics.elements.dial.visibility, "hidden", "Contact launcher remains visible over the mobile footer");
       await page.screenshot({ path: `${OUTPUT_DIR}/mobile-conversion-footer-390x844.png` });
     }
   }
@@ -258,10 +266,10 @@ for (const viewport of [
 ]) {
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
   await page.goto(`${BASE_URL}${viewport.path}`, { waitUntil: "domcontentloaded" });
-  await page.locator(".jabbar-ai-toggle").waitFor({ state: "visible" });
+  await page.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
   const metrics = await measure(page);
   assert(metrics.documentWidth <= metrics.innerWidth + 1, `${viewport.width}px closed page has horizontal overflow`);
-  assert(metrics.elements.toggle.height >= 48, `${viewport.width}px AI toggle height is ${metrics.elements.toggle.height}px`);
+  assert(metrics.elements.launcher.height >= 56, `${viewport.width}px contact launcher height is ${metrics.elements.launcher.height}px`);
   if (viewport.visible) {
     assertMobileConversionBar(metrics, `${viewport.path} ${viewport.width}x${viewport.height}`);
   } else {

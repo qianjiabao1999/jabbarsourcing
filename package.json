@@ -5,9 +5,11 @@
   "main": "script.js",
   "scripts": {
     "build:css": "lightningcss --minify styles.css -o styles.min.css",
-    "test": "npm run test:inquiry-frontend",
+    "test": "npm run test:inquiry-frontend && npm run test:ui-enhancements",
     "test:inquiry-frontend": "node scripts/check-inquiry-frontend.mjs",
+    "test:ui-enhancements": "node scripts/check-ui-enhancements.mjs",
     "qa:ai": "node scripts/qa-ai-assistant.mjs",
+    "qa:ui": "node scripts/qa-ui-enhancements.mjs",
     "qa:inquiry": "node scripts/qa-inquiry-form.mjs",
     "test:worker": "npm --prefix cloudflare/inquiry-api test",
     "verify:worker": "npm --prefix cloudflare/inquiry-api run types:check && npm --prefix cloudflare/inquiry-api run typecheck && npm --prefix cloudflare/inquiry-api test && npm --prefix cloudflare/inquiry-api run deploy:dry"
