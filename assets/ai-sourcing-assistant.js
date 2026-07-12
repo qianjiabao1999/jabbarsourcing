@@ -23,21 +23,24 @@
   var style = document.createElement("style");
   style.textContent = [
     ".jabbar-ai-toggle{position:fixed;right:22px;bottom:88px;z-index:1200;border:0;border-radius:999px;background:#087f8c;color:#fff;font:700 15px/1 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:14px 18px;box-shadow:0 16px 36px rgba(8,127,140,.28);cursor:pointer;transition:opacity .18s ease,transform .18s ease}",
-    ".jabbar-ai-toggle.is-footer-hidden{opacity:0;pointer-events:none;transform:translateY(12px)}",
+    ".jabbar-ai-toggle.is-footer-hidden,.jabbar-ai-toggle.is-panel-open{visibility:hidden;opacity:0;pointer-events:none;transform:translateY(12px)}",
     ".jabbar-ai-panel{position:fixed;right:22px;bottom:148px;z-index:1200;width:min(380px,calc(100vw - 32px));background:rgba(255,255,255,.96);border:1px solid rgba(15,23,42,.12);border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.22);overflow:hidden;display:none}",
-    ".jabbar-ai-panel.is-open{display:block}",
-    ".jabbar-ai-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(15,23,42,.08);font:800 17px/1.2 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172033}",
+    ".jabbar-ai-panel.is-open{display:flex;flex-direction:column}",
+    ".jabbar-ai-head{display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;padding:16px 18px;border-bottom:1px solid rgba(15,23,42,.08);font:800 17px/1.2 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172033}",
     ".jabbar-ai-close{border:0;background:#eef3f8;border-radius:999px;width:32px;height:32px;font-size:18px;cursor:pointer}",
-    ".jabbar-ai-log{height:280px;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}",
+    ".jabbar-ai-log{height:280px;min-height:0;flex:1 1 280px;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}",
     ".jabbar-ai-msg{max-width:86%;padding:10px 12px;border-radius:16px;font:500 14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;white-space:pre-wrap}",
     ".jabbar-ai-msg.user{align-self:flex-end;background:#087f8c;color:#fff;border-bottom-right-radius:5px}",
     ".jabbar-ai-msg.bot{align-self:flex-start;background:#f1f5f9;color:#172033;border-bottom-left-radius:5px}",
-    ".jabbar-ai-form{display:grid;grid-template-columns:1fr auto;gap:8px;padding:14px;border-top:1px solid rgba(15,23,42,.08)}",
+    ".jabbar-ai-form{display:grid;grid-template-columns:minmax(0,1fr) auto;flex:0 0 auto;gap:8px;padding:14px;border-top:1px solid rgba(15,23,42,.08)}",
     ".jabbar-ai-input{min-width:0;border:1px solid rgba(15,23,42,.16);border-radius:999px;padding:12px 14px;font:500 14px/1.2 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}",
     ".jabbar-ai-send{border:0;border-radius:999px;background:#087f8c;color:#fff;font:800 14px/1 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:0 16px;cursor:pointer}",
-    ".jabbar-ai-whatsapp{display:none;margin:0 14px 14px;text-align:center;text-decoration:none;border-radius:999px;background:#25d366;color:#073b20;font:800 14px/1 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:12px}",
+    ".jabbar-ai-whatsapp{display:none;flex:0 0 auto;margin:0 14px 14px;text-align:center;text-decoration:none;border-radius:999px;background:#25d366;color:#073b20;font:800 14px/1 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:12px}",
     ".jabbar-ai-whatsapp.is-visible{display:block}",
-    "@media (max-width:767px){.jabbar-ai-toggle{right:14px;bottom:72px}.jabbar-ai-panel{right:12px;bottom:126px}}",
+    ".jabbar-ai-toggle.is-compact{right:var(--jabbar-ai-toggle-right,14px);bottom:var(--jabbar-ai-toggle-bottom,72px);max-width:calc(var(--jabbar-ai-vv-width,100vw) - 28px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+    ".jabbar-ai-panel.is-compact{right:var(--jabbar-ai-panel-right,12px);bottom:var(--jabbar-ai-panel-bottom,12px);width:min(380px,calc(var(--jabbar-ai-vv-width,100vw) - 24px));height:min(419px,calc(var(--jabbar-ai-vv-height,100vh) - 24px));max-height:calc(var(--jabbar-ai-vv-height,100vh) - 24px)}",
+    ".jabbar-ai-panel.is-compact .jabbar-ai-input{font-size:16px}",
+    "@media (max-width:767px){.jabbar-ai-toggle{right:14px;bottom:72px}.jabbar-ai-panel{right:12px;bottom:12px}.jabbar-ai-input{font-size:16px}}",
   ].join("");
   document.head.appendChild(style);
 
@@ -62,16 +65,6 @@
   document.body.appendChild(toggle);
   document.body.appendChild(panel);
 
-  var footer = document.querySelector(".site-footer");
-  if (footer && "IntersectionObserver" in window) {
-    new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        toggle.classList.toggle("is-footer-hidden", entry.isIntersecting);
-        if (entry.isIntersecting) panel.classList.remove("is-open");
-      });
-    }, { rootMargin: "0px 0px 48px" }).observe(footer);
-  }
-
   var title = panel.querySelector(".jabbar-ai-head span");
   var close = panel.querySelector(".jabbar-ai-close");
   var log = panel.querySelector(".jabbar-ai-log");
@@ -79,6 +72,86 @@
   var input = panel.querySelector(".jabbar-ai-input");
   var send = panel.querySelector(".jabbar-ai-send");
   var whatsapp = panel.querySelector(".jabbar-ai-whatsapp");
+  var viewportFrame = 0;
+
+  function syncViewportLayout() {
+    var viewport = window.visualViewport;
+    var viewportWidth = Math.max(1, viewport ? viewport.width : window.innerWidth);
+    var viewportHeight = Math.max(1, viewport ? viewport.height : window.innerHeight);
+    var viewportLeft = viewport ? viewport.offsetLeft : 0;
+    var viewportTop = viewport ? viewport.offsetTop : 0;
+    var layoutWidth = Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0);
+    var layoutHeight = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
+    var viewportReduced = viewportWidth < layoutWidth - 1 || viewportHeight < layoutHeight - 1;
+    var compact = viewportWidth <= 767 || viewportHeight <= 640 || viewportReduced || (viewport && viewport.scale > 1.01);
+
+    toggle.classList.toggle("is-compact", compact);
+    panel.classList.toggle("is-compact", compact);
+
+    if (!compact) {
+      [
+        "--jabbar-ai-vv-width",
+        "--jabbar-ai-toggle-right",
+        "--jabbar-ai-toggle-bottom",
+      ].forEach(function (property) {
+        toggle.style.removeProperty(property);
+      });
+      [
+        "--jabbar-ai-vv-width",
+        "--jabbar-ai-vv-height",
+        "--jabbar-ai-panel-right",
+        "--jabbar-ai-panel-bottom",
+      ].forEach(function (property) {
+        panel.style.removeProperty(property);
+      });
+      return;
+    }
+
+    var hiddenRight = Math.max(0, layoutWidth - (viewportLeft + viewportWidth));
+    var hiddenBottom = Math.max(0, layoutHeight - (viewportTop + viewportHeight));
+
+    toggle.style.setProperty("--jabbar-ai-vv-width", viewportWidth + "px");
+    toggle.style.setProperty("--jabbar-ai-toggle-right", hiddenRight + 14 + "px");
+    toggle.style.setProperty("--jabbar-ai-toggle-bottom", hiddenBottom + 72 + "px");
+    panel.style.setProperty("--jabbar-ai-vv-width", viewportWidth + "px");
+    panel.style.setProperty("--jabbar-ai-vv-height", viewportHeight + "px");
+    panel.style.setProperty("--jabbar-ai-panel-right", hiddenRight + 12 + "px");
+    panel.style.setProperty("--jabbar-ai-panel-bottom", hiddenBottom + 12 + "px");
+  }
+
+  function scheduleViewportLayout() {
+    if (viewportFrame) window.cancelAnimationFrame(viewportFrame);
+    viewportFrame = window.requestAnimationFrame(function () {
+      viewportFrame = 0;
+      syncViewportLayout();
+    });
+  }
+
+  function setPanelOpen(open) {
+    panel.classList.toggle("is-open", open);
+    toggle.classList.toggle("is-panel-open", open);
+    if (!open) input.blur();
+    syncViewportLayout();
+    scheduleViewportLayout();
+  }
+
+  window.addEventListener("resize", scheduleViewportLayout, { passive: true });
+  window.addEventListener("orientationchange", scheduleViewportLayout, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", scheduleViewportLayout, { passive: true });
+    window.visualViewport.addEventListener("scroll", scheduleViewportLayout, { passive: true });
+  }
+  syncViewportLayout();
+
+  var footer = document.querySelector(".site-footer");
+  if (footer && "IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        toggle.classList.toggle("is-footer-hidden", entry.isIntersecting);
+        if (entry.isIntersecting) setPanelOpen(false);
+      });
+    }, { rootMargin: "0px 0px 48px" }).observe(footer);
+  }
 
   title.textContent = copy.title;
   input.placeholder = copy.placeholder;
@@ -151,15 +224,24 @@
     lastWhatsappUrl = url || "";
     whatsapp.href = lastWhatsappUrl;
     whatsapp.classList.toggle("is-visible", Boolean(lastWhatsappUrl));
+    scheduleViewportLayout();
   }
 
   toggle.addEventListener("click", function () {
-    panel.classList.toggle("is-open");
-    if (panel.classList.contains("is-open")) input.focus();
+    var open = !panel.classList.contains("is-open");
+    setPanelOpen(open);
+    if (open) {
+      try {
+        input.focus({ preventScroll: true });
+      } catch (error) {
+        input.focus();
+      }
+      scheduleViewportLayout();
+    }
   });
 
   close.addEventListener("click", function () {
-    panel.classList.remove("is-open");
+    setPanelOpen(false);
   });
 
   form.addEventListener("submit", function (event) {

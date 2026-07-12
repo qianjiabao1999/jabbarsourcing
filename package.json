@@ -7,6 +7,7 @@
     "build:css": "lightningcss --minify styles.css -o styles.min.css",
     "test": "npm run test:inquiry-frontend",
     "test:inquiry-frontend": "node scripts/check-inquiry-frontend.mjs",
+    "qa:ai": "node scripts/qa-ai-assistant.mjs",
     "qa:inquiry": "node scripts/qa-inquiry-form.mjs",
     "test:worker": "npm --prefix cloudflare/inquiry-api test",
     "verify:worker": "npm --prefix cloudflare/inquiry-api run types:check && npm --prefix cloudflare/inquiry-api run typecheck && npm --prefix cloudflare/inquiry-api test && npm --prefix cloudflare/inquiry-api run deploy:dry"
