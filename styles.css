@@ -3443,6 +3443,11 @@ html.gallery-ready .gallery-track {
   -webkit-backdrop-filter: blur(22px) saturate(1.45);
 }
 
+[dir="rtl"] .site-nav-mobile-panel {
+  right: auto;
+  left: 0;
+}
+
 .site-nav-mobile-panel a {
   padding: 11px 12px;
   border-radius: 12px;

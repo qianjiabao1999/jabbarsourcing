@@ -22,6 +22,49 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            cloudflare/inquiry-api/package-lock.json
+
+      - name: Install frontend QA dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run frontend static checks
+        run: npm test
+
+      - name: Verify generated CSS is current
+        run: |
+          npm run build:css
+          git diff --exit-code -- styles.min.css
+
+      - name: Run multilingual inquiry browser QA
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/jabbar-static-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/inquiry/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4173/inquiry/ >/dev/null
+          npm run qa:inquiry
+
+      - name: Install Worker verification dependencies
+        run: npm ci --prefix cloudflare/inquiry-api
+
+      - name: Verify inquiry Worker
+        run: npm run verify:worker
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 

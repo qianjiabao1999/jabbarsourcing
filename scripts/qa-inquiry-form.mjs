@@ -26,8 +26,13 @@ const PAGES = [
   { locale: "zh", path: "/inquiry/" },
   { locale: "en", path: "/en/inquiry/" },
   { locale: "es", path: "/es/inquiry/" },
+  { locale: "ar", path: "/ar/inquiry/", rtl: true },
+  { locale: "fr", path: "/fr/inquiry/" },
+  { locale: "pt", path: "/pt/inquiry/" },
   { locale: "ru", path: "/ru/inquiry/" },
-  { locale: "ar", path: "/ar/inquiry/", rtl: true }
+  { locale: "de", path: "/de/inquiry/" },
+  { locale: "it", path: "/it/inquiry/" },
+  { locale: "tr", path: "/tr/inquiry/" }
 ];
 
 function assert(condition, message) {
@@ -217,6 +222,11 @@ for (const viewport of [
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
   for (const item of PAGES) {
     await openInquiry(item.path);
+    if (viewport.name === "mobile") {
+      await page.locator(".site-nav-mobile-menu").evaluate((menu) => {
+        menu.open = true;
+      });
+    }
     await page.screenshot({
       path: `${OUTPUT_DIR}/${item.locale}-${viewport.name}.png`,
       fullPage: true
@@ -224,6 +234,7 @@ for (const viewport of [
     const metrics = await page.evaluate(() => {
       const direct = document.querySelector(".js-inquiry-direct")?.getBoundingClientRect();
       const panel = document.querySelector(".inquiry-direct-panel")?.getBoundingClientRect();
+      const mobileNavigation = document.querySelector(".site-nav-mobile-panel")?.getBoundingClientRect();
       const fallback = Array.from(document.querySelectorAll(".js-inquiry-send"));
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
@@ -231,13 +242,21 @@ for (const viewport of [
         panelWidth: panel?.width || 0,
         fallbackCount: fallback.length,
         brokenImages: Array.from(document.images).filter((image) => image.complete && image.naturalWidth === 0).length,
-        dir: document.documentElement.dir || "ltr"
+        dir: document.documentElement.dir || "ltr",
+        mobileNavigationLeft: mobileNavigation?.left ?? 0,
+        mobileNavigationRight: mobileNavigation?.right ?? 0
       };
     });
     assert(metrics.overflow <= 1, `${item.locale} ${viewport.name} has horizontal overflow: ${metrics.overflow}px`);
     assert(metrics.directWidth > 0 && metrics.panelWidth > 0, `${item.locale} ${viewport.name} direct-submit layout is missing`);
     assert(metrics.fallbackCount === 4, `${item.locale} ${viewport.name} lost a fallback channel`);
     assert(metrics.brokenImages === 0, `${item.locale} ${viewport.name} has ${metrics.brokenImages} broken loaded images`);
+    if (viewport.name === "mobile") {
+      assert(
+        metrics.mobileNavigationLeft >= -1 && metrics.mobileNavigationRight <= viewport.width + 1,
+        `${item.locale} mobile navigation is outside the viewport: ${metrics.mobileNavigationLeft}..${metrics.mobileNavigationRight}`
+      );
+    }
     if (item.rtl) assert(metrics.dir === "rtl", "Arabic inquiry page must remain RTL");
   }
 
