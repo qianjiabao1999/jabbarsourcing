@@ -9,7 +9,7 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-12";
-const CSS_VERSION = "apple-153";
+const CSS_VERSION = "apple-154";
 const JS_VERSION = "inquiry-20260712a";
 const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
@@ -149,6 +149,9 @@ function checkSharedJavascript(source) {
 
 function checkPage(page, html) {
   const scope = page.file;
+  if (countClassToken(html, "mobile-conversion-bar") !== 0) {
+    fail(scope, "inquiry pages must not include the mobile conversion bar");
+  }
   const formOpenCount = (html.match(/<form\b/gi) ?? []).length;
   const forms = Array.from(html.matchAll(/<form\b([^>]*)>([\s\S]*?)<\/form>/gi));
   if (formOpenCount !== 1 || forms.length !== 1) {

@@ -22,7 +22,7 @@
 
   var style = document.createElement("style");
   style.textContent = [
-    ".jabbar-ai-toggle{position:fixed;right:22px;bottom:88px;z-index:1200;border:0;border-radius:999px;background:#087f8c;color:#fff;font:700 15px/1 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:14px 18px;box-shadow:0 16px 36px rgba(8,127,140,.28);cursor:pointer;transition:opacity .18s ease,transform .18s ease}",
+    ".jabbar-ai-toggle{position:fixed;right:22px;bottom:88px;z-index:1200;min-height:48px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:#087f8c;color:#fff;font:700 15px/1 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:14px 18px;box-shadow:0 16px 36px rgba(8,127,140,.28);cursor:pointer;transition:opacity .18s ease,transform .18s ease}",
     ".jabbar-ai-toggle.is-footer-hidden,.jabbar-ai-toggle.is-panel-open{visibility:hidden;opacity:0;pointer-events:none;transform:translateY(12px)}",
     ".jabbar-ai-panel{position:fixed;right:22px;bottom:148px;z-index:1200;width:min(380px,calc(100vw - 32px));background:rgba(255,255,255,.96);border:1px solid rgba(15,23,42,.12);border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.22);overflow:hidden;display:none}",
     ".jabbar-ai-panel.is-open{display:flex;flex-direction:column}",
@@ -65,6 +65,7 @@
   document.body.appendChild(toggle);
   document.body.appendChild(panel);
 
+  var conversionBar = document.querySelector(".mobile-conversion-bar");
   var title = panel.querySelector(".jabbar-ai-head span");
   var close = panel.querySelector(".jabbar-ai-close");
   var log = panel.querySelector(".jabbar-ai-log");
@@ -109,10 +110,18 @@
 
     var hiddenRight = Math.max(0, layoutWidth - (viewportLeft + viewportWidth));
     var hiddenBottom = Math.max(0, layoutHeight - (viewportTop + viewportHeight));
+    var conversionBarHeight = 0;
+    if (conversionBar && !panel.classList.contains("is-open")) {
+      var conversionBarStyle = window.getComputedStyle(conversionBar);
+      if (conversionBarStyle.display !== "none" && conversionBarStyle.visibility !== "hidden") {
+        conversionBarHeight = Math.ceil(conversionBar.getBoundingClientRect().height);
+      }
+    }
+    var toggleBottom = conversionBarHeight ? conversionBarHeight + 16 : 72;
 
     toggle.style.setProperty("--jabbar-ai-vv-width", viewportWidth + "px");
     toggle.style.setProperty("--jabbar-ai-toggle-right", hiddenRight + 14 + "px");
-    toggle.style.setProperty("--jabbar-ai-toggle-bottom", hiddenBottom + 72 + "px");
+    toggle.style.setProperty("--jabbar-ai-toggle-bottom", hiddenBottom + toggleBottom + "px");
     panel.style.setProperty("--jabbar-ai-vv-width", viewportWidth + "px");
     panel.style.setProperty("--jabbar-ai-vv-height", viewportHeight + "px");
     panel.style.setProperty("--jabbar-ai-panel-right", hiddenRight + 12 + "px");
@@ -130,6 +139,7 @@
   function setPanelOpen(open) {
     panel.classList.toggle("is-open", open);
     toggle.classList.toggle("is-panel-open", open);
+    document.body.classList.toggle("jabbar-ai-open", open);
     if (!open) input.blur();
     syncViewportLayout();
     scheduleViewportLayout();

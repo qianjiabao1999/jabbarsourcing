@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_AI_OUTPUT_DIR || "/tmp/jabbar-ai-qa";
-const AI_VERSION = "ai-20260712a";
+const AI_VERSION = "ai-20260712b";
 const PAGES = [
   { locale: "zh", path: "/" },
   { locale: "en", path: "/en/" },
@@ -25,9 +25,11 @@ async function measure(page) {
   return page.evaluate(() => {
     const readRect = (selector) => {
       const element = document.querySelector(selector);
+      if (!element) return null;
       const box = element.getBoundingClientRect();
       const style = getComputedStyle(element);
       return {
+        className: element.className,
         left: box.left,
         right: box.right,
         top: box.top,
@@ -37,7 +39,9 @@ async function measure(page) {
         fontSize: Number.parseFloat(style.fontSize),
         opacity: Number.parseFloat(style.opacity),
         pointerEvents: style.pointerEvents,
-        direction: style.direction
+        direction: style.direction,
+        display: style.display,
+        visibility: style.visibility
       };
     };
     const viewport = window.visualViewport;
@@ -54,12 +58,23 @@ async function measure(page) {
       activeClass: document.activeElement?.className || "",
       scriptVersion: document.querySelector('script[src*="ai-sourcing-assistant.js"]')?.getAttribute("src") || "",
       compact: document.querySelector(".jabbar-ai-panel")?.classList.contains("is-compact") || false,
+      bodyPaddingBottom: Number.parseFloat(getComputedStyle(document.body).paddingBottom),
+      bodyAiOpen: document.body.classList.contains("jabbar-ai-open"),
+      links: {
+        whatsapp: document.querySelector(".mobile-conversion-whatsapp")?.href || "",
+        quote: document.querySelector(".mobile-conversion-quote")?.href || ""
+      },
       elements: {
         toggle: readRect(".jabbar-ai-toggle"),
         panel: readRect(".jabbar-ai-panel"),
         input: readRect(".jabbar-ai-input"),
         send: readRect(".jabbar-ai-send"),
-        close: readRect(".jabbar-ai-close")
+        close: readRect(".jabbar-ai-close"),
+        socialAccounts: readRect("#social-accounts"),
+        footer: readRect(".site-footer"),
+        conversionBar: readRect(".mobile-conversion-bar"),
+        conversionWhatsapp: readRect(".mobile-conversion-whatsapp"),
+        conversionQuote: readRect(".mobile-conversion-quote")
       }
     };
   });
@@ -88,6 +103,44 @@ function assertNoControlOverlap(metrics, scope) {
   assert(overlap <= 1, `${scope} AI input overlaps send button by ${overlap}px`);
 }
 
+function assertMobileConversionBar(metrics, scope) {
+  const bar = metrics.elements.conversionBar;
+  const whatsapp = metrics.elements.conversionWhatsapp;
+  const quote = metrics.elements.conversionQuote;
+  assert(bar && whatsapp && quote, `${scope} mobile conversion bar is missing`);
+  assert.equal(bar.display, "grid", `${scope} mobile conversion bar is not displayed`);
+  assert.equal(bar.visibility, "visible", `${scope} mobile conversion bar is hidden`);
+  assert(bar.opacity > 0.99, `${scope} mobile conversion bar opacity is ${bar.opacity}`);
+  assert.equal(bar.pointerEvents, "auto", `${scope} mobile conversion bar does not receive pointer events`);
+  assert(Math.abs(bar.height - 56) <= 1, `${scope} mobile conversion bar height is ${bar.height}px`);
+  assert(Math.abs(bar.left - metrics.viewport.offsetLeft) <= 1, `${scope} mobile conversion bar left is ${bar.left}px`);
+  assert(Math.abs(bar.right - (metrics.viewport.offsetLeft + metrics.viewport.width)) <= 1, `${scope} mobile conversion bar right is ${bar.right}px`);
+  assert(Math.abs(bar.bottom - (metrics.viewport.offsetTop + metrics.viewport.height)) <= 1, `${scope} mobile conversion bar bottom is ${bar.bottom}px`);
+  [whatsapp, quote].forEach((button, index) => {
+    const name = index === 0 ? "WhatsApp" : "quote";
+    assert(button.height >= 48, `${scope} ${name} button height is ${button.height}px`);
+    assert(button.fontSize >= 16, `${scope} ${name} font is ${button.fontSize}px`);
+    assert.equal(button.pointerEvents, "auto", `${scope} ${name} button is not clickable`);
+  });
+  assert.equal(metrics.links.whatsapp, "https://wa.me/8618658925544", `${scope} WhatsApp URL is wrong`);
+  assert(metrics.links.quote.includes("/inquiry/"), `${scope} quote URL is wrong: ${metrics.links.quote}`);
+  assert(metrics.bodyPaddingBottom >= 56, `${scope} body padding-bottom is ${metrics.bodyPaddingBottom}px`);
+  assert.equal(metrics.bodyAiOpen, false, `${scope} body retained the AI-open state after closing`);
+  assert(metrics.elements.toggle.height >= 48, `${scope} AI toggle height is ${metrics.elements.toggle.height}px`);
+  assert(metrics.elements.toggle.bottom <= bar.top - 15, `${scope} AI toggle overlaps or crowds the conversion bar`);
+}
+
+function assertSocialContainer(metrics, scope) {
+  const social = metrics.elements.socialAccounts;
+  assert(social, `${scope} social accounts section is missing`);
+  assert.match(social.className, /(?:^|\s)container-wide(?:\s|$)/, `${scope} social accounts is missing container-wide`);
+  assert.doesNotMatch(social.className, /(?:^|\s)contain(?:\s|$)/, `${scope} social accounts still uses contain`);
+  const expectedWidth = Math.min(metrics.innerWidth - 48, 1140);
+  const expectedLeft = (metrics.innerWidth - expectedWidth) / 2;
+  assert(Math.abs(social.width - expectedWidth) <= 1, `${scope} social width is ${social.width}px, expected ${expectedWidth}px`);
+  assert(Math.abs(social.left - expectedLeft) <= 1, `${scope} social left is ${social.left}px, expected ${expectedLeft}px`);
+}
+
 async function openAssistant(page, path) {
   await page.goto(`${BASE_URL}${path}`, { waitUntil: "domcontentloaded" });
   await page.locator(".jabbar-ai-toggle").waitFor({ state: "visible" });
@@ -114,6 +167,12 @@ async function checkCurrentLayout(page, scope, compactExpected) {
   }
   assert(metrics.elements.toggle.opacity === 0, `${scope} toggle remains visible behind the open panel`);
   assert.equal(metrics.elements.toggle.pointerEvents, "none", `${scope} hidden toggle still receives pointer events`);
+  assert(metrics.elements.toggle.height >= 48, `${scope} AI toggle height is ${metrics.elements.toggle.height}px`);
+  assert(metrics.bodyAiOpen, `${scope} body is missing the AI-open state`);
+  if (metrics.elements.conversionBar && metrics.elements.conversionBar.display !== "none") {
+    assert.equal(metrics.elements.conversionBar.visibility, "hidden", `${scope} conversion bar remains visible behind the AI panel`);
+    assert.equal(metrics.elements.conversionBar.pointerEvents, "none", `${scope} hidden conversion bar remains clickable`);
+  }
   assertInsideViewport(metrics, ["panel", "input", "send", "close"], scope);
   assertNoControlOverlap(metrics, scope);
   return metrics;
@@ -154,8 +213,56 @@ for (const item of PAGES) {
     const style = toggle && getComputedStyle(toggle);
     return style?.visibility === "visible" && Number.parseFloat(style.opacity) > 0.99 && style.pointerEvents !== "none";
   });
+  if (item.locale !== "calculator") {
+    await page.waitForFunction(() => {
+      const bar = document.querySelector(".mobile-conversion-bar");
+      const style = bar && getComputedStyle(bar);
+      return style?.display === "grid" && style.visibility === "visible" && Number.parseFloat(style.opacity) > 0.99;
+    });
+  }
   const closed = await measure(page);
   assertInsideViewport(closed, ["toggle"], `${item.locale} closed toggle`);
+  if (item.locale === "calculator") {
+    assert.equal(closed.elements.conversionBar, null, "Calculator must not include the mobile conversion bar");
+  } else {
+    assertSocialContainer(closed, `${item.locale} 390x844`);
+    assertMobileConversionBar(closed, `${item.locale} 390x844`);
+    if (item.rtl) {
+      assert.equal(closed.elements.conversionBar.direction, "rtl", "Arabic conversion bar must remain RTL");
+    }
+    if (item.locale === "zh") {
+      await page.screenshot({ path: `${OUTPUT_DIR}/mobile-conversion-bar-390x844.png` });
+      await page.evaluate(() => {
+        document.documentElement.style.scrollBehavior = "auto";
+        window.scrollTo(0, document.documentElement.scrollHeight);
+      });
+      await page.waitForFunction(() => Math.abs(window.scrollY - (document.documentElement.scrollHeight - window.innerHeight)) <= 2);
+      const footerMetrics = await measure(page);
+      assert(footerMetrics.elements.footer.bottom <= footerMetrics.elements.conversionBar.top + 1, "Mobile conversion bar obscures the footer end");
+      await page.screenshot({ path: `${OUTPUT_DIR}/mobile-conversion-footer-390x844.png` });
+    }
+  }
+}
+
+for (const viewport of [
+  { width: 320, height: 568, visible: true, path: "/ru/" },
+  { width: 767, height: 700, visible: true, path: "/" },
+  { width: 768, height: 700, visible: false, path: "/" },
+  { width: 1280, height: 900, visible: false, path: "/" }
+]) {
+  await page.setViewportSize({ width: viewport.width, height: viewport.height });
+  await page.goto(`${BASE_URL}${viewport.path}`, { waitUntil: "domcontentloaded" });
+  await page.locator(".jabbar-ai-toggle").waitFor({ state: "visible" });
+  const metrics = await measure(page);
+  assert(metrics.documentWidth <= metrics.innerWidth + 1, `${viewport.width}px closed page has horizontal overflow`);
+  assert(metrics.elements.toggle.height >= 48, `${viewport.width}px AI toggle height is ${metrics.elements.toggle.height}px`);
+  if (viewport.visible) {
+    assertMobileConversionBar(metrics, `${viewport.path} ${viewport.width}x${viewport.height}`);
+  } else {
+    assert.equal(metrics.elements.conversionBar.display, "none", `${viewport.width}px conversion bar must be hidden`);
+    assert.equal(metrics.bodyPaddingBottom, 0, `${viewport.width}px body must not reserve conversion-bar space`);
+    if (viewport.path === "/") assertSocialContainer(metrics, `/ ${viewport.width}x${viewport.height}`);
+  }
 }
 
 for (const viewport of [
@@ -180,7 +287,7 @@ await page.setViewportSize({ width: 390, height: 430 });
 await page.waitForFunction(() => {
   const panel = document.querySelector(".jabbar-ai-panel")?.getBoundingClientRect();
   const viewport = window.visualViewport;
-  return Boolean(panel && viewport && panel.bottom <= viewport.offsetTop + viewport.height + 1);
+  return Boolean(panel && viewport && panel.top >= viewport.offsetTop - 1 && panel.bottom <= viewport.offsetTop + viewport.height + 1);
 });
 await checkCurrentLayout(page, "zh dynamic keyboard viewport 390x430", true);
 await page.screenshot({ path: `${OUTPUT_DIR}/dynamic-keyboard-390x430.png` });
@@ -188,7 +295,7 @@ await page.setViewportSize({ width: 568, height: 320 });
 await page.waitForFunction(() => {
   const panel = document.querySelector(".jabbar-ai-panel")?.getBoundingClientRect();
   const viewport = window.visualViewport;
-  return Boolean(panel && viewport && panel.right <= viewport.offsetLeft + viewport.width + 1 && panel.bottom <= viewport.offsetTop + viewport.height + 1);
+  return Boolean(panel && viewport && panel.left >= viewport.offsetLeft - 1 && panel.right <= viewport.offsetLeft + viewport.width + 1 && panel.top >= viewport.offsetTop - 1 && panel.bottom <= viewport.offsetTop + viewport.height + 1);
 });
 await checkCurrentLayout(page, "zh dynamic rotation 568x320", true);
 
@@ -239,14 +346,14 @@ for (const item of PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes(loca
   await webkitPage.waitForFunction(() => {
     const panel = document.querySelector(".jabbar-ai-panel")?.getBoundingClientRect();
     const viewport = window.visualViewport;
-    return Boolean(panel && viewport && panel.bottom <= viewport.offsetTop + viewport.height + 1);
+    return Boolean(panel && viewport && panel.top >= viewport.offsetTop - 1 && panel.bottom <= viewport.offsetTop + viewport.height + 1);
   });
   await checkCurrentLayout(webkitPage, `WebKit ${item.locale} dynamic 390x430`, true);
   await webkitPage.setViewportSize({ width: 568, height: 320 });
   await webkitPage.waitForFunction(() => {
     const panel = document.querySelector(".jabbar-ai-panel")?.getBoundingClientRect();
     const viewport = window.visualViewport;
-    return Boolean(panel && viewport && panel.right <= viewport.offsetLeft + viewport.width + 1 && panel.bottom <= viewport.offsetTop + viewport.height + 1);
+    return Boolean(panel && viewport && panel.left >= viewport.offsetLeft - 1 && panel.right <= viewport.offsetLeft + viewport.width + 1 && panel.top >= viewport.offsetTop - 1 && panel.bottom <= viewport.offsetTop + viewport.height + 1);
   });
   await checkCurrentLayout(webkitPage, `WebKit ${item.locale} dynamic 568x320`, true);
   assert.equal(webkitErrors.length, 0, `WebKit ${item.locale} console errors: ${webkitErrors.join(" | ")}`);
@@ -254,4 +361,4 @@ for (const item of PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes(loca
 }
 await webkitBrowser.close();
 
-console.log(`AI assistant mobile QA passed: ${PAGES.length} pages plus Chromium and WebKit compact, dynamic keyboard, rotation and zoom scenarios. Screenshots: ${OUTPUT_DIR}`);
+console.log(`AI assistant and mobile conversion QA passed: ${PAGES.length} pages plus multilingual containers, Chromium/WebKit keyboard, rotation and zoom scenarios. Screenshots: ${OUTPUT_DIR}`);
