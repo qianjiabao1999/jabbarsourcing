@@ -237,8 +237,14 @@ for (const item of PAGES) {
         window.scrollTo(0, document.documentElement.scrollHeight);
       });
       await page.waitForFunction(() => Math.abs(window.scrollY - (document.documentElement.scrollHeight - window.innerHeight)) <= 2);
+      await page.waitForFunction(() => {
+        const toggle = document.querySelector(".jabbar-ai-toggle");
+        const style = toggle && getComputedStyle(toggle);
+        return style?.visibility === "hidden" && style.opacity === "0" && style.pointerEvents === "none";
+      });
       const footerMetrics = await measure(page);
       assert(footerMetrics.elements.footer.bottom <= footerMetrics.elements.conversionBar.top + 1, "Mobile conversion bar obscures the footer end");
+      assert.equal(footerMetrics.elements.toggle.visibility, "hidden", "AI toggle remains visible over the mobile footer");
       await page.screenshot({ path: `${OUTPUT_DIR}/mobile-conversion-footer-390x844.png` });
     }
   }
