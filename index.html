@@ -48,7 +48,7 @@
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="site.webmanifest?v=jabbar-5" />
 
-    <link rel="stylesheet" href="styles.min.css?v=apple-158" />
+    <link rel="stylesheet" href="styles.min.css?v=apple-159" />
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -185,7 +185,7 @@
         }
         var inquiryButton = event.target.closest(".js-inquiry-send");
         if (inquiryButton) {
-          window.jabbarTrack("inquiry_submit", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
+          window.jabbarTrack("inquiry_channel_click", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
         }
       }, true);
     </script>
@@ -257,9 +257,9 @@
             </a>
           </section>
             <div class="stamp-row" aria-label="Jabbar Sourcing commitments">
-              <div class="stamp-item"><span class="stamp" dir="ltr" style="--tilt:-3deg; --c:#0F6E56;">QC PASSED ✓</span><small class="stamp-note">专人拆箱验货 · 照片视频实时回传</small></div>
-              <div class="stamp-item"><span class="stamp" dir="ltr" style="--tilt:2deg; --c:#185FA5;">REPLY &lt; 24H</span><small class="stamp-note">24 小时在线回复</small></div>
-              <div class="stamp-item"><span class="stamp" dir="ltr" style="--tilt:-1.5deg; --c:#8A520D;">TRIAL $1,000</span><small class="stamp-note">1,000 美元即可试单</small></div>
+              <div class="stamp-item"><span class="stamp num-mono" dir="ltr" style="--tilt:-3deg; --c:#0F6E56;">QC PASSED ✓</span><small class="stamp-note">专人拆箱验货 · 照片视频实时回传</small></div>
+              <div class="stamp-item"><span class="stamp num-mono" dir="ltr" style="--tilt:2deg; --c:#185FA5;">REPLY &lt; 24H</span><small class="stamp-note">24 小时在线回复</small></div>
+              <div class="stamp-item"><span class="stamp num-mono" dir="ltr" style="--tilt:-1.5deg; --c:#8A520D;">TRIAL $1,000</span><small class="stamp-note">1,000 美元即可试单</small></div>
             </div>
 
           </header>
@@ -269,7 +269,7 @@
               <strong class="shipment-ticker-label">最近发运</strong>
               <div class="shipment-ticker-rail" tabindex="0" data-shipments-source="/shipments.json?v=shipments-20260713a">
                 <div class="shipment-ticker-track">
-                  <ul class="shipment-ticker-list"><li class="shipment-ticker-item">[待站主填写]</li></ul>
+                  <ul class="shipment-ticker-list"><li class="shipment-ticker-item num-mono">[待站主填写]</li></ul>
                 </div>
               </div>
             </div>
@@ -1269,7 +1269,7 @@
   <script>
     window.JABBAR_AI_ASSISTANT_ENDPOINT = "https://jabbar-sourcing-ai-assistant.qianjiabao1999.workers.dev";
   </script>
-  <script src="/assets/ai-sourcing-assistant.js?v=ai-20260712b" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20260713c" defer></script>
+  <script src="/assets/ai-sourcing-assistant.js?v=ai-20260714a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260714a" defer></script>
   </body>
 </html>

@@ -19,6 +19,24 @@
   var history = [];
   var sessionTurns = 0;
   var lastWhatsappUrl = "";
+  var firstMessageTracked = false;
+  try {
+    firstMessageTracked = sessionStorage.getItem("jabbarAiFirstMessageTracked") === "1";
+  } catch (error) {}
+
+  function trackFirstMessage() {
+    if (firstMessageTracked) return;
+    var params = { locale: lang };
+    if (typeof window.jabbarTrack === "function") {
+      window.jabbarTrack("ai_first_message", params);
+    } else if (typeof window.gtag === "function") {
+      window.gtag("event", "ai_first_message", params);
+    }
+    firstMessageTracked = true;
+    try {
+      sessionStorage.setItem("jabbarAiFirstMessageTracked", "1");
+    } catch (error) {}
+  }
 
   var style = document.createElement("style");
   style.textContent = [
@@ -287,6 +305,7 @@
         if (result.ok) {
           history.push({ role: "user", content: message }, { role: "assistant", content: reply });
           sessionTurns += 1;
+          trackFirstMessage();
         }
         setWhatsapp(data.whatsappUrl);
       })

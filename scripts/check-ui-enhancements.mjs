@@ -6,9 +6,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-158";
-const AI_VERSION = "ai-20260712b";
-const UI_VERSION = "ui-20260713c";
+const CSS_VERSION = "apple-159";
+const AI_VERSION = "ai-20260714a";
+const UI_VERSION = "ui-20260714a";
 const ORDER_VERSION = "order-20260713b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = [
@@ -22,6 +22,11 @@ const HOME_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale) }
 const CALCULATOR_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "calculator/") }));
 const INQUIRY_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "inquiry/") }));
 const EXTRA_PAGES = ["404.html", "privacy-policy.html", "support.html"];
+const FALLBACK_EVENT_PAGES = [
+  ...HOME_PAGES.map(({ file }) => file),
+  ...INQUIRY_PAGES.map(({ file }) => file),
+  ...EXTRA_PAGES
+];
 
 function count(source, pattern) {
   return (source.match(pattern) || []).length;
@@ -68,6 +73,16 @@ function tagById(source, id) {
   return (source.match(/<[a-z][^>]*>/gi) || []).find((tag) => tag.match(/\bid="([^"]*)"/)?.[1] === id) || "";
 }
 
+function tagWithAttribute(source, tagName, name) {
+  return (source.match(new RegExp(`<${tagName}\\b[^>]*>`, "gi")) || [])
+    .find((tag) => new RegExp(`\\b${name}(?:\\s*=|\\s|/?>)`, "i").test(tag)) || "";
+}
+
+function cssRuleBody(source, selector) {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return source.match(new RegExp(`(?:^|\\n)${escaped}\\s*\\{([^}]*)\\}`, "m"))?.[1] || "";
+}
+
 function attribute(tag, name) {
   return tag.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1] || "";
 }
@@ -105,11 +120,17 @@ for (const { locale, file } of HOME_PAGES) {
   assert.equal(countClass(html, "stamp-row"), 1, `${file}: stamp row count`);
   assert.equal(countClass(html, "stamp-item"), STAMP_TOKENS.length, `${file}: stamp item count`);
   assert.deepEqual(textsForClass(html, "span", "stamp"), STAMP_TOKENS, `${file}: stamp tokens`);
+  const stamps = tagsWithClass(html, "span", "stamp");
+  assert.equal(stamps.length, STAMP_TOKENS.length, `${file}: stamp element count`);
+  assert(stamps.every((match) => classListFromAttributes(match[1]).includes("num-mono")), `${file}: every stamp must explicitly use num-mono`);
   const stampNotes = textsForClass(html, "small", "stamp-note");
   assert.equal(stampNotes.length, STAMP_TOKENS.length, `${file}: stamp note count`);
   assert(stampNotes.every(Boolean), `${file}: empty localized stamp note`);
   assert.equal(countClass(html, "shipment-ticker"), 1, `${file}: shipment ticker count`);
   assert.equal(countClass(html, "shipment-ticker-rail"), 1, `${file}: shipment ticker rail count`);
+  const staticShipmentItems = tagsWithClass(html, "li", "shipment-ticker-item");
+  assert.equal(staticShipmentItems.length, 1, `${file}: static shipment fallback item count`);
+  assert(staticShipmentItems.every((match) => classListFromAttributes(match[1]).includes("num-mono")), `${file}: static shipment fallback must explicitly use num-mono`);
   assert.match(html, /data-shipments-source="\/shipments\.json\?v=shipments-20260713a"/, `${file}: shipment data source`);
   const metricNumbers = tagsWithClass(html, "bdi", "company-metric-number")
     .filter((match) => classListFromAttributes(match[1]).includes("num-mono"));
@@ -117,6 +138,8 @@ for (const { locale, file } of HOME_PAGES) {
   const reviewMetas = regionsForClass(html, "div", "testimonial-order-meta");
   assert.equal(reviewMetas.length, 3, `${file}: testimonial metadata count`);
   assert(reviewMetas.every((region) => countClass(region, "num-mono") === 1), `${file}: review amount must be the only monospaced metadata value`);
+  const footerPhoneTag = html.match(/<a\b[^>]*href="tel:\+8618658925544"[^>]*>/i)?.[0] || "";
+  assert(hasClass(footerPhoneTag, "num-mono"), `${file}: footer phone is not monospaced`);
   assert.doesNotMatch(html, /(?:href|src)="[^"]*\/ja\//, `${file}: Japanese route must not return`);
   if (locale === "ar") assert.match(html, /<html[^>]+lang="ar"[^>]+dir="rtl"/, `${file}: Arabic RTL root missing`);
 }
@@ -140,8 +163,15 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   const fillTag = tagById(html, "cbmFill");
   assert(hasClass(capTag, "num-mono"), `${file}: CBM capacity label is not monospaced`);
   assert(hasClass(percentageTag, "num-mono"), `${file}: CBM percentage is not monospaced`);
+  for (const dataName of ["data-per-cbm", "data-total-cbm", "data-buffer-cbm", "data-weight-total"]) {
+    assert(hasClass(tagWithAttribute(html, "strong", dataName), "num-mono"), `${file}: ${dataName} is not monospaced`);
+  }
+  assert.match(html, /function\s+setTextWithMonoNumbers\s*\(element,\s*value\)/, `${file}: dynamic numeric wrapper helper missing`);
+  assert.match(html, /setTextWithMonoNumbers\(out\.container,\s*container\)/, `${file}: dynamic container numbers are not wrapped`);
+  assert.match(html, /setTextWithMonoNumbers\(out\.summary,\s*container\s*\+/, `${file}: dynamic summary numbers are not wrapped`);
   assert(Number(attribute(capTag, "y")) < Number(attribute(fillTag, "y")), `${file}: capacity label must sit above the container`);
   assert.equal(count(html, /window\.renderCbmVisual\(total\)/g), 1, `${file}: CBM visual hook count`);
+  assert.equal(count(html, /["']calculator_calculate["']/g), 1, `${file}: valid manual calculator event count`);
   assert.equal(count(html, /mobile-conversion-bar/g), 0, `${file}: calculator must not include mobile conversion bar`);
   if (locale === "ar") assert.match(html, /<html[^>]+lang="ar"[^>]+dir="rtl"/, `${file}: Arabic RTL root missing`);
 }
@@ -159,6 +189,13 @@ for (const file of EXTRA_PAGES) {
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing QR enhancement`);
 }
 
+assert.equal(FALLBACK_EVENT_PAGES.length, 23, "fallback analytics page count");
+for (const file of FALLBACK_EVENT_PAGES) {
+  const html = await load(file);
+  assert.match(html, /window\.jabbarTrack\(["']inquiry_channel_click["']/, `${file}: fallback channel event missing`);
+  assert.doesNotMatch(html, /(?:jabbarTrack|gtag)\s*\([^)]*["']inquiry_submit["']/, `${file}: fallback channel must not impersonate a successful inquiry`);
+}
+
 const javascript = await load("assets/site-enhancements.js");
 for (const locale of LOCALES) {
   assert.match(javascript, new RegExp(`\\n\\s*${locale}: \\{`), `site-enhancements.js: missing ${locale} labels`);
@@ -166,11 +203,19 @@ for (const locale of LOCALES) {
 for (const token of [
   "contact-speed-dial", "renderCbmVisual", "service-country-marquee", "site-scroll-progress",
   "ui-section-reveal", "faq-quick-tags", "whatsapp-qr.svg", "prefers-reduced-motion",
-  "initTrustStamps", "initShipmentTicker", "Intl.RelativeTimeFormat", "shipments.json"
+  "initTrustStamps", "initShipmentTicker", "Intl.RelativeTimeFormat", "shipments.json",
+  "initAnalyticsEvents", "contact_whatsapp", "isPlaceholderRecord", "is-unavailable"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing ${token}`);
 }
+assert(javascript.includes('createElement("li", "shipment-ticker-item num-mono")'), "site-enhancements.js: dynamic shipment item must explicitly use num-mono");
+assert(javascript.includes('ticker.classList.add("is-ready")'), "site-enhancements.js: valid shipment data must opt into the visible state");
 assert(!javascript.includes("ja:"), "site-enhancements.js: Japanese labels must not return");
+
+const inquiryJavascript = await load("assets/inquiry-form.js");
+const aiJavascript = await load("assets/ai-sourcing-assistant.js");
+assert(inquiryJavascript.includes('"inquiry_submit"'), "inquiry-form.js: successful direct inquiry event missing");
+assert(aiJavascript.includes('"ai_first_message"'), "ai-sourcing-assistant.js: first successful AI message event missing");
 
 const css = await load("styles.css");
 for (const token of [
@@ -182,6 +227,13 @@ for (const token of [
   assert(css.includes(token), `styles.css: missing ${token}`);
 }
 assert(css.includes(".social-platform-groups .section-heading"), "styles.css: social heading centering missing");
+const calculatorPageRule = cssRuleBody(css, ".calculator-page");
+const calculatorGridAlphas = Array.from(calculatorPageRule.matchAll(/rgba\(24,\s*165,\s*192,\s*([0-9.]+)\)/g), (match) => Number(match[1]));
+assert(calculatorPageRule.includes("24px 24px"), "styles.css: calculator grid must be applied directly to .calculator-page");
+assert(calculatorGridAlphas.length >= 2 && calculatorGridAlphas.slice(0, 2).every((alpha) => alpha > 0 && alpha <= 0.08), "styles.css: calculator grid alpha must stay at or below 8%");
+assert.doesNotMatch(css, /\.calculator-page::before\s*\{/, "styles.css: calculator grid must not be hidden in a pseudo-element");
+assert.match(cssRuleBody(css, ".shipment-ticker"), /display:\s*none\s*;/, "styles.css: shipment ticker must default to hidden");
+assert.match(cssRuleBody(css, ".shipment-ticker.is-ready"), /display:\s*grid\s*;/, "styles.css: shipment ticker ready state must be visible");
 for (const token of [
   ".calculator-order-upload", ".order-analyzer__dropzone", ".order-analyzer__mapping",
   ".order-analyzer__metrics", ".order-analyzer__actions", ".order-analyzer__table"

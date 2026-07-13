@@ -4526,6 +4526,8 @@ html.gallery-ready .gallery-track {
   min-height: 100vh;
   padding: clamp(42px, 6vw, 82px) 0 clamp(52px, 7vw, 96px);
   background:
+    linear-gradient(rgba(24, 165, 192, 0.058) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, rgba(24, 165, 192, 0.058) 1px, transparent 1px) 0 0 / 24px 24px,
     radial-gradient(circle at 12% 8%, rgba(219, 234, 254, 0.72), transparent 32%),
     radial-gradient(circle at 88% 10%, rgba(254, 226, 226, 0.52), transparent 30%),
     linear-gradient(180deg, #f8fbff 0%, #fff 48%, #f8fbff 100%);
@@ -6907,11 +6909,15 @@ html.gallery-ready .gallery-track {
   width: 100%;
   min-height: 54px;
   margin-block: clamp(24px, 3.5vw, 38px) clamp(28px, 4vw, 44px);
-  display: grid;
+  display: none;
   align-items: center;
   overflow: hidden;
   border-block: 0.5px solid rgba(24, 95, 165, 0.2);
   background: rgba(248, 251, 255, 0.78);
+}
+
+.shipment-ticker.is-ready {
+  display: grid;
 }
 
 .shipment-ticker-inner {
@@ -7029,18 +7035,6 @@ html.gallery-ready .gallery-track {
 .calculator-page {
   position: relative;
   isolation: isolate;
-}
-
-.calculator-page::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(24, 165, 192, 0.058) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(24, 165, 192, 0.058) 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
 .calculator-section-code {
@@ -8799,7 +8793,10 @@ body.jabbar-ai-open .contact-speed-dial {
 
 #services .company-metric-card strong > .company-metric-number {
   color: inherit !important;
-  font: inherit !important;
+  font-family: var(--font-mono-stack) !important;
+  font-size: inherit !important;
+  font-style: inherit !important;
+  font-weight: inherit !important;
   letter-spacing: inherit !important;
   line-height: inherit !important;
 }

@@ -6,8 +6,9 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_AI_OUTPUT_DIR || "/tmp/jabbar-ai-qa";
-const AI_VERSION = "ai-20260712b";
-const UI_VERSION = "ui-20260713c";
+const AI_API_URL = "https://jabbar-sourcing-ai-assistant.qianjiabao1999.workers.dev/chat";
+const AI_VERSION = "ai-20260714a";
+const UI_VERSION = "ui-20260714a";
 const PAGES = [
   { locale: "zh", path: "/" },
   { locale: "en", path: "/en/" },
@@ -198,6 +199,15 @@ const context = await browser.newContext({
 });
 await context.route("**://www.googletagmanager.com/**", (route) => route.fulfill({ status: 200, body: "" }));
 await context.route("**://www.clarity.ms/**", (route) => route.fulfill({ status: 204, body: "" }));
+const aiResponses = [];
+await context.route(AI_API_URL, async (route) => {
+  const next = aiResponses.shift() || { status: 200, body: { reply: "QA assistant reply", whatsappUrl: "" } };
+  await route.fulfill({
+    status: next.status,
+    contentType: "application/json; charset=utf-8",
+    body: JSON.stringify(next.body)
+  });
+});
 
 const consoleErrors = [];
 const page = await context.newPage();
@@ -205,6 +215,50 @@ page.on("console", (message) => {
   if (message.type() === "error") consoleErrors.push(message.text());
 });
 page.on("pageerror", (error) => consoleErrors.push(error.message));
+
+async function analyticsEvents(eventName) {
+  return page.evaluate((name) => (window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .filter((entry) => entry[0] === "event" && entry[1] === name)
+    .map((entry) => entry[2] || {}), eventName);
+}
+
+async function sendAiMessage(message) {
+  const before = await page.locator(".jabbar-ai-msg").count();
+  await page.locator(".jabbar-ai-input").fill(message);
+  await page.locator(".jabbar-ai-send").click();
+  await page.waitForFunction((count) => document.querySelectorAll(".jabbar-ai-msg").length >= count + 2, before);
+  await page.waitForFunction(() => !document.querySelector(".jabbar-ai-send")?.disabled);
+}
+
+await openAssistant(page, "/");
+assert.equal((await analyticsEvents("ai_first_message")).length, 0, "AI event must not fire when the panel merely opens");
+
+aiResponses.push({ status: 503, body: { reply: "QA temporary failure", whatsappUrl: "" } });
+await sendAiMessage("QA first request should fail");
+assert.equal((await analyticsEvents("ai_first_message")).length, 0, "Failed AI response must not emit ai_first_message");
+assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarAiFirstMessageTracked")), null, "Failed AI response must not set the session marker");
+// Chromium reports the deliberate HTTP 503 above as a resource console error.
+// The behavior is asserted explicitly, so start the visual console audit clean.
+consoleErrors.length = 0;
+
+aiResponses.push({ status: 200, body: { reply: "QA first successful reply", whatsappUrl: "" } });
+await sendAiMessage("QA first successful request");
+let aiEvents = await analyticsEvents("ai_first_message");
+assert.equal(aiEvents.length, 1, "First successful AI response must emit ai_first_message exactly once");
+assert.deepEqual(Object.keys(aiEvents[0]).sort(), ["locale"], "ai_first_message must not include message content");
+assert.equal(aiEvents[0].locale, "zh", "ai_first_message must report the page locale");
+assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarAiFirstMessageTracked")), "1", "First successful AI response must set the session marker");
+
+aiResponses.push({ status: 200, body: { reply: "QA second successful reply", whatsappUrl: "" } });
+await sendAiMessage("QA second successful request");
+aiEvents = await analyticsEvents("ai_first_message");
+assert.equal(aiEvents.length, 1, "Later successful AI replies must not repeat ai_first_message");
+
+await openAssistant(page, "/");
+aiResponses.push({ status: 200, body: { reply: "QA post-reload reply", whatsappUrl: "" } });
+await sendAiMessage("QA request after reload");
+assert.equal((await analyticsEvents("ai_first_message")).length, 0, "Session marker must suppress ai_first_message after navigation");
 
 for (const item of PAGES) {
   await page.setViewportSize({ width: 390, height: 844 });

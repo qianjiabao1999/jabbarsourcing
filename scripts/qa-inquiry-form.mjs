@@ -134,6 +134,24 @@ async function clickDirect() {
   await page.locator(".js-inquiry-direct").click();
 }
 
+async function analyticsEvents(eventName) {
+  return page.evaluate((name) => (window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .filter((entry) => entry[0] === "event" && entry[1] === name)
+    .map((entry) => entry[2] || {}), eventName);
+}
+
+function assertInquiryEvent(event, status, scope) {
+  assert(Boolean(event), `${scope} did not emit inquiry_submit`);
+  assert(
+    JSON.stringify(Object.keys(event).sort()) === JSON.stringify(["locale", "method", "status"]),
+    `${scope} inquiry_submit must contain only locale, method and status`
+  );
+  assert(event.method === "direct", `${scope} inquiry_submit method is ${event.method}`);
+  assert(event.status === status, `${scope} inquiry_submit status is ${event.status}, expected ${status}`);
+  assert(event.locale === "zh", `${scope} inquiry_submit locale is ${event.locale}`);
+}
+
 await openInquiry("/inquiry/");
 
 const fallbackSnapshot = await page.locator(".js-inquiry-send").evaluateAll((buttons) =>
@@ -141,6 +159,11 @@ const fallbackSnapshot = await page.locator(".js-inquiry-send").evaluateAll((but
 );
 assert(fallbackSnapshot.length === 4, "Expected four fallback buttons");
 assert(fallbackSnapshot.every((item) => item.type === "button"), "Fallback controls must remain type=button");
+await page.locator('.js-inquiry-send[data-channel="wechat"]').dispatchEvent("click");
+const fallbackChannelEvents = await analyticsEvents("inquiry_channel_click");
+assert(fallbackChannelEvents.length === 1, "Fallback click must emit inquiry_channel_click once");
+assert(fallbackChannelEvents[0].channel === "wechat", "Fallback click must preserve its channel");
+assert((await analyticsEvents("inquiry_submit")).length === 0, "Fallback click must not emit inquiry_submit");
 
 await fillRequired("QA storage items", "qa@example.com");
 apiResponses.push(response(201, { ok: true, requestId: "qa-201" }));
@@ -155,40 +178,54 @@ assert(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.t
 assert(apiPayloads[0].privacyAcknowledged === true, "Privacy acknowledgement must be boolean true");
 assert((await page.locator('[name="product"]').inputValue()) === "", "Success must clear product");
 assert(!(await page.locator(".js-inquiry-privacy").isChecked()), "Success must clear privacy acknowledgement");
+let inquiryEvents = await analyticsEvents("inquiry_submit");
+assert(inquiryEvents.length === 1, "201 success must emit inquiry_submit exactly once");
+assertInquiryEvent(inquiryEvents[0], 201, "201 success");
 
 await fillRequired("QA retry product", "qa-retry@example.com");
 apiResponses.push(
   response(502, { ok: false, error: "email_delivery_failed" }),
-  response(201, { ok: true, requestId: "qa-retry" })
+  response(200, { ok: true, requestId: "qa-retry" })
 );
 const beforeRetry = apiPayloads.length;
+const beforeRetryEvents = inquiryEvents.length;
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
+assert((await analyticsEvents("inquiry_submit")).length === beforeRetryEvents, "502 failure must not emit inquiry_submit");
 await page.waitForFunction(() => window.__turnstileResetCount > 0 && window.__turnstileIssueCount > 1);
 assert((await page.locator('[name="product"]').inputValue()) === "QA retry product", "502 must preserve business fields");
 const firstRetryId = apiPayloads[beforeRetry].submissionId;
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-success"));
 assert(apiPayloads[beforeRetry + 1].submissionId === firstRetryId, "Same-content retry must reuse submissionId");
+inquiryEvents = await analyticsEvents("inquiry_submit");
+assert(inquiryEvents.length === beforeRetryEvents + 1, "Retry success must emit inquiry_submit exactly once");
+assertInquiryEvent(inquiryEvents.at(-1), 200, "200 retry success");
 
 await fillRequired("QA pending product", "qa-pending@example.com");
 apiResponses.push(
   response(409, { ok: false, error: "submission_in_progress" }, { "Retry-After": "5" }),
-  response(201, { ok: true, requestId: "qa-pending-complete" })
+  response(202, { ok: true, requestId: "qa-pending-complete" })
 );
 const beforePending = apiPayloads.length;
+const beforePendingEvents = inquiryEvents.length;
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.textContent.includes("5s"));
+assert((await analyticsEvents("inquiry_submit")).length === beforePendingEvents, "409 pending response must not emit inquiry_submit");
 const pendingId = apiPayloads[beforePending].submissionId;
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-success"));
 assert(apiPayloads[beforePending + 1].submissionId === pendingId, "Pending retry must preserve submissionId");
+inquiryEvents = await analyticsEvents("inquiry_submit");
+assert(inquiryEvents.length === beforePendingEvents + 1, "202 acceptance must emit inquiry_submit exactly once");
+assertInquiryEvent(inquiryEvents.at(-1), 202, "202 acceptance");
 
 await fillRequired("QA original in-flight value", "qa-in-flight@example.com");
 apiResponses.push({
   ...response(201, { ok: true, requestId: "qa-in-flight" }),
   delay: 250
 });
+const beforeInFlightEvents = inquiryEvents.length;
 await clickDirect();
 await page.locator('[name="product"]').fill("QA unsent edit must remain");
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-success"));
@@ -196,20 +233,26 @@ assert(
   (await page.locator('[name="product"]').inputValue()) === "QA unsent edit must remain",
   "A successful in-flight request must not clear later user edits"
 );
+inquiryEvents = await analyticsEvents("inquiry_submit");
+assert(inquiryEvents.length === beforeInFlightEvents + 1, "In-flight success must emit inquiry_submit exactly once");
+assertInquiryEvent(inquiryEvents.at(-1), 201, "In-flight 201 success");
 
 await page.locator('[name="product"]').fill("QA privacy gate");
 await page.locator('[name="contact"]').fill("qa-privacy@example.com");
 await page.locator(".js-inquiry-privacy").uncheck();
 const beforePrivacyGate = apiPayloads.length;
+const beforePrivacyEvents = inquiryEvents.length;
 await clickDirect();
 await page.waitForFunction(() => Boolean(document.querySelector(".js-inquiry-privacy-error")?.textContent.trim()));
 assert(apiPayloads.length === beforePrivacyGate, "Unchecked privacy gate must not call the API");
+assert((await analyticsEvents("inquiry_submit")).length === beforePrivacyEvents, "Privacy validation failure must not emit inquiry_submit");
 
 await page.locator(".js-inquiry-privacy").check();
 await page.evaluate(() => window.__turnstileOptions["expired-callback"]());
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
 assert(apiPayloads.length === beforePrivacyGate, "Expired Turnstile token must not call the API");
+assert((await analyticsEvents("inquiry_submit")).length === beforePrivacyEvents, "Expired Turnstile token must not emit inquiry_submit");
 
 // The deliberate 502 and 409 response cases above produce Chromium network
 // console entries. Start a clean console audit for normal page rendering.

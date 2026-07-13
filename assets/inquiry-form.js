@@ -223,12 +223,22 @@
       };
     }
 
-    function completeSubmission(message, submittedContentKey) {
+    function completeSubmission(message, submittedContentKey, statusCode) {
       if (!submittedContentKey || contentKey() === submittedContentKey) form.reset();
       currentSubmissionId = "";
       setPrivacyError("");
       resetTurnstile();
       setStatus(message, "success");
+      var analyticsParams = {
+        method: "direct",
+        status: Number(statusCode),
+        locale: locale
+      };
+      if (typeof window.jabbarTrack === "function") {
+        window.jabbarTrack("inquiry_submit", analyticsParams);
+      } else if (typeof window.gtag === "function") {
+        window.gtag("event", "inquiry_submit", analyticsParams);
+      }
     }
 
     FIELD_NAMES.forEach(function (name) {
@@ -297,11 +307,11 @@
         var body = result.body || {};
 
         if (response.status === 200 || response.status === 201) {
-          completeSubmission(messages.success, submittedContentKey);
+          completeSubmission(messages.success, submittedContentKey, response.status);
           return;
         }
         if (response.status === 202) {
-          completeSubmission(messages.accepted, submittedContentKey);
+          completeSubmission(messages.accepted, submittedContentKey, response.status);
           return;
         }
 

@@ -27,7 +27,7 @@
     <link rel="shortcut icon" href="favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="styles.min.css?v=apple-158" />
+    <link rel="stylesheet" href="styles.min.css?v=apple-159" />
     <!-- Analytics placeholders: replace IDs before launch -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6X14RZHNZ"></script>
     <script>
@@ -54,7 +54,7 @@
         }
         var inquiryButton = event.target.closest(".js-inquiry-send");
         if (inquiryButton) {
-          window.jabbarTrack("inquiry_submit", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
+          window.jabbarTrack("inquiry_channel_click", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
         }
       }, true);
     </script>
@@ -90,6 +90,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260713c" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260714a" defer></script>
   </body>
 </html>

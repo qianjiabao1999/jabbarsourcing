@@ -65,6 +65,24 @@
     return element;
   }
 
+  function initAnalyticsEvents() {
+    if (typeof window.jabbarTrack !== "function") {
+      window.jabbarTrack = function (eventName, params) {
+        if (typeof window.gtag !== "function") return;
+        window.gtag("event", eventName, params || {});
+      };
+    }
+
+    if (!document.querySelector("main.calculator-page")) return;
+    document.addEventListener("click", function (event) {
+      var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp');
+      if (!whatsappLink) return;
+      window.jabbarTrack("contact_whatsapp", {
+        page_type: "calculator"
+      });
+    }, true);
+  }
+
   function initTrustStamps() {
     var row = document.querySelector(".stamp-row");
     if (!row) return;
@@ -146,8 +164,16 @@
       }).slice(0, 10);
     }
 
+    function isPlaceholderRecord(item) {
+      if (!item || typeof item !== "object" || item.placeholder === true) return true;
+      return Object.keys(item).some(function (key) {
+        var value = item[key];
+        return typeof value === "string" && /^\s*\[[\s\S]+\]\s*$/.test(value);
+      });
+    }
+
     function buildItem(item) {
-      var li = createElement("li", "shipment-ticker-item");
+      var li = createElement("li", "shipment-ticker-item num-mono");
       if (item.placeholder) li.classList.add("is-placeholder");
       li.setAttribute("dir", "auto");
       if (item.flag) {
@@ -241,8 +267,15 @@
       if (!response.ok) throw new Error("Shipment data unavailable");
       return response.json();
     }).then(function (data) {
+      if (!Array.isArray(data) || !data.length || data.some(isPlaceholderRecord)) {
+        ticker.classList.add("is-unavailable");
+        return;
+      }
       var items = normalize(data);
-      if (!items.length) return;
+      if (!items.length) {
+        ticker.classList.add("is-unavailable");
+        return;
+      }
       var firstList = buildList(items, false);
       var secondList = buildList(items, true);
       track.replaceChildren(firstList, secondList);
@@ -250,7 +283,7 @@
       ticker.setAttribute("aria-label", copy.shipments);
       startMotion(firstList);
     }).catch(function () {
-      ticker.classList.add("is-fallback");
+      ticker.classList.add("is-unavailable");
     });
   }
 
@@ -723,6 +756,7 @@
     else faq.insertBefore(tags, faq.firstChild);
   }
 
+  initAnalyticsEvents();
   initTrustStamps();
   initShipmentTicker();
   initContactSpeedDial();
