@@ -5,52 +5,52 @@
   var labels = {
     zh: {
       contact: "联系我们", ai: "AI 采购助理", scan: "手机扫码直聊", reply: "在线 · 24 小时内回复",
-      countries: "服务国家和地区", cbmTitle: "集装箱装载示意",
+      countries: "服务国家和地区", shipments: "最近发运", cbmTitle: "集装箱装载示意",
       faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发"]
     },
     en: {
       contact: "Contact us", ai: "AI Sourcing Assistant", scan: "Scan to chat", reply: "Online · replies within 24h",
-      countries: "Countries and regions served", cbmTitle: "Container loading illustration",
+      countries: "Countries and regions served", shipments: "Recent shipments", cbmTitle: "Container loading illustration",
       faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping"]
     },
     es: {
       contact: "Contáctanos", ai: "Asistente de compras AI", scan: "Escanea para chatear", reply: "En línea · respuesta en 24 h",
-      countries: "Países y regiones atendidos", cbmTitle: "Ilustración de carga del contenedor",
+      countries: "Países y regiones atendidos", shipments: "Envíos recientes", cbmTitle: "Ilustración de carga del contenedor",
       faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo"]
     },
     ar: {
       contact: "تواصل معنا", ai: "مساعد الشراء بالذكاء الاصطناعي", scan: "امسح للدردشة", reply: "متصل · نرد خلال 24 ساعة",
-      countries: "الدول والمناطق التي نخدمها", cbmTitle: "رسم توضيحي لتحميل الحاوية",
+      countries: "الدول والمناطق التي نخدمها", shipments: "الشحنات الأخيرة", cbmTitle: "رسم توضيحي لتحميل الحاوية",
       faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر"]
     },
     fr: {
       contact: "Contactez-nous", ai: "Assistant achat IA", scan: "Scannez pour discuter", reply: "En ligne · réponse sous 24 h",
-      countries: "Pays et régions desservis", cbmTitle: "Illustration du chargement du conteneur",
+      countries: "Pays et régions desservis", shipments: "Expéditions récentes", cbmTitle: "Illustration du chargement du conteneur",
       faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe"]
     },
     pt: {
       contact: "Fale conosco", ai: "Assistente de compras AI", scan: "Escaneie para conversar", reply: "Online · resposta em até 24 h",
-      countries: "Países e regiões atendidos", cbmTitle: "Ilustração do carregamento do contêiner",
+      countries: "Países e regiões atendidos", shipments: "Envios recentes", cbmTitle: "Ilustração do carregamento do contêiner",
       faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping"]
     },
     ru: {
       contact: "Связаться", ai: "AI помощник по закупкам", scan: "Сканируйте для чата", reply: "Онлайн · ответим в течение 24 ч",
-      countries: "Страны и регионы обслуживания", cbmTitle: "Схема загрузки контейнера",
+      countries: "Страны и регионы обслуживания", shipments: "Последние отправки", cbmTitle: "Схема загрузки контейнера",
       faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг"]
     },
     de: {
       contact: "Kontakt", ai: "KI Einkaufsassistent", scan: "Zum Chatten scannen", reply: "Online · Antwort innerhalb 24 Std.",
-      countries: "Bediente Länder und Regionen", cbmTitle: "Darstellung der Containerbeladung",
+      countries: "Bediente Länder und Regionen", shipments: "Letzte Sendungen", cbmTitle: "Darstellung der Containerbeladung",
       faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping"]
     },
     it: {
       contact: "Contattaci", ai: "Assistente acquisti AI", scan: "Scansiona per chattare", reply: "Online · risposta entro 24 ore",
-      countries: "Paesi e regioni serviti", cbmTitle: "Illustrazione del carico del container",
+      countries: "Paesi e regioni serviti", shipments: "Spedizioni recenti", cbmTitle: "Illustrazione del carico del container",
       faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping"]
     },
     tr: {
       contact: "İletişim", ai: "AI Satın Alma Asistanı", scan: "Sohbet için tarayın", reply: "Çevrimiçi · 24 saat içinde yanıt",
-      countries: "Hizmet verilen ülkeler ve bölgeler", cbmTitle: "Konteyner yükleme görseli",
+      countries: "Hizmet verilen ülkeler ve bölgeler", shipments: "Son gönderiler", cbmTitle: "Konteyner yükleme görseli",
       faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış"]
     }
   };
@@ -63,6 +63,195 @@
     if (className) element.className = className;
     if (text !== undefined) element.textContent = text;
     return element;
+  }
+
+  function initTrustStamps() {
+    var row = document.querySelector(".stamp-row");
+    if (!row) return;
+    var stamps = Array.prototype.slice.call(row.querySelectorAll(".stamp"));
+    if (!stamps.length) return;
+
+    if (reducedMotion || !("IntersectionObserver" in window)) {
+      stamps.forEach(function (stamp) { stamp.classList.add("land"); });
+      return;
+    }
+
+    stamps.forEach(function (stamp) { stamp.classList.add("pre"); });
+    var observer = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+      stamps.forEach(function (stamp, index) {
+        window.setTimeout(function () { stamp.classList.add("land"); }, index * 180);
+      });
+      observer.disconnect();
+    }, { threshold: 0.4 });
+    observer.observe(row);
+  }
+
+  function initShipmentTicker() {
+    var ticker = document.querySelector(".shipment-ticker");
+    if (!ticker) return;
+    var rail = ticker.querySelector(".shipment-ticker-rail");
+    var track = ticker.querySelector(".shipment-ticker-track");
+    if (!rail || !track) return;
+
+    var source = rail.getAttribute("data-shipments-source") || "/shipments.json";
+    var field = "city_" + lang;
+    var locale = document.documentElement.lang || lang || "en";
+    var dayFormatter;
+    try { dayFormatter = new Intl.RelativeTimeFormat(locale, { numeric: "always" }); } catch (error) {
+      dayFormatter = new Intl.RelativeTimeFormat("en", { numeric: "always" });
+    }
+
+    function parseCalendarDay(value) {
+      if (typeof value !== "string") return null;
+      var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+      if (!match) return null;
+      var year = Number(match[1]);
+      var month = Number(match[2]);
+      var day = Number(match[3]);
+      var stamp = Date.UTC(year, month - 1, day);
+      var date = new Date(stamp);
+      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+      return Math.floor(stamp / 86400000);
+    }
+
+    function relativeDay(dayNumber) {
+      if (dayNumber === null) return "";
+      var now = new Date();
+      var today = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
+      return dayFormatter.format(dayNumber - today, "day");
+    }
+
+    function normalize(data) {
+      if (!Array.isArray(data)) return [];
+      return data.map(function (item, index) {
+        if (!item || typeof item !== "object") return null;
+        var city = item[field] || item.city_en || item.city_zh;
+        if (typeof city !== "string" || !city.trim()) return null;
+        var calendarDay = parseCalendarDay(item.when);
+        return {
+          city: city.trim(),
+          flag: typeof item.flag === "string" ? item.flag.trim() : "",
+          load: typeof item.load === "string" ? item.load.trim() : "",
+          when: relativeDay(calendarDay),
+          day: calendarDay,
+          placeholder: item.placeholder === true,
+          index: index
+        };
+      }).filter(Boolean).sort(function (left, right) {
+        if (left.day !== null && right.day !== null) return right.day - left.day;
+        if (left.day !== null) return -1;
+        if (right.day !== null) return 1;
+        return left.index - right.index;
+      }).slice(0, 10);
+    }
+
+    function buildItem(item) {
+      var li = createElement("li", "shipment-ticker-item");
+      if (item.placeholder) li.classList.add("is-placeholder");
+      li.setAttribute("dir", "auto");
+      if (item.flag) {
+        var flag = createElement("span", "shipment-ticker-flag", item.flag);
+        flag.setAttribute("aria-hidden", "true");
+        li.appendChild(flag);
+      }
+      var city = createElement("bdi", "shipment-ticker-city", item.city);
+      li.appendChild(city);
+      if (item.load) {
+        li.appendChild(document.createTextNode(" · "));
+        var load = createElement("bdi", "shipment-ticker-load", item.load);
+        load.dir = "ltr";
+        li.appendChild(load);
+      }
+      if (item.when) {
+        li.appendChild(document.createTextNode(" · "));
+        li.appendChild(createElement("bdi", "shipment-ticker-when", item.when));
+      }
+      return li;
+    }
+
+    function buildList(items, hidden) {
+      var list = createElement("ul", "shipment-ticker-list");
+      if (hidden) list.setAttribute("aria-hidden", "true");
+      items.forEach(function (item) { list.appendChild(buildItem(item)); });
+      return list;
+    }
+
+    function startMotion(firstList) {
+      if (reducedMotion) {
+        ticker.classList.add("is-static");
+        return;
+      }
+
+      var rtl = document.documentElement.dir === "rtl";
+      var width = 0;
+      var offset = 0;
+      var visible = true;
+      var paused = false;
+      var frameId = 0;
+      var last = 0;
+
+      function measure() {
+        width = firstList.getBoundingClientRect().width;
+        offset = rtl ? -width : 0;
+        track.style.transform = "translate3d(" + offset + "px,0,0)";
+      }
+      function stop() {
+        if (frameId) window.cancelAnimationFrame(frameId);
+        frameId = 0;
+        last = 0;
+      }
+      function frame(now) {
+        if (!last) last = now;
+        var elapsed = Math.min(50, Math.max(0, now - last));
+        last = now;
+        offset += (rtl ? 1 : -1) * 0.03 * elapsed;
+        if (!rtl && offset <= -width) offset += width;
+        if (rtl && offset >= 0) offset -= width;
+        track.style.transform = "translate3d(" + offset + "px,0,0)";
+        frameId = window.requestAnimationFrame(frame);
+      }
+      function sync() {
+        if (!visible || paused || document.hidden || width <= 0) stop();
+        else if (!frameId) frameId = window.requestAnimationFrame(frame);
+      }
+      function setPaused(value) {
+        paused = value;
+        ticker.classList.toggle("is-paused", paused);
+        sync();
+      }
+
+      rail.addEventListener("pointerenter", function () { setPaused(true); });
+      rail.addEventListener("pointerleave", function () { setPaused(false); });
+      rail.addEventListener("focusin", function () { setPaused(true); });
+      rail.addEventListener("focusout", function () { setPaused(false); });
+      document.addEventListener("visibilitychange", sync);
+      window.addEventListener("resize", function () { measure(); sync(); }, { passive: true });
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) { visible = entry.isIntersecting; });
+          sync();
+        }, { rootMargin: "120px 0px" }).observe(ticker);
+      }
+      measure();
+      sync();
+    }
+
+    fetch(source, { credentials: "same-origin", cache: "no-store" }).then(function (response) {
+      if (!response.ok) throw new Error("Shipment data unavailable");
+      return response.json();
+    }).then(function (data) {
+      var items = normalize(data);
+      if (!items.length) return;
+      var firstList = buildList(items, false);
+      var secondList = buildList(items, true);
+      track.replaceChildren(firstList, secondList);
+      ticker.classList.add("is-ready");
+      ticker.setAttribute("aria-label", copy.shipments);
+      startMotion(firstList);
+    }).catch(function () {
+      ticker.classList.add("is-fallback");
+    });
   }
 
   function initContactSpeedDial() {
@@ -190,15 +379,18 @@
       visual = createElement("div", "cbm-visual");
       visual.setAttribute("aria-hidden", "false");
       visual.innerHTML = [
-        '<svg viewBox="0 0 320 130" role="img" aria-labelledby="cbmVizTitle">',
+        '<svg viewBox="0 0 320 150" role="img" aria-labelledby="cbmVizTitle">',
         '<title id="cbmVizTitle"></title>',
-        '<rect x="8" y="24" width="284" height="80" rx="4" fill="none" stroke="#475569" stroke-width="3"/>',
-        '<line x1="292" y1="32" x2="308" y2="32" stroke="#475569" stroke-width="3"/>',
-        '<line x1="292" y1="96" x2="308" y2="96" stroke="#475569" stroke-width="3"/>',
-        '<rect id="cbmFill" x="12" y="28" width="0" height="72" fill="#5DCAA5"/>',
+        '<text id="cbmCap" class="num-mono" x="150" y="18" text-anchor="middle" font-size="13" fill="#475569" direction="ltr">20GP · 0.0 / 28 CBM</text>',
+        '<line class="cbm-dimension-line" x1="8" y1="31" x2="292" y2="31"/>',
+        '<line class="cbm-dimension-line" x1="8" y1="24" x2="8" y2="38"/>',
+        '<line class="cbm-dimension-line" x1="292" y1="24" x2="292" y2="38"/>',
+        '<rect x="8" y="44" width="284" height="80" rx="4" fill="none" stroke="#475569" stroke-width="3"/>',
+        '<line x1="292" y1="52" x2="308" y2="52" stroke="#475569" stroke-width="3"/>',
+        '<line x1="292" y1="116" x2="308" y2="116" stroke="#475569" stroke-width="3"/>',
+        '<rect id="cbmFill" x="12" y="48" width="0" height="72" fill="#5DCAA5"/>',
         '<g id="cbmRibs" stroke="#0F6E56" stroke-width="1"></g>',
-        '<text id="cbmPct" x="150" y="72" text-anchor="middle" font-size="18" font-weight="600" fill="#04342C">0%</text>',
-        '<text id="cbmCap" x="12" y="122" font-size="13" fill="#475569" direction="ltr">20GP · 0.0 / 28 CBM</text>',
+        '<text id="cbmPct" class="num-mono" x="150" y="92" text-anchor="middle" font-size="18" font-weight="600" fill="#04342C">0%</text>',
         "</svg>"
       ].join("");
       var heading = results.querySelector("h2");
@@ -222,7 +414,7 @@
       var ribs = visual.querySelector("#cbmRibs");
       ribs.innerHTML = "";
       for (var x = 46; x < 12 + width; x += 34) {
-        ribs.insertAdjacentHTML("beforeend", '<line x1="' + x + '" y1="28" x2="' + x + '" y2="100"/>');
+        ribs.insertAdjacentHTML("beforeend", '<line x1="' + x + '" y1="48" x2="' + x + '" y2="120"/>');
       }
       visual.querySelector("#cbmPct").textContent = Math.round(totalCbm / pick[1] * 100) + "%";
       visual.querySelector("#cbmCap").textContent = pick[0] + " · " + totalCbm.toFixed(1) + " / " + pick[1] + " CBM" + (over ? " ×" + Math.ceil(totalCbm / 68) : "");
@@ -329,7 +521,7 @@
 
   function prepareCounter(strong) {
     var original = strong.textContent.trim();
-    var numberElement = strong.querySelector("bdi");
+    var numberElement = strong.querySelector(".company-metric-number") || strong.querySelector("bdi");
     var token = "";
 
     if (numberElement) {
@@ -346,7 +538,7 @@
       }
       if (!node || !match) return null;
       token = match[0];
-      numberElement = createElement("span", "company-metric-number", token);
+      numberElement = createElement("span", "company-metric-number num-mono", token);
       var before = node.nodeValue.slice(0, match.index);
       var after = node.nodeValue.slice(match.index + token.length);
       var parent = node.parentNode;
@@ -358,6 +550,7 @@
 
     var target = Number(token.replace(/[^0-9]/g, ""));
     if (!target) return null;
+    numberElement.classList.add("company-metric-number", "num-mono");
     strong.setAttribute("aria-label", original);
     numberElement.textContent = "0";
     return { element: numberElement, original: token, target: target, grouped: /[,.]/.test(token) };
@@ -401,7 +594,7 @@
     }
 
     if (sharedObserver) {
-      [".sourcing-gallery", ".company-intro", ".work-process", ".testimonials", ".faq-section", ".social-platform-groups"].forEach(function (selector) {
+      [".sourcing-gallery", ".company-intro", ".work-process", ".company-about", ".testimonials", ".faq-section", ".social-platform-groups"].forEach(function (selector) {
         document.querySelectorAll(selector).forEach(function (section) {
           section.classList.add("ui-section-reveal");
           sharedObserver.observe(section);
@@ -527,6 +720,8 @@
     else faq.insertBefore(tags, faq.firstChild);
   }
 
+  initTrustStamps();
+  initShipmentTicker();
   initContactSpeedDial();
   initCbmVisual();
   initScrollProgress();

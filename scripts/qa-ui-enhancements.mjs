@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-156";
-const UI_VERSION = "ui-20260713a";
+const CSS_VERSION = "apple-157";
+const UI_VERSION = "ui-20260713b";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -16,6 +16,10 @@ const HOME_PAGES = [
 const CALCULATOR_PAGES = HOME_PAGES.map((item) => ({ ...item, path: item.path === "/" ? "/calculator/" : `${item.path}calculator/` }));
 const INQUIRY_PAGES = HOME_PAGES.map((item) => ({ ...item, path: item.path === "/" ? "/inquiry/" : `${item.path}inquiry/` }));
 const IMAGE_AUDIT_LOCALES = new Set(["zh", "en", "es", "ru", "ar"]);
+const SECTION_CODES = [
+  "JBSU 001 · TEAM", "JBSU 002 · GALLERY", "JBSU 003 · SERVICES", "JBSU 004 · PROCESS",
+  "JBSU 005 · ABOUT", "JBSU 006 · REVIEWS", "JBSU 007 · FAQ", "JBSU 008 · SOCIAL"
+];
 
 await mkdir(OUTPUT_DIR, { recursive: true });
 
@@ -33,6 +37,7 @@ function collectErrors(page) {
 
 async function pageState(page) {
   return page.evaluate(() => {
+    const normalizeText = (value) => String(value || "").replace(/\s+/g, " ").trim();
     const rect = (selector) => {
       const element = document.querySelector(selector);
       if (!element) return null;
@@ -46,6 +51,14 @@ async function pageState(page) {
         fontSize: Number.parseFloat(style.fontSize)
       };
     };
+    const fontFamily = (selector) => {
+      const element = document.querySelector(selector);
+      return element ? getComputedStyle(element).fontFamily : "";
+    };
+    const calculatorPage = document.querySelector(".calculator-page");
+    const blueprint = calculatorPage ? getComputedStyle(calculatorPage, "::before") : null;
+    const cap = document.querySelector("#cbmCap");
+    const fill = document.querySelector("#cbmFill");
     return {
       width: window.innerWidth,
       documentWidth: document.documentElement.scrollWidth,
@@ -61,7 +74,35 @@ async function pageState(page) {
         progress: document.querySelectorAll(".site-scroll-progress").length,
         cbm: document.querySelectorAll(".cbm-visual").length,
         dialOptions: document.querySelectorAll(".contact-speed-dial-option").length,
-        qrCards: document.querySelectorAll(".whatsapp-qr-card").length
+        qrCards: document.querySelectorAll(".whatsapp-qr-card").length,
+        sectionCodes: document.querySelectorAll(".section-code").length,
+        sectionRules: document.querySelectorAll(".section-rule").length,
+        stamps: document.querySelectorAll(".stamp").length,
+        landedStamps: document.querySelectorAll(".stamp.land").length,
+        shipmentLists: document.querySelectorAll(".shipment-ticker-list").length,
+        shipmentItems: document.querySelectorAll(".shipment-ticker-item").length,
+        metricNumbers: document.querySelectorAll(".company-metric-number.num-mono").length,
+        reviewNumbers: document.querySelectorAll(".testimonial-order-meta .num-mono").length,
+        dimensionLines: document.querySelectorAll(".cbm-dimension-line").length
+      },
+      sectionCodes: Array.from(document.querySelectorAll(".section-code"), (element) => normalizeText(element.textContent)),
+      sectionCodeDirections: Array.from(document.querySelectorAll(".section-code"), (element) => getComputedStyle(element).direction),
+      shipmentLists: Array.from(document.querySelectorAll(".shipment-ticker-list"), (element) => ({
+        text: normalizeText(element.textContent),
+        ariaHidden: element.getAttribute("aria-hidden") || "",
+        display: getComputedStyle(element).display
+      })),
+      fonts: {
+        numeric: fontFamily(".company-metric-number.num-mono"),
+        body: fontFamily(".hero-social"),
+        calculator: fontFamily("#cbmCap.num-mono")
+      },
+      calculator: {
+        code: normalizeText(document.querySelector(".calculator-results > .section-code")?.textContent),
+        capY: Number(cap?.getAttribute("y")),
+        fillY: Number(fill?.getAttribute("y")),
+        blueprintImage: blueprint?.backgroundImage || "",
+        blueprintSize: blueprint?.backgroundSize || ""
       },
       rects: {
         dial: rect(".contact-speed-dial"),
@@ -73,6 +114,45 @@ async function pageState(page) {
       }
     };
   });
+}
+
+async function waitForHomeVisualSignature(page) {
+  await page.locator(".stamp-row").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelectorAll(".stamp.land").length === 3);
+  await page.waitForFunction(() => document.querySelectorAll(".shipment-ticker-list").length === 2
+    && document.querySelectorAll(".shipment-ticker-item").length === 12);
+}
+
+function isMonoFamily(value) {
+  return /ui-monospace|SF Mono|Cascadia Mono|Consolas|monospace/i.test(value);
+}
+
+function assertHomeVisualSignature(state, scope) {
+  assert.equal(state.counts.sectionCodes, SECTION_CODES.length, `${scope}: section code count`);
+  assert.equal(state.counts.sectionRules, SECTION_CODES.length, `${scope}: section rule count`);
+  assert.deepEqual(state.sectionCodes, SECTION_CODES, `${scope}: section code order`);
+  assert(state.sectionCodeDirections.every((direction) => direction === "ltr"), `${scope}: section code bidi isolation`);
+  assert.equal(state.counts.stamps, 3, `${scope}: stamp count`);
+  assert.equal(state.counts.landedStamps, 3, `${scope}: stamp animation did not land`);
+  assert.equal(state.counts.shipmentLists, 2, `${scope}: shipment list copy count`);
+  assert.equal(state.counts.shipmentItems, 12, `${scope}: shipment item count`);
+  assert.equal(state.shipmentLists[0]?.text, state.shipmentLists[1]?.text, `${scope}: shipment copies differ`);
+  assert.equal(state.shipmentLists[1]?.ariaHidden, "true", `${scope}: duplicate shipment list exposed to assistive technology`);
+  assert.equal(state.counts.metricNumbers, 5, `${scope}: monospaced company metric count`);
+  assert.equal(state.counts.reviewNumbers, 3, `${scope}: monospaced review amount count`);
+  assert(isMonoFamily(state.fonts.numeric), `${scope}: numeric font is not monospaced: ${state.fonts.numeric}`);
+  assert(!isMonoFamily(state.fonts.body), `${scope}: body copy inherited the monospaced font: ${state.fonts.body}`);
+}
+
+function assertCalculatorVisualSignature(state, scope) {
+  assert.equal(state.calculator.code, "JBSU T01 · CALCULATOR", `${scope}: calculator section code`);
+  assert.equal(state.counts.sectionCodes, 1, `${scope}: calculator section code count`);
+  assert.equal(state.counts.sectionRules, 1, `${scope}: calculator section rule count`);
+  assert(state.counts.dimensionLines >= 3, `${scope}: dimension line count ${state.counts.dimensionLines}`);
+  assert(state.calculator.capY < state.calculator.fillY, `${scope}: capacity annotation is not above the container`);
+  assert.match(state.calculator.blueprintImage, /linear-gradient/i, `${scope}: blueprint grid missing`);
+  assert.match(state.calculator.blueprintSize, /24px\s+24px/, `${scope}: blueprint grid size ${state.calculator.blueprintSize}`);
+  assert(isMonoFamily(state.fonts.calculator), `${scope}: calculator values are not monospaced: ${state.fonts.calculator}`);
 }
 
 function assertShared(state, scope) {
@@ -120,11 +200,13 @@ async function homeMatrix(browserType) {
     for (const item of HOME_PAGES) {
       await page.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
       await page.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
+      await waitForHomeVisualSignature(page);
       await page.waitForTimeout(120);
       const scope = `${item.locale} home ${viewport.width}x${viewport.height}`;
       const state = await pageState(page);
       assertShared(state, scope);
       assertContactDial(state, scope);
+      assertHomeVisualSignature(state, scope);
       assert.equal(state.counts.faqTags, 7, `${scope}: FAQ tag count`);
       assert.equal(state.counts.faqItems, 7, `${scope}: FAQ item count`);
       assert.equal(state.counts.countries, 24, `${scope}: duplicated country item count`);
@@ -166,6 +248,7 @@ async function calculatorMatrix(browserType) {
     const state = await pageState(page);
     assertShared(state, scope);
     assertContactDial(state, scope);
+    assertCalculatorVisualSignature(state, scope);
     assert(state.aiVersion.includes("ai-sourcing-assistant.js?v="), `${scope}: AI assistant missing`);
     assert.equal(state.counts.cbm, 1, `${scope}: CBM visual count`);
     assert.equal(state.counts.progress, 1, `${scope}: progress count`);
@@ -192,6 +275,15 @@ async function calculatorMatrix(browserType) {
     assert.equal(await page.locator("#cbmFill").getAttribute("width"), testCase.width, `${testCase.qty} CBM fill width`);
   }
   await page.locator(".calculator-results").screenshot({ path: `${OUTPUT_DIR}/calculator-visual-1280x900.png` });
+  await page.screenshot({ path: `${OUTPUT_DIR}/calculator-blueprint-1280x900.png`, fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
+  await page.locator("#cbmFill").waitFor({ state: "attached" });
+  const mobileState = await pageState(page);
+  assertShared(mobileState, "zh calculator 390x844");
+  assertCalculatorVisualSignature(mobileState, "zh calculator 390x844");
+  assert.equal(mobileState.rects.conversionBar, null, "zh calculator 390x844: calculator must not have mobile bar");
+  await page.screenshot({ path: `${OUTPUT_DIR}/calculator-blueprint-390x844.png`, fullPage: true });
   await context.close();
 }
 
@@ -245,6 +337,22 @@ async function interactionChecks(browserType) {
   assert.equal(await page.locator(".contact-speed-dial-main").getAttribute("aria-expanded"), "false", "Escape did not close dial");
   assert.match(await page.evaluate(() => document.activeElement?.className || ""), /contact-speed-dial-main/, "Escape did not restore launcher focus");
 
+  await page.locator(".shipment-ticker").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelectorAll(".shipment-ticker-item").length === 12);
+  const shipmentFirst = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
+  await page.waitForTimeout(180);
+  const shipmentSecond = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
+  assert(shipmentSecond < shipmentFirst, `LTR shipment ticker direction is wrong: ${shipmentFirst} -> ${shipmentSecond}`);
+  await page.locator(".shipment-ticker-rail").hover();
+  await page.waitForTimeout(80);
+  assert.equal(await page.locator(".shipment-ticker").evaluate((element) => element.classList.contains("is-paused")), true, "shipment ticker did not enter paused state");
+  const shipmentPausedStart = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
+  await page.waitForTimeout(180);
+  const shipmentPausedEnd = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
+  assert(Math.abs(shipmentPausedEnd - shipmentPausedStart) < 0.25, `shipment ticker did not pause: ${shipmentPausedStart} -> ${shipmentPausedEnd}`);
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(30);
+
   await page.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; window.scrollTo(0, 0); });
   await page.waitForTimeout(50);
   const topScale = await page.locator(".site-scroll-progress-fill").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).a);
@@ -260,6 +368,8 @@ async function interactionChecks(browserType) {
   await page.waitForTimeout(1300);
   const metrics = await page.locator(".company-metric-card strong").allTextContents();
   assert.deepEqual(metrics.map((item) => item.trim()), ["2021年", "300+", "50,000㎡", "全球 100+ 国家和地区", "5亿元人民币"], "company metrics changed or did not finish counting");
+  await page.locator(".service-country-marquee").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(80);
   const firstTransform = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
   await page.waitForTimeout(180);
   const secondTransform = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
@@ -304,8 +414,15 @@ async function accessibilityFallbackChecks(browserType) {
   await blockAnalytics(reduced);
   const page = await reduced.newPage();
   await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.querySelectorAll(".shipment-ticker-item").length === 12);
   assert.equal(await page.locator(".ui-section-reveal").count(), 0, "reduced motion still hides sections for reveal");
   assert.equal(await page.locator(".service-country-marquee.is-static").count(), 1, "reduced motion country strip is not static");
+  assert.equal(await page.locator(".shipment-ticker.is-static").count(), 1, "reduced motion shipment ticker is not static");
+  assert.equal(await page.locator(".shipment-ticker-track").evaluate((element) => getComputedStyle(element).transform), "none", "reduced motion shipment ticker still transforms");
+  assert.equal(await page.locator(".shipment-ticker-list").nth(1).evaluate((element) => getComputedStyle(element).display), "none", "reduced motion duplicate shipment list is visible");
+  assert.equal(await page.locator(".stamp.land").count(), 3, "reduced motion stamps did not render immediately");
+  const stampOpacities = await page.locator(".stamp").evaluateAll((items) => items.map((item) => Number.parseFloat(getComputedStyle(item).opacity)));
+  assert(stampOpacities.every((opacity) => opacity >= 0.99), `reduced motion stamp opacity ${stampOpacities.join(", ")}`);
   const metrics = await page.locator(".company-metric-card strong").allTextContents();
   assert.deepEqual(metrics.map((item) => item.trim()), ["2021年", "300+", "50,000㎡", "全球 100+ 国家和地区", "5亿元人民币"], "reduced motion changed metric copy");
   await reduced.close();
@@ -321,6 +438,12 @@ async function accessibilityFallbackChecks(browserType) {
       return style.display === "none" || style.visibility === "hidden" || Number.parseFloat(style.opacity) < 0.99;
     }));
   assert.deepEqual(hidden, [], `no-JS content hidden: ${hidden.join(", ")}`);
+  assert.equal(await noJsPage.locator(".section-code").count(), 8, "no-JS section codes missing");
+  assert.equal(await noJsPage.locator(".stamp").count(), 3, "no-JS stamps missing");
+  const noJsStampOpacities = await noJsPage.locator(".stamp").evaluateAll((items) => items.map((item) => Number.parseFloat(getComputedStyle(item).opacity)));
+  assert(noJsStampOpacities.every((opacity) => opacity >= 0.99), `no-JS stamps hidden: ${noJsStampOpacities.join(", ")}`);
+  assert.equal(await noJsPage.locator(".company-metric-number.num-mono").count(), 5, "no-JS metric numbers missing");
+  assert.equal(await noJsPage.locator(".shipment-ticker-list").count(), 1, "no-JS shipment fallback count");
   await noJs.close();
 }
 
@@ -331,10 +454,18 @@ async function rtlMotionCheck(browserType) {
   await page.goto(`${BASE_URL}/ar/`, { waitUntil: "domcontentloaded" });
   await page.locator(".company-intro").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelector(".company-intro")?.classList.contains("is-visible"));
+  await page.locator(".service-country-marquee").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(80);
   const first = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
   await page.waitForTimeout(180);
   const second = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
   assert(second > first, `RTL country strip must run in the opposite direction: ${first} -> ${second}`);
+  await page.locator(".shipment-ticker").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelectorAll(".shipment-ticker-item").length === 12);
+  const shipmentFirst = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
+  await page.waitForTimeout(180);
+  const shipmentSecond = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
+  assert(shipmentSecond > shipmentFirst, `RTL shipment ticker must run in the opposite direction: ${shipmentFirst} -> ${shipmentSecond}`);
   await context.close();
 }
 
@@ -355,9 +486,11 @@ const webkitErrors = collectErrors(webkitPage);
 for (const item of HOME_PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes(locale))) {
   await webkitPage.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
   await webkitPage.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
+  await waitForHomeVisualSignature(webkitPage);
   const state = await pageState(webkitPage);
   assertShared(state, `WebKit ${item.locale}`);
   assertContactDial(state, `WebKit ${item.locale}`);
+  assertHomeVisualSignature(state, `WebKit ${item.locale}`);
   assert.equal(state.counts.faqTags, 7, `WebKit ${item.locale}: FAQ tags`);
   assert.equal(state.counts.countries, 24, `WebKit ${item.locale}: countries`);
 }

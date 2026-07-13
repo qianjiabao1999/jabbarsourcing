@@ -7,7 +7,7 @@ import { chromium, webkit } from "playwright";
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_AI_OUTPUT_DIR || "/tmp/jabbar-ai-qa";
 const AI_VERSION = "ai-20260712b";
-const UI_VERSION = "ui-20260713a";
+const UI_VERSION = "ui-20260713b";
 const PAGES = [
   { locale: "zh", path: "/" },
   { locale: "en", path: "/en/" },
