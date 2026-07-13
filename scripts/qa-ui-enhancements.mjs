@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-157";
-const UI_VERSION = "ui-20260713b";
+const CSS_VERSION = "apple-158";
+const UI_VERSION = "ui-20260713c";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -260,10 +260,10 @@ async function calculatorMatrix(browserType) {
   await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
   for (const value of ["length", "width", "height"]) await page.locator(`#${value}`).fill("100");
   const cases = [
-    { qty: 5, pct: "18%", cap: "20GP · 5.0 / 28 CBM", fill: "#5DCAA5", width: "49" },
-    { qty: 40, pct: "69%", cap: "40GP · 40.0 / 58 CBM", fill: "#5DCAA5", width: "190" },
-    { qty: 70, pct: "103%", cap: "40HQ · 70.0 / 68 CBM ×2", fill: "#EF9F27", width: "276" },
-    { qty: 90, pct: "132%", cap: "40HQ · 90.0 / 68 CBM ×2", fill: "#EF9F27", width: "276" }
+    { qty: 5, pct: "18%", cap: "20英尺普柜 · 5.0 / 28 立方米", fill: "#5DCAA5", width: "49" },
+    { qty: 40, pct: "69%", cap: "40英尺普柜 · 40.0 / 58 立方米", fill: "#5DCAA5", width: "190" },
+    { qty: 70, pct: "103%", cap: "40英尺高柜 · 70.0 / 68 立方米 ×2", fill: "#EF9F27", width: "276" },
+    { qty: 90, pct: "132%", cap: "40英尺高柜 · 90.0 / 68 立方米 ×2", fill: "#EF9F27", width: "276" }
   ];
   for (const testCase of cases) {
     await page.locator("#qty").fill(String(testCase.qty));

@@ -11,6 +11,7 @@
     "qa:ai": "node scripts/qa-ai-assistant.mjs",
     "qa:ui": "node scripts/qa-ui-enhancements.mjs",
     "qa:inquiry": "node scripts/qa-inquiry-form.mjs",
+    "qa:calculator-order": "node scripts/qa-order-analyzer.mjs",
     "test:worker": "npm --prefix cloudflare/inquiry-api test",
     "verify:worker": "npm --prefix cloudflare/inquiry-api run types:check && npm --prefix cloudflare/inquiry-api run typecheck && npm --prefix cloudflare/inquiry-api test && npm --prefix cloudflare/inquiry-api run deploy:dry"
   },

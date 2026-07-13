@@ -6,9 +6,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-157";
+const CSS_VERSION = "apple-158";
 const AI_VERSION = "ai-20260712b";
-const UI_VERSION = "ui-20260713b";
+const UI_VERSION = "ui-20260713c";
+const ORDER_VERSION = "order-20260713b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = [
   "JBSU 001 · TEAM", "JBSU 002 · GALLERY", "JBSU 003 · SERVICES", "JBSU 004 · PROCESS",
@@ -125,6 +126,9 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.match(html, new RegExp(`ai-sourcing-assistant\\.js\\?v=${AI_VERSION}`), `${file}: missing multilingual AI assistant`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
+  assert.match(html, new RegExp(`calculator-order-analyzer\\.js\\?v=${ORDER_VERSION}`), `${file}: missing Excel order analyzer`);
+  assert.equal(count(html, /data-order-analyzer/g), 1, `${file}: Excel order analyzer mount count`);
+  assert.equal(count(html, /calculator-whatsapp|data-whatsapp|wa\.me\/8618658925544/g), 0, `${file}: calculator WhatsApp result action remains`);
   assert.equal(count(html, /class="cbm-visual"/g), 1, `${file}: static CBM visual count`);
   assert.equal(count(html, /<svg[^>]+aria-labelledby="cbmVizTitle"/g), 1, `${file}: static CBM SVG count`);
   assert.equal(count(html, /id="cbmFill"/g), 1, `${file}: static CBM fill count`);
@@ -178,6 +182,19 @@ for (const token of [
   assert(css.includes(token), `styles.css: missing ${token}`);
 }
 assert(css.includes(".social-platform-groups .section-heading"), "styles.css: social heading centering missing");
+for (const token of [
+  ".calculator-order-upload", ".order-analyzer__dropzone", ".order-analyzer__mapping",
+  ".order-analyzer__metrics", ".order-analyzer__actions", ".order-analyzer__table"
+]) {
+  assert(css.includes(token), `styles.css: missing ${token}`);
+}
+
+const orderAnalyzer = await load("assets/calculator-order-analyzer.js");
+const orderWorker = await load("assets/calculator-order-worker.js");
+for (const token of ["data-order-export", "data-order-wechat", "18658925544", "navigator.share", "toBlob", "JABBAR_ORDER_ANALYZER_QA"])
+  assert(orderAnalyzer.includes(token), `calculator-order-analyzer.js: missing ${token}`);
+for (const token of ["xlsx.full.min.js?v=0.20.3", "MAX_ROWS", "unitWeight", "unitVolume", "amount"])
+  assert(orderWorker.includes(token), `calculator-order-worker.js: missing ${token}`);
 
 const qr = await load("assets/whatsapp-qr.svg");
 assert.match(qr, /<svg\b/, "WhatsApp QR is not SVG");

@@ -403,7 +403,10 @@
 
     window.renderCbmVisual = function (totalCbm) {
       totalCbm = Math.max(0, Number(totalCbm) || 0);
-      var caps = [["20GP", 28], ["40GP", 58], ["40HQ", 68]];
+      var caps = lang === "zh"
+        ? [["20英尺普柜", 28], ["40英尺普柜", 58], ["40英尺高柜", 68]]
+        : [["20GP", 28], ["40GP", 58], ["40HQ", 68]];
+      var volumeUnit = lang === "zh" ? "立方米" : "CBM";
       var pick = caps.find(function (item) { return totalCbm <= item[1]; }) || caps[2];
       var over = totalCbm > 68;
       var pct = Math.min(totalCbm / pick[1], 1);
@@ -417,7 +420,7 @@
         ribs.insertAdjacentHTML("beforeend", '<line x1="' + x + '" y1="48" x2="' + x + '" y2="120"/>');
       }
       visual.querySelector("#cbmPct").textContent = Math.round(totalCbm / pick[1] * 100) + "%";
-      visual.querySelector("#cbmCap").textContent = pick[0] + " · " + totalCbm.toFixed(1) + " / " + pick[1] + " CBM" + (over ? " ×" + Math.ceil(totalCbm / 68) : "");
+      visual.querySelector("#cbmCap").textContent = pick[0] + " · " + totalCbm.toFixed(1) + " / " + pick[1] + " " + volumeUnit + (over ? " ×" + Math.ceil(totalCbm / 68) : "");
     };
     window.renderCbmVisual(0);
     var form = document.getElementById("cbm-calculator");

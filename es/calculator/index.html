@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Calcula CBM, volumen total, carga estimada 20GP/40HQ y envía el resultado por WhatsApp con Jabbar Sourcing." />
+    <meta name="description" content="Sube un pedido Excel para sumar productos, cantidad, peso, volumen e importe y exportar una imagen completa de carga." />
     <meta name="theme-color" content="#ffffff" />
     <meta property="og:site_name" content="Jabbar Sourcing" />
     <meta property="og:title" content="Calculadora CBM | Estimador de volumen de contenedor - Jabbar Sourcing" />
-    <meta property="og:description" content="Calcula CBM, volumen total, carga estimada 20GP/40HQ y envía el resultado por WhatsApp con Jabbar Sourcing." />
-    <meta property="og:image" content="https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg" />
+    <meta property="og:description" content="Sube un pedido Excel para sumar productos, cantidad, peso, volumen e importe y exportar una imagen completa de carga." />
+    <meta property="og:image" content="https://www.jabbarsourcing.com/assets/og-cover.jpg" />
     <meta property="og:image:alt" content="Jabbar Sourcing Team" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -26,8 +26,8 @@
     <meta property="og:locale:alternate" content="tr_TR" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Calculadora CBM | Estimador de volumen de contenedor - Jabbar Sourcing" />
-    <meta name="twitter:description" content="Calcula CBM, volumen total, carga estimada 20GP/40HQ y envía el resultado por WhatsApp con Jabbar Sourcing." />
-    <meta name="twitter:image" content="https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg" />
+    <meta name="twitter:description" content="Sube un pedido Excel para sumar productos, cantidad, peso, volumen e importe y exportar una imagen completa de carga." />
+    <meta name="twitter:image" content="https://www.jabbarsourcing.com/assets/og-cover.jpg" />
     <meta name="twitter:image:alt" content="Jabbar Sourcing Team" />
     <title>Calculadora CBM | Estimador de volumen de contenedor - Jabbar Sourcing</title>
     <link rel="canonical" href="https://www.jabbarsourcing.com/es/calculator/" />
@@ -47,7 +47,7 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-157" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-158" />
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -56,8 +56,8 @@
   "name": "Jabbar Sourcing",
   "url": "https://www.jabbarsourcing.com/",
   "logo": "https://www.jabbarsourcing.com/assets/jabbar-sourcing-logo-320.webp",
-  "image": "https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg",
-  "description": "Calcula CBM, volumen total, carga estimada 20GP/40HQ y envía el resultado por WhatsApp con Jabbar Sourcing.",
+  "image": "https://www.jabbarsourcing.com/assets/og-cover.jpg",
+  "description": "Sube un pedido Excel para sumar productos, cantidad, peso, volumen e importe y exportar una imagen completa de carga.",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "Building 3, No. 219 Sufu Road, Suxi Town",
@@ -162,10 +162,12 @@
         <header class="calculator-hero">
           <span class="calculator-kicker">Herramienta de compra</span>
           <h1>Calculadora CBM</h1>
-          <p>Introduce medidas de caja y cantidad para estimar volumen, carga de contenedor y plan logístico. Copia el resultado o envíalo por WhatsApp.</p>
+          <p>Sube un pedido Excel para obtener totales y una visualización del contenedor, o introduce medidas para una estimación manual.</p>
         </header>
         <div class="calculator-shell">
           <section class="calculator-panel" aria-label="Calculadora CBM">
+            <section class="calculator-order-upload" data-order-analyzer></section>
+            <p class="calculator-manual-label">Estimación manual rápida</p>
             <form class="calculator-form" id="cbm-calculator" novalidate>
               <div class="calculator-field calculator-field-wide">
                 <label for="product">Producto (opcional)</label>
@@ -220,7 +222,6 @@
               <div class="calculator-result-card"><span>Peso total</span><strong data-weight-total class="num-mono">Sin dato</strong></div>
             </div>
             <p class="calculator-summary" data-summary>Introduce las medidas para ver la sugerencia.</p>
-            <a class="calculator-whatsapp" data-whatsapp href="https://wa.me/8618658925544" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a>
           </aside>
         </div>
       </div>
@@ -243,13 +244,12 @@
     </footer>
     <script>
       (function () {
-        var t = {"title":"Calculadora CBM | Estimador de volumen de contenedor - Jabbar Sourcing","desc":"Calcula CBM, volumen total, carga estimada 20GP/40HQ y envía el resultado por WhatsApp con Jabbar Sourcing.","kicker":"Herramienta de compra","h1":"Calculadora CBM","intro":"Introduce medidas de caja y cantidad para estimar volumen, carga de contenedor y plan logístico. Copia el resultado o envíalo por WhatsApp.","product":"Producto (opcional)","productPh":"Ej.: utensilios de cocina, juguetes, organizadores","unit":"Unidad","length":"Largo","width":"Ancho","height":"Alto","qty":"Cajas","weight":"Peso por caja kg (opcional)","note":"Notas (opcional)","notePh":"País destino, consolidación, fecha requerida","calcBtn":"Calcular","copyBtn":"Copiar resultado","result":"Resultado","perCbm":"CBM / caja","totalCbm":"CBM total","bufferCbm":"Con 5% reserva","container":"Sugerencia de contenedor","weightTotal":"Peso total","summary":"Introduce las medidas para ver la sugerencia.","whatsapp":"Enviar por WhatsApp","copied":"Resultado copiado","invalid":"Introduce largo, ancho, alto y cajas.","noWeight":"Sin dato","twenty":"20GP aprox.","forty":"40HQ aprox.","multi":"Se necesitan aprox. {n} x 40HQ","lcl":"Adecuado para LCL o pedido de prueba","waTitle":"Resultado estimado CBM"};
+        var t = {"title":"Calculadora CBM | Estimador de volumen de contenedor - Jabbar Sourcing","desc":"Sube un pedido Excel para sumar productos, cantidad, peso, volumen e importe y exportar una imagen completa de carga.","kicker":"Herramienta de compra","h1":"Calculadora CBM","intro":"Sube un pedido Excel para obtener totales y una visualización del contenedor, o introduce medidas para una estimación manual.","product":"Producto (opcional)","productPh":"Ej.: utensilios de cocina, juguetes, organizadores","unit":"Unidad","length":"Largo","width":"Ancho","height":"Alto","qty":"Cajas","weight":"Peso por caja kg (opcional)","note":"Notas (opcional)","notePh":"País destino, consolidación, fecha requerida","calcBtn":"Calcular","copyBtn":"Copiar resultado","result":"Resultado","perCbm":"CBM / caja","totalCbm":"CBM total","bufferCbm":"Con 5% reserva","container":"Sugerencia de contenedor","weightTotal":"Peso total","summary":"Introduce las medidas para ver la sugerencia.","copied":"Resultado copiado","invalid":"Introduce largo, ancho, alto y cajas.","noWeight":"Sin dato","twenty":"20GP aprox.","forty":"40HQ aprox.","multi":"Se necesitan aprox. {n} x 40HQ","lcl":"Adecuado para LCL o pedido de prueba","copyTitle":"Resultado estimado CBM"};
         var form = document.getElementById('cbm-calculator');
         var fields = ['length','width','height','qty','weight','unit','product','note'].reduce(function (acc, name) { acc[name] = form.elements.namedItem(name); return acc; }, {});
         var out = {
           per: document.querySelector('[data-per-cbm]'), total: document.querySelector('[data-total-cbm]'), buffer: document.querySelector('[data-buffer-cbm]'),
-          container: document.querySelector('[data-container]'), weight: document.querySelector('[data-weight-total]'), summary: document.querySelector('[data-summary]'),
-          whatsapp: document.querySelector('[data-whatsapp]'), status: document.querySelector('[data-copy-status]')
+          container: document.querySelector('[data-container]'), weight: document.querySelector('[data-weight-total]'), summary: document.querySelector('[data-summary]'), status: document.querySelector('[data-copy-status]')
         };
         var lastMessage = '';
         var locale = document.documentElement.lang || navigator.language || 'en';
@@ -281,8 +281,7 @@
           out.summary.textContent = container + ' · ' + t.totalCbm + ': ' + fmt(total) + ' m³';
           var product = fields.product.value.trim() || '-';
           var note = fields.note.value.trim() || '-';
-          lastMessage = [t.waTitle, 'Product: ' + product, 'Size: ' + l + ' x ' + w + ' x ' + h + ' ' + unit, 'Cartons: ' + q, 'CBM/carton: ' + fmt(per) + ' m3', 'Total CBM: ' + fmt(total) + ' m3', 'With buffer: ' + fmt(buffer) + ' m3', 'Container: ' + container, 'Weight: ' + (weightTotal ? weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg' : t.noWeight), 'Note: ' + note].join('\n');
-          out.whatsapp.href = 'https://wa.me/8618658925544?text=' + encodeURIComponent(lastMessage);
+          lastMessage = [t.copyTitle, 'Product: ' + product, 'Size: ' + l + ' x ' + w + ' x ' + h + ' ' + unit, 'Cartons: ' + q, 'CBM/carton: ' + fmt(per) + ' m3', 'Total CBM: ' + fmt(total) + ' m3', 'With buffer: ' + fmt(buffer) + ' m3', 'Container: ' + container, 'Weight: ' + (weightTotal ? weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg' : t.noWeight), 'Note: ' + note].join('\n');
           if (window.renderCbmVisual) window.renderCbmVisual(total);
           return true;
         }
@@ -300,6 +299,7 @@
     window.JABBAR_AI_ASSISTANT_ENDPOINT = "https://jabbar-sourcing-ai-assistant.qianjiabao1999.workers.dev";
   </script>
   <script src="/assets/ai-sourcing-assistant.js?v=ai-20260712b" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20260713b" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260713c" defer></script>
+  <script src="/assets/calculator-order-analyzer.js?v=order-20260713b" defer></script>
   </body>
 </html>

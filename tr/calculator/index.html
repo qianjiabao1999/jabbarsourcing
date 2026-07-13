@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Karton hacmi, toplam CBM, 20GP/40HQ doluluk oranı hesaplayın ve sonucu WhatsApp ile gönderin." />
+    <meta name="description" content="Excel siparişini yükleyerek ürün, adet, ağırlık, hacim ve tutarı toplayın ve eksiksiz yükleme raporu görseli dışa aktarın." />
     <meta name="theme-color" content="#ffffff" />
     <meta property="og:site_name" content="Jabbar Sourcing" />
     <meta property="og:title" content="CBM Hesaplayıcı | Konteyner hacmi tahmini - Jabbar Sourcing" />
-    <meta property="og:description" content="Karton hacmi, toplam CBM, 20GP/40HQ doluluk oranı hesaplayın ve sonucu WhatsApp ile gönderin." />
-    <meta property="og:image" content="https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg" />
+    <meta property="og:description" content="Excel siparişini yükleyerek ürün, adet, ağırlık, hacim ve tutarı toplayın ve eksiksiz yükleme raporu görseli dışa aktarın." />
+    <meta property="og:image" content="https://www.jabbarsourcing.com/assets/og-cover.jpg" />
     <meta property="og:image:alt" content="Jabbar Sourcing Team" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -26,8 +26,8 @@
     <meta property="og:locale:alternate" content="it_IT" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="CBM Hesaplayıcı | Konteyner hacmi tahmini - Jabbar Sourcing" />
-    <meta name="twitter:description" content="Karton hacmi, toplam CBM, 20GP/40HQ doluluk oranı hesaplayın ve sonucu WhatsApp ile gönderin." />
-    <meta name="twitter:image" content="https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg" />
+    <meta name="twitter:description" content="Excel siparişini yükleyerek ürün, adet, ağırlık, hacim ve tutarı toplayın ve eksiksiz yükleme raporu görseli dışa aktarın." />
+    <meta name="twitter:image" content="https://www.jabbarsourcing.com/assets/og-cover.jpg" />
     <meta name="twitter:image:alt" content="Jabbar Sourcing Team" />
     <title>CBM Hesaplayıcı | Konteyner hacmi tahmini - Jabbar Sourcing</title>
     <link rel="canonical" href="https://www.jabbarsourcing.com/tr/calculator/" />
@@ -47,7 +47,7 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-157" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-158" />
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -56,8 +56,8 @@
   "name": "Jabbar Sourcing",
   "url": "https://www.jabbarsourcing.com/",
   "logo": "https://www.jabbarsourcing.com/assets/jabbar-sourcing-logo-320.webp",
-  "image": "https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg",
-  "description": "Karton hacmi, toplam CBM, 20GP/40HQ doluluk oranı hesaplayın ve sonucu WhatsApp ile gönderin.",
+  "image": "https://www.jabbarsourcing.com/assets/og-cover.jpg",
+  "description": "Excel siparişini yükleyerek ürün, adet, ağırlık, hacim ve tutarı toplayın ve eksiksiz yükleme raporu görseli dışa aktarın.",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "Building 3, No. 219 Sufu Road, Suxi Town",
@@ -162,10 +162,12 @@
         <header class="calculator-hero">
           <span class="calculator-kicker">Tedarik aracı</span>
           <h1>CBM Hesaplayıcı</h1>
-          <p>Karton ölçüsü ve adedi girerek toplam hacmi, konteyner doluluğunu ve nakliye önerisini görün. Sonucu kopyalayın veya WhatsApp ile gönderin.</p>
+          <p>Otomatik toplamlar ve konteyner görseli için Excel siparişi yükleyin veya hızlı tahmin için koli ölçülerini girin.</p>
         </header>
         <div class="calculator-shell">
           <section class="calculator-panel" aria-label="CBM Hesaplayıcı">
+            <section class="calculator-order-upload" data-order-analyzer></section>
+            <p class="calculator-manual-label">Hızlı manuel tahmin</p>
             <form class="calculator-form" id="cbm-calculator" novalidate>
               <div class="calculator-field calculator-field-wide">
                 <label for="product">Ürün adı (opsiyonel)</label>
@@ -220,7 +222,6 @@
               <div class="calculator-result-card"><span>Toplam ağırlık</span><strong data-weight-total class="num-mono">Girilmedi</strong></div>
             </div>
             <p class="calculator-summary" data-summary>Ölçüleri girince öneri gösterilir.</p>
-            <a class="calculator-whatsapp" data-whatsapp href="https://wa.me/8618658925544" target="_blank" rel="noopener noreferrer">WhatsApp ile gönder</a>
           </aside>
         </div>
       </div>
@@ -243,13 +244,12 @@
     </footer>
     <script>
       (function () {
-        var t = {"title":"CBM Hesaplayıcı | Konteyner hacmi tahmini - Jabbar Sourcing","desc":"Karton hacmi, toplam CBM, 20GP/40HQ doluluk oranı hesaplayın ve sonucu WhatsApp ile gönderin.","kicker":"Tedarik aracı","h1":"CBM Hesaplayıcı","intro":"Karton ölçüsü ve adedi girerek toplam hacmi, konteyner doluluğunu ve nakliye önerisini görün. Sonucu kopyalayın veya WhatsApp ile gönderin.","product":"Ürün adı (opsiyonel)","productPh":"Örn. mutfak ürünleri, oyuncak, saklama","unit":"Birim","length":"Uzunluk","width":"Genişlik","height":"Yükseklik","qty":"Karton","weight":"Karton ağırlığı kg (opsiyonel)","note":"Notlar (opsiyonel)","notePh":"Hedef ülke, konsolidasyon, teslim tarihi","calcBtn":"Hesapla","copyBtn":"Sonucu kopyala","result":"Sonuç","perCbm":"CBM / karton","totalCbm":"Toplam CBM","bufferCbm":"%5 pay ile","container":"Konteyner önerisi","weightTotal":"Toplam ağırlık","summary":"Ölçüleri girince öneri gösterilir.","whatsapp":"WhatsApp ile gönder","copied":"Sonuç kopyalandı","invalid":"Lütfen uzunluk, genişlik, yükseklik ve karton adedi girin.","noWeight":"Girilmedi","twenty":"20GP yaklaşık","forty":"40HQ yaklaşık","multi":"Yaklaşık {n} x 40HQ gerekir","lcl":"LCL veya deneme siparişi için uygun","waTitle":"CBM hesaplama sonucu"};
+        var t = {"title":"CBM Hesaplayıcı | Konteyner hacmi tahmini - Jabbar Sourcing","desc":"Excel siparişini yükleyerek ürün, adet, ağırlık, hacim ve tutarı toplayın ve eksiksiz yükleme raporu görseli dışa aktarın.","kicker":"Tedarik aracı","h1":"CBM Hesaplayıcı","intro":"Otomatik toplamlar ve konteyner görseli için Excel siparişi yükleyin veya hızlı tahmin için koli ölçülerini girin.","product":"Ürün adı (opsiyonel)","productPh":"Örn. mutfak ürünleri, oyuncak, saklama","unit":"Birim","length":"Uzunluk","width":"Genişlik","height":"Yükseklik","qty":"Karton","weight":"Karton ağırlığı kg (opsiyonel)","note":"Notlar (opsiyonel)","notePh":"Hedef ülke, konsolidasyon, teslim tarihi","calcBtn":"Hesapla","copyBtn":"Sonucu kopyala","result":"Sonuç","perCbm":"CBM / karton","totalCbm":"Toplam CBM","bufferCbm":"%5 pay ile","container":"Konteyner önerisi","weightTotal":"Toplam ağırlık","summary":"Ölçüleri girince öneri gösterilir.","copied":"Sonuç kopyalandı","invalid":"Lütfen uzunluk, genişlik, yükseklik ve karton adedi girin.","noWeight":"Girilmedi","twenty":"20GP yaklaşık","forty":"40HQ yaklaşık","multi":"Yaklaşık {n} x 40HQ gerekir","lcl":"LCL veya deneme siparişi için uygun","copyTitle":"CBM hesaplama sonucu"};
         var form = document.getElementById('cbm-calculator');
         var fields = ['length','width','height','qty','weight','unit','product','note'].reduce(function (acc, name) { acc[name] = form.elements.namedItem(name); return acc; }, {});
         var out = {
           per: document.querySelector('[data-per-cbm]'), total: document.querySelector('[data-total-cbm]'), buffer: document.querySelector('[data-buffer-cbm]'),
-          container: document.querySelector('[data-container]'), weight: document.querySelector('[data-weight-total]'), summary: document.querySelector('[data-summary]'),
-          whatsapp: document.querySelector('[data-whatsapp]'), status: document.querySelector('[data-copy-status]')
+          container: document.querySelector('[data-container]'), weight: document.querySelector('[data-weight-total]'), summary: document.querySelector('[data-summary]'), status: document.querySelector('[data-copy-status]')
         };
         var lastMessage = '';
         var locale = document.documentElement.lang || navigator.language || 'en';
@@ -281,8 +281,7 @@
           out.summary.textContent = container + ' · ' + t.totalCbm + ': ' + fmt(total) + ' m³';
           var product = fields.product.value.trim() || '-';
           var note = fields.note.value.trim() || '-';
-          lastMessage = [t.waTitle, 'Product: ' + product, 'Size: ' + l + ' x ' + w + ' x ' + h + ' ' + unit, 'Cartons: ' + q, 'CBM/carton: ' + fmt(per) + ' m3', 'Total CBM: ' + fmt(total) + ' m3', 'With buffer: ' + fmt(buffer) + ' m3', 'Container: ' + container, 'Weight: ' + (weightTotal ? weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg' : t.noWeight), 'Note: ' + note].join('\n');
-          out.whatsapp.href = 'https://wa.me/8618658925544?text=' + encodeURIComponent(lastMessage);
+          lastMessage = [t.copyTitle, 'Product: ' + product, 'Size: ' + l + ' x ' + w + ' x ' + h + ' ' + unit, 'Cartons: ' + q, 'CBM/carton: ' + fmt(per) + ' m3', 'Total CBM: ' + fmt(total) + ' m3', 'With buffer: ' + fmt(buffer) + ' m3', 'Container: ' + container, 'Weight: ' + (weightTotal ? weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg' : t.noWeight), 'Note: ' + note].join('\n');
           if (window.renderCbmVisual) window.renderCbmVisual(total);
           return true;
         }
@@ -300,6 +299,7 @@
     window.JABBAR_AI_ASSISTANT_ENDPOINT = "https://jabbar-sourcing-ai-assistant.qianjiabao1999.workers.dev";
   </script>
   <script src="/assets/ai-sourcing-assistant.js?v=ai-20260712b" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20260713b" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260713c" defer></script>
+  <script src="/assets/calculator-order-analyzer.js?v=order-20260713b" defer></script>
   </body>
 </html>

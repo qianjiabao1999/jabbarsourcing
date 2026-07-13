@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="استخدم حاسبة CBM من Jabbar Sourcing لتقدير حجم الكراتين وإشغال 20GP/40HQ وإرسال النتيجة عبر WhatsApp." />
+    <meta name="description" content="ارفع ملف طلب Excel لحساب المنتجات والكمية والوزن والحجم والمبلغ وتصدير صورة كاملة لتقرير التحميل." />
     <meta name="theme-color" content="#ffffff" />
     <meta property="og:site_name" content="Jabbar Sourcing" />
     <meta property="og:title" content="حاسبة CBM | تقدير حجم الحاوية - Jabbar Sourcing" />
-    <meta property="og:description" content="استخدم حاسبة CBM من Jabbar Sourcing لتقدير حجم الكراتين وإشغال 20GP/40HQ وإرسال النتيجة عبر WhatsApp." />
-    <meta property="og:image" content="https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg" />
+    <meta property="og:description" content="ارفع ملف طلب Excel لحساب المنتجات والكمية والوزن والحجم والمبلغ وتصدير صورة كاملة لتقرير التحميل." />
+    <meta property="og:image" content="https://www.jabbarsourcing.com/assets/og-cover.jpg" />
     <meta property="og:image:alt" content="Jabbar Sourcing Team" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -26,8 +26,8 @@
     <meta property="og:locale:alternate" content="tr_TR" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="حاسبة CBM | تقدير حجم الحاوية - Jabbar Sourcing" />
-    <meta name="twitter:description" content="استخدم حاسبة CBM من Jabbar Sourcing لتقدير حجم الكراتين وإشغال 20GP/40HQ وإرسال النتيجة عبر WhatsApp." />
-    <meta name="twitter:image" content="https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg" />
+    <meta name="twitter:description" content="ارفع ملف طلب Excel لحساب المنتجات والكمية والوزن والحجم والمبلغ وتصدير صورة كاملة لتقرير التحميل." />
+    <meta name="twitter:image" content="https://www.jabbarsourcing.com/assets/og-cover.jpg" />
     <meta name="twitter:image:alt" content="Jabbar Sourcing Team" />
     <title>حاسبة CBM | تقدير حجم الحاوية - Jabbar Sourcing</title>
     <link rel="canonical" href="https://www.jabbarsourcing.com/ar/calculator/" />
@@ -47,7 +47,7 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-157" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-158" />
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -56,8 +56,8 @@
   "name": "Jabbar Sourcing",
   "url": "https://www.jabbarsourcing.com/",
   "logo": "https://www.jabbarsourcing.com/assets/jabbar-sourcing-logo-320.webp",
-  "image": "https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg",
-  "description": "استخدم حاسبة CBM من Jabbar Sourcing لتقدير حجم الكراتين وإشغال 20GP/40HQ وإرسال النتيجة عبر WhatsApp.",
+  "image": "https://www.jabbarsourcing.com/assets/og-cover.jpg",
+  "description": "ارفع ملف طلب Excel لحساب المنتجات والكمية والوزن والحجم والمبلغ وتصدير صورة كاملة لتقرير التحميل.",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "Building 3, No. 219 Sufu Road, Suxi Town",
@@ -162,10 +162,12 @@
         <header class="calculator-hero">
           <span class="calculator-kicker">أداة شراء</span>
           <h1>حاسبة CBM</h1>
-          <p>أدخل أبعاد الكرتون والكمية لحساب الحجم ونسبة تحميل الحاوية واقتراح الشحن، ثم انسخ النتيجة أو أرسلها عبر WhatsApp.</p>
+          <p>ارفع ملف طلب Excel للحصول على الإجماليات ورسم تحميل الحاوية، أو أدخل أبعاد الكرتون للتقدير اليدوي السريع.</p>
         </header>
         <div class="calculator-shell">
           <section class="calculator-panel" aria-label="حاسبة CBM">
+            <section class="calculator-order-upload" data-order-analyzer></section>
+            <p class="calculator-manual-label">تقدير يدوي سريع</p>
             <form class="calculator-form" id="cbm-calculator" novalidate>
               <div class="calculator-field calculator-field-wide">
                 <label for="product">اسم المنتج (اختياري)</label>
@@ -220,7 +222,6 @@
               <div class="calculator-result-card"><span>الوزن الإجمالي</span><strong data-weight-total class="num-mono">غير محدد</strong></div>
             </div>
             <p class="calculator-summary" data-summary>أدخل الأبعاد لعرض الاقتراح.</p>
-            <a class="calculator-whatsapp" data-whatsapp href="https://wa.me/8618658925544" target="_blank" rel="noopener noreferrer">إرسال النتيجة عبر WhatsApp</a>
           </aside>
         </div>
       </div>
@@ -243,13 +244,12 @@
     </footer>
     <script>
       (function () {
-        var t = {"title":"حاسبة CBM | تقدير حجم الحاوية - Jabbar Sourcing","desc":"استخدم حاسبة CBM من Jabbar Sourcing لتقدير حجم الكراتين وإشغال 20GP/40HQ وإرسال النتيجة عبر WhatsApp.","kicker":"أداة شراء","h1":"حاسبة CBM","intro":"أدخل أبعاد الكرتون والكمية لحساب الحجم ونسبة تحميل الحاوية واقتراح الشحن، ثم انسخ النتيجة أو أرسلها عبر WhatsApp.","product":"اسم المنتج (اختياري)","productPh":"مثال: أدوات مطبخ، ألعاب، أدوات تخزين","unit":"وحدة القياس","length":"الطول","width":"العرض","height":"الارتفاع","qty":"عدد الكراتين","weight":"وزن الكرتون كجم (اختياري)","note":"ملاحظات (اختياري)","notePh":"بلد الوجهة، تجميع الشحنة، موعد التسليم","calcBtn":"احسب الآن","copyBtn":"نسخ النتيجة","result":"نتيجة التقدير","perCbm":"CBM لكل كرتون","totalCbm":"إجمالي CBM","bufferCbm":"مع احتياط 5%","container":"اقتراح الحاوية","weightTotal":"الوزن الإجمالي","summary":"أدخل الأبعاد لعرض الاقتراح.","whatsapp":"إرسال النتيجة عبر WhatsApp","copied":"تم نسخ النتيجة","invalid":"يرجى إدخال الطول والعرض والارتفاع وعدد الكراتين.","noWeight":"غير محدد","twenty":"20GP حوالي","forty":"40HQ حوالي","multi":"تحتاج تقريبًا {n} × 40HQ","lcl":"مناسب للشحن المجمع أو طلب تجريبي","waTitle":"نتيجة تقدير CBM"};
+        var t = {"title":"حاسبة CBM | تقدير حجم الحاوية - Jabbar Sourcing","desc":"ارفع ملف طلب Excel لحساب المنتجات والكمية والوزن والحجم والمبلغ وتصدير صورة كاملة لتقرير التحميل.","kicker":"أداة شراء","h1":"حاسبة CBM","intro":"ارفع ملف طلب Excel للحصول على الإجماليات ورسم تحميل الحاوية، أو أدخل أبعاد الكرتون للتقدير اليدوي السريع.","product":"اسم المنتج (اختياري)","productPh":"مثال: أدوات مطبخ، ألعاب، أدوات تخزين","unit":"وحدة القياس","length":"الطول","width":"العرض","height":"الارتفاع","qty":"عدد الكراتين","weight":"وزن الكرتون كجم (اختياري)","note":"ملاحظات (اختياري)","notePh":"بلد الوجهة، تجميع الشحنة، موعد التسليم","calcBtn":"احسب الآن","copyBtn":"نسخ النتيجة","result":"نتيجة التقدير","perCbm":"CBM لكل كرتون","totalCbm":"إجمالي CBM","bufferCbm":"مع احتياط 5%","container":"اقتراح الحاوية","weightTotal":"الوزن الإجمالي","summary":"أدخل الأبعاد لعرض الاقتراح.","copied":"تم نسخ النتيجة","invalid":"يرجى إدخال الطول والعرض والارتفاع وعدد الكراتين.","noWeight":"غير محدد","twenty":"20GP حوالي","forty":"40HQ حوالي","multi":"تحتاج تقريبًا {n} × 40HQ","lcl":"مناسب للشحن المجمع أو طلب تجريبي","copyTitle":"نتيجة تقدير CBM"};
         var form = document.getElementById('cbm-calculator');
         var fields = ['length','width','height','qty','weight','unit','product','note'].reduce(function (acc, name) { acc[name] = form.elements.namedItem(name); return acc; }, {});
         var out = {
           per: document.querySelector('[data-per-cbm]'), total: document.querySelector('[data-total-cbm]'), buffer: document.querySelector('[data-buffer-cbm]'),
-          container: document.querySelector('[data-container]'), weight: document.querySelector('[data-weight-total]'), summary: document.querySelector('[data-summary]'),
-          whatsapp: document.querySelector('[data-whatsapp]'), status: document.querySelector('[data-copy-status]')
+          container: document.querySelector('[data-container]'), weight: document.querySelector('[data-weight-total]'), summary: document.querySelector('[data-summary]'), status: document.querySelector('[data-copy-status]')
         };
         var lastMessage = '';
         var locale = document.documentElement.lang || navigator.language || 'en';
@@ -281,8 +281,7 @@
           out.summary.textContent = container + ' · ' + t.totalCbm + ': ' + fmt(total) + ' m³';
           var product = fields.product.value.trim() || '-';
           var note = fields.note.value.trim() || '-';
-          lastMessage = [t.waTitle, 'Product: ' + product, 'Size: ' + l + ' x ' + w + ' x ' + h + ' ' + unit, 'Cartons: ' + q, 'CBM/carton: ' + fmt(per) + ' m3', 'Total CBM: ' + fmt(total) + ' m3', 'With buffer: ' + fmt(buffer) + ' m3', 'Container: ' + container, 'Weight: ' + (weightTotal ? weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg' : t.noWeight), 'Note: ' + note].join('\n');
-          out.whatsapp.href = 'https://wa.me/8618658925544?text=' + encodeURIComponent(lastMessage);
+          lastMessage = [t.copyTitle, 'Product: ' + product, 'Size: ' + l + ' x ' + w + ' x ' + h + ' ' + unit, 'Cartons: ' + q, 'CBM/carton: ' + fmt(per) + ' m3', 'Total CBM: ' + fmt(total) + ' m3', 'With buffer: ' + fmt(buffer) + ' m3', 'Container: ' + container, 'Weight: ' + (weightTotal ? weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg' : t.noWeight), 'Note: ' + note].join('\n');
           if (window.renderCbmVisual) window.renderCbmVisual(total);
           return true;
         }
@@ -300,6 +299,7 @@
     window.JABBAR_AI_ASSISTANT_ENDPOINT = "https://jabbar-sourcing-ai-assistant.qianjiabao1999.workers.dev";
   </script>
   <script src="/assets/ai-sourcing-assistant.js?v=ai-20260712b" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20260713b" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260713c" defer></script>
+  <script src="/assets/calculator-order-analyzer.js?v=order-20260713b" defer></script>
   </body>
 </html>
