@@ -6,9 +6,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-155";
+const CSS_VERSION = "apple-156";
 const AI_VERSION = "ai-20260712b";
-const UI_VERSION = "ui-20260712a";
+const UI_VERSION = "ui-20260713a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const HOME_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale) }));
@@ -42,6 +42,9 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.match(html, new RegExp(`ai-sourcing-assistant\\.js\\?v=${AI_VERSION}`), `${file}: missing multilingual AI assistant`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
+  assert.equal(count(html, /class="cbm-visual"/g), 1, `${file}: static CBM visual count`);
+  assert.equal(count(html, /<svg[^>]+aria-labelledby="cbmVizTitle"/g), 1, `${file}: static CBM SVG count`);
+  assert.equal(count(html, /id="cbmFill"/g), 1, `${file}: static CBM fill count`);
   assert.equal(count(html, /window\.renderCbmVisual\(total\)/g), 1, `${file}: CBM visual hook count`);
   assert.equal(count(html, /mobile-conversion-bar/g), 0, `${file}: calculator must not include mobile conversion bar`);
   if (locale === "ar") assert.match(html, /<html[^>]+lang="ar"[^>]+dir="rtl"/, `${file}: Arabic RTL root missing`);
@@ -79,6 +82,7 @@ for (const token of [
 ]) {
   assert(css.includes(token), `styles.css: missing ${token}`);
 }
+assert(css.includes(".social-platform-groups .section-heading"), "styles.css: social heading centering missing");
 
 const qr = await load("assets/whatsapp-qr.svg");
 assert.match(qr, /<svg\b/, "WhatsApp QR is not SVG");

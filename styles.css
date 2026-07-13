@@ -7479,6 +7479,12 @@ body {
   padding-bottom: 0 !important;
 }
 
+.social-platform-groups .section-heading {
+  grid-column: 1 / -1;
+  margin-inline: auto;
+  text-align: center;
+}
+
 #social-accounts .social-platform-group:last-child,
 #social-accounts .team-grid:last-child {
   margin-bottom: 0 !important;

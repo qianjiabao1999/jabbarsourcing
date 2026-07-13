@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-155";
-const UI_VERSION = "ui-20260712a";
+const CSS_VERSION = "apple-156";
+const UI_VERSION = "ui-20260713a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -68,7 +68,8 @@ async function pageState(page) {
         launcher: rect(".contact-speed-dial-main"),
         legacyToggle: rect(".jabbar-ai-toggle"),
         conversionBar: rect(".mobile-conversion-bar"),
-        social: rect("#social-accounts")
+        social: rect("#social-accounts"),
+        socialHeading: rect("#social-accounts .section-heading")
       }
     };
   });
@@ -130,9 +131,13 @@ async function homeMatrix(browserType) {
       assert.equal(state.counts.metrics, 5, `${scope}: current five company metrics must remain`);
       assert.equal(state.counts.progress, 1, `${scope}: progress count`);
       assert(state.rects.social, `${scope}: social section missing`);
+      assert(state.rects.socialHeading, `${scope}: social heading missing`);
       const expectedWidth = Math.min(viewport.width - 48, 1140);
       assert(Math.abs(state.rects.social.width - expectedWidth) <= 1, `${scope}: social width ${state.rects.social.width}`);
       assert(Math.abs(state.rects.social.left - (viewport.width - expectedWidth) / 2) <= 1, `${scope}: social not centered`);
+      const socialCenter = state.rects.social.left + state.rects.social.width / 2;
+      const headingCenter = state.rects.socialHeading.left + state.rects.socialHeading.width / 2;
+      assert(Math.abs(socialCenter - headingCenter) <= 1, `${scope}: social heading center delta ${headingCenter - socialCenter}`);
       if (viewport.mobile) {
         assert.equal(state.rects.conversionBar.display, "grid", `${scope}: mobile conversion bar hidden`);
         assert(state.rects.launcher.bottom <= state.rects.conversionBar.top - 15, `${scope}: launcher overlaps conversion bar`);

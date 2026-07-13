@@ -183,26 +183,31 @@
 
   function initCbmVisual() {
     var results = document.querySelector(".calculator-results");
-    if (!results || document.getElementById("cbmFill")) return;
+    if (!results) return;
 
-    var visual = createElement("div", "cbm-visual");
-    visual.setAttribute("aria-hidden", "false");
-    visual.innerHTML = [
-      '<svg viewBox="0 0 320 130" role="img" aria-labelledby="cbmVizTitle">',
-      '<title id="cbmVizTitle"></title>',
-      '<rect x="8" y="24" width="284" height="80" rx="4" fill="none" stroke="#475569" stroke-width="3"/>',
-      '<line x1="292" y1="32" x2="308" y2="32" stroke="#475569" stroke-width="3"/>',
-      '<line x1="292" y1="96" x2="308" y2="96" stroke="#475569" stroke-width="3"/>',
-      '<rect id="cbmFill" x="12" y="28" width="0" height="72" fill="#5DCAA5"/>',
-      '<g id="cbmRibs" stroke="#0F6E56" stroke-width="1"></g>',
-      '<text id="cbmPct" x="150" y="72" text-anchor="middle" font-size="18" font-weight="600" fill="#04342C"></text>',
-      '<text id="cbmCap" x="12" y="122" font-size="13" fill="#475569" direction="ltr"></text>',
-      "</svg>"
-    ].join("");
-    visual.querySelector("#cbmVizTitle").textContent = copy.cbmTitle;
-    var heading = results.querySelector("h2");
-    if (heading) heading.insertAdjacentElement("afterend", visual);
-    else results.insertBefore(visual, results.firstChild);
+    var visual = results.querySelector(".cbm-visual");
+    if (!visual) {
+      visual = createElement("div", "cbm-visual");
+      visual.setAttribute("aria-hidden", "false");
+      visual.innerHTML = [
+        '<svg viewBox="0 0 320 130" role="img" aria-labelledby="cbmVizTitle">',
+        '<title id="cbmVizTitle"></title>',
+        '<rect x="8" y="24" width="284" height="80" rx="4" fill="none" stroke="#475569" stroke-width="3"/>',
+        '<line x1="292" y1="32" x2="308" y2="32" stroke="#475569" stroke-width="3"/>',
+        '<line x1="292" y1="96" x2="308" y2="96" stroke="#475569" stroke-width="3"/>',
+        '<rect id="cbmFill" x="12" y="28" width="0" height="72" fill="#5DCAA5"/>',
+        '<g id="cbmRibs" stroke="#0F6E56" stroke-width="1"></g>',
+        '<text id="cbmPct" x="150" y="72" text-anchor="middle" font-size="18" font-weight="600" fill="#04342C">0%</text>',
+        '<text id="cbmCap" x="12" y="122" font-size="13" fill="#475569" direction="ltr">20GP · 0.0 / 28 CBM</text>',
+        "</svg>"
+      ].join("");
+      var heading = results.querySelector("h2");
+      if (heading) heading.insertAdjacentElement("afterend", visual);
+      else results.insertBefore(visual, results.firstChild);
+    }
+
+    var title = visual.querySelector("#cbmVizTitle");
+    if (title) title.textContent = copy.cbmTitle;
 
     window.renderCbmVisual = function (totalCbm) {
       totalCbm = Math.max(0, Number(totalCbm) || 0);
@@ -211,18 +216,20 @@
       var over = totalCbm > 68;
       var pct = Math.min(totalCbm / pick[1], 1);
       var width = Math.round(276 * pct);
-      var fill = document.getElementById("cbmFill");
+      var fill = visual.querySelector("#cbmFill");
       fill.setAttribute("width", width);
       fill.setAttribute("fill", over ? "#EF9F27" : "#5DCAA5");
-      var ribs = document.getElementById("cbmRibs");
+      var ribs = visual.querySelector("#cbmRibs");
       ribs.innerHTML = "";
       for (var x = 46; x < 12 + width; x += 34) {
         ribs.insertAdjacentHTML("beforeend", '<line x1="' + x + '" y1="28" x2="' + x + '" y2="100"/>');
       }
-      document.getElementById("cbmPct").textContent = Math.round(totalCbm / pick[1] * 100) + "%";
-      document.getElementById("cbmCap").textContent = pick[0] + " · " + totalCbm.toFixed(1) + " / " + pick[1] + " CBM" + (over ? " ×" + Math.ceil(totalCbm / 68) : "");
+      visual.querySelector("#cbmPct").textContent = Math.round(totalCbm / pick[1] * 100) + "%";
+      visual.querySelector("#cbmCap").textContent = pick[0] + " · " + totalCbm.toFixed(1) + " / " + pick[1] + " CBM" + (over ? " ×" + Math.ceil(totalCbm / 68) : "");
     };
     window.renderCbmVisual(0);
+    var form = document.getElementById("cbm-calculator");
+    if (form) form.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   function initScrollProgress() {
