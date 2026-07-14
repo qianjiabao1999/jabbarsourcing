@@ -23,6 +23,10 @@ await mkdir(OUTPUT_DIR, { recursive: true });
 async function prepare(context) {
   await context.route("**://www.googletagmanager.com/**", (route) => route.fulfill({ status: 204, body: "" }));
   await context.route("**://www.clarity.ms/**", (route) => route.fulfill({ status: 204, body: "" }));
+  // This suite validates layout and floating entry points, not Turnstile.
+  // Blocking the third-party challenge avoids WebKit mixed-protocol iframe
+  // noise when the fixture is intentionally served from local HTTP.
+  await context.route("**://challenges.cloudflare.com/**", (route) => route.fulfill({ status: 204, body: "" }));
 }
 
 async function assertNoFloatingAssistant(page, item, scope) {
