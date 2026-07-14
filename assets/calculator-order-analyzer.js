@@ -2,13 +2,12 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260713b";
-  var MAX_FILE_BYTES = 20 * 1024 * 1024;
-  var WORKER_TIMEOUT_MS = 30000;
+  var VERSION = "order-20260714b";
+  var MAX_FILE_BYTES = 50 * 1024 * 1024;
+  var WORKER_TIMEOUT_MS = 60000;
   var WORKER_URL = "/assets/calculator-order-worker.js?v=" + VERSION;
   var CORE_URL = "/assets/calculator-order-worker.js?v=" + VERSION;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
-  var WECHAT_ID = "18658925544";
   var FIELD_KEYS = ["product", "sku", "qty", "cartons", "unitWeight", "totalWeight", "unitVolume", "totalVolume", "unitPrice", "amount", "length", "width", "height", "currency", "weightUnit", "volumeUnit", "dimensionUnit"];
   var scriptPromises = {};
 
@@ -18,21 +17,22 @@
     intro: "Upload a customer order to calculate products, quantity, weight, volume, value and container usage.",
     privacy: "Processed only in this browser. The workbook is not uploaded to Jabbar Sourcing or any third party.",
     dropLead: "Drop an Excel file here or choose a file",
-    dropHint: ".xlsx, .xls, .xlsm or .csv · up to 20 MB",
+    dropHint: ".xlsx, .xls, .xlsm or .csv · up to 50 MB",
     selectedFile: "Selected file",
     parsing: "Reading the workbook locally…",
     loadingLib: "Loading the local Excel reader…",
-    ready: "Analysis complete. Review the detected columns and units before sending the result.",
-    fileTooLarge: "The file is larger than 20 MB.",
+    ready: "Analysis complete. Review the detected columns before exporting.",
+    fileTooLarge: "The file is larger than 50 MB.",
     unsupported: "Please choose an Excel or CSV file.",
     parseError: "This workbook could not be read. Check that it is not password protected or damaged.",
-    mappingTitle: "Check detected columns and units",
-    mappingHelp: "Each column can be reassigned. Generic weight, volume and price headers are calculated provisionally until their units are confirmed.",
+    mappingTitle: "Check detected columns and defaults",
+    mappingHelp: "Columns are detected automatically. Reassign only a misidentified column. Source units are converted to kg, m³ and cm; order values are reported in CNY.",
     sheet: "Worksheet",
     headerRow: "Header row",
     confirmUnits: "Confirm units",
     weightUnit: "Weight unit",
     volumeUnit: "Volume unit",
+    dimensionUnit: "Dimension unit",
     currency: "Currency",
     autoPending: "Auto / pending confirmation",
     apply: "Confirm mapping and recalculate",
@@ -54,21 +54,13 @@
     product: "Product",
     sku: "SKU",
     exportPng: "Export complete result image",
-    shareWeChat: "Share result to WeChat",
-    wechatId: "WeChat ID: 18658925544",
-    wechatLimit: "A normal website cannot choose a private WeChat contact for you. On mobile, choose WeChat in the share sheet; otherwise the summary is copied and WeChat is opened for manual sending.",
     noResult: "Analyze a workbook first.",
     exportPreparing: "Preparing the complete PNG report…",
     exportDone: "The complete PNG report has been downloaded.",
     exportError: "The PNG report could not be created in this browser.",
-    sharePreparing: "Preparing the WeChat share…",
-    confirmBeforeExport: "Confirm the detected column meanings, units and currency before exporting or sharing.",
-    incompleteBlocked: "This workbook exceeds the safe analysis limit. Split it into smaller files so every row is included before exporting or sharing.",
-    negativeBlocked: "Negative quantities or values were found. Correct or remove those rows before exporting or sharing.",
-    copyFailed: "The result could not be copied. Use the standalone export button, then send the images manually in WeChat.",
-    shared: "The share sheet has opened. Choose WeChat and the recipient.",
-    copiedOpen: "The summary was copied. In WeChat, search 18658925544 and paste it; use the standalone export button for the complete images.",
-    shareCancelled: "Sharing was cancelled.",
+    confirmBeforeExport: "Confirm the detected column meanings before exporting.",
+    incompleteBlocked: "This workbook exceeds the safe analysis limit. Split it into smaller files so every row is included before exporting.",
+    negativeBlocked: "Negative quantities or values were found. Correct or remove those rows before exporting.",
     containerTitle: "Container estimate",
     lcl: "LCL / trial shipment",
     twenty: "20GP",
@@ -87,8 +79,8 @@
       dimension_unit_pending: "Dimensions were treated provisionally as cm. Confirm their unit.",
       weight_meaning_pending: "The generic weight column is treated as per-unit weight. Confirm the mapping or change it to line-total weight.",
       volume_meaning_pending: "The generic volume column is treated as per-unit volume. Confirm the mapping or change it to line-total volume.",
-      rows_truncated: "More than 3,000 rows were found. Export and sharing are blocked until the workbook is split so every row can be included.",
-      columns_truncated: "More than 200 columns were found. Export and sharing are blocked until the workbook is simplified so no data is omitted.",
+      rows_truncated: "More than 10,000 rows were found. Export is blocked until the workbook is split so every row can be included.",
+      columns_truncated: "More than 100 columns were found. Export is blocked until the workbook is simplified so no data is omitted.",
       summary_rows_skipped: "Summary/total rows were excluded to avoid double counting.",
       negative_values_skipped: "{n} row(s) with negative quantities or values were excluded.",
       subtotal_mismatch: "{n} row(s) have a subtotal different from unit price × quantity; the supplied subtotal was used.",
@@ -109,23 +101,21 @@
     en: EN,
     zh: Object.assign({}, EN, {
       eyebrow: "订单表格分析", title: "上传 Excel 自动统计订单", intro: "自动统计商品种类、数量、重量、体积、金额，并生成集装箱装载可视化。",
-      privacy: "文件只在当前浏览器本地处理，不会上传到 Jabbar Sourcing 或任何第三方。", dropLead: "拖入 Excel 表格，或点击选择文件", dropHint: ".xlsx、.xls、.xlsm 或 .csv，最大 20 MB",
-      selectedFile: "已选择文件", parsing: "正在本地读取表格…", loadingLib: "正在加载本地 Excel 解析组件…", ready: "分析完成。发送前请检查识别的列、单位和币种。",
-      fileTooLarge: "文件超过 20 MB，暂时无法处理。", unsupported: "请选择 Excel 或 CSV 文件。", parseError: "无法读取此表格，请确认文件未加密、未损坏。",
-      mappingTitle: "检查列识别与单位", mappingHelp: "每一列都可以重新指定。只有“重量、体积、单价”等通用标题时，会先按单件数值乘以数量暂估，请确认单位和币种。",
-      sheet: "工作表", headerRow: "表头所在行", confirmUnits: "确认单位", weightUnit: "重量单位", volumeUnit: "体积单位", currency: "币种", autoPending: "自动识别 / 待确认", apply: "确认映射并重新计算", ignore: "忽略此列",
+      privacy: "文件只在当前浏览器本地处理，不会上传到 Jabbar Sourcing 或任何第三方。", dropLead: "拖入 Excel 表格，或点击选择文件", dropHint: ".xlsx、.xls、.xlsm 或 .csv，最大 50 MB",
+      selectedFile: "已选择文件", parsing: "正在本地读取表格…", loadingLib: "正在加载本地 Excel 解析组件…", ready: "分析完成。导出前请检查识别的列。",
+      fileTooLarge: "文件超过 50 MB，暂时无法处理。", unsupported: "请选择 Excel 或 CSV 文件。", parseError: "无法读取此表格，请确认文件未加密、未损坏。",
+      mappingTitle: "检查列识别与默认设置", mappingHelp: "每一列都可以重新指定。系统固定采用 kg、m³/CBM、cm 和 CNY/RMB；通用重量或体积标题会结合合计行自动复核。",
+      sheet: "工作表", headerRow: "表头所在行", confirmUnits: "确认单位", weightUnit: "重量单位", volumeUnit: "体积单位", dimensionUnit: "尺寸单位", currency: "币种", autoPending: "自动识别 / 待确认", apply: "确认映射并重新计算", ignore: "忽略此列",
       resultTitle: "订单自动统计结果", productRows: "商品行数", uniqueProducts: "商品种类", quantity: "总数量", cartons: "总箱数", volume: "总体积", weight: "总重量", amount: "订单金额", missing: "表格未提供", unitPending: "单位待确认", currencyPending: "币种待确认",
-      warningsTitle: "请确认以下信息", detailsTitle: "全部商品明细", sourceRow: "行号", product: "商品", sku: "货号", exportPng: "导出完整结果图片", shareWeChat: "分享到微信", wechatId: "微信号：18658925544",
-      wechatLimit: "普通网页不能自动指定私人微信联系人。手机端可在系统分享面板选择微信；否则会复制结果并打开微信，请搜索 18658925544 后粘贴发送。",
+      warningsTitle: "请确认以下信息", detailsTitle: "全部商品明细", sourceRow: "行号", product: "商品", sku: "货号", exportPng: "导出完整结果图片",
       noResult: "请先上传并分析一个订单表格。", exportPreparing: "正在生成包含全部明细的 PNG 图片…", exportDone: "完整结果图片已下载。", exportError: "当前浏览器无法生成结果图片。",
-      sharePreparing: "正在准备微信分享…", confirmBeforeExport: "请先确认列含义、重量/体积/尺寸单位和币种，再导出或分享。", incompleteBlocked: "表格超过安全分析上限。请拆分为较小文件，确保每一行都能纳入后再导出或分享。", negativeBlocked: "检测到负数数量或数值。请先修正或删除这些行，再导出或分享。", copyFailed: "无法复制结果。请使用独立的图片导出按钮，再到微信手动发送。",
-      shared: "系统分享面板已打开，请选择微信和接收人。", copiedOpen: "结果已复制。请在微信搜索 18658925544 后粘贴发送；完整图片请使用“导出完整结果图片”。", shareCancelled: "已取消分享。",
+      confirmBeforeExport: "导出前请确认识别的列含义。", incompleteBlocked: "表格超过安全分析上限。请拆分为较小文件，确保每一行都能纳入后再导出。", negativeBlocked: "检测到负数数量或数值。请先修正或删除这些行，再导出。",
       containerTitle: "集装箱装载估算", lcl: "适合拼箱或小批量试单", twenty: "20英尺普柜", forty: "40英尺普柜", fortyHq: "40英尺高柜", containerCount: "约需 {n} 个40英尺高柜", provisional: "体积单位确认前仅供暂估",
       reportTitle: "订单自动统计报告", generated: "生成时间", page: "第 {current} / {total} 页", file: "文件",
       warnings: Object.assign({}, EN.warnings, {
         weight_unit_pending: "重量暂按千克计算，请在上方确认单位。", volume_unit_pending: "体积暂按立方米计算，请在上方确认单位。", currency_pending: "表格没有标明币种，请在上方确认。", dimension_unit_pending: "尺寸暂按厘米计算，请确认尺寸单位。",
         weight_meaning_pending: "通用“重量”列暂按单件重量计算。请确认当前映射，或改为本行总重量。", volume_meaning_pending: "通用“体积”列暂按单件体积计算。请确认当前映射，或改为本行总体积。",
-        rows_truncated: "检测到超过 3,000 个数据行。为避免漏项，拆分表格前禁止导出和分享。", columns_truncated: "检测到超过 200 列。为避免漏项，精简表格前禁止导出和分享。", summary_rows_skipped: "为避免重复统计，已排除合计/总计行。",
+        rows_truncated: "检测到超过 10,000 个数据行。为避免漏项，拆分表格前禁止导出。", columns_truncated: "检测到超过 100 列。为避免漏项，精简表格前禁止导出。", summary_rows_skipped: "为避免重复统计，已排除合计/总计行。",
         negative_values_skipped: "已排除 {n} 行包含负数数量或金额的数据。", subtotal_mismatch: "有 {n} 行的小计与“单价 × 数量”不一致，本次以表格小计为准。",
         unit_weight_multiplied: "已按“单件重量 × 数量”计算总重量。", unit_volume_multiplied: "已按“单件体积 × 数量”计算总体积。", unit_price_multiplied: "没有小计时，已按“单价 × 数量”计算金额。", no_product_rows: "当前列映射下没有识别到商品数据行。"
       }),
@@ -137,21 +127,22 @@
       intro: "Sube un pedido de cliente para calcular productos, cantidad, peso, volumen, valor y ocupación del contenedor.",
       privacy: "El archivo se procesa únicamente en este navegador. No se envía a Jabbar Sourcing ni a terceros.",
       dropLead: "Suelta aquí un archivo Excel o selecciónalo",
-      dropHint: ".xlsx, .xls, .xlsm o .csv · máximo 20 MB",
+      dropHint: ".xlsx, .xls, .xlsm o .csv · máximo 50 MB",
       selectedFile: "Archivo seleccionado",
       parsing: "Leyendo el archivo localmente…",
       loadingLib: "Cargando el lector local de Excel…",
-      ready: "Análisis terminado. Revisa las columnas y unidades detectadas antes de enviar el resultado.",
-      fileTooLarge: "El archivo supera los 20 MB.",
+      ready: "Análisis terminado. Revisa las columnas detectadas antes de exportar.",
+      fileTooLarge: "El archivo supera los 50 MB.",
       unsupported: "Selecciona un archivo Excel o CSV.",
       parseError: "No se pudo leer este archivo. Comprueba que no esté protegido con contraseña ni dañado.",
-      mappingTitle: "Revisar columnas y unidades detectadas",
-      mappingHelp: "Puedes reasignar cada columna. Los encabezados genéricos de peso, volumen y precio se calculan de forma provisional hasta confirmar sus unidades.",
+      mappingTitle: "Revisar columnas y valores predeterminados",
+      mappingHelp: "Las columnas se detectan automáticamente. Reasigna solo las que estén mal identificadas. Las unidades de origen se convierten a kg, m³ y cm; los importes se muestran en CNY.",
       sheet: "Hoja de cálculo",
       headerRow: "Fila de encabezados",
       confirmUnits: "Confirmar unidades",
       weightUnit: "Unidad de peso",
       volumeUnit: "Unidad de volumen",
+      dimensionUnit: "Unidad de medida",
       currency: "Moneda",
       autoPending: "Automático / pendiente de confirmar",
       apply: "Confirmar la asignación y recalcular",
@@ -173,21 +164,13 @@
       product: "Producto",
       sku: "SKU",
       exportPng: "Exportar imagen completa del resultado",
-      shareWeChat: "Compartir resultado en WeChat",
-      wechatId: "ID de WeChat: 18658925544",
-      wechatLimit: "Un sitio web normal no puede elegir un contacto privado de WeChat. En el móvil, selecciona WeChat en el menú de compartir; de lo contrario, se copiará el resumen y se abrirá WeChat para enviarlo manualmente.",
       noResult: "Primero analiza un archivo de pedido.",
       exportPreparing: "Preparando el informe PNG completo…",
       exportDone: "El informe PNG completo se ha descargado.",
       exportError: "No se pudo crear el informe PNG en este navegador.",
-      sharePreparing: "Preparando el envío por WeChat…",
-      confirmBeforeExport: "Confirma el significado de las columnas detectadas, las unidades y la moneda antes de exportar o compartir.",
-      incompleteBlocked: "Este archivo supera el límite de análisis seguro. Divídelo en archivos más pequeños para incluir todas las filas antes de exportar o compartir.",
-      negativeBlocked: "Se detectaron cantidades o valores negativos. Corrige o elimina esas filas antes de exportar o compartir.",
-      copyFailed: "No se pudo copiar el resultado. Usa el botón independiente de exportación y envía después las imágenes manualmente por WeChat.",
-      shared: "Se abrió el menú de compartir. Selecciona WeChat y el destinatario.",
-      copiedOpen: "El resultado se copió. Busca 18658925544 en WeChat y pégalo; usa el botón independiente de exportación para obtener las imágenes completas.",
-      shareCancelled: "Se canceló el uso compartido.",
+      confirmBeforeExport: "Confirma el significado de las columnas detectadas antes de exportar.",
+      incompleteBlocked: "Este archivo supera el límite de análisis seguro. Divídelo en archivos más pequeños antes de exportar.",
+      negativeBlocked: "Se detectaron cantidades o valores negativos. Corrige o elimina esas filas antes de exportar.",
       containerTitle: "Estimación del contenedor",
       lcl: "LCL / envío de prueba",
       twenty: "20GP",
@@ -206,8 +189,8 @@
         dimension_unit_pending: "Las dimensiones se interpretaron provisionalmente en cm. Confirma su unidad.",
         weight_meaning_pending: "La columna genérica de peso se interpreta como peso por unidad. Confirma la asignación o cámbiala a peso total de la línea.",
         volume_meaning_pending: "La columna genérica de volumen se interpreta como volumen por unidad. Confirma la asignación o cámbiala a volumen total de la línea.",
-        rows_truncated: "Se encontraron más de 3.000 filas. La exportación y el uso compartido quedan bloqueados hasta dividir el archivo para incluir todas las filas.",
-        columns_truncated: "Se encontraron más de 200 columnas. La exportación y el uso compartido quedan bloqueados hasta simplificar el archivo para no omitir datos.",
+        rows_truncated: "Se encontraron más de 10.000 filas. La exportación queda bloqueada hasta dividir el archivo.",
+        columns_truncated: "Se encontraron más de 100 columnas. La exportación queda bloqueada hasta simplificar el archivo.",
         summary_rows_skipped: "Se excluyeron las filas de resumen o total para evitar duplicar valores.",
         negative_values_skipped: "Se excluyeron {n} fila(s) con cantidades o valores negativos.",
         subtotal_mismatch: "En {n} fila(s), el subtotal difiere de precio unitario × cantidad; se utilizó el subtotal proporcionado.",
@@ -229,21 +212,22 @@
       intro: "ارفع طلب العميل لحساب المنتجات والكمية والوزن والحجم والقيمة ونسبة استخدام الحاوية.",
       privacy: "تتم معالجة الملف داخل هذا المتصفح فقط، ولا يُرفع إلى Jabbar Sourcing أو أي طرف ثالث.",
       dropLead: "أسقط ملف Excel هنا أو اختر ملفًا",
-      dropHint: ".xlsx أو .xls أو .xlsm أو .csv · بحد أقصى 20 MB",
+      dropHint: ".xlsx أو .xls أو .xlsm أو .csv · بحد أقصى 50 MB",
       selectedFile: "الملف المحدد",
       parsing: "جارٍ قراءة الملف محليًا…",
       loadingLib: "جارٍ تحميل قارئ Excel المحلي…",
       ready: "اكتمل التحليل. راجع الأعمدة والوحدات المكتشفة قبل إرسال النتيجة.",
-      fileTooLarge: "حجم الملف أكبر من 20 MB.",
+      fileTooLarge: "حجم الملف أكبر من 50 MB.",
       unsupported: "يرجى اختيار ملف Excel أو CSV.",
       parseError: "تعذرت قراءة هذا الملف. تحقق من أنه غير محمي بكلمة مرور وغير تالف.",
-      mappingTitle: "مراجعة الأعمدة والوحدات المكتشفة",
-      mappingHelp: "يمكن إعادة تعيين كل عمود. تُحسب عناوين الوزن والحجم والسعر العامة بصورة مؤقتة حتى يتم تأكيد وحداتها.",
+      mappingTitle: "مراجعة الأعمدة والإعدادات الافتراضية",
+      mappingHelp: "يتم اكتشاف الأعمدة تلقائيًا. أعد تعيين العمود فقط إذا تم التعرف عليه بصورة خاطئة. تُحوّل الوحدات إلى kg وm³ وcm وتُعرض القيم بعملة CNY.",
       sheet: "ورقة العمل",
       headerRow: "صف العناوين",
       confirmUnits: "تأكيد الوحدات",
       weightUnit: "وحدة الوزن",
       volumeUnit: "وحدة الحجم",
+      dimensionUnit: "وحدة القياس",
       currency: "العملة",
       autoPending: "تلقائي / بانتظار التأكيد",
       apply: "تأكيد التعيين وإعادة الحساب",
@@ -265,21 +249,13 @@
       product: "المنتج",
       sku: "SKU",
       exportPng: "تصدير صورة النتيجة الكاملة",
-      shareWeChat: "مشاركة النتيجة عبر WeChat",
-      wechatId: "معرّف WeChat: 18658925544",
-      wechatLimit: "لا يستطيع موقع ويب عادي اختيار جهة اتصال خاصة في WeChat نيابةً عنك. على الهاتف اختر WeChat من قائمة المشاركة، وإلا فسيتم نسخ الملخص وفتح WeChat لإرساله يدويًا.",
       noResult: "حلّل ملف طلب أولًا.",
       exportPreparing: "جارٍ إعداد تقرير PNG الكامل…",
       exportDone: "تم تنزيل تقرير PNG الكامل.",
       exportError: "تعذر إنشاء تقرير PNG في هذا المتصفح.",
-      sharePreparing: "جارٍ إعداد المشاركة عبر WeChat…",
-      confirmBeforeExport: "أكّد معاني الأعمدة المكتشفة والوحدات والعملة قبل التصدير أو المشاركة.",
-      incompleteBlocked: "يتجاوز هذا الملف حد التحليل الآمن. قسّمه إلى ملفات أصغر لضمان تضمين كل صف قبل التصدير أو المشاركة.",
-      negativeBlocked: "تم اكتشاف كميات أو قيم سالبة. صحّح هذه الصفوف أو احذفها قبل التصدير أو المشاركة.",
-      copyFailed: "تعذر نسخ النتيجة. استخدم زر التصدير المستقل، ثم أرسل الصور يدويًا عبر WeChat.",
-      shared: "فُتحت قائمة المشاركة. اختر WeChat والمستلم.",
-      copiedOpen: "تم نسخ النتيجة. ابحث عن 18658925544 في WeChat ثم الصقها؛ استخدم زر التصدير المستقل للحصول على الصور الكاملة.",
-      shareCancelled: "تم إلغاء المشاركة.",
+      confirmBeforeExport: "أكّد معاني الأعمدة المكتشفة قبل التصدير.",
+      incompleteBlocked: "يتجاوز هذا الملف حد التحليل الآمن. قسّمه إلى ملفات أصغر قبل التصدير.",
+      negativeBlocked: "تم اكتشاف كميات أو قيم سالبة. صحّح هذه الصفوف أو احذفها قبل التصدير.",
       containerTitle: "تقدير الحاوية",
       lcl: "LCL / شحنة تجريبية",
       twenty: "20GP",
@@ -298,8 +274,8 @@
         dimension_unit_pending: "اعتُبرت الأبعاد مؤقتًا بوحدة cm. أكّد وحدتها.",
         weight_meaning_pending: "يُعامل عمود الوزن العام كوزن للوحدة. أكّد التعيين أو غيّره إلى إجمالي وزن السطر.",
         volume_meaning_pending: "يُعامل عمود الحجم العام كحجم للوحدة. أكّد التعيين أو غيّره إلى إجمالي حجم السطر.",
-        rows_truncated: "تم العثور على أكثر من 3,000 صف. يُحظر التصدير والمشاركة حتى تقسيم الملف لضمان تضمين كل الصفوف.",
-        columns_truncated: "تم العثور على أكثر من 200 عمود. يُحظر التصدير والمشاركة حتى تبسيط الملف كي لا تُحذف أي بيانات.",
+        rows_truncated: "تم العثور على أكثر من 10,000 صف. يُحظر التصدير حتى تقسيم الملف.",
+        columns_truncated: "تم العثور على أكثر من 100 عمود. يُحظر التصدير حتى تبسيط الملف.",
         summary_rows_skipped: "تم استبعاد صفوف الملخص أو الإجمالي لتجنب احتساب القيم مرتين.",
         negative_values_skipped: "تم استبعاد {n} صف يحتوي على كميات أو قيم سالبة.",
         subtotal_mismatch: "يختلف المجموع الفرعي في {n} صف عن سعر الوحدة × الكمية؛ تم اعتماد المجموع الفرعي الوارد في الملف.",
@@ -321,21 +297,22 @@
       intro: "Importez une commande client pour calculer les produits, la quantité, le poids, le volume, la valeur et le taux de chargement du conteneur.",
       privacy: "Le fichier est traité uniquement dans ce navigateur. Il n’est envoyé ni à Jabbar Sourcing ni à un tiers.",
       dropLead: "Déposez un fichier Excel ici ou choisissez un fichier",
-      dropHint: ".xlsx, .xls, .xlsm ou .csv · 20 MB maximum",
+      dropHint: ".xlsx, .xls, .xlsm ou .csv · 50 MB maximum",
       selectedFile: "Fichier sélectionné",
       parsing: "Lecture locale du fichier…",
       loadingLib: "Chargement du lecteur Excel local…",
-      ready: "Analyse terminée. Vérifiez les colonnes et unités détectées avant d’envoyer le résultat.",
-      fileTooLarge: "Le fichier dépasse 20 MB.",
+      ready: "Analyse terminée. Vérifiez les colonnes détectées avant l’exportation.",
+      fileTooLarge: "Le fichier dépasse 50 MB.",
       unsupported: "Choisissez un fichier Excel ou CSV.",
       parseError: "Ce fichier ne peut pas être lu. Vérifiez qu’il n’est ni protégé par mot de passe ni endommagé.",
-      mappingTitle: "Vérifier les colonnes et unités détectées",
-      mappingHelp: "Chaque colonne peut être réaffectée. Les en-têtes génériques de poids, volume et prix sont calculés provisoirement jusqu’à confirmation de leurs unités.",
+      mappingTitle: "Vérifier les colonnes et les valeurs par défaut",
+      mappingHelp: "Les colonnes sont détectées automatiquement. Ne réaffectez qu’une colonne mal identifiée. Les unités source sont converties en kg, m³ et cm ; les montants sont affichés en CNY.",
       sheet: "Feuille de calcul",
       headerRow: "Ligne d’en-tête",
       confirmUnits: "Confirmer les unités",
       weightUnit: "Unité de poids",
       volumeUnit: "Unité de volume",
+      dimensionUnit: "Unité de mesure",
       currency: "Devise",
       autoPending: "Automatique / à confirmer",
       apply: "Confirmer la correspondance et recalculer",
@@ -357,21 +334,13 @@
       product: "Produit",
       sku: "SKU",
       exportPng: "Exporter l’image complète du résultat",
-      shareWeChat: "Partager le résultat sur WeChat",
-      wechatId: "Identifiant WeChat : 18658925544",
-      wechatLimit: "Un site web classique ne peut pas choisir un contact WeChat privé à votre place. Sur mobile, choisissez WeChat dans le menu de partage ; sinon le résumé est copié et WeChat s’ouvre pour un envoi manuel.",
       noResult: "Analysez d’abord un fichier de commande.",
       exportPreparing: "Préparation du rapport PNG complet…",
       exportDone: "Le rapport PNG complet a été téléchargé.",
       exportError: "Le rapport PNG ne peut pas être créé dans ce navigateur.",
-      sharePreparing: "Préparation du partage WeChat…",
-      confirmBeforeExport: "Confirmez la signification des colonnes détectées, les unités et la devise avant d’exporter ou de partager.",
-      incompleteBlocked: "Ce fichier dépasse la limite d’analyse sûre. Divisez-le en fichiers plus petits afin d’inclure chaque ligne avant d’exporter ou de partager.",
-      negativeBlocked: "Des quantités ou valeurs négatives ont été détectées. Corrigez ou supprimez ces lignes avant d’exporter ou de partager.",
-      copyFailed: "Le résultat n’a pas pu être copié. Utilisez le bouton d’exportation indépendant, puis envoyez manuellement les images dans WeChat.",
-      shared: "Le menu de partage est ouvert. Choisissez WeChat et le destinataire.",
-      copiedOpen: "Le résultat a été copié. Recherchez 18658925544 dans WeChat puis collez-le ; utilisez le bouton d’exportation indépendant pour obtenir les images complètes.",
-      shareCancelled: "Le partage a été annulé.",
+      confirmBeforeExport: "Confirmez la signification des colonnes détectées avant l’exportation.",
+      incompleteBlocked: "Ce fichier dépasse la limite d’analyse sûre. Divisez-le avant l’exportation.",
+      negativeBlocked: "Des quantités ou valeurs négatives ont été détectées. Corrigez-les avant l’exportation.",
       containerTitle: "Estimation du conteneur",
       lcl: "LCL / envoi d’essai",
       twenty: "20GP",
@@ -390,8 +359,8 @@
         dimension_unit_pending: "Les dimensions ont été provisoirement interprétées en cm. Confirmez leur unité.",
         weight_meaning_pending: "La colonne de poids générique est interprétée comme un poids unitaire. Confirmez la correspondance ou choisissez le poids total de la ligne.",
         volume_meaning_pending: "La colonne de volume générique est interprétée comme un volume unitaire. Confirmez la correspondance ou choisissez le volume total de la ligne.",
-        rows_truncated: "Plus de 3 000 lignes ont été trouvées. L’exportation et le partage sont bloqués jusqu’à la division du fichier afin d’inclure chaque ligne.",
-        columns_truncated: "Plus de 200 colonnes ont été trouvées. L’exportation et le partage sont bloqués jusqu’à la simplification du fichier afin qu’aucune donnée ne soit omise.",
+        rows_truncated: "Plus de 10 000 lignes ont été trouvées. L’exportation est bloquée jusqu’à la division du fichier.",
+        columns_truncated: "Plus de 100 colonnes ont été trouvées. L’exportation est bloquée jusqu’à la simplification du fichier.",
         summary_rows_skipped: "Les lignes de récapitulatif ou de total ont été exclues pour éviter un double comptage.",
         negative_values_skipped: "{n} ligne(s) contenant des quantités ou valeurs négatives ont été exclues.",
         subtotal_mismatch: "Pour {n} ligne(s), le sous-total diffère du prix unitaire × quantité ; le sous-total fourni a été utilisé.",
@@ -413,21 +382,22 @@
       intro: "Envie um pedido de cliente para calcular produtos, quantidade, peso, volume, valor e ocupação do contêiner.",
       privacy: "O arquivo é processado somente neste navegador. Ele não é enviado à Jabbar Sourcing nem a terceiros.",
       dropLead: "Solte um arquivo Excel aqui ou escolha um arquivo",
-      dropHint: ".xlsx, .xls, .xlsm ou .csv · até 20 MB",
+      dropHint: ".xlsx, .xls, .xlsm ou .csv · até 50 MB",
       selectedFile: "Arquivo selecionado",
       parsing: "Lendo o arquivo localmente…",
       loadingLib: "Carregando o leitor local de Excel…",
-      ready: "Análise concluída. Revise as colunas e unidades detectadas antes de enviar o resultado.",
-      fileTooLarge: "O arquivo é maior que 20 MB.",
+      ready: "Análise concluída. Revise as colunas detectadas antes de exportar.",
+      fileTooLarge: "O arquivo é maior que 50 MB.",
       unsupported: "Escolha um arquivo Excel ou CSV.",
       parseError: "Não foi possível ler este arquivo. Verifique se ele não está protegido por senha nem danificado.",
-      mappingTitle: "Revisar colunas e unidades detectadas",
-      mappingHelp: "Cada coluna pode ser reatribuída. Cabeçalhos genéricos de peso, volume e preço são calculados provisoriamente até que suas unidades sejam confirmadas.",
+      mappingTitle: "Revisar colunas e valores padrão",
+      mappingHelp: "As colunas são detectadas automaticamente. Reatribua apenas uma coluna identificada incorretamente. As unidades de origem são convertidas para kg, m³ e cm; os valores são exibidos em CNY.",
       sheet: "Planilha",
       headerRow: "Linha do cabeçalho",
       confirmUnits: "Confirmar unidades",
       weightUnit: "Unidade de peso",
       volumeUnit: "Unidade de volume",
+      dimensionUnit: "Unidade de medida",
       currency: "Moeda",
       autoPending: "Automático / aguardando confirmação",
       apply: "Confirmar o mapeamento e recalcular",
@@ -449,21 +419,13 @@
       product: "Produto",
       sku: "SKU",
       exportPng: "Exportar imagem completa do resultado",
-      shareWeChat: "Compartilhar resultado no WeChat",
-      wechatId: "ID do WeChat: 18658925544",
-      wechatLimit: "Um site comum não pode escolher um contato privado do WeChat por você. No celular, escolha WeChat no menu de compartilhamento; caso contrário, o resumo será copiado e o WeChat será aberto para envio manual.",
       noResult: "Analise primeiro um arquivo de pedido.",
       exportPreparing: "Preparando o relatório PNG completo…",
       exportDone: "O relatório PNG completo foi baixado.",
       exportError: "Não foi possível criar o relatório PNG neste navegador.",
-      sharePreparing: "Preparando o compartilhamento no WeChat…",
-      confirmBeforeExport: "Confirme o significado das colunas detectadas, as unidades e a moeda antes de exportar ou compartilhar.",
-      incompleteBlocked: "Este arquivo excede o limite de análise segura. Divida-o em arquivos menores para incluir todas as linhas antes de exportar ou compartilhar.",
-      negativeBlocked: "Foram detectadas quantidades ou valores negativos. Corrija ou exclua essas linhas antes de exportar ou compartilhar.",
-      copyFailed: "Não foi possível copiar o resultado. Use o botão independente de exportação e depois envie as imagens manualmente pelo WeChat.",
-      shared: "O menu de compartilhamento foi aberto. Escolha WeChat e o destinatário.",
-      copiedOpen: "O resultado foi copiado. Procure 18658925544 no WeChat e cole-o; use o botão independente de exportação para obter as imagens completas.",
-      shareCancelled: "O compartilhamento foi cancelado.",
+      confirmBeforeExport: "Confirme o significado das colunas detectadas antes de exportar.",
+      incompleteBlocked: "Este arquivo excede o limite de análise segura. Divida-o antes de exportar.",
+      negativeBlocked: "Foram detectadas quantidades ou valores negativos. Corrija-as antes de exportar.",
       containerTitle: "Estimativa de contêiner",
       lcl: "LCL / envio de teste",
       twenty: "20GP",
@@ -482,8 +444,8 @@
         dimension_unit_pending: "As dimensões foram consideradas provisoriamente em cm. Confirme a unidade.",
         weight_meaning_pending: "A coluna genérica de peso é tratada como peso por unidade. Confirme o mapeamento ou altere para o peso total da linha.",
         volume_meaning_pending: "A coluna genérica de volume é tratada como volume por unidade. Confirme o mapeamento ou altere para o volume total da linha.",
-        rows_truncated: "Foram encontradas mais de 3.000 linhas. A exportação e o compartilhamento ficam bloqueados até dividir o arquivo para incluir todas as linhas.",
-        columns_truncated: "Foram encontradas mais de 200 colunas. A exportação e o compartilhamento ficam bloqueados até simplificar o arquivo para que nenhum dado seja omitido.",
+        rows_truncated: "Foram encontradas mais de 10.000 linhas. A exportação fica bloqueada até dividir o arquivo.",
+        columns_truncated: "Foram encontradas mais de 100 colunas. A exportação fica bloqueada até simplificar o arquivo.",
         summary_rows_skipped: "Linhas de resumo ou total foram excluídas para evitar contagem duplicada.",
         negative_values_skipped: "Foram excluídas {n} linha(s) com quantidades ou valores negativos.",
         subtotal_mismatch: "Em {n} linha(s), o subtotal difere de preço unitário × quantidade; foi usado o subtotal informado.",
@@ -505,21 +467,22 @@
       intro: "Загрузите заказ клиента, чтобы рассчитать товары, количество, вес, объем, стоимость и загрузку контейнера.",
       privacy: "Файл обрабатывается только в этом браузере. Он не загружается в Jabbar Sourcing и не передается третьим лицам.",
       dropLead: "Перетащите сюда файл Excel или выберите файл",
-      dropHint: ".xlsx, .xls, .xlsm или .csv · до 20 MB",
+      dropHint: ".xlsx, .xls, .xlsm или .csv · до 50 MB",
       selectedFile: "Выбранный файл",
       parsing: "Файл обрабатывается локально…",
       loadingLib: "Загружается локальный модуль чтения Excel…",
-      ready: "Анализ завершен. Перед отправкой результата проверьте распознанные столбцы и единицы.",
-      fileTooLarge: "Размер файла превышает 20 MB.",
+      ready: "Анализ завершен. Перед экспортом проверьте распознанные столбцы.",
+      fileTooLarge: "Размер файла превышает 50 MB.",
       unsupported: "Выберите файл Excel или CSV.",
       parseError: "Не удалось прочитать файл. Убедитесь, что он не защищен паролем и не поврежден.",
-      mappingTitle: "Проверить распознанные столбцы и единицы",
-      mappingHelp: "Каждый столбец можно назначить заново. Общие заголовки веса, объема и цены рассчитываются предварительно до подтверждения их единиц.",
+      mappingTitle: "Проверить столбцы и настройки по умолчанию",
+      mappingHelp: "Столбцы распознаются автоматически. Переназначайте только ошибочно определённые столбцы. Исходные единицы переводятся в кг, м³ и см; суммы отображаются в CNY.",
       sheet: "Лист",
       headerRow: "Строка заголовков",
       confirmUnits: "Подтвердить единицы",
       weightUnit: "Единица веса",
       volumeUnit: "Единица объема",
+      dimensionUnit: "Единица размера",
       currency: "Валюта",
       autoPending: "Авто / ожидает подтверждения",
       apply: "Подтвердить сопоставление и пересчитать",
@@ -541,21 +504,13 @@
       product: "Товар",
       sku: "SKU",
       exportPng: "Экспортировать полное изображение результата",
-      shareWeChat: "Поделиться результатом в WeChat",
-      wechatId: "ID WeChat: 18658925544",
-      wechatLimit: "Обычный сайт не может выбрать личный контакт WeChat за вас. На телефоне выберите WeChat в меню «Поделиться»; иначе сводка будет скопирована, а WeChat открыт для ручной отправки.",
       noResult: "Сначала проанализируйте файл заказа.",
       exportPreparing: "Подготавливается полный отчет PNG…",
       exportDone: "Полный отчет PNG загружен.",
       exportError: "В этом браузере не удалось создать отчет PNG.",
-      sharePreparing: "Подготавливается отправка через WeChat…",
-      confirmBeforeExport: "Перед экспортом или отправкой подтвердите назначение распознанных столбцов, единицы и валюту.",
-      incompleteBlocked: "Файл превышает безопасный предел анализа. Разделите его на меньшие файлы, чтобы включить каждую строку перед экспортом или отправкой.",
-      negativeBlocked: "Обнаружены отрицательные количества или значения. Исправьте или удалите эти строки перед экспортом или отправкой.",
-      copyFailed: "Не удалось скопировать результат. Используйте отдельную кнопку экспорта, затем вручную отправьте изображения в WeChat.",
-      shared: "Открыто меню «Поделиться». Выберите WeChat и получателя.",
-      copiedOpen: "Результат скопирован. Найдите 18658925544 в WeChat и вставьте его; для полных изображений используйте отдельную кнопку экспорта.",
-      shareCancelled: "Отправка отменена.",
+      confirmBeforeExport: "Перед экспортом подтвердите назначение распознанных столбцов.",
+      incompleteBlocked: "Файл превышает безопасный предел анализа. Разделите его перед экспортом.",
+      negativeBlocked: "Обнаружены отрицательные количества или значения. Исправьте их перед экспортом.",
       containerTitle: "Расчет контейнера",
       lcl: "LCL / пробная отправка",
       twenty: "20GP",
@@ -574,8 +529,8 @@
         dimension_unit_pending: "Размеры предварительно приняты в cm. Подтвердите их единицу.",
         weight_meaning_pending: "Общий столбец веса считается весом единицы. Подтвердите сопоставление или измените его на общий вес строки.",
         volume_meaning_pending: "Общий столбец объема считается объемом единицы. Подтвердите сопоставление или измените его на общий объем строки.",
-        rows_truncated: "Обнаружено более 3 000 строк. Экспорт и отправка заблокированы, пока файл не будет разделен так, чтобы включить каждую строку.",
-        columns_truncated: "Обнаружено более 200 столбцов. Экспорт и отправка заблокированы, пока файл не будет упрощен без пропуска данных.",
+        rows_truncated: "Обнаружено более 10 000 строк. Экспорт заблокирован, пока файл не будет разделен.",
+        columns_truncated: "Обнаружено более 100 столбцов. Экспорт заблокирован, пока файл не будет упрощен.",
         summary_rows_skipped: "Строки итогов исключены, чтобы избежать двойного подсчета.",
         negative_values_skipped: "Исключено строк с отрицательным количеством или значением: {n}.",
         subtotal_mismatch: "В строках ({n}) итог отличается от цены единицы × количество; использован указанный в файле итог.",
@@ -597,21 +552,22 @@
       intro: "Laden Sie eine Kundenbestellung hoch, um Produkte, Menge, Gewicht, Volumen, Wert und Containerauslastung zu berechnen.",
       privacy: "Die Datei wird ausschließlich in diesem Browser verarbeitet. Sie wird weder an Jabbar Sourcing noch an Dritte hochgeladen.",
       dropLead: "Excel-Datei hier ablegen oder Datei auswählen",
-      dropHint: ".xlsx, .xls, .xlsm oder .csv · maximal 20 MB",
+      dropHint: ".xlsx, .xls, .xlsm oder .csv · maximal 50 MB",
       selectedFile: "Ausgewählte Datei",
       parsing: "Datei wird lokal gelesen…",
       loadingLib: "Lokaler Excel-Reader wird geladen…",
       ready: "Analyse abgeschlossen. Prüfen Sie vor dem Senden die erkannten Spalten und Einheiten.",
-      fileTooLarge: "Die Datei ist größer als 20 MB.",
+      fileTooLarge: "Die Datei ist größer als 50 MB.",
       unsupported: "Wählen Sie eine Excel- oder CSV-Datei aus.",
       parseError: "Diese Datei konnte nicht gelesen werden. Prüfen Sie, ob sie passwortgeschützt oder beschädigt ist.",
-      mappingTitle: "Erkannte Spalten und Einheiten prüfen",
-      mappingHelp: "Jede Spalte kann neu zugeordnet werden. Allgemeine Gewichts-, Volumen- und Preisüberschriften werden vorläufig berechnet, bis ihre Einheiten bestätigt sind.",
+      mappingTitle: "Spalten und Standardwerte prüfen",
+      mappingHelp: "Spalten werden automatisch erkannt. Ordnen Sie nur falsch erkannte Spalten neu zu. Ausgangseinheiten werden in kg, m³ und cm umgerechnet; Beträge werden in CNY angezeigt.",
       sheet: "Arbeitsblatt",
       headerRow: "Kopfzeile",
       confirmUnits: "Einheiten bestätigen",
       weightUnit: "Gewichtseinheit",
       volumeUnit: "Volumeneinheit",
+      dimensionUnit: "Maßeinheit",
       currency: "Währung",
       autoPending: "Automatisch / Bestätigung ausstehend",
       apply: "Zuordnung bestätigen und neu berechnen",
@@ -633,21 +589,13 @@
       product: "Produkt",
       sku: "SKU",
       exportPng: "Vollständiges Ergebnisbild exportieren",
-      shareWeChat: "Ergebnis über WeChat teilen",
-      wechatId: "WeChat-ID: 18658925544",
-      wechatLimit: "Eine normale Website kann keinen privaten WeChat-Kontakt für Sie auswählen. Wählen Sie mobil WeChat im Teilen-Menü; andernfalls wird die Zusammenfassung kopiert und WeChat für den manuellen Versand geöffnet.",
       noResult: "Analysieren Sie zuerst eine Bestelldatei.",
       exportPreparing: "Vollständiger PNG-Bericht wird erstellt…",
       exportDone: "Der vollständige PNG-Bericht wurde heruntergeladen.",
       exportError: "Der PNG-Bericht konnte in diesem Browser nicht erstellt werden.",
-      sharePreparing: "WeChat-Freigabe wird vorbereitet…",
-      confirmBeforeExport: "Bestätigen Sie vor dem Exportieren oder Teilen die Bedeutung der erkannten Spalten, die Einheiten und die Währung.",
-      incompleteBlocked: "Diese Datei überschreitet das sichere Analyselimit. Teilen Sie sie in kleinere Dateien auf, damit vor dem Exportieren oder Teilen jede Zeile enthalten ist.",
-      negativeBlocked: "Es wurden negative Mengen oder Werte erkannt. Korrigieren oder löschen Sie diese Zeilen vor dem Exportieren oder Teilen.",
-      copyFailed: "Das Ergebnis konnte nicht kopiert werden. Verwenden Sie die separate Export-Schaltfläche und senden Sie die Bilder anschließend manuell über WeChat.",
-      shared: "Das Teilen-Menü wurde geöffnet. Wählen Sie WeChat und den Empfänger.",
-      copiedOpen: "Das Ergebnis wurde kopiert. Suchen Sie in WeChat nach 18658925544 und fügen Sie es ein; für die vollständigen Bilder verwenden Sie die separate Export-Schaltfläche.",
-      shareCancelled: "Teilen wurde abgebrochen.",
+      confirmBeforeExport: "Bestätigen Sie vor dem Exportieren die Bedeutung der erkannten Spalten.",
+      incompleteBlocked: "Diese Datei überschreitet das sichere Analyselimit. Teilen Sie sie vor dem Exportieren auf.",
+      negativeBlocked: "Es wurden negative Mengen oder Werte erkannt. Korrigieren Sie diese vor dem Exportieren.",
       containerTitle: "Containerschätzung",
       lcl: "LCL / Testsendung",
       twenty: "20GP",
@@ -666,8 +614,8 @@
         dimension_unit_pending: "Die Maße wurden vorläufig als cm behandelt. Bestätigen Sie ihre Einheit.",
         weight_meaning_pending: "Die allgemeine Gewichtsspalte wird als Stückgewicht behandelt. Bestätigen Sie die Zuordnung oder ändern Sie sie in das Gesamtgewicht der Zeile.",
         volume_meaning_pending: "Die allgemeine Volumenspalte wird als Stückvolumen behandelt. Bestätigen Sie die Zuordnung oder ändern Sie sie in das Gesamtvolumen der Zeile.",
-        rows_truncated: "Es wurden mehr als 3.000 Zeilen gefunden. Exportieren und Teilen sind gesperrt, bis die Datei so aufgeteilt ist, dass jede Zeile enthalten ist.",
-        columns_truncated: "Es wurden mehr als 200 Spalten gefunden. Exportieren und Teilen sind gesperrt, bis die Datei vereinfacht wurde und keine Daten fehlen.",
+        rows_truncated: "Es wurden mehr als 10.000 Zeilen gefunden. Der Export ist gesperrt, bis die Datei aufgeteilt wurde.",
+        columns_truncated: "Es wurden mehr als 100 Spalten gefunden. Der Export ist gesperrt, bis die Datei vereinfacht wurde.",
         summary_rows_skipped: "Summen- und Gesamtzeilen wurden ausgeschlossen, um Doppelzählungen zu vermeiden.",
         negative_values_skipped: "{n} Zeile(n) mit negativen Mengen oder Werten wurden ausgeschlossen.",
         subtotal_mismatch: "Bei {n} Zeile(n) weicht die Zwischensumme von Stückpreis × Menge ab; die angegebene Zwischensumme wurde verwendet.",
@@ -689,21 +637,22 @@
       intro: "Carica un ordine cliente per calcolare prodotti, quantità, peso, volume, valore e utilizzo del container.",
       privacy: "Il file viene elaborato esclusivamente in questo browser. Non viene caricato su Jabbar Sourcing né inviato a terzi.",
       dropLead: "Trascina qui un file Excel o scegli un file",
-      dropHint: ".xlsx, .xls, .xlsm o .csv · massimo 20 MB",
+      dropHint: ".xlsx, .xls, .xlsm o .csv · massimo 50 MB",
       selectedFile: "File selezionato",
       parsing: "Lettura locale del file…",
       loadingLib: "Caricamento del lettore Excel locale…",
-      ready: "Analisi completata. Controlla le colonne e le unità rilevate prima di inviare il risultato.",
-      fileTooLarge: "Il file supera i 20 MB.",
+      ready: "Analisi completata. Controlla le colonne rilevate prima di esportare.",
+      fileTooLarge: "Il file supera i 50 MB.",
       unsupported: "Scegli un file Excel o CSV.",
       parseError: "Impossibile leggere questo file. Verifica che non sia protetto da password o danneggiato.",
-      mappingTitle: "Controlla le colonne e le unità rilevate",
-      mappingHelp: "Ogni colonna può essere riassegnata. Le intestazioni generiche di peso, volume e prezzo vengono calcolate provvisoriamente finché non ne vengono confermate le unità.",
+      mappingTitle: "Controlla colonne e valori predefiniti",
+      mappingHelp: "Le colonne vengono rilevate automaticamente. Riassegna solo quelle identificate in modo errato. Le unità di origine vengono convertite in kg, m³ e cm; gli importi sono mostrati in CNY.",
       sheet: "Foglio di lavoro",
       headerRow: "Riga di intestazione",
       confirmUnits: "Conferma le unità",
       weightUnit: "Unità di peso",
       volumeUnit: "Unità di volume",
+      dimensionUnit: "Unità di misura",
       currency: "Valuta",
       autoPending: "Automatico / in attesa di conferma",
       apply: "Conferma la mappatura e ricalcola",
@@ -725,21 +674,13 @@
       product: "Prodotto",
       sku: "SKU",
       exportPng: "Esporta l’immagine completa del risultato",
-      shareWeChat: "Condividi il risultato su WeChat",
-      wechatId: "ID WeChat: 18658925544",
-      wechatLimit: "Un normale sito web non può scegliere un contatto WeChat privato al posto tuo. Sul telefono seleziona WeChat nel menu di condivisione; altrimenti il riepilogo viene copiato e WeChat viene aperto per l’invio manuale.",
       noResult: "Analizza prima un file d’ordine.",
       exportPreparing: "Preparazione del report PNG completo…",
       exportDone: "Il report PNG completo è stato scaricato.",
       exportError: "Impossibile creare il report PNG in questo browser.",
-      sharePreparing: "Preparazione della condivisione WeChat…",
-      confirmBeforeExport: "Conferma il significato delle colonne rilevate, le unità e la valuta prima di esportare o condividere.",
-      incompleteBlocked: "Questo file supera il limite di analisi sicuro. Dividilo in file più piccoli per includere ogni riga prima di esportare o condividere.",
-      negativeBlocked: "Sono state rilevate quantità o valori negativi. Correggi o elimina queste righe prima di esportare o condividere.",
-      copyFailed: "Impossibile copiare il risultato. Usa il pulsante di esportazione separato, quindi invia manualmente le immagini su WeChat.",
-      shared: "Il menu di condivisione è aperto. Seleziona WeChat e il destinatario.",
-      copiedOpen: "Il risultato è stato copiato. Cerca 18658925544 su WeChat e incollalo; usa il pulsante di esportazione separato per ottenere le immagini complete.",
-      shareCancelled: "Condivisione annullata.",
+      confirmBeforeExport: "Conferma il significato delle colonne rilevate prima di esportare.",
+      incompleteBlocked: "Questo file supera il limite di analisi sicuro. Dividilo prima di esportare.",
+      negativeBlocked: "Sono state rilevate quantità o valori negativi. Correggile prima di esportare.",
       containerTitle: "Stima del container",
       lcl: "LCL / spedizione di prova",
       twenty: "20GP",
@@ -758,8 +699,8 @@
         dimension_unit_pending: "Le dimensioni sono state considerate provvisoriamente in cm. Conferma la loro unità.",
         weight_meaning_pending: "La colonna generica del peso viene interpretata come peso per unità. Conferma la mappatura o impostala come peso totale della riga.",
         volume_meaning_pending: "La colonna generica del volume viene interpretata come volume per unità. Conferma la mappatura o impostala come volume totale della riga.",
-        rows_truncated: "Sono state trovate più di 3.000 righe. Esportazione e condivisione sono bloccate finché il file non viene diviso in modo da includere ogni riga.",
-        columns_truncated: "Sono state trovate più di 200 colonne. Esportazione e condivisione sono bloccate finché il file non viene semplificato senza omettere dati.",
+        rows_truncated: "Sono state trovate più di 10.000 righe. L’esportazione è bloccata finché il file non viene diviso.",
+        columns_truncated: "Sono state trovate più di 100 colonne. L’esportazione è bloccata finché il file non viene semplificato.",
         summary_rows_skipped: "Le righe di riepilogo o totale sono state escluse per evitare doppi conteggi.",
         negative_values_skipped: "Sono state escluse {n} riga/righe con quantità o valori negativi.",
         subtotal_mismatch: "In {n} riga/righe il subtotale differisce da prezzo unitario × quantità; è stato usato il subtotale fornito.",
@@ -781,21 +722,22 @@
       intro: "Ürünleri, miktarı, ağırlığı, hacmi, tutarı ve konteyner kullanımını hesaplamak için müşteri siparişini yükleyin.",
       privacy: "Dosya yalnızca bu tarayıcıda işlenir. Jabbar Sourcing’e veya herhangi bir üçüncü tarafa yüklenmez.",
       dropLead: "Excel dosyasını buraya bırakın veya bir dosya seçin",
-      dropHint: ".xlsx, .xls, .xlsm veya .csv · en fazla 20 MB",
+      dropHint: ".xlsx, .xls, .xlsm veya .csv · en fazla 50 MB",
       selectedFile: "Seçilen dosya",
       parsing: "Dosya yerel olarak okunuyor…",
       loadingLib: "Yerel Excel okuyucu yükleniyor…",
-      ready: "Analiz tamamlandı. Sonucu göndermeden önce algılanan sütunları ve birimleri kontrol edin.",
-      fileTooLarge: "Dosya 20 MB’den büyük.",
+      ready: "Analiz tamamlandı. Dışa aktarmadan önce algılanan sütunları kontrol edin.",
+      fileTooLarge: "Dosya 50 MB’den büyük.",
       unsupported: "Bir Excel veya CSV dosyası seçin.",
       parseError: "Bu dosya okunamadı. Parola korumalı veya bozuk olmadığını kontrol edin.",
-      mappingTitle: "Algılanan sütunları ve birimleri kontrol et",
-      mappingHelp: "Her sütun yeniden atanabilir. Genel ağırlık, hacim ve fiyat başlıkları, birimleri onaylanana kadar geçici olarak hesaplanır.",
+      mappingTitle: "Sütunları ve varsayılanları kontrol et",
+      mappingHelp: "Sütunlar otomatik olarak algılanır. Yalnızca yanlış tanımlanan sütunları yeniden atayın. Kaynak birimler kg, m³ ve cm'ye dönüştürülür; tutarlar CNY olarak gösterilir.",
       sheet: "Çalışma sayfası",
       headerRow: "Başlık satırı",
       confirmUnits: "Birimleri onayla",
       weightUnit: "Ağırlık birimi",
       volumeUnit: "Hacim birimi",
+      dimensionUnit: "Ölçü birimi",
       currency: "Para birimi",
       autoPending: "Otomatik / onay bekliyor",
       apply: "Eşlemeyi onayla ve yeniden hesapla",
@@ -817,21 +759,13 @@
       product: "Ürün",
       sku: "SKU",
       exportPng: "Tam sonuç görselini dışa aktar",
-      shareWeChat: "Sonucu WeChat ile paylaş",
-      wechatId: "WeChat kimliği: 18658925544",
-      wechatLimit: "Normal bir web sitesi sizin yerinize özel bir WeChat kişisi seçemez. Telefonda paylaşım menüsünden WeChat’i seçin; aksi halde özet kopyalanır ve elle göndermeniz için WeChat açılır.",
       noResult: "Önce bir sipariş dosyasını analiz edin.",
       exportPreparing: "Tam PNG raporu hazırlanıyor…",
       exportDone: "Tam PNG raporu indirildi.",
       exportError: "PNG raporu bu tarayıcıda oluşturulamadı.",
-      sharePreparing: "WeChat paylaşımı hazırlanıyor…",
-      confirmBeforeExport: "Dışa aktarmadan veya paylaşmadan önce algılanan sütunların anlamlarını, birimleri ve para birimini onaylayın.",
-      incompleteBlocked: "Bu dosya güvenli analiz sınırını aşıyor. Dışa aktarmadan veya paylaşmadan önce her satırın dahil olması için dosyayı daha küçük parçalara ayırın.",
-      negativeBlocked: "Negatif miktarlar veya değerler algılandı. Dışa aktarmadan veya paylaşmadan önce bu satırları düzeltin ya da silin.",
-      copyFailed: "Sonuç kopyalanamadı. Bağımsız dışa aktarma düğmesini kullanın, ardından görselleri WeChat’te elle gönderin.",
-      shared: "Paylaşım menüsü açıldı. WeChat’i ve alıcıyı seçin.",
-      copiedOpen: "Sonuç kopyalandı. WeChat’te 18658925544 numarasını arayıp sonucu yapıştırın; tam görseller için bağımsız dışa aktarma düğmesini kullanın.",
-      shareCancelled: "Paylaşım iptal edildi.",
+      confirmBeforeExport: "Dışa aktarmadan önce algılanan sütunların anlamlarını onaylayın.",
+      incompleteBlocked: "Bu dosya güvenli analiz sınırını aşıyor. Dışa aktarmadan önce dosyayı bölün.",
+      negativeBlocked: "Negatif miktarlar veya değerler algılandı. Dışa aktarmadan önce bunları düzeltin.",
       containerTitle: "Konteyner tahmini",
       lcl: "LCL / deneme sevkiyatı",
       twenty: "20GP",
@@ -850,8 +784,8 @@
         dimension_unit_pending: "Ölçüler geçici olarak cm kabul edildi. Birimlerini onaylayın.",
         weight_meaning_pending: "Genel ağırlık sütunu birim ağırlık olarak kabul edilir. Eşlemeyi onaylayın veya satır toplam ağırlığı olarak değiştirin.",
         volume_meaning_pending: "Genel hacim sütunu birim hacim olarak kabul edilir. Eşlemeyi onaylayın veya satır toplam hacmi olarak değiştirin.",
-        rows_truncated: "3.000’den fazla satır bulundu. Her satır dahil olacak şekilde dosya bölünene kadar dışa aktarma ve paylaşım engellenir.",
-        columns_truncated: "200’den fazla sütun bulundu. Hiçbir veri atlanmayacak şekilde dosya sadeleştirilene kadar dışa aktarma ve paylaşım engellenir.",
+        rows_truncated: "10.000’den fazla satır bulundu. Dosya bölünene kadar dışa aktarma engellenir.",
+        columns_truncated: "100’den fazla sütun bulundu. Dosya sadeleştirilene kadar dışa aktarma engellenir.",
         summary_rows_skipped: "Çift sayımı önlemek için özet veya toplam satırları hariç tutuldu.",
         negative_values_skipped: "Negatif miktar veya değer içeren {n} satır hariç tutuldu.",
         subtotal_mismatch: "{n} satırda ara toplam, birim fiyat × miktardan farklıdır; dosyada verilen ara toplam kullanıldı.",
@@ -986,12 +920,11 @@
     mappingBody.appendChild(sheetRow);
     this.mappingGrid = element("div", "order-analyzer__mapping-grid");
     mappingBody.appendChild(this.mappingGrid);
-    mappingBody.appendChild(element("strong", "", t.confirmUnits));
     var confirm = element("div", "order-analyzer__confirm");
-    this.weightUnitSelect = this.confirmSelect(confirm, t.weightUnit, "data-order-weight-unit", [["auto", t.autoPending], ["kg", "kg"], ["g", "g"], ["lb", "lb"], ["t", "t"]]);
-    this.volumeUnitSelect = this.confirmSelect(confirm, t.volumeUnit, "data-order-volume-unit", [["auto", t.autoPending], ["m3", "m³ / CBM"], ["cm3", "cm³"], ["l", "L"], ["ft3", "ft³"]]);
-    this.dimensionUnitSelect = this.confirmSelect(confirm, t.fields.dimensionUnit, "data-order-dimension-unit", [["auto", t.autoPending], ["mm", "mm"], ["cm", "cm"], ["in", "in"], ["m", "m"]]);
-    this.currencySelect = this.confirmSelect(confirm, t.currency, "data-order-currency", [["auto", t.autoPending], ["CNY", "CNY / RMB"], ["USD", "USD"], ["EUR", "EUR"], ["GBP", "GBP"], ["RUB", "RUB"], ["TRY", "TRY"], ["AED", "AED"], ["SAR", "SAR"]]);
+    this.weightUnitSelect = this.confirmFixed(confirm, t.weightUnit, "data-order-weight-unit", "kg", "kg");
+    this.volumeUnitSelect = this.confirmFixed(confirm, t.volumeUnit, "data-order-volume-unit", "m3", "m³ / CBM");
+    this.dimensionUnitSelect = this.confirmFixed(confirm, t.dimensionUnit, "data-order-dimension-unit", "cm", "cm");
+    this.currencySelect = this.confirmFixed(confirm, t.currency, "data-order-currency", "CNY", "CNY / RMB");
     mappingBody.appendChild(confirm);
     this.applyButton = element("button", "order-analyzer__apply", t.apply);
     this.applyButton.type = "button";
@@ -1016,26 +949,31 @@
     this.exportButton = element("button", "order-analyzer__export", t.exportPng);
     this.exportButton.type = "button";
     this.exportButton.setAttribute("data-order-export", "");
-    this.wechatButton = element("button", "order-analyzer__wechat", t.shareWeChat);
-    this.wechatButton.type = "button";
-    this.wechatButton.setAttribute("data-order-wechat", "");
     actions.appendChild(this.exportButton);
-    actions.appendChild(this.wechatButton);
     this.results.appendChild(actions);
-    this.results.appendChild(element("p", "order-analyzer__wechat-note", t.wechatId + " · " + t.wechatLimit));
     this.tableWrap = element("div", "order-analyzer__table-wrap");
     this.results.appendChild(this.tableWrap);
     this.root.appendChild(this.results);
   };
 
-  Analyzer.prototype.confirmSelect = function (parent, labelText, attribute, values) {
-    var label = element("label", "", labelText);
-    var select = element("select", "");
-    select.setAttribute(attribute, "");
-    values.forEach(function (pair) { select.appendChild(option(pair[0], pair[1])); });
-    label.appendChild(select);
-    parent.appendChild(label);
-    return select;
+  Analyzer.prototype.confirmFixed = function (parent, labelText, attribute, value, displayValue) {
+    var field = element("div", "order-analyzer__fixed-setting");
+    field.appendChild(element("span", "", labelText));
+    var output = element("strong", "", displayValue);
+    field.appendChild(output);
+    var input = element("input", "");
+    input.type = "hidden";
+    input.value = value;
+    input.setAttribute(attribute, "");
+    input.__displayOutput = output;
+    field.appendChild(input);
+    parent.appendChild(field);
+    return input;
+  };
+
+  Analyzer.prototype.setFixedSetting = function (input, value, labels, fixedDisplayValue) {
+    input.value = value;
+    if (input.__displayOutput) input.__displayOutput.textContent = fixedDisplayValue || labels[value] || value;
   };
 
   Analyzer.prototype.bind = function () {
@@ -1058,7 +996,6 @@
       });
     });
     this.exportButton.addEventListener("click", function () { self.exportReport(); });
-    this.wechatButton.addEventListener("click", function () { self.shareToWeChat(); });
   };
 
   Analyzer.prototype.setStatus = function (text, error) {
@@ -1073,10 +1010,8 @@
     this.applyButton.disabled = Boolean(busy);
     if (busy) {
       this.exportButton.disabled = true;
-      this.wechatButton.disabled = true;
     } else if (this.payload) {
       this.exportButton.disabled = Boolean(this.deliveryBlocked);
-      this.wechatButton.disabled = Boolean(this.deliveryBlocked);
     }
   };
 
@@ -1163,7 +1098,6 @@
     this.mappingDetails.open = false;
     this.results.hidden = true;
     this.exportButton.disabled = true;
-    this.wechatButton.disabled = true;
     qa.lastResult = null;
     this.fileMeta.textContent = this.copy.selectedFile + ": " + file.name + " · " + (file.size / 1024 / 1024).toFixed(2) + " MB";
     var extension = fileExtension(file.name);
@@ -1183,7 +1117,7 @@
         payload = await this.workerRequest("parse", { buffer: buffer, fileName: file.name }, [buffer]);
       } else {
         var session = await this.ensureFallback();
-        payload = session.parse(await file.arrayBuffer(), window.XLSX, file.name);
+        payload = session.parse(buffer, window.XLSX, file.name);
       }
       this.acceptPayload(payload);
       this.setStatus(this.copy.ready, false);
@@ -1271,7 +1205,6 @@
       : (needsConfirmation || !payload.result.metrics.productRows ? (this.copy.confirmBeforeExport || this.copy.mappingHelp) : "");
     this.mappingDetails.open = Boolean(this.deliveryBlocked);
     this.exportButton.disabled = Boolean(this.deliveryBlocked);
-    this.wechatButton.disabled = Boolean(this.deliveryBlocked);
     this.renderResult(payload);
   };
 
@@ -1296,10 +1229,11 @@
       label.appendChild(select);
       self.mappingGrid.appendChild(label);
     });
-    this.weightUnitSelect.value = payload.overrides.weightUnit || "auto";
-    this.volumeUnitSelect.value = payload.overrides.volumeUnit || "auto";
-    this.dimensionUnitSelect.value = payload.overrides.dimensionUnit || "auto";
-    this.currencySelect.value = payload.overrides.currency || "auto";
+    this.setFixedSetting(this.weightUnitSelect, payload.overrides.weightUnit || "kg", { kg: "kg", g: "g", lb: "lb", t: "t" }, "kg");
+    this.setFixedSetting(this.volumeUnitSelect, payload.overrides.volumeUnit || "m3", { m3: "m³ / CBM", cm3: "cm³", l: "L", ft3: "ft³" }, "m³ / CBM");
+    this.setFixedSetting(this.dimensionUnitSelect, payload.overrides.dimensionUnit || "cm", { mm: "mm", cm: "cm", in: "in", m: "m" }, "cm");
+    var detectedCurrency = payload.overrides.currency || "CNY";
+    this.setFixedSetting(this.currencySelect, detectedCurrency, { CNY: "CNY / RMB" }, detectedCurrency === "CNY" ? "CNY / RMB" : detectedCurrency);
   };
 
   Analyzer.prototype.formatNumber = function (value, digits) {
@@ -1322,12 +1256,10 @@
 
   Analyzer.prototype.containerEstimate = function (volume, pending) {
     var t = this.copy;
-    if (volume == null) return { label: t.missing, capacity: 28, percent: 0, pending: false };
+    if (volume == null) return { label: t.fortyHq, capacity: 68, percent: 0, pending: false };
     var value = Math.max(0, Number(volume));
     var result;
-    if (value <= 8) result = { label: t.lcl, capacity: 28, percent: value / 28 * 100 };
-    else if (value <= 28) result = { label: t.twenty, capacity: 28, percent: value / 28 * 100 };
-    else if (value <= 58) result = { label: t.forty, capacity: 58, percent: value / 58 * 100 };
+    if (value <= 8) result = { label: t.lcl, capacity: 68, percent: value / 68 * 100 };
     else if (value <= 68) result = { label: t.fortyHq, capacity: 68, percent: value / 68 * 100 };
     else {
       var count = Math.ceil(value / 68);
@@ -1412,26 +1344,6 @@
     }, this);
     table.appendChild(tbody);
     this.tableWrap.appendChild(table);
-  };
-
-  Analyzer.prototype.buildShareText = function () {
-    if (!this.payload) return "";
-    var m = this.payload.result.metrics;
-    var estimate = this.containerEstimate(m.volume, this.payload.result.pending.volumeUnit);
-    return [
-      "Jabbar Sourcing · " + this.copy.resultTitle,
-      this.copy.file + ": " + this.payload.fileName,
-      this.copy.sheet + ": " + this.payload.sheetName,
-      this.copy.productRows + ": " + this.formatNumber(m.productRows, 0),
-      this.copy.uniqueProducts + ": " + this.formatNumber(m.uniqueProducts, 0),
-      this.copy.quantity + ": " + this.formatNumber(m.quantity, 2),
-      this.copy.cartons + ": " + this.formatNumber(m.cartons, 2),
-      this.copy.volume + ": " + (m.volume == null ? this.copy.missing : this.formatNumber(m.volume, 3) + " m³" + (this.payload.result.pending.volumeUnit ? " (" + this.copy.unitPending + ")" : "")),
-      this.copy.weight + ": " + (m.weight == null ? this.copy.missing : this.formatNumber(m.weight, 2) + " kg" + (this.payload.result.pending.weightUnit ? " (" + this.copy.unitPending + ")" : "")),
-      this.copy.amount + ": " + this.amountText(m.amounts),
-      this.copy.containerTitle + ": " + estimate.label,
-      this.copy.wechatId
-    ].join("\n");
   };
 
   Analyzer.prototype.wrapLines = function (ctx, value, maxWidth) {
@@ -1529,7 +1441,7 @@
     ctx.direction = this.rtl ? "rtl" : "ltr";
     ctx.textAlign = this.rtl ? "right" : "left";
     var startX = this.rtl ? width - margin : margin;
-    ctx.fillStyle = "#0f766e"; ctx.font = '800 18px ui-monospace,"SF Mono",Consolas,monospace'; ctx.fillText("JABBAR SOURCING · JBSU T01", startX, 92);
+    ctx.fillStyle = "#0f766e"; ctx.font = '800 18px ui-monospace,"SF Mono",Consolas,monospace'; ctx.fillText("Jabbar · 体积工具", startX, 92);
     ctx.fillStyle = "#0f172a"; ctx.font = '900 46px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif'; ctx.fillText(this.copy.reportTitle, startX, 150);
     ctx.fillStyle = "#64748b"; ctx.font = '20px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
     ctx.fillText(this.copy.file + ": " + this.payload.fileName + " · " + this.copy.sheet + ": " + this.payload.sheetName, startX, 192);
@@ -1580,7 +1492,7 @@
       y += layout.height;
     }, this);
     ctx.fillStyle = "#64748b"; ctx.font = '18px ui-monospace,"SF Mono",Consolas,monospace';
-    ctx.textAlign = this.rtl ? "right" : "left"; ctx.fillText(this.copy.wechatId, this.rtl ? width - margin : margin, height - 58);
+    ctx.textAlign = this.rtl ? "right" : "left"; ctx.fillText("Jabbar Sourcing · jabbarsourcing.com", this.rtl ? width - margin : margin, height - 58);
     ctx.textAlign = this.rtl ? "left" : "right"; ctx.fillText(replaceVars(this.copy.page, { current: pageIndex + 1, total: totalPages }), this.rtl ? margin : width - margin, height - 58);
     return canvas;
   };
@@ -1629,7 +1541,6 @@
     if (!this.payload) { this.setStatus(this.copy.noResult, true); return []; }
     if (this.deliveryBlocked) { this.setStatus(this.deliveryBlocked, true); return []; }
     this.exportButton.disabled = true;
-    this.wechatButton.disabled = true;
     this.setStatus(this.copy.exportPreparing, false);
     try {
       var files = await this.prepareExport();
@@ -1642,72 +1553,6 @@
       return [];
     } finally {
       this.exportButton.disabled = Boolean(this.deliveryBlocked);
-      this.wechatButton.disabled = Boolean(this.deliveryBlocked);
-    }
-  };
-
-  Analyzer.prototype.copyText = async function (text) {
-    if (navigator.clipboard && window.isSecureContext) { try { await navigator.clipboard.writeText(text); return true; } catch (_) {} }
-    var area = document.createElement("textarea");
-    area.value = text; area.setAttribute("readonly", ""); area.style.position = "fixed"; area.style.opacity = "0";
-    document.body.appendChild(area); area.select();
-    var copied = false;
-    try { copied = document.execCommand("copy"); } catch (_) {}
-    area.remove();
-    return copied;
-  };
-
-  Analyzer.prototype.shareToWeChat = async function () {
-    if (!this.payload) { this.setStatus(this.copy.noResult, true); return; }
-    if (this.deliveryBlocked) { this.setStatus(this.deliveryBlocked, true); return; }
-    this.exportButton.disabled = true;
-    this.wechatButton.disabled = true;
-    this.setStatus(this.copy.sharePreparing || this.copy.exportPreparing, false);
-    try {
-      var text = this.buildShareText();
-      if (navigator.share) {
-        var title = "Jabbar Sourcing · " + this.copy.resultTitle;
-        var files = [];
-        try { files = await this.prepareExport(); } catch (_) { files = []; }
-        if (files.length && (!navigator.canShare || navigator.canShare({ files: files }))) {
-          try {
-            await navigator.share({ title: title, text: text, files: files });
-            this.setStatus(this.copy.shared, false);
-            qa.lastShareMode = "native-files";
-            return;
-          } catch (fileShareError) {
-            if (fileShareError && fileShareError.name === "AbortError") throw fileShareError;
-          }
-        }
-        try {
-          await navigator.share({ title: title, text: text });
-          this.setStatus(this.copy.shared, false);
-          qa.lastShareMode = "native-text";
-          return;
-        } catch (textShareError) {
-          if (textShareError && textShareError.name === "AbortError") throw textShareError;
-        }
-      }
-      var copied = await this.copyText(text);
-      if (!copied) {
-        qa.lastShareMode = "copy-failed";
-        this.setStatus(this.copy.copyFailed || this.copy.exportError, true);
-        return;
-      }
-      qa.lastShareMode = "copy-weixin";
-      this.setStatus(this.copy.copiedOpen, false);
-      if (!window.__JABBAR_QA_DISABLE_EXTERNAL_OPEN) window.setTimeout(function () { window.location.href = "weixin://"; }, 80);
-    } catch (error) {
-      if (error && error.name === "AbortError") this.setStatus(this.copy.shareCancelled, false);
-      else {
-        var fallbackCopied = await this.copyText(this.buildShareText());
-        qa.lastShareMode = fallbackCopied ? "copy-error-fallback" : "copy-failed";
-        this.setStatus(fallbackCopied ? this.copy.copiedOpen : (this.copy.copyFailed || this.copy.exportError), !fallbackCopied);
-        if (fallbackCopied && !window.__JABBAR_QA_DISABLE_EXTERNAL_OPEN) window.setTimeout(function () { window.location.href = "weixin://"; }, 80);
-      }
-    } finally {
-      this.exportButton.disabled = Boolean(this.deliveryBlocked);
-      this.wechatButton.disabled = Boolean(this.deliveryBlocked);
     }
   };
 

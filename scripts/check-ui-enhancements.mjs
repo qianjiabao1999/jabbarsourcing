@@ -6,21 +6,31 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-159";
+const CSS_VERSION = "apple-160";
 const AI_VERSION = "ai-20260714a";
-const UI_VERSION = "ui-20260714a";
-const ORDER_VERSION = "order-20260713b";
+const UI_VERSION = "ui-20260714b";
+const ORDER_VERSION = "order-20260714b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
-const SECTION_CODES = [
-  "JBSU 001 · TEAM", "JBSU 002 · GALLERY", "JBSU 003 · SERVICES", "JBSU 004 · PROCESS",
-  "JBSU 005 · ABOUT", "JBSU 006 · REVIEWS", "JBSU 007 · FAQ", "JBSU 008 · SOCIAL"
-];
+const SECTION_CODES = {
+  zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 关于我们", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
+  en: ["Jabbar · Team", "Jabbar · Gallery", "Jabbar · Services", "Jabbar · Process", "Jabbar · About Us", "Jabbar · Reviews", "Jabbar · FAQ", "Jabbar · Social"],
+  es: ["Jabbar · Equipo", "Jabbar · Galería", "Jabbar · Servicios", "Jabbar · Proceso", "Jabbar · Sobre nosotros", "Jabbar · Reseñas", "Jabbar · Preguntas frecuentes", "Jabbar · Redes sociales"],
+  ar: ["Jabbar · الفريق", "Jabbar · المعرض", "Jabbar · الخدمات", "Jabbar · خطوات العمل", "Jabbar · من نحن", "Jabbar · آراء العملاء", "Jabbar · الأسئلة الشائعة", "Jabbar · التواصل الاجتماعي"],
+  fr: ["Jabbar · Équipe", "Jabbar · Galerie", "Jabbar · Services", "Jabbar · Processus", "Jabbar · À propos", "Jabbar · Avis clients", "Jabbar · FAQ", "Jabbar · Réseaux sociaux"],
+  pt: ["Jabbar · Equipe", "Jabbar · Galeria", "Jabbar · Serviços", "Jabbar · Processo", "Jabbar · Sobre nós", "Jabbar · Avaliações", "Jabbar · Perguntas frequentes", "Jabbar · Redes sociais"],
+  ru: ["Jabbar · Команда", "Jabbar · Галерея", "Jabbar · Услуги", "Jabbar · Процесс", "Jabbar · О нас", "Jabbar · Отзывы", "Jabbar · Частые вопросы", "Jabbar · Соцсети"],
+  de: ["Jabbar · Team", "Jabbar · Galerie", "Jabbar · Leistungen", "Jabbar · Ablauf", "Jabbar · Über uns", "Jabbar · Bewertungen", "Jabbar · FAQ", "Jabbar · Soziale Medien"],
+  it: ["Jabbar · Team", "Jabbar · Galleria", "Jabbar · Servizi", "Jabbar · Processo", "Jabbar · Chi siamo", "Jabbar · Recensioni", "Jabbar · Domande frequenti", "Jabbar · Social"],
+  tr: ["Jabbar · Ekip", "Jabbar · Galeri", "Jabbar · Hizmetler", "Jabbar · Süreç", "Jabbar · Hakkımızda", "Jabbar · Yorumlar", "Jabbar · SSS", "Jabbar · Sosyal medya"]
+};
 const STAMP_TOKENS = ["QC PASSED ✓", "REPLY < 24H", "TRIAL $1,000"];
 const CITY_FIELDS = LOCALES.map((locale) => `city_${locale}`).sort();
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const HOME_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale) }));
 const CALCULATOR_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "calculator/") }));
 const INQUIRY_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "inquiry/") }));
+const NAV_PAGES = [...HOME_PAGES, ...CALCULATOR_PAGES, ...INQUIRY_PAGES];
+const TELEGRAM_PAGES = [...HOME_PAGES, ...INQUIRY_PAGES, { file: "privacy-policy.html" }, { file: "support.html" }];
 const EXTRA_PAGES = ["404.html", "privacy-policy.html", "support.html"];
 const FALLBACK_EVENT_PAGES = [
   ...HOME_PAGES.map(({ file }) => file),
@@ -115,8 +125,8 @@ for (const { locale, file } of HOME_PAGES) {
   assert.doesNotMatch(html, /class="[^"]*\bcontain\b[^"]*"/, `${file}: stale contain class`);
   assert.equal(count(html, /class="mobile-conversion-bar"/g), 1, `${file}: mobile conversion bar count`);
   assert.equal(count(html, /class="faq-item"/g), 7, `${file}: FAQ item count`);
-  assert.deepEqual(textsForClass(html, "p", "section-code"), SECTION_CODES, `${file}: section code order`);
-  assert.equal(countClass(html, "section-rule"), SECTION_CODES.length, `${file}: section rule count`);
+  assert.deepEqual(textsForClass(html, "p", "section-code"), SECTION_CODES[locale], `${file}: localized section code order`);
+  assert.equal(countClass(html, "section-rule"), SECTION_CODES[locale].length, `${file}: section rule count`);
   assert.equal(countClass(html, "stamp-row"), 1, `${file}: stamp row count`);
   assert.equal(countClass(html, "stamp-item"), STAMP_TOKENS.length, `${file}: stamp item count`);
   assert.deepEqual(textsForClass(html, "span", "stamp"), STAMP_TOKENS, `${file}: stamp tokens`);
@@ -155,7 +165,7 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   assert.equal(count(html, /class="cbm-visual"/g), 1, `${file}: static CBM visual count`);
   assert.equal(count(html, /<svg[^>]+aria-labelledby="cbmVizTitle"/g), 1, `${file}: static CBM SVG count`);
   assert.equal(count(html, /id="cbmFill"/g), 1, `${file}: static CBM fill count`);
-  assert.deepEqual(textsForClass(html, "p", "section-code"), ["JBSU T01 · CALCULATOR"], `${file}: calculator section code`);
+  assert.deepEqual(textsForClass(html, "p", "section-code"), ["Jabbar · 体积工具"], `${file}: calculator section code`);
   assert.equal(countClass(html, "section-rule"), 1, `${file}: calculator section rule count`);
   assert(tagsWithClass(html, "line", "cbm-dimension-line").length >= 3, `${file}: CBM dimension line count`);
   const capTag = tagById(html, "cbmCap");
@@ -183,10 +193,27 @@ for (const { file } of INQUIRY_PAGES) {
   assert.equal(count(html, /mobile-conversion-bar/g), 0, `${file}: inquiry must not include mobile conversion bar`);
 }
 
+assert.equal(NAV_PAGES.length, 30, "site navigation page count");
+for (const { file } of NAV_PAGES) {
+  const html = await load(file);
+  const toolLinks = tagsWithClass(html, "a", "site-nav-tool-pill");
+  assert.equal(toolLinks.length, 1, `${file}: site-nav-tool-pill count`);
+  assert(attribute(toolLinks[0][0], "href"), `${file}: site-nav-tool-pill href missing`);
+}
+
 for (const file of EXTRA_PAGES) {
   const html = await load(file);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing QR enhancement`);
+}
+
+assert.equal(TELEGRAM_PAGES.length, 22, "Telegram page count");
+for (const { file } of TELEGRAM_PAGES) {
+  const html = await load(file);
+  assert.match(html, /href="https:\/\/t\.me\/Jabbar_in_Yiwu"/, `${file}: new Telegram URL missing`);
+  assert.match(html, /data-app-link="tg:\/\/resolve\?domain=Jabbar_in_Yiwu"/, `${file}: new Telegram app URL missing`);
+  assert.match(html, /data-copy-text="@Jabbar_in_Yiwu"/, `${file}: new Telegram copy handle missing`);
+  assert.doesNotMatch(html, /Jabbar199901/, `${file}: old Telegram username remains`);
 }
 
 assert.equal(FALLBACK_EVENT_PAGES.length, 23, "fallback analytics page count");
@@ -207,6 +234,15 @@ for (const token of [
   "initAnalyticsEvents", "contact_whatsapp", "isPlaceholderRecord", "is-unavailable"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing ${token}`);
+}
+for (const token of ["contact-speed-dial-whatsapp", "contact-speed-dial-telegram", "contact-speed-dial-ai"]) {
+  assert(javascript.includes(token), `site-enhancements.js: missing independent contact option ${token}`);
+}
+assert(javascript.includes('createElement("div", "contact-speed-dial is-open")'), "site-enhancements.js: contact options must remain directly open");
+assert(javascript.includes("https://t.me/Jabbar_in_Yiwu"), "site-enhancements.js: new Telegram username missing");
+assert(!javascript.includes("Jabbar199901"), "site-enhancements.js: old Telegram username remains");
+for (const removedToken of ["contact-speed-dial-main", "function setOpen(", "menu.hidden", 'main.setAttribute("aria-expanded"']) {
+  assert(!javascript.includes(removedToken), `site-enhancements.js: removed contact collapse logic remains (${removedToken})`);
 }
 assert(javascript.includes('createElement("li", "shipment-ticker-item num-mono")'), "site-enhancements.js: dynamic shipment item must explicitly use num-mono");
 assert(javascript.includes('ticker.classList.add("is-ready")'), "site-enhancements.js: valid shipment data must opt into the visible state");
@@ -243,10 +279,21 @@ for (const token of [
 
 const orderAnalyzer = await load("assets/calculator-order-analyzer.js");
 const orderWorker = await load("assets/calculator-order-worker.js");
-for (const token of ["data-order-export", "data-order-wechat", "18658925544", "navigator.share", "toBlob", "JABBAR_ORDER_ANALYZER_QA"])
+for (const token of ["data-order-export", "toBlob", "JABBAR_ORDER_ANALYZER_QA"])
   assert(orderAnalyzer.includes(token), `calculator-order-analyzer.js: missing ${token}`);
+for (const removedToken of ["data-order-wechat", "shareToWeChat", "navigator.share"]) {
+  assert(!orderAnalyzer.includes(removedToken), `calculator-order-analyzer.js: removed sharing token remains (${removedToken})`);
+}
+assert.doesNotMatch(orderAnalyzer, /WeChat|微信/, "calculator-order-analyzer.js: removed WeChat instructions remain");
+assert.match(orderAnalyzer, /var MAX_FILE_BYTES = 50 \* 1024 \* 1024;/, "calculator-order-analyzer.js: file limit must be 50 MB");
+assert.match(orderAnalyzer, /var WORKER_TIMEOUT_MS = 60000;/, "calculator-order-analyzer.js: Worker timeout must be 60 seconds");
 for (const token of ["xlsx.full.min.js?v=0.20.3", "MAX_ROWS", "unitWeight", "unitVolume", "amount"])
   assert(orderWorker.includes(token), `calculator-order-worker.js: missing ${token}`);
+assert.match(orderWorker, /var MAX_ROWS = 10000;/, "calculator-order-worker.js: row limit must be 10,000");
+assert.match(orderWorker, /var MAX_COLUMNS = 100;/, "calculator-order-worker.js: column limit must be 100");
+assert.match(orderWorker, /bookFiles:\s*false/, "calculator-order-worker.js: workbook archive files must not be retained");
+assert.match(orderWorker, /bookVBA:\s*false/, "calculator-order-worker.js: workbook VBA/media payloads must not be retained");
+assert.match(orderWorker, /ignoredImageColumns/, "calculator-order-worker.js: image columns must be filtered");
 
 const qr = await load("assets/whatsapp-qr.svg");
 assert.match(qr, /<svg\b/, "WhatsApp QR is not SVG");

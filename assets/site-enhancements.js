@@ -295,11 +295,8 @@
     aiToggle.setAttribute("aria-hidden", "true");
     aiToggle.setAttribute("tabindex", "-1");
 
-    var root = createElement("div", "contact-speed-dial");
+    var root = createElement("div", "contact-speed-dial is-open");
     var menu = createElement("div", "contact-speed-dial-menu");
-    var menuId = "contact-speed-dial-menu";
-    menu.id = menuId;
-    menu.hidden = true;
 
     function optionLink(className, href, icon, text) {
       var link = createElement("a", "contact-speed-dial-option " + className);
@@ -330,7 +327,7 @@
     );
     var telegram = optionLink(
       "contact-speed-dial-telegram",
-      "https://t.me/Jabbar199901",
+      "https://t.me/Jabbar_in_Yiwu",
       { tag: "img", src: "/assets/telegram-ios-icon.svg" },
       "Telegram"
     );
@@ -343,53 +340,11 @@
     menu.appendChild(telegram);
     menu.appendChild(ai);
 
-    var main = createElement("button", "contact-speed-dial-main");
-    main.type = "button";
-    main.setAttribute("aria-label", copy.contact);
-    main.setAttribute("aria-expanded", "false");
-    main.setAttribute("aria-controls", menuId);
-    var mainIcon = createElement("span", "contact-speed-dial-main-icon", "🎧");
-    mainIcon.setAttribute("aria-hidden", "true");
-    main.appendChild(mainIcon);
-    main.appendChild(createElement("span", "contact-speed-dial-main-label", copy.contact));
-
     root.appendChild(menu);
-    root.appendChild(main);
     document.body.appendChild(root);
 
-    var menuHideTimer = 0;
-    var menuFocusTimer = 0;
-    function setOpen(open, moveFocus) {
-      window.clearTimeout(menuHideTimer);
-      window.clearTimeout(menuFocusTimer);
-      main.setAttribute("aria-expanded", String(open));
-      mainIcon.textContent = open ? "×" : "🎧";
-      if (open) {
-        menu.hidden = false;
-        window.requestAnimationFrame(function () { root.classList.add("is-open"); });
-      } else {
-        root.classList.remove("is-open");
-        menuHideTimer = window.setTimeout(function () { menu.hidden = true; }, reducedMotion ? 0 : 210);
-      }
-      if (open && moveFocus) {
-        menuFocusTimer = window.setTimeout(function () { whatsapp.focus(); }, reducedMotion ? 0 : 210);
-      }
-    }
-
-    main.addEventListener("click", function () {
-      setOpen(!root.classList.contains("is-open"), true);
-    });
     ai.addEventListener("click", function () {
-      setOpen(false, false);
       aiToggle.click();
-    });
-    document.addEventListener("click", function (event) {
-      if (!root.contains(event.target)) setOpen(false, false);
-    });
-    document.addEventListener("keydown", function (event) {
-      if (event.key !== "Escape" || !root.classList.contains("is-open")) return;
-      setOpen(false, false);
-      main.focus();
     });
 
     var footer = document.querySelector(".site-footer");
@@ -397,7 +352,6 @@
       new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
           root.classList.toggle("is-footer-hidden", entry.isIntersecting);
-          if (entry.isIntersecting) setOpen(false, false);
         });
       }, { rootMargin: "0px 0px 48px" }).observe(footer);
     }
@@ -414,7 +368,7 @@
       visual.innerHTML = [
         '<svg viewBox="0 0 320 150" role="img" aria-labelledby="cbmVizTitle">',
         '<title id="cbmVizTitle"></title>',
-        '<text id="cbmCap" class="num-mono" x="150" y="18" text-anchor="middle" font-size="13" fill="#475569" direction="ltr">20GP · 0.0 / 28 CBM</text>',
+        '<text id="cbmCap" class="num-mono" x="150" y="18" text-anchor="middle" font-size="13" fill="#475569" direction="ltr">40HQ · 0.0 / 68 CBM</text>',
         '<line class="cbm-dimension-line" x1="8" y1="31" x2="292" y2="31"/>',
         '<line class="cbm-dimension-line" x1="8" y1="24" x2="8" y2="38"/>',
         '<line class="cbm-dimension-line" x1="292" y1="24" x2="292" y2="38"/>',
@@ -436,11 +390,8 @@
 
     window.renderCbmVisual = function (totalCbm) {
       totalCbm = Math.max(0, Number(totalCbm) || 0);
-      var caps = lang === "zh"
-        ? [["20英尺普柜", 28], ["40英尺普柜", 58], ["40英尺高柜", 68]]
-        : [["20GP", 28], ["40GP", 58], ["40HQ", 68]];
+      var pick = lang === "zh" ? ["40英尺高柜", 68] : ["40HQ", 68];
       var volumeUnit = lang === "zh" ? "立方米" : "CBM";
-      var pick = caps.find(function (item) { return totalCbm <= item[1]; }) || caps[2];
       var over = totalCbm > 68;
       var pct = Math.min(totalCbm / pick[1], 1);
       var width = Math.round(276 * pct);

@@ -6,9 +6,9 @@
 (function (scope) {
   "use strict";
 
-  var VERSION = "order-20260713b";
-  var MAX_ROWS = 3000;
-  var MAX_COLUMNS = 200;
+  var VERSION = "order-20260714b";
+  var MAX_ROWS = 10000;
+  var MAX_COLUMNS = 100;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
   var isWorker = typeof WorkerGlobalScope !== "undefined" && scope instanceof WorkerGlobalScope;
 
@@ -22,10 +22,10 @@
     { key: "cartons", words: ["箱数", "纸箱数", "件箱", "cartons", "carton count", "boxes", "number of cartons", "cajas", "cartones", "nombre de cartons", "colis", "caixas", "коробки", "коробов", "kartons", "kartonanzahl", "cartoni", "koli", "koli sayısı", "كراتين", "عدد الكراتين"] },
     { key: "qty", words: ["数量", "採購數量", "采购数量", "订购数量", "件数", "qty", "quantity", "units", "cantidad", "quantité", "quantidade", "количество", "menge", "quantità", "adet", "miktar", "الكمية", "عدد"] },
     { key: "product", words: ["商品名称", "产品名称", "商品", "产品", "品名", "货品", "物品", "product name", "product", "item name", "item", "goods", "nombre del producto", "producto", "artículo", "article", "nom du produit", "produit", "article", "nome do produto", "produto", "наименование товара", "наименование", "товар", "продукт", "produktname", "produkt", "artikel", "nome prodotto", "prodotto", "articolo", "ürün adı", "ürün", "malzeme", "اسم المنتج", "المنتج", "الصنف"] },
-    { key: "sku", words: ["sku", "货号", "貨號", "款号", "编号", "产品编码", "product code", "item code", "article no", "reference", "referencia", "référence", "código", "артикул", "номер товара", "artikelnummer", "codice articolo", "ürün kodu", "رمز المنتج"] },
-    { key: "length", words: ["长", "长度", "length", "largo", "longueur", "comprimento", "длина", "länge", "lunghezza", "uzunluk", "الطول"] },
-    { key: "width", words: ["宽", "宽度", "width", "ancho", "largeur", "largura", "ширина", "breite", "larghezza", "genişlik", "العرض"] },
-    { key: "height", words: ["高", "高度", "height", "alto", "hauteur", "altura", "высота", "höhe", "altezza", "yükseklik", "الارتفاع"] },
+    { key: "sku", words: ["sku", "货号", "貨號", "款号", "商品编号", "商品编码", "编号", "产品编码", "product code", "item code", "article no", "reference", "referencia", "référence", "código", "артикул", "номер товара", "artikelnummer", "codice articolo", "ürün kodu", "رمز المنتج"] },
+    { key: "length", words: ["箱长", "长", "长度", "length", "largo", "longueur", "comprimento", "длина", "länge", "lunghezza", "uzunluk", "الطول"] },
+    { key: "width", words: ["箱宽", "宽", "宽度", "width", "ancho", "largeur", "largura", "ширина", "breite", "larghezza", "genişlik", "العرض"] },
+    { key: "height", words: ["箱高", "高", "高度", "height", "alto", "hauteur", "altura", "высота", "höhe", "altezza", "yükseklik", "الارتفاع"] },
     { key: "currency", words: ["币种", "货币", "currency", "moneda", "devise", "moeda", "валюта", "währung", "valuta", "para birimi", "العملة"] },
     { key: "weightUnit", words: ["重量单位", "weight unit", "unidad de peso", "unité de poids", "unidade de peso", "единица веса", "gewichtseinheit", "unità di peso", "ağırlık birimi", "وحدة الوزن"] },
     { key: "volumeUnit", words: ["体积单位", "volume unit", "unidad de volumen", "unité de volume", "unidade de volume", "единица объема", "volumeneinheit", "unità di volume", "hacim birimi", "وحدة الحجم"] },
@@ -33,8 +33,7 @@
     { key: "image", words: ["图片", "照片", "图", "image", "photo", "picture", "imagen", "foto", "image", "photo", "imagem", "foto", "изображение", "фото", "bild", "foto", "immagine", "görsel", "fotoğraf", "صورة"] }
   ];
 
-  var SUMMARY_WORDS = /^(合计|总计|總計|小计|小計|總和|总和|total|subtotal|sum|grand total|gesamt|summe|totale|итого|итог|всего|المجموع|الإجمالي|total geral|toplam)$/i;
-  var SUMMARY_CJK_WORDS = /(合计|总计|總計|小计|小計|總和|总和)/;
+  var SUMMARY_WORDS = /^(?:合计|总计|總計|小计|小計|總和|总和|total|subtotal|sum|grand total|gesamt|summe|totale|итого|итог|всего|المجموع|الإجمالي|total geral|toplam)(?:\s*(?:数量|數量|金额|金額|重量|体积|體積|箱数|箱數|quantity|amount|weight|volume|cartons?))?$/i;
   var EXPLICIT_UNIT_WEIGHT_HEADERS = [
     "单件重量", "单重", "每件重量", "单位重量", "unit weight", "weight per unit",
     "peso unitario", "poids unitaire", "peso unitário", "вес единицы", "stückgewicht",
@@ -48,12 +47,12 @@
 
   function normalize(value) {
     return String(value == null ? "" : value)
-      .normalize ? String(value == null ? "" : value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[\s\u00a0_\-–—:：/\\|()[\]{}]+/g, " ").replace(/\s+/g, " ").trim() : String(value == null ? "" : value).toLowerCase().trim();
+      .normalize ? String(value == null ? "" : value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[\s\u00a0_\-–—:：/\\|()[\]{}（）]+/g, " ").replace(/\s+/g, " ").trim() : String(value == null ? "" : value).toLowerCase().trim();
   }
 
   function isSummaryValue(value) {
     var text = normalize(value);
-    return Boolean(text && (SUMMARY_WORDS.test(text) || SUMMARY_CJK_WORDS.test(text)));
+    return Boolean(text && SUMMARY_WORDS.test(text));
   }
 
   function hasExplicitUnitMeaning(value, kind) {
@@ -78,7 +77,7 @@
       definition.words.forEach(function (word) {
         var normalizedWord = normalize(word);
         if (text === normalizedWord && !exact) exact = definition.key;
-        else if (normalizedWord.length >= 3 && text.indexOf(normalizedWord) !== -1 && normalizedWord.length > partialLength) {
+        else if ((normalizedWord.length >= 3 || (/[\u3400-\u9fff]/.test(normalizedWord) && normalizedWord.length >= 2)) && text.indexOf(normalizedWord) !== -1 && normalizedWord.length > partialLength) {
           partial = definition.key;
           partialLength = normalizedWord.length;
         }
@@ -210,6 +209,10 @@
     if (!matrix.length) return { headerRow: 0, headers: [], rows: [], truncatedRows: false, truncatedColumns: false };
     var headerRow = findHeaderRow(matrix);
     var headerValues = matrix[headerRow] || [];
+    var ignoredImageColumns = {};
+    headerValues.forEach(function (value, index) {
+      if (matchHeader(value) === "image") ignoredImageColumns[index] = true;
+    });
     var lastColumn = 0;
     matrix.slice(headerRow).forEach(function (row) {
       row = row || [];
@@ -219,12 +222,14 @@
     });
     var headers = [];
     for (var column = 0; column <= lastColumn; column += 1) {
-      headers.push({ index: column, column: columnName(column), label: textValue(headerValues[column]) || ("Column " + columnName(column)) });
+      if (!ignoredImageColumns[column]) headers.push({ index: column, column: columnName(column), label: textValue(headerValues[column]) || ("Column " + columnName(column)) });
     }
     var rows = matrix.slice(headerRow + 1, headerRow + 1 + MAX_ROWS).map(function (row, rowOffset) {
+      var cells = (row || []).slice(0, lastColumn + 1);
+      Object.keys(ignoredImageColumns).forEach(function (index) { cells[Number(index)] = null; });
       return {
         sourceRow: range.s.r + headerRow + rowOffset + 2,
-        cells: (row || []).slice(0, lastColumn + 1)
+        cells: cells
       };
     }).filter(function (entry) {
       return entry.cells.some(function (cell) { return !isBlank(cell); });
@@ -257,11 +262,105 @@
     });
   }
 
-  function hasSummaryValue(row, mapping) {
-    return Object.keys(mapping).some(function (field) {
-      if (field === "image") return false;
-      return isSummaryValue(valueAt(row, mapping, field));
+  function rowCells(rowEntry) {
+    return Array.isArray(rowEntry) ? rowEntry : (rowEntry && rowEntry.cells) || [];
+  }
+
+  function hasSummaryMarker(row) {
+    return row.some(function (cell) { return isSummaryValue(cell); });
+  }
+
+  function hasRealMappedIdentity(row, mapping) {
+    return ["product", "sku"].some(function (field) {
+      var value = valueAt(row, mapping, field);
+      return !isBlank(value) && !isSummaryValue(value);
     });
+  }
+
+  function hasMappedSummaryIdentity(row, mapping) {
+    var sku = valueAt(row, mapping, "sku");
+    var product = valueAt(row, mapping, "product");
+    if (!isBlank(sku) && isSummaryValue(sku)) return true;
+    return !isBlank(product) && isSummaryValue(product) && (isBlank(sku) || isSummaryValue(sku));
+  }
+
+  function isMarkedSummaryRow(row, mapping) {
+    if (hasMappedSummaryIdentity(row, mapping)) return true;
+    return hasSummaryMarker(row) && !hasRealMappedIdentity(row, mapping);
+  }
+
+  function nearlyEqual(left, right) {
+    if (!Number.isFinite(left) || !Number.isFinite(right)) return false;
+    var tolerance = Math.max(0.0001, Math.abs(right) * 0.00001);
+    return Math.abs(left - right) <= tolerance;
+  }
+
+  function rawColumnSum(table, mapping, field, excludedIndex, multiplyByQuantity) {
+    var found = false;
+    var sum = 0;
+    table.rows.forEach(function (rowEntry, rowIndex) {
+      if (rowIndex === excludedIndex) return;
+      var row = rowCells(rowEntry);
+      if (isMarkedSummaryRow(row, mapping)) return;
+      var value = numeric(valueAt(row, mapping, field));
+      if (value == null || value < 0) return;
+      if (multiplyByQuantity) {
+        var quantity = numeric(valueAt(row, mapping, "qty"));
+        if (quantity == null || quantity < 0) return;
+        value *= quantity;
+      }
+      sum += value;
+      found = true;
+    });
+    return found ? sum : null;
+  }
+
+  function inferLineTotalField(table, mapping, unitField, totalField) {
+    if (mapping[unitField] == null || mapping[totalField] != null) return false;
+    var kind = unitField === "unitWeight" ? "weight" : "volume";
+    if (hasExplicitUnitMeaning(headerFor(table, mapping, unitField), kind)) return false;
+    for (var rowIndex = table.rows.length - 1; rowIndex >= 0; rowIndex -= 1) {
+      var row = rowCells(table.rows[rowIndex]);
+      if (!isMarkedSummaryRow(row, mapping)) continue;
+      var statedTotal = numeric(valueAt(row, mapping, unitField));
+      if (statedTotal == null) continue;
+      var directSum = rawColumnSum(table, mapping, unitField, rowIndex, false);
+      var multipliedSum = rawColumnSum(table, mapping, unitField, rowIndex, true);
+      var directMatches = directSum != null && nearlyEqual(statedTotal, directSum);
+      var multipliedMatches = multipliedSum != null && nearlyEqual(statedTotal, multipliedSum);
+      if (directMatches && (!multipliedMatches || nearlyEqual(directSum, multipliedSum))) {
+        mapping[totalField] = mapping[unitField];
+        delete mapping[unitField];
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function refineMapping(table, mapping) {
+    var refined = Object.assign({}, mapping);
+    inferLineTotalField(table, refined, "unitWeight", "totalWeight");
+    inferLineTotalField(table, refined, "unitVolume", "totalVolume");
+    return refined;
+  }
+
+  function deriveAutoOverrides(table, mapping) {
+    var overrides = {};
+    var weightUnit = detectWeightUnit(headerFor(table, mapping, "totalWeight") || headerFor(table, mapping, "unitWeight"));
+    var volumeUnit = detectVolumeUnit(headerFor(table, mapping, "totalVolume") || headerFor(table, mapping, "unitVolume"));
+    var dimensionUnit = detectDimensionUnit([headerFor(table, mapping, "length"), headerFor(table, mapping, "width"), headerFor(table, mapping, "height")].join(" "));
+    // CNY is the no-input default shown by the UI. An explicit currency in a
+    // price/amount header is still detected automatically, without exposing a
+    // customer-facing currency selector.
+    var currency = detectCurrency(headerFor(table, mapping, "amount")) || detectCurrency(headerFor(table, mapping, "unitPrice")) || "CNY";
+    overrides.weightUnit = weightUnit || "kg";
+    overrides.volumeUnit = volumeUnit || "m3";
+    overrides.dimensionUnit = dimensionUnit || "cm";
+    overrides.currency = currency;
+    var weightMeaningAmbiguous = mapping.unitWeight != null && !hasExplicitUnitMeaning(headerFor(table, mapping, "unitWeight"), "weight");
+    var volumeMeaningAmbiguous = mapping.unitVolume != null && !hasExplicitUnitMeaning(headerFor(table, mapping, "unitVolume"), "volume");
+    overrides.mappingConfirmed = !weightMeaningAmbiguous && !volumeMeaningAmbiguous;
+    return overrides;
   }
 
   function aggregate(table, mapping, overrides) {
@@ -295,7 +394,7 @@
     var items = [];
 
     table.rows.forEach(function (rowEntry, rowOffset) {
-      var row = Array.isArray(rowEntry) ? rowEntry : (rowEntry && rowEntry.cells) || [];
+      var row = rowCells(rowEntry);
       var sourceRow = !Array.isArray(rowEntry) && rowEntry && Number.isFinite(rowEntry.sourceRow)
         ? rowEntry.sourceRow
         : table.headerRow + rowOffset + 1;
@@ -314,7 +413,7 @@
       var width = numeric(valueAt(row, mapping, "width"));
       var height = numeric(valueAt(row, mapping, "height"));
 
-      if (hasSummaryValue(row, mapping) || (!product && !sku && quantity == null && cartons == null)) {
+      if (isMarkedSummaryRow(row, mapping) || (!product && !sku && quantity == null && cartons == null)) {
         skippedSummaryRows += 1;
         return;
       }
@@ -327,7 +426,7 @@
 
       var rowWeightUnit = overrideWeight || detectWeightUnit(valueAt(row, mapping, "weightUnit")) || detectWeightUnit(valueAt(row, mapping, "unitWeight")) || detectWeightUnit(valueAt(row, mapping, "totalWeight")) || headerWeightUnit;
       var rowVolumeUnit = overrideVolume || detectVolumeUnit(valueAt(row, mapping, "volumeUnit")) || detectVolumeUnit(valueAt(row, mapping, "unitVolume")) || detectVolumeUnit(valueAt(row, mapping, "totalVolume")) || headerVolumeUnit;
-      var rowCurrency = overrideCurrency || detectCurrency(valueAt(row, mapping, "currency")) || detectCurrency(valueAt(row, mapping, "amount")) || detectCurrency(valueAt(row, mapping, "unitPrice")) || headerCurrency;
+      var rowCurrency = detectCurrency(valueAt(row, mapping, "currency")) || detectCurrency(valueAt(row, mapping, "amount")) || detectCurrency(valueAt(row, mapping, "unitPrice")) || headerCurrency || overrideCurrency || "CNY";
       var rowDimensionUnit = overrideDimension || detectDimensionUnit(valueAt(row, mapping, "dimensionUnit")) || headerDimensionUnit;
       var computedWeight = null;
       var computedVolume = null;
@@ -464,14 +563,23 @@
       }) || session.workbook.SheetNames[0];
       session.sheetName = selected;
       session.table = buildTable(session.workbook.Sheets[selected], XLSX);
-      session.mapping = createMapping(session.table.headers);
-      session.overrides = {};
+      session.mapping = refineMapping(session.table, createMapping(session.table.headers));
+      session.overrides = deriveAutoOverrides(session.table, session.mapping);
       return publicPayload(session, session.mapping, session.overrides);
     }
     return {
       parse: function (buffer, XLSX, fileName, sheetName) {
         session.fileName = fileName || "order.xlsx";
-        session.workbook = XLSX.read(buffer, { type: "array", cellDates: false, cellFormula: false, cellHTML: false, dense: true });
+        session.workbook = XLSX.read(buffer, {
+          type: "array",
+          cellDates: false,
+          cellFormula: false,
+          cellHTML: false,
+          cellStyles: false,
+          bookFiles: false,
+          bookVBA: false,
+          dense: true
+        });
         if (!session.workbook.SheetNames.length) throw new Error("workbook_has_no_sheets");
         return selectSheet(sheetName, XLSX);
       },

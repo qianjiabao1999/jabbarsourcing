@@ -8,7 +8,7 @@ const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_AI_OUTPUT_DIR || "/tmp/jabbar-ai-qa";
 const AI_API_URL = "https://jabbar-sourcing-ai-assistant.qianjiabao1999.workers.dev/chat";
 const AI_VERSION = "ai-20260714a";
-const UI_VERSION = "ui-20260714a";
+const UI_VERSION = "ui-20260714b";
 const PAGES = [
   { locale: "zh", path: "/" },
   { locale: "en", path: "/en/" },
@@ -61,6 +61,8 @@ async function measure(page) {
       scriptVersion: document.querySelector('script[src*="ai-sourcing-assistant.js"]')?.getAttribute("src") || "",
       uiScriptVersion: document.querySelector('script[src*="site-enhancements.js"]')?.getAttribute("src") || "",
       compact: document.querySelector(".jabbar-ai-panel")?.classList.contains("is-compact") || false,
+      launcherCount: document.querySelectorAll(".contact-speed-dial-main").length,
+      contactOptionCount: document.querySelectorAll(".contact-speed-dial-option").length,
       bodyPaddingBottom: Number.parseFloat(getComputedStyle(document.body).paddingBottom),
       bodyAiOpen: document.body.classList.contains("jabbar-ai-open"),
       links: {
@@ -69,8 +71,10 @@ async function measure(page) {
       },
       elements: {
         toggle: readRect(".jabbar-ai-toggle"),
-        launcher: readRect(".contact-speed-dial-main"),
         dial: readRect(".contact-speed-dial"),
+        contactWhatsapp: readRect(".contact-speed-dial-whatsapp"),
+        contactTelegram: readRect(".contact-speed-dial-telegram"),
+        contactAi: readRect(".contact-speed-dial-ai"),
         panel: readRect(".jabbar-ai-panel"),
         input: readRect(".jabbar-ai-input"),
         send: readRect(".jabbar-ai-send"),
@@ -131,8 +135,34 @@ function assertMobileConversionBar(metrics, scope) {
   assert(metrics.links.quote.includes("/inquiry/"), `${scope} quote URL is wrong: ${metrics.links.quote}`);
   assert(metrics.bodyPaddingBottom >= 56, `${scope} body padding-bottom is ${metrics.bodyPaddingBottom}px`);
   assert.equal(metrics.bodyAiOpen, false, `${scope} body retained the AI-open state after closing`);
-  assert(metrics.elements.launcher.height >= 56, `${scope} contact launcher height is ${metrics.elements.launcher.height}px`);
-  assert(metrics.elements.launcher.bottom <= bar.top - 15, `${scope} contact launcher overlaps or crowds the conversion bar`);
+  assert(metrics.elements.dial.bottom <= bar.top - 15, `${scope} direct contact options overlap or crowd the conversion bar`);
+}
+
+function assertClosedDirectContacts(metrics, scope) {
+  const names = ["contactWhatsapp", "contactTelegram", "contactAi"];
+  const left = metrics.viewport.offsetLeft;
+  const right = left + metrics.viewport.width;
+  const tolerance = 1;
+
+  assert.equal(metrics.launcherCount, 0, `${scope} obsolete contact launcher still exists`);
+  assert.equal(metrics.contactOptionCount, 3, `${scope} expected three direct contact options`);
+  assert(metrics.elements.dial, `${scope} direct contact group is missing`);
+  assert.equal(metrics.elements.dial.display, "grid", `${scope} direct contact group is not displayed`);
+  assert.equal(metrics.elements.dial.visibility, "visible", `${scope} direct contact group is hidden`);
+  assert(metrics.elements.dial.opacity > 0.99, `${scope} direct contact group opacity is ${metrics.elements.dial.opacity}`);
+  assert.notEqual(metrics.elements.dial.pointerEvents, "none", `${scope} direct contact group does not receive pointer events`);
+
+  names.forEach((name) => {
+    const option = metrics.elements[name];
+    assert(option, `${scope} ${name} is missing`);
+    assert.notEqual(option.display, "none", `${scope} ${name} is not displayed`);
+    assert.equal(option.visibility, "visible", `${scope} ${name} is hidden`);
+    assert(option.opacity > 0.99, `${scope} ${name} opacity is ${option.opacity}`);
+    assert.notEqual(option.pointerEvents, "none", `${scope} ${name} is not clickable`);
+    assert(option.height >= 48, `${scope} ${name} height is ${option.height}px`);
+    assert(option.left >= left - tolerance, `${scope} ${name} left is clipped: ${option.left} < ${left}`);
+    assert(option.right <= right + tolerance, `${scope} ${name} right is clipped: ${option.right} > ${right}`);
+  });
 }
 
 function assertSocialContainer(metrics, scope) {
@@ -148,9 +178,8 @@ function assertSocialContainer(metrics, scope) {
 
 async function openAssistant(page, path) {
   await page.goto(`${BASE_URL}${path}`, { waitUntil: "domcontentloaded" });
-  await page.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
-  await page.locator(".contact-speed-dial-main").click();
-  await page.waitForFunction(() => document.querySelector(".contact-speed-dial-main")?.getAttribute("aria-expanded") === "true");
+  await page.locator(".contact-speed-dial-ai").waitFor({ state: "visible" });
+  assert.equal(await page.locator(".contact-speed-dial-main").count(), 0, `${path} obsolete contact launcher still exists`);
   await page.locator(".contact-speed-dial-ai").click();
   await page.waitForFunction(() => {
     const panel = document.querySelector(".jabbar-ai-panel");
@@ -174,9 +203,9 @@ async function checkCurrentLayout(page, scope, compactExpected) {
     assert(metrics.elements.input.fontSize >= 16, `${scope} mobile AI input is ${metrics.elements.input.fontSize}px`);
   }
   assert.equal(metrics.elements.toggle.display, "none", `${scope} legacy AI toggle is still visible`);
+  assert.equal(metrics.launcherCount, 0, `${scope} obsolete contact launcher still exists`);
   assert(metrics.elements.dial.opacity === 0, `${scope} contact launcher remains visible behind the open panel`);
   assert.equal(metrics.elements.dial.pointerEvents, "none", `${scope} hidden contact launcher still receives pointer events`);
-  assert(metrics.elements.launcher.height >= 56, `${scope} contact launcher height is ${metrics.elements.launcher.height}px`);
   assert(metrics.bodyAiOpen, `${scope} body is missing the AI-open state`);
   if (metrics.elements.conversionBar && metrics.elements.conversionBar.display !== "none") {
     assert.equal(metrics.elements.conversionBar.visibility, "hidden", `${scope} conversion bar remains visible behind the AI panel`);
@@ -271,9 +300,20 @@ for (const item of PAGES) {
   await page.locator(".jabbar-ai-close").click();
   await page.waitForFunction(() => !document.querySelector(".jabbar-ai-panel")?.classList.contains("is-open"));
   await page.waitForFunction(() => {
-    const launcher = document.querySelector(".contact-speed-dial-main");
-    const style = launcher && getComputedStyle(launcher);
-    return style?.visibility === "visible" && Number.parseFloat(style.opacity) > 0.99 && style.pointerEvents !== "none";
+    const dial = document.querySelector(".contact-speed-dial");
+    const options = [...document.querySelectorAll(".contact-speed-dial-option")];
+    const style = dial && getComputedStyle(dial);
+    return options.length === 3
+      && !document.querySelector(".contact-speed-dial-main")
+      && style?.visibility === "visible"
+      && Number.parseFloat(style.opacity) > 0.99
+      && style.pointerEvents !== "none"
+      && options.every((option) => {
+        const optionStyle = getComputedStyle(option);
+        return optionStyle.visibility === "visible"
+          && Number.parseFloat(optionStyle.opacity) > 0.99
+          && optionStyle.pointerEvents !== "none";
+      });
   });
   if (item.locale !== "calculator") {
     await page.waitForFunction(() => {
@@ -283,7 +323,7 @@ for (const item of PAGES) {
     });
   }
   const closed = await measure(page);
-  assertInsideViewport(closed, ["launcher"], `${item.locale} closed contact launcher`);
+  assertClosedDirectContacts(closed, `${item.locale} closed direct contacts`);
   if (item.locale === "calculator") {
     assert.equal(closed.elements.conversionBar, null, "Calculator must not include the mobile conversion bar");
   } else {
@@ -320,10 +360,10 @@ for (const viewport of [
 ]) {
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
   await page.goto(`${BASE_URL}${viewport.path}`, { waitUntil: "domcontentloaded" });
-  await page.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
+  await page.locator(".contact-speed-dial-ai").waitFor({ state: "visible" });
   const metrics = await measure(page);
   assert(metrics.documentWidth <= metrics.innerWidth + 1, `${viewport.width}px closed page has horizontal overflow`);
-  assert(metrics.elements.launcher.height >= 56, `${viewport.width}px contact launcher height is ${metrics.elements.launcher.height}px`);
+  assertClosedDirectContacts(metrics, `${viewport.path} ${viewport.width}x${viewport.height}`);
   if (viewport.visible) {
     assertMobileConversionBar(metrics, `${viewport.path} ${viewport.width}x${viewport.height}`);
   } else {

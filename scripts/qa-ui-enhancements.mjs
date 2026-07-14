@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-159";
-const UI_VERSION = "ui-20260714a";
+const CSS_VERSION = "apple-160";
+const UI_VERSION = "ui-20260714b";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -15,11 +15,25 @@ const HOME_PAGES = [
 ];
 const CALCULATOR_PAGES = HOME_PAGES.map((item) => ({ ...item, path: item.path === "/" ? "/calculator/" : `${item.path}calculator/` }));
 const INQUIRY_PAGES = HOME_PAGES.map((item) => ({ ...item, path: item.path === "/" ? "/inquiry/" : `${item.path}inquiry/` }));
-const IMAGE_AUDIT_LOCALES = new Set(["zh", "en", "es", "ru", "ar"]);
-const SECTION_CODES = [
-  "JBSU 001 · TEAM", "JBSU 002 · GALLERY", "JBSU 003 · SERVICES", "JBSU 004 · PROCESS",
-  "JBSU 005 · ABOUT", "JBSU 006 · REVIEWS", "JBSU 007 · FAQ", "JBSU 008 · SOCIAL"
+const HEADER_PAGES = [
+  ...HOME_PAGES.map((item) => ({ ...item, type: "home" })),
+  ...CALCULATOR_PAGES.map((item) => ({ ...item, type: "calculator" })),
+  ...INQUIRY_PAGES.map((item) => ({ ...item, type: "inquiry" }))
 ];
+const IMAGE_AUDIT_LOCALES = new Set(["zh", "en", "es", "ru", "ar"]);
+const HOME_SECTION_CODES = {
+  zh: ["团队", "图库", "服务", "流程", "关于我们", "客户评价", "常见问题", "社交账号"],
+  en: ["Team", "Gallery", "Services", "Process", "About Us", "Reviews", "FAQ", "Social"],
+  es: ["Equipo", "Galería", "Servicios", "Proceso", "Sobre nosotros", "Reseñas", "Preguntas frecuentes", "Redes sociales"],
+  ar: ["الفريق", "المعرض", "الخدمات", "خطوات العمل", "من نحن", "آراء العملاء", "الأسئلة الشائعة", "التواصل الاجتماعي"],
+  fr: ["Équipe", "Galerie", "Services", "Processus", "À propos", "Avis clients", "FAQ", "Réseaux sociaux"],
+  pt: ["Equipe", "Galeria", "Serviços", "Processo", "Sobre nós", "Avaliações", "Perguntas frequentes", "Redes sociais"],
+  ru: ["Команда", "Галерея", "Услуги", "Процесс", "О нас", "Отзывы", "Частые вопросы", "Соцсети"],
+  de: ["Team", "Galerie", "Leistungen", "Ablauf", "Über uns", "Bewertungen", "FAQ", "Soziale Medien"],
+  it: ["Team", "Galleria", "Servizi", "Processo", "Chi siamo", "Recensioni", "Domande frequenti", "Social"],
+  tr: ["Ekip", "Galeri", "Hizmetler", "Süreç", "Hakkımızda", "Yorumlar", "SSS", "Sosyal medya"]
+};
+const TELEGRAM_URL = "https://t.me/Jabbar_in_Yiwu";
 const VALID_SHIPMENTS = [
   { flag: "🇳🇬", city_zh: "拉各斯", city_en: "Lagos", city_ar: "لاغوس", load: "1×40HQ", when: "2026-07-09" },
   { flag: "🇧🇷", city_zh: "圣保罗", city_en: "São Paulo", city_ar: "ساو باولو", load: "LCL 12 CBM", when: "2026-07-08" },
@@ -51,8 +65,7 @@ function collectErrors(page) {
 async function pageState(page) {
   return page.evaluate(() => {
     const normalizeText = (value) => String(value || "").replace(/\s+/g, " ").trim();
-    const rect = (selector) => {
-      const element = document.querySelector(selector);
+    const elementRect = (element) => {
       if (!element) return null;
       const box = element.getBoundingClientRect();
       const style = getComputedStyle(element);
@@ -64,10 +77,40 @@ async function pageState(page) {
         fontSize: Number.parseFloat(style.fontSize)
       };
     };
+    const rect = (selector) => elementRect(document.querySelector(selector));
+    const styleSnapshot = (selector, pseudo = null) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const style = getComputedStyle(element, pseudo);
+      const numeric = (value) => Number.parseFloat(value) || 0;
+      return {
+        display: style.display,
+        visibility: style.visibility,
+        opacity: numeric(style.opacity),
+        color: style.color,
+        backgroundColor: style.backgroundColor,
+        backgroundImage: style.backgroundImage,
+        borderTopWidth: numeric(style.borderTopWidth),
+        borderRightWidth: numeric(style.borderRightWidth),
+        borderBottomWidth: numeric(style.borderBottomWidth),
+        borderLeftWidth: numeric(style.borderLeftWidth),
+        borderRadius: style.borderRadius,
+        boxShadow: style.boxShadow,
+        content: style.content,
+        height: numeric(style.height),
+        width: numeric(style.width),
+        order: style.order,
+        textAlign: style.textAlign,
+        textDecorationLine: style.textDecorationLine,
+        justifyItems: style.justifyItems
+      };
+    };
     const fontFamily = (selector) => {
       const element = document.querySelector(selector);
       return element ? getComputedStyle(element).fontFamily : "";
     };
+    const toolPill = document.querySelector(".site-nav-tool-pill");
+    const quoteLink = document.querySelector(".site-nav-quote");
     const calculatorPage = document.querySelector(".calculator-page");
     const blueprint = calculatorPage ? getComputedStyle(calculatorPage) : null;
     const cap = document.querySelector("#cbmCap");
@@ -87,7 +130,12 @@ async function pageState(page) {
         progress: document.querySelectorAll(".site-scroll-progress").length,
         cbm: document.querySelectorAll(".cbm-visual").length,
         dialOptions: document.querySelectorAll(".contact-speed-dial-option").length,
+        dialMains: document.querySelectorAll(".contact-speed-dial-main").length,
         qrCards: document.querySelectorAll(".whatsapp-qr-card").length,
+        toolPills: document.querySelectorAll(".site-nav-tool-pill").length,
+        quoteLinks: document.querySelectorAll(".site-nav-quote").length,
+        desktopTeamLinks: document.querySelectorAll(".site-nav-links .site-nav-team").length,
+        footerContactPills: document.querySelectorAll(".site-footer .contact-actions .contact-link").length,
         sectionCodes: document.querySelectorAll(".section-code").length,
         sectionRules: document.querySelectorAll(".section-rule").length,
         stamps: document.querySelectorAll(".stamp").length,
@@ -100,6 +148,43 @@ async function pageState(page) {
       },
       sectionCodes: Array.from(document.querySelectorAll(".section-code"), (element) => normalizeText(element.textContent)),
       sectionCodeDirections: Array.from(document.querySelectorAll(".section-code"), (element) => getComputedStyle(element).direction),
+      header: {
+        toolBeforeQuote: Boolean(toolPill && quoteLink && (toolPill.compareDocumentPosition(quoteLink) & Node.DOCUMENT_POSITION_FOLLOWING)),
+        toolText: normalizeText(toolPill?.textContent),
+        quoteText: normalizeText(quoteLink?.textContent),
+        tool: styleSnapshot(".site-nav-tool-pill"),
+        toolBefore: styleSnapshot(".site-nav-tool-pill", "::before"),
+        quote: styleSnapshot(".site-nav-quote"),
+        desktopTeam: styleSnapshot(".site-nav-links .site-nav-team")
+      },
+      contact: {
+        menuHidden: document.querySelector(".contact-speed-dial-menu")?.hidden || false,
+        options: Array.from(document.querySelectorAll(".contact-speed-dial-option"), (element) => ({
+          className: element.className,
+          text: normalizeText(element.textContent),
+          href: element.href || "",
+          rect: elementRect(element)
+        }))
+      },
+      telegramHrefs: Array.from(document.querySelectorAll(".contact-telegram, .contact-speed-dial-telegram"), (element) => element.href),
+      footer: {
+        main: styleSnapshot(".site-footer-main"),
+        mainRect: rect(".site-footer-main"),
+        brandRect: rect(".site-footer-brand"),
+        brandChildren: Array.from(document.querySelectorAll(".site-footer-brand > *"), (element) => ({
+          rect: elementRect(element),
+          textAlign: getComputedStyle(element).textAlign
+        })),
+        contactActionsRect: rect(".site-footer .contact-actions"),
+        contactPills: Array.from(document.querySelectorAll(".site-footer .contact-actions .contact-link"), (element) => elementRect(element))
+      },
+      heroCta: {
+        text: normalizeText(document.querySelector(".team-heading .quote-entry .inquiry-entry-card-cta")?.textContent),
+        card: styleSnapshot(".team-heading .quote-entry .inquiry-entry-card-cta"),
+        cardBefore: styleSnapshot(".team-heading .quote-entry .inquiry-entry-card-cta", "::before"),
+        button: styleSnapshot(".team-heading .quote-entry .inquiry-entry-button"),
+        buttonBefore: styleSnapshot(".team-heading .quote-entry .inquiry-entry-button", "::before")
+      },
       shipmentLists: Array.from(document.querySelectorAll(".shipment-ticker-list"), (element) => ({
         text: normalizeText(element.textContent),
         ariaHidden: element.getAttribute("aria-hidden") || "",
@@ -128,6 +213,10 @@ async function pageState(page) {
         blueprintSize: blueprint?.backgroundSize || ""
       },
       rects: {
+        header: rect(".site-nav"),
+        toolPill: rect(".site-nav-tool-pill"),
+        quoteLink: rect(".site-nav-quote"),
+        desktopTeamLink: rect(".site-nav-links .site-nav-team"),
         dial: rect(".contact-speed-dial"),
         launcher: rect(".contact-speed-dial-main"),
         legacyToggle: rect(".jabbar-ai-toggle"),
@@ -152,10 +241,11 @@ function isMonoFamily(value) {
   return /ui-monospace|SF Mono|Cascadia Mono|Consolas|monospace/i.test(value);
 }
 
-function assertHomeVisualSignature(state, scope) {
-  assert.equal(state.counts.sectionCodes, SECTION_CODES.length, `${scope}: section code count`);
-  assert.equal(state.counts.sectionRules, SECTION_CODES.length, `${scope}: section rule count`);
-  assert.deepEqual(state.sectionCodes, SECTION_CODES, `${scope}: section code order`);
+function assertHomeVisualSignature(state, scope, locale) {
+  const expectedCodes = HOME_SECTION_CODES[locale].map((label) => `Jabbar · ${label}`);
+  assert.equal(state.counts.sectionCodes, expectedCodes.length, `${scope}: section code count`);
+  assert.equal(state.counts.sectionRules, expectedCodes.length, `${scope}: section rule count`);
+  assert.deepEqual(state.sectionCodes, expectedCodes, `${scope}: localized section code order`);
   assert(state.sectionCodeDirections.every((direction) => direction === "ltr"), `${scope}: section code bidi isolation`);
   assert.equal(state.counts.stamps, 3, `${scope}: stamp count`);
   assert.equal(state.counts.landedStamps, 3, `${scope}: stamp animation did not land`);
@@ -175,7 +265,7 @@ function assertHomeVisualSignature(state, scope) {
 }
 
 function assertCalculatorVisualSignature(state, scope) {
-  assert.equal(state.calculator.code, "JBSU T01 · CALCULATOR", `${scope}: calculator section code`);
+  assert.equal(state.calculator.code, "Jabbar · 体积工具", `${scope}: calculator section code`);
   assert.equal(state.counts.sectionCodes, 1, `${scope}: calculator section code count`);
   assert.equal(state.counts.sectionRules, 1, `${scope}: calculator section rule count`);
   assert(state.counts.dimensionLines >= 3, `${scope}: dimension line count ${state.counts.dimensionLines}`);
@@ -192,12 +282,124 @@ function assertShared(state, scope) {
   assert(state.documentWidth <= state.width + 1, `${scope}: horizontal overflow ${state.documentWidth} > ${state.width}`);
 }
 
+function assertVisibleRect(rect, scope) {
+  assert(rect, `${scope}: element missing`);
+  assert.notEqual(rect.display, "none", `${scope}: display none`);
+  assert.notEqual(rect.visibility, "hidden", `${scope}: visibility hidden`);
+  assert(rect.opacity >= 0.99, `${scope}: opacity ${rect.opacity}`);
+  assert(rect.width > 0 && rect.height > 0, `${scope}: zero-size ${rect.width}x${rect.height}`);
+}
+
+function isTransparent(value) {
+  return value === "transparent" || /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/i.test(value);
+}
+
+function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
+  assert.equal(state.counts.toolPills, 1, `${scope}: tool pill count`);
+  assert.equal(state.counts.quoteLinks, 1, `${scope}: quote link count`);
+  assert(state.header.toolBeforeQuote, `${scope}: tool pill must precede quote link in the DOM`);
+  assert(state.header.toolText, `${scope}: tool pill has no localized label`);
+  assert(state.header.quoteText, `${scope}: quote link has no localized label`);
+  assertVisibleRect(state.rects.toolPill, `${scope}: tool pill`);
+  assertVisibleRect(state.rects.quoteLink, `${scope}: quote link`);
+  assert(state.rects.toolPill.left >= -1 && state.rects.toolPill.right <= state.width + 1, `${scope}: tool pill is outside the viewport`);
+  assert(state.rects.quoteLink.left >= -1 && state.rects.quoteLink.right <= state.width + 1, `${scope}: quote link is outside the viewport`);
+  assert(Number(state.header.tool.order) < Number(state.header.quote.order), `${scope}: tool pill visual order ${state.header.tool.order} is not before quote ${state.header.quote.order}`);
+  assert(state.header.toolBefore, `${scope}: tool pill container visual missing`);
+  assert(!["none", "normal", ""].includes(state.header.toolBefore.content), `${scope}: tool pill ::before has no content box`);
+  assert(state.header.toolBefore.width >= 18, `${scope}: tool pill container width ${state.header.toolBefore.width}`);
+  assert(state.header.toolBefore.height >= 12, `${scope}: tool pill container height ${state.header.toolBefore.height}`);
+  assert(state.header.toolBefore.borderLeftWidth >= 1, `${scope}: tool pill container border missing`);
+  assert.notEqual(state.header.toolBefore.backgroundImage, "none", `${scope}: tool pill container ribs/background missing`);
+
+  if (desktop) {
+    assert.equal(state.counts.desktopTeamLinks, 1, `${scope}: desktop Jabbar Team link count`);
+    assertVisibleRect(state.rects.desktopTeamLink, `${scope}: desktop Jabbar Team link`);
+    assert.equal(state.header.desktopTeam.backgroundImage, "none", `${scope}: desktop Jabbar Team link still has a background image`);
+    assert(isTransparent(state.header.desktopTeam.backgroundColor), `${scope}: desktop Jabbar Team link background ${state.header.desktopTeam.backgroundColor}`);
+    for (const side of ["Top", "Right", "Bottom", "Left"]) {
+      assert.equal(state.header.desktopTeam[`border${side}Width`], 0, `${scope}: desktop Jabbar Team link ${side.toLowerCase()} border`);
+    }
+    assert.equal(state.header.desktopTeam.boxShadow, "none", `${scope}: desktop Jabbar Team link still has a shadow`);
+  }
+}
+
+function assertPageTelegram(state, scope) {
+  assert(state.telegramHrefs.length >= 1, `${scope}: Telegram link missing`);
+  assert(state.telegramHrefs.every((href) => href === TELEGRAM_URL), `${scope}: stale Telegram URL ${state.telegramHrefs.join(", ")}`);
+}
+
 function assertContactDial(state, scope) {
-  assert(state.rects.launcher, `${scope}: contact launcher missing`);
-  assert(Math.abs(state.rects.launcher.height - 56) <= 1, `${scope}: launcher height ${state.rects.launcher.height}`);
-  assert(state.rects.launcher.width >= 56, `${scope}: launcher width ${state.rects.launcher.width}`);
+  assertVisibleRect(state.rects.dial, `${scope}: direct contact group`);
+  assert.equal(state.counts.dialMains, 0, `${scope}: obsolete contact launcher still exists`);
+  assert.equal(state.rects.launcher, null, `${scope}: obsolete contact launcher is visible`);
   assert.equal(state.counts.dialOptions, 3, `${scope}: contact option count`);
+  assert.equal(state.contact.menuHidden, false, `${scope}: direct contact options are hidden`);
+  for (const className of ["contact-speed-dial-whatsapp", "contact-speed-dial-telegram", "contact-speed-dial-ai"]) {
+    const option = state.contact.options.find((item) => item.className.includes(className));
+    assert(option, `${scope}: ${className} missing`);
+    assertVisibleRect(option.rect, `${scope}: ${className}`);
+    assert(option.rect.height >= 48, `${scope}: ${className} height ${option.rect.height}`);
+  }
+  const telegram = state.contact.options.find((item) => item.className.includes("contact-speed-dial-telegram"));
+  assert.equal(telegram.href, TELEGRAM_URL, `${scope}: direct Telegram URL`);
   assert.equal(state.rects.legacyToggle.display, "none", `${scope}: legacy AI launcher visible`);
+}
+
+function assertDesktopFooter(state, scope, { contacts = false } = {}) {
+  assertVisibleRect(state.footer.mainRect, `${scope}: footer main`);
+  assertVisibleRect(state.footer.brandRect, `${scope}: footer brand`);
+  assert.equal(state.footer.main.textAlign, "center", `${scope}: footer main text alignment`);
+  const mainCenter = state.footer.mainRect.left + state.footer.mainRect.width / 2;
+  const brandCenter = state.footer.brandRect.left + state.footer.brandRect.width / 2;
+  assert(Math.abs(mainCenter - brandCenter) <= 1, `${scope}: footer brand center delta ${brandCenter - mainCenter}`);
+  for (const [index, child] of state.footer.brandChildren.entries()) {
+    if (!child.rect || child.rect.display === "none") continue;
+    const childCenter = child.rect.left + child.rect.width / 2;
+    assert(Math.abs(mainCenter - childCenter) <= 1, `${scope}: footer brand child ${index + 1} center delta ${childCenter - mainCenter}`);
+    assert.equal(child.textAlign, "center", `${scope}: footer brand child ${index + 1} text alignment`);
+  }
+
+  if (!contacts) {
+    assert.equal(state.counts.footerContactPills, 0, `${scope}: unexpected footer contact pills`);
+    return;
+  }
+
+  assert.equal(state.counts.footerContactPills, 5, `${scope}: footer contact pill count`);
+  assertVisibleRect(state.footer.contactActionsRect, `${scope}: footer contact actions`);
+  const pills = state.footer.contactPills;
+  pills.forEach((pill, index) => assertVisibleRect(pill, `${scope}: footer contact pill ${index + 1}`));
+  const widths = pills.map((pill) => pill.width);
+  assert(Math.max(...widths) - Math.min(...widths) <= 1, `${scope}: asymmetric contact pill widths ${widths.join(", ")}`);
+  const tops = pills.map((pill) => pill.top);
+  assert(Math.max(...tops) - Math.min(...tops) <= 1, `${scope}: desktop contact pills do not share one row`);
+  const sorted = [...pills].sort((a, b) => a.left - b.left);
+  const gaps = sorted.slice(1).map((pill, index) => pill.left - sorted[index].right);
+  assert(Math.max(...gaps) - Math.min(...gaps) <= 1, `${scope}: asymmetric contact pill gaps ${gaps.join(", ")}`);
+  const pillsCenter = (sorted[0].left + sorted.at(-1).right) / 2;
+  const actionsCenter = state.footer.contactActionsRect.left + state.footer.contactActionsRect.width / 2;
+  assert(Math.abs(pillsCenter - actionsCenter) <= 1, `${scope}: contact pill group center delta ${pillsCenter - actionsCenter}`);
+}
+
+function assertHeroCta(state, scope) {
+  assert(state.heroCta.card, `${scope}: hero quote CTA missing`);
+  assert(state.heroCta.button, `${scope}: hero quote button missing`);
+  assert(!state.heroCta.text.includes("↗"), `${scope}: hero quote CTA still contains ↗`);
+  assert(["none", "normal"].includes(state.heroCta.cardBefore.content), `${scope}: hero quote card decorative arrow remains`);
+  assert(["none", "normal"].includes(state.heroCta.buttonBefore.content), `${scope}: hero quote button decorative arrow remains`);
+  assert.equal(state.heroCta.card.textDecorationLine, "none", `${scope}: hero quote CTA is underlined`);
+  assert.equal(state.heroCta.button.textDecorationLine, "none", `${scope}: hero quote button is underlined`);
+}
+
+async function assertHeroCtaHover(page, scope) {
+  const cta = page.locator(".team-heading .quote-entry .inquiry-entry-card-cta");
+  await cta.hover();
+  const hover = await cta.evaluate((element) => ({
+    card: getComputedStyle(element).textDecorationLine,
+    button: getComputedStyle(element.querySelector(".inquiry-entry-button")).textDecorationLine
+  }));
+  assert.equal(hover.card, "none", `${scope}: hovered hero quote CTA is underlined`);
+  assert.equal(hover.button, "none", `${scope}: hovered hero quote button is underlined`);
 }
 
 async function auditImages(page, scope) {
@@ -230,14 +432,17 @@ async function homeMatrix(browserType) {
     const errors = collectErrors(page);
     for (const item of HOME_PAGES) {
       await page.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
-      await page.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
+      await page.locator(".contact-speed-dial-option").first().waitFor({ state: "visible" });
       await waitForHomeVisualSignature(page);
       await page.waitForTimeout(120);
       const scope = `${item.locale} home ${viewport.width}x${viewport.height}`;
       const state = await pageState(page);
       assertShared(state, scope);
+      assertHeaderNavigation(state, scope, { desktop: !viewport.mobile });
       assertContactDial(state, scope);
-      assertHomeVisualSignature(state, scope);
+      assertPageTelegram(state, scope);
+      assertHomeVisualSignature(state, scope, item.locale);
+      assertHeroCta(state, scope);
       assert.equal(state.counts.faqTags, 7, `${scope}: FAQ tag count`);
       assert.equal(state.counts.faqItems, 7, `${scope}: FAQ item count`);
       assert.equal(state.counts.countries, 24, `${scope}: duplicated country item count`);
@@ -253,11 +458,13 @@ async function homeMatrix(browserType) {
       assert(Math.abs(socialCenter - headingCenter) <= 1, `${scope}: social heading center delta ${headingCenter - socialCenter}`);
       if (viewport.mobile) {
         assert.equal(state.rects.conversionBar.display, "grid", `${scope}: mobile conversion bar hidden`);
-        assert(state.rects.launcher.bottom <= state.rects.conversionBar.top - 15, `${scope}: launcher overlaps conversion bar`);
+        assert(state.rects.dial.bottom <= state.rects.conversionBar.top - 15, `${scope}: direct contact group overlaps conversion bar`);
         assert.equal(state.counts.qrCards, 0, `${scope}: QR hover card must not initialize on touch`);
       } else {
         assert.equal(state.rects.conversionBar.display, "none", `${scope}: mobile bar visible on desktop`);
         assert.equal(state.counts.qrCards, 1, `${scope}: desktop QR card missing`);
+        assertDesktopFooter(state, scope, { contacts: true });
+        await assertHeroCtaHover(page, scope);
       }
       if (item.rtl) assert.equal(state.direction, "rtl", `${scope}: Arabic direction`);
       if (!viewport.mobile && IMAGE_AUDIT_LOCALES.has(item.locale)) await auditImages(page, scope);
@@ -278,8 +485,11 @@ async function calculatorMatrix(browserType) {
     const scope = `${item.locale} calculator`;
     const state = await pageState(page);
     assertShared(state, scope);
+    assertHeaderNavigation(state, scope, { desktop: true });
     assertContactDial(state, scope);
+    assertPageTelegram(state, scope);
     assertCalculatorVisualSignature(state, scope);
+    assertDesktopFooter(state, scope);
     assert(state.aiVersion.includes("ai-sourcing-assistant.js?v="), `${scope}: AI assistant missing`);
     assert.equal(state.counts.cbm, 1, `${scope}: CBM visual count`);
     assert.equal(state.counts.progress, 1, `${scope}: progress count`);
@@ -291,8 +501,8 @@ async function calculatorMatrix(browserType) {
   await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
   for (const value of ["length", "width", "height"]) await page.locator(`#${value}`).fill("100");
   const cases = [
-    { qty: 5, pct: "18%", cap: "20英尺普柜 · 5.0 / 28 立方米", fill: "#5DCAA5", width: "49" },
-    { qty: 40, pct: "69%", cap: "40英尺普柜 · 40.0 / 58 立方米", fill: "#5DCAA5", width: "190" },
+    { qty: 5, pct: "7%", cap: "40英尺高柜 · 5.0 / 68 立方米", fill: "#5DCAA5", width: "20" },
+    { qty: 40, pct: "59%", cap: "40英尺高柜 · 40.0 / 68 立方米", fill: "#5DCAA5", width: "162" },
     { qty: 70, pct: "103%", cap: "40英尺高柜 · 70.0 / 68 立方米 ×2", fill: "#EF9F27", width: "276" },
     { qty: 90, pct: "132%", cap: "40英尺高柜 · 90.0 / 68 立方米 ×2", fill: "#EF9F27", width: "276" }
   ];
@@ -312,6 +522,9 @@ async function calculatorMatrix(browserType) {
   await page.locator("#cbmFill").waitFor({ state: "attached" });
   const mobileState = await pageState(page);
   assertShared(mobileState, "zh calculator 390x844");
+  assertHeaderNavigation(mobileState, "zh calculator 390x844");
+  assertContactDial(mobileState, "zh calculator 390x844");
+  assertPageTelegram(mobileState, "zh calculator 390x844");
   assertCalculatorVisualSignature(mobileState, "zh calculator 390x844");
   assert.equal(mobileState.rects.conversionBar, null, "zh calculator 390x844: calculator must not have mobile bar");
   await page.screenshot({ path: `${OUTPUT_DIR}/calculator-blueprint-390x844.png`, fullPage: true });
@@ -329,11 +542,39 @@ async function inquiryMatrix(browserType) {
     const scope = `${item.locale} inquiry`;
     const state = await pageState(page);
     assertShared(state, scope);
+    assertHeaderNavigation(state, scope, { desktop: true });
+    assertPageTelegram(state, scope);
+    assertDesktopFooter(state, scope, { contacts: true });
     assert.equal(state.rects.dial, null, `${scope}: contact dial must not duplicate inquiry CTA`);
+    assert.equal(state.counts.dialOptions, 0, `${scope}: direct contact group must not duplicate inquiry CTA`);
+    assert.equal(state.counts.dialMains, 0, `${scope}: obsolete contact launcher exists`);
     assert.equal(state.counts.progress, 0, `${scope}: short inquiry page must not have progress bar`);
     assert.equal(state.counts.qrCards, 1, `${scope}: desktop QR enhancement missing`);
     assert.equal(state.rects.conversionBar, null, `${scope}: inquiry must not have mobile conversion bar`);
     if (item.rtl) assert.equal(state.direction, "rtl", `${scope}: Arabic direction`);
+    assert.equal(errors.length, 0, `${scope}: console errors ${errors.splice(0).join(" | ")}`);
+  }
+  await context.close();
+}
+
+async function mobileHeaderMatrix(browserType) {
+  assert.equal(HEADER_PAGES.length, 30, "mobile header matrix must cover all 30 localized pages");
+  const context = await browserType.newContext({
+    viewport: { width: 390, height: 844 },
+    screen: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true
+  });
+  await blockAnalytics(context);
+  const page = await context.newPage();
+  const errors = collectErrors(page);
+  for (const item of HEADER_PAGES) {
+    await page.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
+    await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
+    const scope = `${item.locale} ${item.type} header 390x844`;
+    const state = await pageState(page);
+    assertShared(state, scope);
+    assertHeaderNavigation(state, scope);
     assert.equal(errors.length, 0, `${scope}: console errors ${errors.splice(0).join(" | ")}`);
   }
   await context.close();
@@ -346,17 +587,15 @@ async function interactionChecks(browserType) {
   const page = await desktop.newPage();
   const errors = collectErrors(page);
   await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
-  await page.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
-  await page.screenshot({ path: `${OUTPUT_DIR}/contact-desktop-closed-1280x900.png` });
-  await page.locator(".contact-speed-dial-main").click();
-  await page.waitForTimeout(240);
-  assert.equal(await page.locator(".contact-speed-dial-main").getAttribute("aria-expanded"), "true", "desktop dial did not expand");
-  assert.match(await page.evaluate(() => document.activeElement?.className || ""), /contact-speed-dial-whatsapp/, "focus did not enter first option");
+  await page.locator(".contact-speed-dial-option").first().waitFor({ state: "visible" });
+  assert.equal(await page.locator(".contact-speed-dial-main").count(), 0, "obsolete desktop contact launcher still exists");
+  assert.equal(await page.locator(".contact-speed-dial-option:visible").count(), 3, "desktop direct contact actions are not all visible");
   const optionHeights = await page.locator(".contact-speed-dial-option").evaluateAll((items) => items.map((item) => item.getBoundingClientRect().height));
   optionHeights.forEach((height) => assert(height >= 48, `dial option height ${height}`));
   assert.equal(await page.locator(".contact-speed-dial-whatsapp").getAttribute("href"), "https://wa.me/8618658925544", "WhatsApp dial URL");
-  assert.equal(await page.locator(".contact-speed-dial-telegram").getAttribute("href"), "https://t.me/Jabbar199901", "Telegram dial URL");
-  await page.screenshot({ path: `${OUTPUT_DIR}/contact-desktop-expanded-1280x900.png` });
+  assert.equal(await page.locator(".contact-speed-dial-telegram").getAttribute("href"), TELEGRAM_URL, "Telegram dial URL");
+  assert.equal(await page.locator(".contact-speed-dial-ai").getAttribute("type"), "button", "AI direct action is not a button");
+  await page.screenshot({ path: `${OUTPUT_DIR}/contact-desktop-direct-1280x900.png` });
 
   await page.locator(".contact-speed-dial-whatsapp").hover();
   await page.waitForTimeout(430);
@@ -368,9 +607,6 @@ async function interactionChecks(browserType) {
   await page.locator(".site-nav").hover();
   await page.waitForTimeout(230);
   assert.equal(await page.locator(".whatsapp-qr-card").evaluate((element) => element.hidden), true, "QR card did not close after 200ms");
-  await page.keyboard.press("Escape");
-  assert.equal(await page.locator(".contact-speed-dial-main").getAttribute("aria-expanded"), "false", "Escape did not close dial");
-  assert.match(await page.evaluate(() => document.activeElement?.className || ""), /contact-speed-dial-main/, "Escape did not restore launcher focus");
 
   await page.locator(".shipment-ticker").scrollIntoViewIfNeeded();
   await page.waitForFunction((count) => document.querySelectorAll(".shipment-ticker-item").length === count, VALID_SHIPMENTS.length * 2);
@@ -434,11 +670,10 @@ async function interactionChecks(browserType) {
   const mobilePage = await mobile.newPage();
   const mobileErrors = collectErrors(mobilePage);
   await mobilePage.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
-  await mobilePage.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
-  await mobilePage.screenshot({ path: `${OUTPUT_DIR}/contact-mobile-closed-390x844.png` });
-  await mobilePage.locator(".contact-speed-dial-main").click();
-  await mobilePage.waitForTimeout(240);
-  await mobilePage.screenshot({ path: `${OUTPUT_DIR}/contact-mobile-expanded-390x844.png` });
+  await mobilePage.locator(".contact-speed-dial-option").first().waitFor({ state: "visible" });
+  assert.equal(await mobilePage.locator(".contact-speed-dial-main").count(), 0, "obsolete mobile contact launcher still exists");
+  assert.equal(await mobilePage.locator(".contact-speed-dial-option:visible").count(), 3, "mobile direct contact actions are not all visible");
+  await mobilePage.screenshot({ path: `${OUTPUT_DIR}/contact-mobile-direct-390x844.png` });
   assert.equal(await mobilePage.locator(".whatsapp-qr-card").count(), 0, "touch page initialized QR hover card");
   assert.equal(mobileErrors.length, 0, `mobile interaction console errors: ${mobileErrors.join(" | ")}`);
   await mobile.close();
@@ -539,7 +774,7 @@ async function calculatorAnalyticsChecks(browserType) {
   await blockAnalytics(context);
   const page = await context.newPage();
   await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
-  await page.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
+  await page.locator(".contact-speed-dial-whatsapp").waitFor({ state: "visible" });
 
   const events = async (name) => page.evaluate((eventName) => (window.dataLayer || [])
     .map((entry) => Array.from(entry))
@@ -574,6 +809,7 @@ const chromiumBrowser = await chromium.launch({ headless: true });
 await homeMatrix(chromiumBrowser);
 await calculatorMatrix(chromiumBrowser);
 await inquiryMatrix(chromiumBrowser);
+await mobileHeaderMatrix(chromiumBrowser);
 await interactionChecks(chromiumBrowser);
 await accessibilityFallbackChecks(chromiumBrowser);
 await rtlMotionCheck(chromiumBrowser);
@@ -588,17 +824,20 @@ const webkitPage = await webkitContext.newPage();
 const webkitErrors = collectErrors(webkitPage);
 for (const item of HOME_PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes(locale))) {
   await webkitPage.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
-  await webkitPage.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
+  await webkitPage.locator(".contact-speed-dial-option").first().waitFor({ state: "visible" });
   await waitForHomeVisualSignature(webkitPage);
   const state = await pageState(webkitPage);
   assertShared(state, `WebKit ${item.locale}`);
+  assertHeaderNavigation(state, `WebKit ${item.locale}`);
   assertContactDial(state, `WebKit ${item.locale}`);
-  assertHomeVisualSignature(state, `WebKit ${item.locale}`);
+  assertPageTelegram(state, `WebKit ${item.locale}`);
+  assertHomeVisualSignature(state, `WebKit ${item.locale}`, item.locale);
+  assertHeroCta(state, `WebKit ${item.locale}`);
   assert.equal(state.counts.faqTags, 7, `WebKit ${item.locale}: FAQ tags`);
   assert.equal(state.counts.countries, 24, `WebKit ${item.locale}: countries`);
 }
 await webkitPage.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
-await webkitPage.locator(".contact-speed-dial-main").waitFor({ state: "visible" });
+await webkitPage.locator(".contact-speed-dial-option").first().waitFor({ state: "visible" });
 for (const [field, value] of [["length", "30"], ["width", "40"], ["height", "40"], ["qty", "1350"]]) {
   await webkitPage.locator(`#${field}`).fill(value);
 }
@@ -607,7 +846,9 @@ await webkitPage.waitForFunction(() => document.querySelectorAll("[data-containe
   && document.querySelectorAll("[data-summary] .num-mono").length > 0);
 const webkitCalculatorState = await pageState(webkitPage);
 assertShared(webkitCalculatorState, "WebKit zh calculator 390x844");
+assertHeaderNavigation(webkitCalculatorState, "WebKit zh calculator 390x844");
 assertContactDial(webkitCalculatorState, "WebKit zh calculator 390x844");
+assertPageTelegram(webkitCalculatorState, "WebKit zh calculator 390x844");
 assertCalculatorVisualSignature(webkitCalculatorState, "WebKit zh calculator 390x844");
 assert((await webkitPage.locator("[data-container] .num-mono").count()) >= 1, "WebKit calculator container number is not wrapped");
 assert((await webkitPage.locator("[data-summary] .num-mono").count()) >= 2, "WebKit calculator summary numbers are not wrapped");
