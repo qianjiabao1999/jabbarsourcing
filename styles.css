@@ -7148,68 +7148,6 @@ html.gallery-ready .gallery-track {
   }
 }
 
-/* 2026-07-12 restore the mobile conversion bar without reviving old side capsules. */
-.mobile-conversion-bar {
-  display: none;
-}
-
-@media (max-width: 767px) {
-  body.has-mobile-conversion-bar {
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .mobile-conversion-bar {
-    position: fixed;
-    inset-inline: 0;
-    bottom: 0;
-    z-index: 90;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    height: calc(56px + env(safe-area-inset-bottom, 0px));
-    padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid rgba(15, 23, 42, 0.08);
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 -14px 34px rgba(15, 23, 42, 0.12);
-    backdrop-filter: blur(22px) saturate(1.35);
-    -webkit-backdrop-filter: blur(22px) saturate(1.35);
-    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0s;
-  }
-
-  .mobile-conversion-bar a {
-    min-width: 0;
-    min-height: 48px;
-    padding: 4px 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 900;
-    line-height: 1.15;
-    text-align: center;
-    overflow-wrap: anywhere;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
-  }
-
-  .mobile-conversion-whatsapp {
-    background: #25b35d;
-  }
-
-  .mobile-conversion-quote {
-    background: linear-gradient(135deg, #0f6ba8, #0f766e);
-  }
-
-  body.jabbar-ai-open .mobile-conversion-bar {
-    visibility: hidden;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(100%);
-    transition-delay: 0s, 0s, 0.18s;
-  }
-}
-
 /* Keep mixed Latin identifiers and numbers readable inside Arabic layouts. */
 [dir="rtl"] .team-heading .hero-social,
 [dir="rtl"] .testimonial-order-meta span {
@@ -8476,149 +8414,15 @@ html[lang="ar"] .section-code {
   }
 }
 
-/* 2026-07-12 UI enhancement pack: contact dial, calculator visual, motion and FAQ shortcuts. */
+/* 2026-07-12 UI enhancement pack: calculator visual, motion and FAQ shortcuts. */
 :root {
   --brand-teal: #0f766e;
   --brand-orange: #ef9f27;
 }
 
-/* The AI panel remains unchanged; its original standalone launcher is replaced by the contact dial. */
+/* Keep the legacy AI launcher hidden while retaining the assistant panel logic. */
 .jabbar-ai-toggle {
   display: none !important;
-}
-
-.contact-speed-dial {
-  position: fixed;
-  inset-inline-end: 22px;
-  bottom: 24px;
-  z-index: 1100;
-  display: grid;
-  justify-items: end;
-  gap: 8px;
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0s;
-}
-
-.contact-speed-dial.is-footer-hidden,
-body.jabbar-ai-open .contact-speed-dial {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(12px);
-  transition-delay: 0s, 0s, 0.18s;
-}
-
-.contact-speed-dial-menu {
-  display: grid;
-  justify-items: end;
-  gap: 8px;
-  max-width: calc(100vw - 28px);
-}
-
-.contact-speed-dial-menu[hidden] {
-  display: none;
-}
-
-.contact-speed-dial-option {
-  min-width: 214px;
-  min-height: 48px;
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  padding: 8px 15px 8px 10px;
-  color: #172033;
-  border: 1px solid rgba(15, 23, 42, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
-  font: 800 15px/1.2 var(--sans);
-  text-align: start;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(8px) scale(0.98);
-  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-}
-
-.contact-speed-dial.is-open .contact-speed-dial-option {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.contact-speed-dial.is-open .contact-speed-dial-option:nth-child(2) {
-  transition-delay: 0.035s;
-}
-
-.contact-speed-dial.is-open .contact-speed-dial-option:nth-child(3) {
-  transition-delay: 0.07s;
-}
-
-.contact-speed-dial-option:hover,
-.contact-speed-dial-option:focus-visible {
-  border-color: rgba(15, 118, 110, 0.5);
-  outline: 3px solid rgba(15, 118, 110, 0.16);
-  outline-offset: 2px;
-}
-
-.contact-speed-dial-option:active,
-.contact-speed-dial-main:active {
-  transform: scale(0.98);
-}
-
-.contact-speed-dial-option-icon {
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 50%;
-  background: #eef6f5;
-}
-
-.contact-speed-dial-option-icon img {
-  width: 24px;
-  height: 24px;
-  display: block;
-  object-fit: contain;
-}
-
-.contact-speed-dial-ai-icon {
-  color: #fff;
-  background: var(--brand-teal);
-  font-size: 12px;
-  letter-spacing: 0.03em;
-}
-
-.contact-speed-dial-main {
-  min-width: 56px;
-  height: 56px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  padding: 0 18px;
-  color: #fff;
-  border: 0;
-  border-radius: 999px;
-  background: var(--brand-teal);
-  box-shadow: 0 16px 36px rgba(15, 118, 110, 0.3);
-  font: 900 15px/1 var(--sans);
-  white-space: nowrap;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.contact-speed-dial-main:hover,
-.contact-speed-dial-main:focus-visible {
-  box-shadow: 0 20px 42px rgba(15, 118, 110, 0.36);
-  outline: 3px solid rgba(15, 118, 110, 0.2);
-  outline-offset: 3px;
-}
-
-.contact-speed-dial-main-icon {
-  min-width: 20px;
-  font-size: 19px;
-  line-height: 1;
-  text-align: center;
 }
 
 .cbm-visual {
@@ -8789,6 +8593,76 @@ body.jabbar-ai-open .contact-speed-dial {
 
 .order-analyzer__status[data-state="success"] {
   color: #0f766e;
+}
+
+.order-analyzer__file-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(15, 107, 168, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.order-analyzer__file-list h3 {
+  margin: 0;
+  color: var(--ink-strong);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.order-analyzer__file-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.order-analyzer__file-item {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 11px 13px;
+  border: 1px solid rgba(100, 116, 139, 0.18);
+  border-radius: 13px;
+  color: var(--ink-body);
+  background: rgba(248, 250, 252, 0.86);
+  text-align: start;
+  cursor: pointer;
+}
+
+.order-analyzer__file-item strong,
+.order-analyzer__file-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-analyzer__file-item strong {
+  color: var(--ink-strong);
+  font-size: 12px;
+}
+
+.order-analyzer__file-item span {
+  color: var(--ink-muted-strong);
+  font: 700 10.5px/1.4 var(--font-mono-stack);
+}
+
+.order-analyzer__file-item.is-active {
+  border-color: rgba(15, 118, 110, 0.55);
+  background: rgba(240, 253, 250, 0.94);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.order-analyzer__file-item:focus-visible {
+  outline: 3px solid rgba(15, 107, 168, 0.25);
+  outline-offset: 2px;
+}
+
+.order-analyzer__file-item:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 .order-analyzer__mapping {
@@ -9074,6 +8948,10 @@ body.jabbar-ai-open .contact-speed-dial {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .order-analyzer__file-grid {
+    grid-template-columns: 1fr;
+  }
+
   .order-analyzer__dropzone {
     min-height: 116px;
   }
@@ -9192,17 +9070,6 @@ body.jabbar-ai-open .contact-speed-dial {
   display: none;
 }
 
-.ui-section-reveal {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.ui-section-reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 .faq-quick-tags {
   display: flex;
   justify-content: center;
@@ -9312,28 +9179,6 @@ body.jabbar-ai-open .contact-speed-dial {
 }
 
 @media (max-width: 767px) {
-  .contact-speed-dial {
-    inset-inline-end: 14px;
-    bottom: 16px;
-  }
-
-  body.has-mobile-conversion-bar .contact-speed-dial {
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .contact-speed-dial-main {
-    width: 56px;
-    padding: 0;
-  }
-
-  .contact-speed-dial-main-label {
-    display: none;
-  }
-
-  .contact-speed-dial-option {
-    min-width: min(224px, calc(100vw - 28px));
-  }
-
   .faq-quick-tags {
     justify-content: flex-start;
     margin-inline: -2px;
@@ -9347,19 +9192,10 @@ body.jabbar-ai-open .contact-speed-dial {
 
 @media (prefers-reduced-motion: reduce) {
   #cbmFill,
-  .contact-speed-dial,
-  .contact-speed-dial-option,
-  .contact-speed-dial-main,
-  .ui-section-reveal,
   .faq-summary-flash,
   .whatsapp-qr-card {
     animation: none !important;
     transition: none !important;
-  }
-
-  .ui-section-reveal {
-    opacity: 1;
-    transform: none;
   }
 }
 
@@ -9710,41 +9546,6 @@ body.jabbar-ai-open .contact-speed-dial {
   text-decoration: none !important;
 }
 
-.contact-speed-dial {
-  gap: 0 !important;
-}
-
-.contact-speed-dial-menu {
-  display: grid !important;
-  justify-items: stretch !important;
-  gap: 10px !important;
-}
-
-.contact-speed-dial-option,
-.contact-speed-dial.is-open .contact-speed-dial-option {
-  min-width: 206px !important;
-  min-height: 52px !important;
-  padding: 8px 16px 8px 10px !important;
-  opacity: 1 !important;
-  color: #172033 !important;
-  border: 1px solid rgba(15, 23, 42, 0.14) !important;
-  border-radius: 999px !important;
-  background: rgba(255, 255, 255, 0.97) !important;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14) !important;
-  transform: none !important;
-}
-
-.contact-speed-dial-option:hover,
-.contact-speed-dial-option:focus-visible {
-  border-color: rgba(15, 118, 110, 0.42) !important;
-  box-shadow: 0 15px 34px rgba(15, 23, 42, 0.17), 0 0 0 4px rgba(15, 118, 110, 0.1) !important;
-  transform: translateY(-1px) !important;
-}
-
-.contact-speed-dial-option:active {
-  transform: scale(0.985) !important;
-}
-
 .team-heading .quote-entry .inquiry-entry-card-cta {
   border-color: rgba(15, 118, 110, 0.2) !important;
   outline: 0 !important;
@@ -9838,21 +9639,6 @@ body.jabbar-ai-open .contact-speed-dial {
   .site-nav-mobile-menu { order: 5 !important; }
 }
 
-@media (max-width: 767px) {
-  .contact-speed-dial {
-    inset-inline-end: 12px !important;
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
-  .contact-speed-dial-option,
-  .contact-speed-dial.is-open .contact-speed-dial-option {
-    min-width: 174px !important;
-    min-height: 48px !important;
-    padding-block: 6px !important;
-    font-size: 13px !important;
-  }
-}
-
 @media (max-width: 560px) {
   .site-nav-tool-pill {
     gap: 6px !important;
@@ -9906,4 +9692,41 @@ body.jabbar-ai-open .contact-speed-dial {
     width: 38px !important;
     height: 38px !important;
   }
+}
+
+/* Final deterministic footer alignment override. */
+.site-footer-main {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.site-footer-brand {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 940px !important;
+  margin-inline: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.site-footer-location-link,
+[dir="rtl"] .site-footer-location-link {
+  display: block !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin-inline: auto !important;
+  box-sizing: border-box !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  text-align: center !important;
 }

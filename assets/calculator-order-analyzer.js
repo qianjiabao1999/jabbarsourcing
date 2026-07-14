@@ -2,8 +2,9 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260714b";
+  var VERSION = "order-20260714d";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
+  var MAX_FILES = 10;
   var WORKER_TIMEOUT_MS = 60000;
   var WORKER_URL = "/assets/calculator-order-worker.js?v=" + VERSION;
   var CORE_URL = "/assets/calculator-order-worker.js?v=" + VERSION;
@@ -62,10 +63,7 @@
     incompleteBlocked: "This workbook exceeds the safe analysis limit. Split it into smaller files so every row is included before exporting.",
     negativeBlocked: "Negative quantities or values were found. Correct or remove those rows before exporting.",
     containerTitle: "Container estimate",
-    lcl: "LCL / trial shipment",
-    twenty: "20GP",
-    forty: "40GP",
-    fortyHq: "40HQ",
+    lcl: "LCL / trial shipment", fortyHq: "40HQ",
     containerCount: "About {n} × 40HQ",
     provisional: "Provisional until the volume unit is confirmed",
     reportTitle: "ORDER ANALYSIS REPORT",
@@ -110,7 +108,7 @@
       warningsTitle: "请确认以下信息", detailsTitle: "全部商品明细", sourceRow: "行号", product: "商品", sku: "货号", exportPng: "导出完整结果图片",
       noResult: "请先上传并分析一个订单表格。", exportPreparing: "正在生成包含全部明细的 PNG 图片…", exportDone: "完整结果图片已下载。", exportError: "当前浏览器无法生成结果图片。",
       confirmBeforeExport: "导出前请确认识别的列含义。", incompleteBlocked: "表格超过安全分析上限。请拆分为较小文件，确保每一行都能纳入后再导出。", negativeBlocked: "检测到负数数量或数值。请先修正或删除这些行，再导出。",
-      containerTitle: "集装箱装载估算", lcl: "适合拼箱或小批量试单", twenty: "20英尺普柜", forty: "40英尺普柜", fortyHq: "40英尺高柜", containerCount: "约需 {n} 个40英尺高柜", provisional: "体积单位确认前仅供暂估",
+      containerTitle: "集装箱装载估算", lcl: "适合拼箱或小批量试单", fortyHq: "40英尺高柜", containerCount: "约需 {n} 个40英尺高柜", provisional: "体积单位确认前仅供暂估",
       reportTitle: "订单自动统计报告", generated: "生成时间", page: "第 {current} / {total} 页", file: "文件",
       warnings: Object.assign({}, EN.warnings, {
         weight_unit_pending: "重量暂按千克计算，请在上方确认单位。", volume_unit_pending: "体积暂按立方米计算，请在上方确认单位。", currency_pending: "表格没有标明币种，请在上方确认。", dimension_unit_pending: "尺寸暂按厘米计算，请确认尺寸单位。",
@@ -172,10 +170,7 @@
       incompleteBlocked: "Este archivo supera el límite de análisis seguro. Divídelo en archivos más pequeños antes de exportar.",
       negativeBlocked: "Se detectaron cantidades o valores negativos. Corrige o elimina esas filas antes de exportar.",
       containerTitle: "Estimación del contenedor",
-      lcl: "LCL / envío de prueba",
-      twenty: "20GP",
-      forty: "40GP",
-      fortyHq: "40HQ",
+      lcl: "LCL / envío de prueba", fortyHq: "40HQ",
       containerCount: "Aprox. {n} × 40HQ",
       provisional: "Provisional hasta confirmar la unidad de volumen",
       reportTitle: "INFORME DE ANÁLISIS DEL PEDIDO",
@@ -257,10 +252,7 @@
       incompleteBlocked: "يتجاوز هذا الملف حد التحليل الآمن. قسّمه إلى ملفات أصغر قبل التصدير.",
       negativeBlocked: "تم اكتشاف كميات أو قيم سالبة. صحّح هذه الصفوف أو احذفها قبل التصدير.",
       containerTitle: "تقدير الحاوية",
-      lcl: "LCL / شحنة تجريبية",
-      twenty: "20GP",
-      forty: "40GP",
-      fortyHq: "40HQ",
+      lcl: "LCL / شحنة تجريبية", fortyHq: "40HQ",
       containerCount: "حوالي {n} × 40HQ",
       provisional: "تقدير مؤقت حتى تأكيد وحدة الحجم",
       reportTitle: "تقرير تحليل الطلب",
@@ -342,10 +334,7 @@
       incompleteBlocked: "Ce fichier dépasse la limite d’analyse sûre. Divisez-le avant l’exportation.",
       negativeBlocked: "Des quantités ou valeurs négatives ont été détectées. Corrigez-les avant l’exportation.",
       containerTitle: "Estimation du conteneur",
-      lcl: "LCL / envoi d’essai",
-      twenty: "20GP",
-      forty: "40GP",
-      fortyHq: "40HQ",
+      lcl: "LCL / envoi d’essai", fortyHq: "40HQ",
       containerCount: "Environ {n} × 40HQ",
       provisional: "Estimation provisoire jusqu’à confirmation de l’unité de volume",
       reportTitle: "RAPPORT D’ANALYSE DE COMMANDE",
@@ -427,10 +416,7 @@
       incompleteBlocked: "Este arquivo excede o limite de análise segura. Divida-o antes de exportar.",
       negativeBlocked: "Foram detectadas quantidades ou valores negativos. Corrija-as antes de exportar.",
       containerTitle: "Estimativa de contêiner",
-      lcl: "LCL / envio de teste",
-      twenty: "20GP",
-      forty: "40GP",
-      fortyHq: "40HQ",
+      lcl: "LCL / envio de teste", fortyHq: "40HQ",
       containerCount: "Aprox. {n} × 40HQ",
       provisional: "Estimativa provisória até confirmar a unidade de volume",
       reportTitle: "RELATÓRIO DE ANÁLISE DO PEDIDO",
@@ -512,10 +498,7 @@
       incompleteBlocked: "Файл превышает безопасный предел анализа. Разделите его перед экспортом.",
       negativeBlocked: "Обнаружены отрицательные количества или значения. Исправьте их перед экспортом.",
       containerTitle: "Расчет контейнера",
-      lcl: "LCL / пробная отправка",
-      twenty: "20GP",
-      forty: "40GP",
-      fortyHq: "40HQ",
+      lcl: "LCL / пробная отправка", fortyHq: "40HQ",
       containerCount: "Примерно {n} × 40HQ",
       provisional: "Предварительно до подтверждения единицы объема",
       reportTitle: "ОТЧЕТ ПО АНАЛИЗУ ЗАКАЗА",
@@ -597,10 +580,7 @@
       incompleteBlocked: "Diese Datei überschreitet das sichere Analyselimit. Teilen Sie sie vor dem Exportieren auf.",
       negativeBlocked: "Es wurden negative Mengen oder Werte erkannt. Korrigieren Sie diese vor dem Exportieren.",
       containerTitle: "Containerschätzung",
-      lcl: "LCL / Testsendung",
-      twenty: "20GP",
-      forty: "40GP",
-      fortyHq: "40HQ",
+      lcl: "LCL / Testsendung", fortyHq: "40HQ",
       containerCount: "Etwa {n} × 40HQ",
       provisional: "Vorläufig bis zur Bestätigung der Volumeneinheit",
       reportTitle: "BERICHT ZUR BESTELLANALYSE",
@@ -682,10 +662,7 @@
       incompleteBlocked: "Questo file supera il limite di analisi sicuro. Dividilo prima di esportare.",
       negativeBlocked: "Sono state rilevate quantità o valori negativi. Correggile prima di esportare.",
       containerTitle: "Stima del container",
-      lcl: "LCL / spedizione di prova",
-      twenty: "20GP",
-      forty: "40GP",
-      fortyHq: "40HQ",
+      lcl: "LCL / spedizione di prova", fortyHq: "40HQ",
       containerCount: "Circa {n} × 40HQ",
       provisional: "Stima provvisoria fino alla conferma dell’unità di volume",
       reportTitle: "REPORT DI ANALISI DELL’ORDINE",
@@ -767,10 +744,7 @@
       incompleteBlocked: "Bu dosya güvenli analiz sınırını aşıyor. Dışa aktarmadan önce dosyayı bölün.",
       negativeBlocked: "Negatif miktarlar veya değerler algılandı. Dışa aktarmadan önce bunları düzeltin.",
       containerTitle: "Konteyner tahmini",
-      lcl: "LCL / deneme sevkiyatı",
-      twenty: "20GP",
-      forty: "40GP",
-      fortyHq: "40HQ",
+      lcl: "LCL / deneme sevkiyatı", fortyHq: "40HQ",
       containerCount: "Yaklaşık {n} × 40HQ",
       provisional: "Hacim birimi onaylanana kadar geçici tahmin",
       reportTitle: "SİPARİŞ ANALİZ RAPORU",
@@ -802,6 +776,20 @@
       }
     }
   };
+
+  var BATCH_COPY = {
+    en: { dropLead: "Drop up to 10 Excel files here or choose files", dropHint: ".xlsx, .xls, .xlsm or .csv · up to 10 files · 50 MB each", selectedFiles: "Selected files", tooManyFiles: "Choose no more than 10 files at once.", parsingBatch: "Reading file {current} of {total} locally…", fileCollection: "File collection", fileReady: "Ready", combinedReady: "{total} files analyzed and combined. Select a file below to review its details.", combinedReport: "COMBINED ORDER ANALYSIS", combinedFile: "{total} files", exportPreparing: "Preparing one lossless 4K PNG overview…", exportDone: "The lossless 4K PNG overview has been downloaded." },
+    zh: { dropLead: "拖入最多 10 个 Excel 表格，或点击选择文件", dropHint: ".xlsx、.xls、.xlsm 或 .csv · 最多 10 个文件 · 每个最大 50 MB", selectedFiles: "已选择文件", tooManyFiles: "一次最多只能选择 10 个文件。", parsingBatch: "正在本地读取第 {current} / {total} 个文件…", fileCollection: "多文件集合", fileReady: "已完成", combinedReady: "已完成并合并统计 {total} 个文件，可点击下方文件查看各自明细。", combinedReport: "订单合并统计总览", combinedFile: "共 {total} 个文件", exportPreparing: "正在生成单张 4K 无损 PNG 总览…", exportDone: "4K 无损 PNG 总览已下载。" },
+    es: { dropLead: "Suelta hasta 10 archivos Excel o selecciónalos", dropHint: ".xlsx, .xls, .xlsm o .csv · hasta 10 archivos · 50 MB cada uno", selectedFiles: "Archivos seleccionados", tooManyFiles: "Selecciona como máximo 10 archivos.", parsingBatch: "Leyendo localmente el archivo {current} de {total}…", fileCollection: "Colección de archivos", fileReady: "Listo", combinedReady: "Se analizaron y combinaron {total} archivos. Selecciona uno para revisar sus detalles.", combinedReport: "RESUMEN COMBINADO DEL PEDIDO", combinedFile: "{total} archivos", exportPreparing: "Preparando una imagen PNG 4K sin pérdida…", exportDone: "Se descargó la imagen PNG 4K sin pérdida." },
+    ar: { dropLead: "أسقط ما يصل إلى 10 ملفات Excel أو اختر الملفات", dropHint: ".xlsx أو .xls أو .xlsm أو .csv · حتى 10 ملفات · 50 MB لكل ملف", selectedFiles: "الملفات المحددة", tooManyFiles: "اختر 10 ملفات كحد أقصى.", parsingBatch: "جارٍ قراءة الملف {current} من {total} محليًا…", fileCollection: "مجموعة الملفات", fileReady: "جاهز", combinedReady: "تم تحليل ودمج {total} ملفات. اختر ملفًا لمراجعة تفاصيله.", combinedReport: "ملخص تحليل الطلبات المدمج", combinedFile: "{total} ملفات", exportPreparing: "جارٍ إعداد صورة PNG واحدة بدقة 4K دون فقد…", exportDone: "تم تنزيل صورة PNG بدقة 4K دون فقد." },
+    fr: { dropLead: "Déposez jusqu’à 10 fichiers Excel ou sélectionnez-les", dropHint: ".xlsx, .xls, .xlsm ou .csv · 10 fichiers max. · 50 MB chacun", selectedFiles: "Fichiers sélectionnés", tooManyFiles: "Sélectionnez au maximum 10 fichiers.", parsingBatch: "Lecture locale du fichier {current} sur {total}…", fileCollection: "Collection de fichiers", fileReady: "Prêt", combinedReady: "{total} fichiers ont été analysés et regroupés. Sélectionnez un fichier pour voir ses détails.", combinedReport: "SYNTHÈSE COMBINÉE DES COMMANDES", combinedFile: "{total} fichiers", exportPreparing: "Préparation d’une image PNG 4K unique sans perte…", exportDone: "L’image PNG 4K sans perte a été téléchargée." },
+    pt: { dropLead: "Solte até 10 arquivos Excel ou selecione-os", dropHint: ".xlsx, .xls, .xlsm ou .csv · até 10 arquivos · 50 MB cada", selectedFiles: "Arquivos selecionados", tooManyFiles: "Selecione no máximo 10 arquivos.", parsingBatch: "Lendo localmente o arquivo {current} de {total}…", fileCollection: "Coleção de arquivos", fileReady: "Pronto", combinedReady: "{total} arquivos foram analisados e combinados. Selecione um arquivo para ver os detalhes.", combinedReport: "RESUMO COMBINADO DOS PEDIDOS", combinedFile: "{total} arquivos", exportPreparing: "Preparando uma única imagem PNG 4K sem perdas…", exportDone: "A imagem PNG 4K sem perdas foi baixada." },
+    ru: { dropLead: "Перетащите до 10 файлов Excel или выберите их", dropHint: ".xlsx, .xls, .xlsm или .csv · до 10 файлов · 50 MB каждый", selectedFiles: "Выбранные файлы", tooManyFiles: "Выберите не более 10 файлов.", parsingBatch: "Локальная обработка файла {current} из {total}…", fileCollection: "Набор файлов", fileReady: "Готово", combinedReady: "Проанализировано и объединено файлов: {total}. Выберите файл для просмотра деталей.", combinedReport: "СВОДНЫЙ АНАЛИЗ ЗАКАЗОВ", combinedFile: "Файлов: {total}", exportPreparing: "Подготовка одной PNG 4K без потерь…", exportDone: "PNG 4K без потерь загружен." },
+    de: { dropLead: "Bis zu 10 Excel-Dateien ablegen oder auswählen", dropHint: ".xlsx, .xls, .xlsm oder .csv · bis zu 10 Dateien · je 50 MB", selectedFiles: "Ausgewählte Dateien", tooManyFiles: "Wählen Sie höchstens 10 Dateien aus.", parsingBatch: "Datei {current} von {total} wird lokal gelesen…", fileCollection: "Dateisammlung", fileReady: "Fertig", combinedReady: "{total} Dateien wurden analysiert und zusammengeführt. Wählen Sie eine Datei für Details.", combinedReport: "KOMBINIERTE BESTELLÜBERSICHT", combinedFile: "{total} Dateien", exportPreparing: "Eine verlustfreie 4K-PNG-Übersicht wird erstellt…", exportDone: "Die verlustfreie 4K-PNG-Übersicht wurde heruntergeladen." },
+    it: { dropLead: "Trascina fino a 10 file Excel o selezionali", dropHint: ".xlsx, .xls, .xlsm o .csv · fino a 10 file · 50 MB ciascuno", selectedFiles: "File selezionati", tooManyFiles: "Seleziona al massimo 10 file.", parsingBatch: "Lettura locale del file {current} di {total}…", fileCollection: "Raccolta file", fileReady: "Pronto", combinedReady: "Sono stati analizzati e uniti {total} file. Seleziona un file per vederne i dettagli.", combinedReport: "RIEPILOGO ORDINI COMBINATO", combinedFile: "{total} file", exportPreparing: "Preparazione di un’unica immagine PNG 4K senza perdita…", exportDone: "L’immagine PNG 4K senza perdita è stata scaricata." },
+    tr: { dropLead: "En fazla 10 Excel dosyasını bırakın veya seçin", dropHint: ".xlsx, .xls, .xlsm veya .csv · en fazla 10 dosya · her biri 50 MB", selectedFiles: "Seçilen dosyalar", tooManyFiles: "En fazla 10 dosya seçin.", parsingBatch: "{total} dosyadan {current}. dosya yerel olarak okunuyor…", fileCollection: "Dosya koleksiyonu", fileReady: "Hazır", combinedReady: "{total} dosya analiz edilip birleştirildi. Ayrıntıları görmek için bir dosya seçin.", combinedReport: "BİRLEŞİK SİPARİŞ ÖZETİ", combinedFile: "{total} dosya", exportPreparing: "Tek bir kayıpsız 4K PNG hazırlanıyor…", exportDone: "Kayıpsız 4K PNG indirildi." }
+  };
+  Object.keys(BATCH_COPY).forEach(function (code) { Object.assign(LOCALES[code], BATCH_COPY[code]); });
 
   function languageCode() {
     var code = (document.documentElement.lang || navigator.language || "en").toLowerCase().split("-")[0];
@@ -862,6 +850,13 @@
     this.workerSequence = 0;
     this.fallbackSession = null;
     this.currentFile = null;
+    this.currentFiles = [];
+    this.fileEntries = [];
+    this.fileResults = [];
+    this.activeFileIndex = 0;
+    this.mappingFileIndex = -1;
+    this.isBatchMode = false;
+    this.busy = false;
     this.payload = null;
     this.exportCache = null;
     this.deliveryBlocked = "";
@@ -889,6 +884,7 @@
     dropzone.setAttribute("data-order-dropzone", "");
     this.fileInput = element("input", "");
     this.fileInput.type = "file";
+    this.fileInput.multiple = true;
     this.fileInput.accept = ".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv";
     this.fileInput.setAttribute("data-order-file", "");
     dropzone.appendChild(this.fileInput);
@@ -902,6 +898,10 @@
     this.status.setAttribute("data-order-status", "");
     this.status.setAttribute("aria-live", "polite");
     this.root.appendChild(this.status);
+    this.fileList = element("section", "order-analyzer__file-list");
+    this.fileList.hidden = true;
+    this.fileList.setAttribute("data-order-file-list", "");
+    this.root.appendChild(this.fileList);
 
     this.mappingDetails = element("details", "order-analyzer__mapping");
     this.mappingDetails.hidden = true;
@@ -978,15 +978,24 @@
 
   Analyzer.prototype.bind = function () {
     var self = this;
-    this.fileInput.addEventListener("change", function () { if (self.fileInput.files[0]) self.parseFile(self.fileInput.files[0]); });
+    this.fileInput.addEventListener("change", function () {
+      if (self.busy) { self.fileInput.value = ""; return; }
+      if (self.fileInput.files.length) self.parseFiles(Array.from(self.fileInput.files));
+    });
     var dropzone = this.root.querySelector("[data-order-dropzone]");
     ["dragenter", "dragover"].forEach(function (name) {
-      dropzone.addEventListener(name, function (event) { event.preventDefault(); dropzone.classList.add("is-dragging"); });
+      dropzone.addEventListener(name, function (event) {
+        event.preventDefault();
+        if (!self.busy) dropzone.classList.add("is-dragging");
+      });
     });
     ["dragleave", "drop"].forEach(function (name) {
       dropzone.addEventListener(name, function (event) { event.preventDefault(); dropzone.classList.remove("is-dragging"); });
     });
-    dropzone.addEventListener("drop", function (event) { if (event.dataTransfer.files[0]) self.parseFile(event.dataTransfer.files[0]); });
+    dropzone.addEventListener("drop", function (event) {
+      if (self.busy) return;
+      if (event.dataTransfer.files.length) self.parseFiles(Array.from(event.dataTransfer.files));
+    });
     this.sheetSelect.addEventListener("change", function () { self.selectSheet(self.sheetSelect.value); });
     this.applyButton.addEventListener("click", function () { self.applyMapping(); });
     this.mappingGrid.addEventListener("change", function (event) {
@@ -1005,6 +1014,7 @@
   };
 
   Analyzer.prototype.setBusy = function (busy) {
+    this.busy = Boolean(busy);
     this.root.setAttribute("aria-busy", busy ? "true" : "false");
     this.fileInput.disabled = Boolean(busy);
     this.applyButton.disabled = Boolean(busy);
@@ -1088,9 +1098,15 @@
     });
   };
 
-  Analyzer.prototype.parseFile = async function (file) {
-    if (!file) { this.setStatus(this.copy.unsupported, true); return null; }
-    this.currentFile = file;
+  Analyzer.prototype.resetAnalysis = function () {
+    this.fileInput.value = "";
+    this.currentFile = null;
+    this.currentFiles = [];
+    this.fileEntries = [];
+    this.fileResults = [];
+    this.activeFileIndex = 0;
+    this.mappingFileIndex = -1;
+    this.isBatchMode = false;
     this.payload = null;
     this.exportCache = null;
     this.deliveryBlocked = "";
@@ -1098,32 +1114,197 @@
     this.mappingDetails.open = false;
     this.results.hidden = true;
     this.exportButton.disabled = true;
+    this.fileList.hidden = true;
+    this.fileList.innerHTML = "";
     qa.lastResult = null;
-    this.fileMeta.textContent = this.copy.selectedFile + ": " + file.name + " · " + (file.size / 1024 / 1024).toFixed(2) + " MB";
-    var extension = fileExtension(file.name);
-    if (["xlsx", "xls", "xlsm", "csv"].indexOf(extension) === -1) { this.setStatus(this.copy.unsupported, true); return null; }
-    if (file.size > MAX_FILE_BYTES) { this.setStatus(this.copy.fileTooLarge, true); return null; }
-    this.setBusy(true);
-    this.setStatus(this.copy.parsing, false);
+    qa.combinedResult = null;
+    qa.fileResults = [];
+    qa.exportPageCount = 0;
+    qa.lastError = "";
+  };
+
+  Analyzer.prototype.parseOneFile = async function (file) {
+    this.currentFile = file;
     qa.lastFile = { name: file.name, size: file.size };
-    var payload;
-    try {
-      var buffer = await file.arrayBuffer();
-      if (typeof Worker !== "undefined") {
-        // A failed runtime Worker may be rebuilt, but it must never trigger a
-        // main-thread retry of the same workbook.
-        if (!this.worker && this.workerFailed) this.workerFailed = false;
-        if (!this.ensureWorker()) throw new Error("worker_unavailable");
-        payload = await this.workerRequest("parse", { buffer: buffer, fileName: file.name }, [buffer]);
-      } else {
-        var session = await this.ensureFallback();
-        payload = session.parse(buffer, window.XLSX, file.name);
+    var buffer = await file.arrayBuffer();
+    if (typeof Worker !== "undefined") {
+      // Workbooks are intentionally parsed one at a time. The ArrayBuffer is
+      // transferred to the Worker and is not retained on the main thread.
+      if (!this.worker && this.workerFailed) this.workerFailed = false;
+      if (!this.ensureWorker()) throw new Error("worker_unavailable");
+      return this.workerRequest("parse", { buffer: buffer, fileName: file.name }, [buffer]);
+    }
+    var session = await this.ensureFallback();
+    return session.parse(buffer, window.XLSX, file.name);
+  };
+
+  Analyzer.prototype.combinePayloads = function (payloads) {
+    if (payloads.length === 1) return payloads[0];
+    var amountTotals = {};
+    var uniqueProducts = {};
+    var warningSet = {};
+    var warningCounts = {};
+    var pending = {};
+    var assumptions = {};
+    var metrics = { productRows: 0, uniqueProducts: null, quantity: null, cartons: null, volume: null, weight: null, amounts: [] };
+    var complete = { quantity: true, cartons: true, volume: true, weight: true, amounts: true };
+    var skippedSummaryRows = 0;
+    var negativeValuesSkipped = 0;
+    var subtotalMismatchCount = 0;
+    payloads.forEach(function (payload) {
+      var result = payload.result || {};
+      var sourceMetrics = result.metrics || {};
+      metrics.productRows += Number(sourceMetrics.productRows) || 0;
+      ["quantity", "cartons", "volume", "weight"].forEach(function (key) {
+        if (sourceMetrics[key] == null || !Number.isFinite(Number(sourceMetrics[key]))) {
+          complete[key] = false;
+          return;
+        }
+        metrics[key] = (metrics[key] == null ? 0 : metrics[key]) + Number(sourceMetrics[key]);
+      });
+      if (!Array.isArray(sourceMetrics.amounts) || !sourceMetrics.amounts.length) complete.amounts = false;
+      (sourceMetrics.amounts || []).forEach(function (group) {
+        var key = group.currency || "UNKNOWN";
+        amountTotals[key] = (amountTotals[key] || 0) + Number(group.value || 0);
+      });
+      (result.items || []).forEach(function (item) {
+        var key = String(item.sku || item.product || "").trim().toLowerCase().replace(/\s+/g, " ");
+        if (key) uniqueProducts[key] = true;
+      });
+      (result.warnings || []).forEach(function (code) { warningSet[code] = true; });
+      Object.keys(result.warningCounts || {}).forEach(function (code) { warningCounts[code] = (warningCounts[code] || 0) + Number(result.warningCounts[code] || 0); });
+      Object.keys(result.pending || {}).forEach(function (key) { pending[key] = Boolean(pending[key] || result.pending[key]); });
+      Object.keys(result.assumptions || {}).forEach(function (key) { assumptions[key] = Boolean(assumptions[key] || result.assumptions[key]); });
+      skippedSummaryRows += Number(result.skippedSummaryRows) || 0;
+      negativeValuesSkipped += Number(result.negativeValuesSkipped) || 0;
+      subtotalMismatchCount += Number(result.subtotalMismatchCount) || 0;
+    });
+    ["quantity", "cartons", "volume", "weight"].forEach(function (key) {
+      if (!complete[key]) metrics[key] = null;
+    });
+    metrics.uniqueProducts = Object.keys(uniqueProducts).length || null;
+    metrics.amounts = complete.amounts ? Object.keys(amountTotals).sort().map(function (currency) {
+      return { currency: currency === "UNKNOWN" ? null : currency, value: amountTotals[currency] };
+    }) : [];
+    return {
+      version: VERSION,
+      isBatch: true,
+      fileName: replaceVars(this.copy.combinedFile, { total: payloads.length }),
+      sheetName: "—",
+      sheetNames: [],
+      headerRow: "—",
+      headers: [],
+      mapping: {},
+      overrides: {
+        weightUnit: "kg", volumeUnit: "m3", dimensionUnit: "cm", currency: metrics.amounts.length === 1 ? (metrics.amounts[0].currency || "CNY") : "CNY",
+        mappingConfirmed: payloads.every(function (payload) { return payload.overrides && payload.overrides.mappingConfirmed === true; })
+      },
+      files: payloads,
+      result: {
+        metrics: metrics,
+        pending: pending,
+        assumptions: assumptions,
+        warnings: Object.keys(warningSet),
+        warningCounts: warningCounts,
+        skippedSummaryRows: skippedSummaryRows,
+        negativeValuesSkipped: negativeValuesSkipped,
+        subtotalMismatchCount: subtotalMismatchCount,
+        items: []
       }
-      this.acceptPayload(payload);
-      this.setStatus(this.copy.ready, false);
-      return payload;
+    };
+  };
+
+  Analyzer.prototype.renderFileList = function () {
+    var self = this;
+    if (!this.fileEntries.length) { this.fileList.hidden = true; this.fileList.innerHTML = ""; return; }
+    this.fileList.hidden = false;
+    this.fileList.innerHTML = "";
+    this.fileList.appendChild(element("h3", "", this.copy.fileCollection));
+    var grid = element("div", "order-analyzer__file-grid");
+    this.fileEntries.forEach(function (entry, index) {
+      var button = element("button", "order-analyzer__file-item" + (index === self.activeFileIndex ? " is-active" : ""));
+      button.type = "button";
+      button.setAttribute("data-order-file-item", "");
+      button.setAttribute("aria-pressed", index === self.activeFileIndex ? "true" : "false");
+      button.disabled = !entry.payload;
+      button.appendChild(element("strong", "", entry.file.name));
+      if (!entry.payload) button.appendChild(element("span", "", self.copy.parsing));
+      else {
+        var metrics = entry.payload.result.metrics;
+        button.appendChild(element("span", "", self.copy.fileReady + " · " + self.copy.productRows + " " + self.formatNumber(metrics.productRows, 0) + " · " + self.copy.quantity + " " + self.formatNumber(metrics.quantity, 2)));
+      }
+      button.addEventListener("click", function () {
+        if (!entry.payload) return;
+        self.activeFileIndex = index;
+        self.renderFileList();
+        self.renderTable(entry.payload.result.items, entry.payload.fileName);
+        if (self.isBatchMode && self.payloadNeedsConfirmation(entry.payload)) self.showBatchMapping(index);
+      });
+      grid.appendChild(button);
+    });
+    this.fileList.appendChild(grid);
+  };
+
+  Analyzer.prototype.parseFile = function (file) {
+    return this.parseFiles(file ? [file] : []);
+  };
+
+  Analyzer.prototype.parseFiles = async function (files) {
+    if (this.busy) return null;
+    files = Array.from(files || []);
+    this.resetAnalysis();
+    if (!files.length) { this.setStatus(this.copy.unsupported, true); return null; }
+    this.currentFiles = files.slice();
+    this.fileMeta.textContent = (files.length === 1 ? this.copy.selectedFile : this.copy.selectedFiles) + ": " + (files.length === 1 ? files[0].name + " · " + (files[0].size / 1024 / 1024).toFixed(2) + " MB" : files.length);
+    if (files.length > MAX_FILES) {
+      qa.lastError = "too_many_files:" + MAX_FILES;
+      this.deliveryBlocked = this.copy.tooManyFiles;
+      this.setStatus(this.copy.tooManyFiles, true);
+      return null;
+    }
+    for (var validationIndex = 0; validationIndex < files.length; validationIndex += 1) {
+      var validationFile = files[validationIndex];
+      var extension = fileExtension(validationFile.name);
+      if (["xlsx", "xls", "xlsm", "csv"].indexOf(extension) === -1) { qa.lastError = "unsupported_file:" + validationFile.name; this.setStatus(this.copy.unsupported, true); return null; }
+      if (validationFile.size > MAX_FILE_BYTES) { qa.lastError = "file_too_large:" + validationFile.name; this.setStatus(this.copy.fileTooLarge, true); return null; }
+    }
+    this.fileEntries = files.map(function (file) { return { file: file, payload: null }; });
+    this.renderFileList();
+    this.setBusy(true);
+    qa.fileResults = [];
+    qa.queueActive = 0;
+    qa.queueMaxConcurrent = 0;
+    try {
+      for (var index = 0; index < files.length; index += 1) {
+        this.setStatus(replaceVars(this.copy.parsingBatch, { current: index + 1, total: files.length }), false);
+        qa.queueActive = 1;
+        qa.queueMaxConcurrent = Math.max(qa.queueMaxConcurrent, qa.queueActive);
+        var payload = await this.parseOneFile(files[index]);
+        qa.queueActive = 0;
+        this.fileEntries[index].payload = payload;
+        this.fileResults.push(payload);
+        qa.fileResults = this.fileResults.slice();
+        this.activeFileIndex = index === 0 ? 0 : this.activeFileIndex;
+        this.renderFileList();
+        // Yield between files so progress remains responsive on mobile.
+        await new Promise(function (resolve) { window.setTimeout(resolve, 0); });
+      }
+      this.isBatchMode = this.fileResults.length > 1;
+      this.activeFileIndex = 0;
+      var combined = this.combinePayloads(this.fileResults);
+      qa.combinedResult = combined;
+      this.acceptPayload(combined);
+      this.renderFileList();
+      this.setStatus(this.isBatchMode
+        ? (this.payloadNeedsConfirmation(combined) ? this.copy.confirmBeforeExport : replaceVars(this.copy.combinedReady, { total: files.length }))
+        : this.copy.ready, false);
+      return combined;
     } catch (error) {
-      qa.lastError = error && error.message ? error.message : String(error);
+      qa.queueActive = 0;
+      var errorMessage = error && error.message ? error.message : String(error);
+      this.resetAnalysis();
+      qa.lastError = errorMessage;
+      this.deliveryBlocked = this.copy.parseError;
       this.setStatus(this.copy.parseError, true);
       return null;
     } finally {
@@ -1132,7 +1313,7 @@
   };
 
   Analyzer.prototype.selectSheet = async function (sheetName) {
-    if (!this.payload) return;
+    if (!this.payload || this.isBatchMode) return;
     this.setBusy(true);
     this.setStatus(this.copy.parsing, false);
     try {
@@ -1172,6 +1353,25 @@
       var mapping = this.currentMapping();
       var overrides = this.currentOverrides();
       var payload;
+      if (this.isBatchMode) {
+        var targetIndex = this.mappingFileIndex;
+        if (targetIndex < 0 || !this.fileEntries[targetIndex]) throw new Error("batch_mapping_target_missing");
+        // Re-open only the selected workbook in the single reusable worker
+        // session, then apply its confirmed column meanings. Files are still
+        // processed strictly one at a time and no workbook buffer is retained.
+        await this.parseOneFile(this.fileEntries[targetIndex].file);
+        if (this.worker && !this.workerFailed) payload = await this.workerRequest("remap", { mapping: mapping, overrides: overrides });
+        else payload = this.fallbackSession.remap(mapping, overrides);
+        this.fileEntries[targetIndex].payload = payload;
+        this.fileResults[targetIndex] = payload;
+        qa.fileResults = this.fileResults.slice();
+        var combined = this.combinePayloads(this.fileResults);
+        qa.combinedResult = combined;
+        this.acceptPayload(combined, true);
+        this.renderFileList();
+        this.setStatus(this.payloadNeedsConfirmation(combined) ? this.copy.confirmBeforeExport : replaceVars(this.copy.combinedReady, { total: this.fileResults.length }), false);
+        return;
+      }
       if (this.worker && !this.workerFailed) payload = await this.workerRequest("remap", { mapping: mapping, overrides: overrides });
       else payload = this.fallbackSession.remap(mapping, overrides);
       this.acceptPayload(payload, true);
@@ -1185,13 +1385,19 @@
     this.payload = payload;
     this.exportCache = null;
     qa.lastResult = payload;
-    this.mappingDetails.hidden = false;
+    if (!this.isBatchMode) {
+      this.fileResults = [payload];
+      if (this.fileEntries[0]) this.fileEntries[0].payload = payload;
+      qa.fileResults = this.fileResults.slice();
+      qa.combinedResult = payload;
+    }
+    this.mappingDetails.hidden = this.isBatchMode;
     this.results.hidden = false;
-    if (!preserveMappingControls) {
+    if (!this.isBatchMode && !preserveMappingControls) {
       this.renderSheetControl(payload);
       this.renderMapping(payload);
     }
-    this.headerMeta.textContent = this.copy.headerRow + ": " + payload.headerRow;
+    if (!this.isBatchMode) this.headerMeta.textContent = this.copy.headerRow + ": " + payload.headerRow;
     var pending = payload.result.pending || {};
     var warningCodes = payload.result.warnings || [];
     var incomplete = warningCodes.indexOf("rows_truncated") !== -1 || warningCodes.indexOf("columns_truncated") !== -1;
@@ -1203,13 +1409,48 @@
       : incomplete
       ? (this.copy.incompleteBlocked || this.copy.mappingHelp)
       : (needsConfirmation || !payload.result.metrics.productRows ? (this.copy.confirmBeforeExport || this.copy.mappingHelp) : "");
-    this.mappingDetails.open = Boolean(this.deliveryBlocked);
+    this.mappingDetails.open = !this.isBatchMode && Boolean(this.deliveryBlocked);
     this.exportButton.disabled = Boolean(this.deliveryBlocked);
     this.renderResult(payload);
+    this.renderFileList();
+    if (this.isBatchMode && needsConfirmation && !negativeValues && !incomplete) this.showBatchMapping();
+  };
+
+  Analyzer.prototype.payloadNeedsConfirmation = function (payload) {
+    if (!payload || !payload.result) return false;
+    var pending = payload.result.pending || {};
+    return !payload.overrides || payload.overrides.mappingConfirmed !== true
+      || Object.keys(pending).some(function (key) { return Boolean(pending[key]); });
+  };
+
+  Analyzer.prototype.showBatchMapping = function (preferredIndex) {
+    if (!this.isBatchMode) return false;
+    var index = Number.isInteger(preferredIndex) && this.payloadNeedsConfirmation(this.fileResults[preferredIndex])
+      ? preferredIndex
+      : this.fileResults.findIndex(this.payloadNeedsConfirmation.bind(this));
+    if (index < 0) {
+      this.mappingFileIndex = -1;
+      this.mappingDetails.hidden = true;
+      this.mappingDetails.open = false;
+      return false;
+    }
+    var payload = this.fileResults[index];
+    this.mappingFileIndex = index;
+    this.activeFileIndex = index;
+    this.mappingDetails.hidden = false;
+    this.mappingDetails.open = true;
+    this.renderSheetControl(payload);
+    this.sheetSelect.disabled = true;
+    this.headerMeta.textContent = this.copy.headerRow + ": " + payload.headerRow + " · " + payload.fileName;
+    this.renderMapping(payload);
+    this.renderTable(payload.result.items, payload.fileName);
+    this.renderFileList();
+    return true;
   };
 
   Analyzer.prototype.renderSheetControl = function (payload) {
     this.sheetSelect.innerHTML = "";
+    this.sheetSelect.disabled = false;
     payload.sheetNames.forEach(function (name) { var node = option(name, name); node.selected = name === payload.sheetName; this.sheetSelect.appendChild(node); }, this);
   };
 
@@ -1311,14 +1552,15 @@
     }
     var estimate = this.containerEstimate(metrics.volume, result.pending.volumeUnit);
     this.renderContainer(estimate);
-    this.renderTable(result.items);
+    var detailPayload = this.fileResults[this.activeFileIndex] || payload;
+    this.renderTable(detailPayload.result.items, detailPayload.fileName);
   };
 
-  Analyzer.prototype.renderTable = function (items) {
+  Analyzer.prototype.renderTable = function (items, fileName) {
     var t = this.copy;
     this.tableWrap.innerHTML = "";
     var table = element("table", "order-analyzer__table");
-    var caption = element("caption", "", t.detailsTitle + " · " + items.length);
+    var caption = element("caption", "", t.detailsTitle + " · " + items.length + (fileName ? " · " + fileName : ""));
     table.appendChild(caption);
     var thead = element("thead", "");
     var head = element("tr", "");
@@ -1503,24 +1745,140 @@
     });
   };
 
+  Analyzer.prototype.fitCanvasText = function (ctx, value, maxWidth) {
+    var text = String(value == null || value === "" ? "—" : value);
+    if (ctx.measureText(text).width <= maxWidth) return text;
+    while (text.length > 1 && ctx.measureText(text + "…").width > maxWidth) text = text.slice(0, -1);
+    return text + "…";
+  };
+
+  Analyzer.prototype.drawUhdMetric = function (ctx, x, y, width, label, value) {
+    this.roundRect(ctx, x, y, width, 140, 26, "#ffffff", "#d5e5f0");
+    var textX = this.rtl ? x + width - 34 : x + 34;
+    ctx.textAlign = this.rtl ? "right" : "left";
+    ctx.fillStyle = "#64748b";
+    ctx.font = '800 27px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
+    ctx.fillText(this.fitCanvasText(ctx, label, width - 68), textX, y + 44);
+    ctx.fillStyle = "#0f172a";
+    ctx.font = '900 46px ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace';
+    ctx.fillText(this.fitCanvasText(ctx, value, width - 68), textX, y + 105);
+  };
+
+  Analyzer.prototype.drawUhdFileCard = function (ctx, payload, index, x, y, width) {
+    var metrics = payload.result.metrics;
+    this.roundRect(ctx, x, y, width, 170, 25, index % 2 ? "#f7fbfe" : "#ffffff", "#d5e5f0");
+    var textX = this.rtl ? x + width - 34 : x + 34;
+    ctx.textAlign = this.rtl ? "right" : "left";
+    ctx.fillStyle = "#0f766e";
+    ctx.font = '900 31px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
+    ctx.fillText(String(index + 1).padStart(2, "0") + "  " + this.fitCanvasText(ctx, payload.fileName, width - 150), textX, y + 48);
+    ctx.fillStyle = "#475569";
+    ctx.font = '750 25px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
+    var firstLine = this.copy.productRows + " " + this.formatNumber(metrics.productRows, 0) + "  ·  " + this.copy.uniqueProducts + " " + this.formatNumber(metrics.uniqueProducts, 0) + "  ·  " + this.copy.quantity + " " + this.formatNumber(metrics.quantity, 2);
+    ctx.fillText(this.fitCanvasText(ctx, firstLine, width - 68), textX, y + 96);
+    ctx.fillStyle = "#0f172a";
+    ctx.font = '800 26px ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace';
+    var secondLine = this.copy.weight + " " + (metrics.weight == null ? this.copy.missing : this.formatNumber(metrics.weight, 2) + " kg") + "  ·  " + this.copy.volume + " " + (metrics.volume == null ? this.copy.missing : this.formatNumber(metrics.volume, 3) + " m³") + "  ·  " + this.copy.amount + " " + this.amountText(metrics.amounts);
+    ctx.fillText(this.fitCanvasText(ctx, secondLine, width - 68), textX, y + 140);
+  };
+
+  Analyzer.prototype.drawUhdReport = function () {
+    var width = 3840;
+    var height = 2160;
+    var margin = 180;
+    var canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    var ctx = canvas.getContext("2d", { alpha: true });
+    var gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, "#eff8ff");
+    gradient.addColorStop(0.52, "#f8fbfd");
+    gradient.addColorStop(1, "#ecfdf8");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    this.roundRect(ctx, 70, 70, width - 140, height - 140, 42, "rgba(255,255,255,.86)", "#cfe1ed");
+    ctx.direction = this.rtl ? "rtl" : "ltr";
+    ctx.textBaseline = "alphabetic";
+    var startX = this.rtl ? width - margin : margin;
+    ctx.textAlign = this.rtl ? "right" : "left";
+    ctx.fillStyle = "#0f766e";
+    ctx.font = '900 34px ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace';
+    ctx.fillText("Jabbar · 体积工具", startX, 155);
+    ctx.fillStyle = "#0f172a";
+    ctx.font = '950 70px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
+    ctx.fillText(this.isBatchMode ? this.copy.combinedReport : this.copy.reportTitle, startX, 245);
+    ctx.fillStyle = "#64748b";
+    ctx.font = '700 29px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
+    var sourceText = (this.isBatchMode ? replaceVars(this.copy.combinedFile, { total: this.fileResults.length }) : this.copy.file + ": " + this.payload.fileName) + "  ·  " + this.copy.generated + ": " + new Date().toLocaleString(this.locale);
+    ctx.fillText(this.fitCanvasText(ctx, sourceText, width - margin * 2), startX, 295);
+
+    var metrics = this.payload.result.metrics;
+    var metricValues = [
+      [this.copy.productRows, this.formatNumber(metrics.productRows, 0)],
+      [this.copy.uniqueProducts, this.formatNumber(metrics.uniqueProducts, 0)],
+      [this.copy.quantity, this.formatNumber(metrics.quantity, 2)],
+      [this.copy.cartons, this.formatNumber(metrics.cartons, 2)],
+      [this.copy.volume, metrics.volume == null ? this.copy.missing : this.formatNumber(metrics.volume, 3) + " m³"],
+      [this.copy.weight, metrics.weight == null ? this.copy.missing : this.formatNumber(metrics.weight, 2) + " kg"],
+      [this.copy.amount, this.amountText(metrics.amounts)]
+    ];
+    var metricGap = 26;
+    var metricWidth = (width - margin * 2 - metricGap * 3) / 4;
+    metricValues.forEach(function (entry, index) {
+      this.drawUhdMetric(ctx, margin + (index % 4) * (metricWidth + metricGap), 340 + Math.floor(index / 4) * 164, metricWidth, entry[0], entry[1]);
+    }, this);
+
+    var estimate = this.containerEstimate(metrics.volume, this.payload.result.pending.volumeUnit);
+    var containerY = 680;
+    this.roundRect(ctx, margin, containerY, width - margin * 2, 220, 28, "#f8fbff", "#d5e5f0");
+    var boxX = margin + 310;
+    var boxWidth = width - margin * 2 - 620;
+    var boxY = containerY + 70;
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(boxX, boxY, boxWidth, 88);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(boxX + 7, boxY + 7, boxWidth - 14, 74);
+    ctx.fillStyle = "#5dcaa5";
+    ctx.fillRect(boxX + 7, boxY + 7, (boxWidth - 14) * Math.max(0, Math.min(1, (estimate.percent || 0) / 100)), 74);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#04342c";
+    ctx.font = '950 44px ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace';
+    ctx.fillText(Math.round(estimate.percent || 0) + "%", width / 2, boxY + 58);
+    ctx.fillStyle = "#0f172a";
+    ctx.font = '900 34px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
+    ctx.fillText(this.copy.containerTitle + " · " + estimate.label + " · " + (metrics.volume == null ? "—" : this.formatNumber(metrics.volume, 3) + " / " + this.formatNumber(estimate.capacity, 0) + " m³"), width / 2, containerY + 46);
+
+    ctx.textAlign = this.rtl ? "right" : "left";
+    ctx.fillStyle = "#0f172a";
+    ctx.font = '950 38px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
+    ctx.fillText(this.copy.fileCollection + " · " + this.fileResults.length, startX, 970);
+    var fileGap = 28;
+    var fileWidth = (width - margin * 2 - fileGap) / 2;
+    this.fileResults.slice(0, MAX_FILES).forEach(function (payload, index) {
+      this.drawUhdFileCard(ctx, payload, index, margin + (index % 2) * (fileWidth + fileGap), 1010 + Math.floor(index / 2) * 186, fileWidth);
+    }, this);
+
+    ctx.fillStyle = "#475569";
+    ctx.font = '800 27px ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace';
+    ctx.textAlign = this.rtl ? "right" : "left";
+    ctx.fillText("Jabbar Sourcing · jabbarsourcing.com", this.rtl ? width - margin : margin, height - 105);
+    ctx.textAlign = this.rtl ? "left" : "right";
+    ctx.fillText("3840 × 2160 · LOSSLESS PNG", this.rtl ? margin : width - margin, height - 105);
+    return canvas;
+  };
+
   Analyzer.prototype.prepareExport = async function () {
     if (this.exportCache) return this.exportCache;
-    var pages = await this.createReportPages();
-    var total = pages.length;
-    var base = safeFileName(this.payload.fileName) + "-Jabbar-Sourcing-order-report";
-    var files = [];
-    for (var index = 0; index < pages.length; index += 1) {
-      var canvas = this.drawReportPage(pages[index], index, total);
-      var blob = await this.canvasBlob(canvas);
-      var suffix = total > 1 ? "-" + String(index + 1).padStart(2, "0") + "-of-" + String(total).padStart(2, "0") : "";
-      files.push(new File([blob], base + suffix + ".png", { type: "image/png", lastModified: Date.now() }));
-      // Release the potentially tall bitmap before creating the next page.
-      canvas.width = 1;
-      canvas.height = 1;
-      await new Promise(function (resolve) { setTimeout(resolve, 0); });
-    }
+    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (_) {} }
+    var canvas = this.drawUhdReport();
+    var blob = await this.canvasBlob(canvas);
+    var base = this.isBatchMode ? "Jabbar-Sourcing-combined-order-report" : safeFileName(this.payload.fileName) + "-Jabbar-Sourcing-order-report";
+    var files = [new File([blob], base + ".png", { type: "image/png", lastModified: Date.now() })];
+    qa.exportDimensions = { width: canvas.width, height: canvas.height };
+    canvas.width = 1;
+    canvas.height = 1;
     this.exportCache = files;
-    qa.exportPageCount = files.length;
+    qa.exportPageCount = 1;
     qa.lastExportFiles = files.map(function (file) { return { name: file.name, size: file.size, type: file.type }; });
     return files;
   };
@@ -1561,6 +1919,7 @@
   qa.version = VERSION;
   qa.noUpload = true;
   qa.maxFileBytes = MAX_FILE_BYTES;
+  qa.maxFiles = MAX_FILES;
   qa.workerUsed = false;
   qa.fallbackUsed = false;
   qa.vendorRequested = false;

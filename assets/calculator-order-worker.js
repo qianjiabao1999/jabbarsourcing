@@ -6,7 +6,7 @@
 (function (scope) {
   "use strict";
 
-  var VERSION = "order-20260714b";
+  var VERSION = "order-20260714d";
   var MAX_ROWS = 10000;
   var MAX_COLUMNS = 100;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
@@ -33,7 +33,7 @@
     { key: "image", words: ["图片", "照片", "图", "image", "photo", "picture", "imagen", "foto", "image", "photo", "imagem", "foto", "изображение", "фото", "bild", "foto", "immagine", "görsel", "fotoğraf", "صورة"] }
   ];
 
-  var SUMMARY_WORDS = /^(?:合计|总计|總計|小计|小計|總和|总和|total|subtotal|sum|grand total|gesamt|summe|totale|итого|итог|всего|المجموع|الإجمالي|total geral|toplam)(?:\s*(?:数量|數量|金额|金額|重量|体积|體積|箱数|箱數|quantity|amount|weight|volume|cartons?))?$/i;
+  var SUMMARY_WORDS = /^(?:(?:订单|訂單|order)\s*)?(?:合计|合計|总计|總計|小计|小計|總和|总和|汇总|彙總|summary|grand\s+total|total(?:\s+(?:g[eé]n[eé]ral|geral|global))?|subtotal|sum|suma\s+total|gesamt(?:\s*summe)?|summe|totale(?:\s+(?:complessivo|generale))?|итого|итог|общи[ий]\s+итог|всего|المجموع(?:\s+الكلي)?|الإجمالي(?:\s+الكلي)?|genel\s+toplam|toplam)(?:\s*(?:数量|數量|金额|金額|重量|体积|體積|箱数|箱數|quantity|amount|weight|volume|cartons?))?(?:\s*(?:共|共计|共計|total)?\s*[0-9.,，]+\s*(?:款|项|項|种|種|件|行|products?|items?|rows?)?)?$/i;
   var EXPLICIT_UNIT_WEIGHT_HEADERS = [
     "单件重量", "单重", "每件重量", "单位重量", "unit weight", "weight per unit",
     "peso unitario", "poids unitaire", "peso unitário", "вес единицы", "stückgewicht",
@@ -43,6 +43,18 @@
     "单件体积", "单体积", "每件体积", "单位体积", "unit volume", "volume per unit",
     "volumen unitario", "volume unitaire", "volume unitário", "объем единицы", "объём единицы",
     "stückvolumen", "volume unitario", "birim hacim", "حجم الوحدة"
+  ];
+  var BARCODE_HEADER_WORDS = [
+    "商品条码", "商品條碼", "商品条形码", "商品條形碼", "条码", "條碼", "条形码", "條形碼",
+    "barcode", "bar code", "product barcode", "codigo de barras", "código de barras", "code barres",
+    "code-barres", "código de barras", "штрихкод", "штрих код", "strichcode", "strich code",
+    "codice a barre", "barkod", "باركود", "الرمز الشريطي"
+  ];
+  var IMAGE_HEADER_WORDS = [
+    "商品图片", "商品圖片", "产品图片", "產品圖片", "商品图", "商品圖", "产品图", "產品圖", "图片", "圖片", "照片",
+    "product image", "product photo", "item image", "item photo", "image", "photo", "picture",
+    "imagen", "foto", "image produit", "photo produit", "imagem", "фото", "изображение", "produktbild",
+    "bild", "immagine", "görsel", "fotoğraf", "صورة"
   ];
 
   function normalize(value) {
@@ -67,23 +79,34 @@
     return name;
   }
 
-  function matchHeader(value) {
+  function matchHeaderDetail(value) {
     var text = normalize(value);
     if (!text) return null;
-    var exact = null;
-    var partial = null;
-    var partialLength = 0;
+    // Image columns are display-only data. Resolve them before generic product
+    // words so Product Image / 商品图片 never becomes the product-name column.
+    if (IMAGE_HEADER_WORDS.some(function (word) { return text.indexOf(normalize(word)) !== -1; })) return { key: "image", score: 2500 };
+    // Barcode columns are identifiers, never product names. Check them before
+    // generic words such as 商品 / product so compound headers like 商品条码
+    // and Product Barcode cannot be captured by the product-name mapping.
+    if (BARCODE_HEADER_WORDS.some(function (word) { return text.indexOf(normalize(word)) !== -1; })
+      || /(^|\s)(?:ean(?:8|13)?|upc(?:a|e)?|gtin(?:8|12|13|14)?)(?:\s|$)/.test(text)) return { key: "sku", score: 2500 };
+    var best = null;
     FIELD_DEFINITIONS.forEach(function (definition) {
       definition.words.forEach(function (word) {
         var normalizedWord = normalize(word);
-        if (text === normalizedWord && !exact) exact = definition.key;
-        else if ((normalizedWord.length >= 3 || (/[\u3400-\u9fff]/.test(normalizedWord) && normalizedWord.length >= 2)) && text.indexOf(normalizedWord) !== -1 && normalizedWord.length > partialLength) {
-          partial = definition.key;
-          partialLength = normalizedWord.length;
-        }
+        var exact = text === normalizedWord;
+        var partial = !exact && (normalizedWord.length >= 3 || (/[\u3400-\u9fff]/.test(normalizedWord) && normalizedWord.length >= 2)) && text.indexOf(normalizedWord) !== -1;
+        if (!exact && !partial) return;
+        var score = (exact ? 3000 : 1000) + normalizedWord.length;
+        if (!best || score > best.score) best = { key: definition.key, score: score };
       });
     });
-    return exact || partial;
+    return best;
+  }
+
+  function matchHeader(value) {
+    var match = matchHeaderDetail(value);
+    return match ? match.key : null;
   }
 
   function isBlank(value) {
@@ -110,17 +133,18 @@
 
   function detectCurrency(value) {
     var text = String(value == null ? "" : value).toUpperCase();
-    if (/\b(CNY|RMB)\b|[¥￥]|元/.test(text)) return "CNY";
-    if (/\bUSD\b|US\$/.test(text)) return "USD";
-    if (/\bEUR\b|€/.test(text)) return "EUR";
-    if (/\bGBP\b|£/.test(text)) return "GBP";
-    if (/\bRUB\b|₽/.test(text)) return "RUB";
-    if (/\bTRY\b|₺/.test(text)) return "TRY";
-    if (/\bAED\b/.test(text)) return "AED";
-    if (/\bSAR\b/.test(text)) return "SAR";
-    if (/\bJPY\b|円/.test(text)) return "JPY";
-    if (/\bCAD\b/.test(text)) return "CAD";
-    if (/\bAUD\b/.test(text)) return "AUD";
+    // Match named foreign currencies before the generic Chinese 元 suffix.
+    if (/\bUSD\b|US\$|美元|美金/.test(text)) return "USD";
+    if (/\bEUR\b|€|欧元|歐元/.test(text)) return "EUR";
+    if (/\bGBP\b|£|英镑|英鎊/.test(text)) return "GBP";
+    if (/\bRUB\b|₽|卢布|盧布/.test(text)) return "RUB";
+    if (/\bTRY\b|₺|土耳其里拉/.test(text)) return "TRY";
+    if (/\bAED\b|迪拉姆/.test(text)) return "AED";
+    if (/\bSAR\b|沙特里亚尔|沙特里亞爾/.test(text)) return "SAR";
+    if (/\bJPY\b|円|日元|日圆|日圓/.test(text)) return "JPY";
+    if (/\bCAD\b|加元/.test(text)) return "CAD";
+    if (/\bAUD\b|澳元/.test(text)) return "AUD";
+    if (/\b(CNY|RMB)\b|人民币|人民幣|[¥￥]|元/.test(text)) return "CNY";
     if (/\$/.test(text)) return "USD";
     return null;
   }
@@ -185,16 +209,55 @@
 
   function createMapping(headers) {
     var mapping = {};
+    var scores = {};
     headers.forEach(function (header) {
-      var field = matchHeader(header.label);
-      if (field && field !== "image" && mapping[field] == null) mapping[field] = header.index;
+      var match = matchHeaderDetail(header.label);
+      if (!match || match.key === "image") return;
+      if (mapping[match.key] == null || match.score > scores[match.key]) {
+        mapping[match.key] = header.index;
+        scores[match.key] = match.score;
+      }
     });
     return mapping;
+  }
+
+  function worksheetContentBounds(sheet, XLSX) {
+    var maxRow = -1;
+    var maxColumn = -1;
+    function hasContent(cell) {
+      if (!cell) return false;
+      if (cell.f) return true;
+      var value = cell.v != null ? cell.v : cell.w;
+      return !isBlank(value);
+    }
+    var dense = sheet && sheet["!data"];
+    if (Array.isArray(dense)) {
+      Object.keys(dense).forEach(function (rowKey) {
+        if (!/^\d+$/.test(rowKey)) return;
+        var rowIndex = Number(rowKey);
+        var row = dense[rowIndex];
+        if (!Array.isArray(row)) return;
+        Object.keys(row).forEach(function (columnKey) {
+          if (!/^\d+$/.test(columnKey) || !hasContent(row[Number(columnKey)])) return;
+          maxRow = Math.max(maxRow, rowIndex);
+          maxColumn = Math.max(maxColumn, Number(columnKey));
+        });
+      });
+    } else {
+      Object.keys(sheet || {}).forEach(function (address) {
+        if (address.charAt(0) === "!" || !/^[A-Z]+[1-9][0-9]*$/i.test(address) || !hasContent(sheet[address])) return;
+        var decoded = XLSX.utils.decode_cell(address);
+        maxRow = Math.max(maxRow, decoded.r);
+        maxColumn = Math.max(maxColumn, decoded.c);
+      });
+    }
+    return { maxRow: maxRow, maxColumn: maxColumn };
   }
 
   function buildTable(sheet, XLSX) {
     if (!sheet || !sheet["!ref"]) return { headerRow: 0, headers: [], rows: [], truncatedRows: false, truncatedColumns: false };
     var decoded = XLSX.utils.decode_range(sheet["!ref"]);
+    var contentBounds = worksheetContentBounds(sheet, XLSX);
     var range = {
       s: { r: decoded.s.r, c: decoded.s.c },
       e: { r: Math.min(decoded.e.r, decoded.s.r + MAX_ROWS + 29), c: Math.min(decoded.e.c, decoded.s.c + MAX_COLUMNS - 1) }
@@ -238,8 +301,10 @@
       headerRow: range.s.r + headerRow + 1,
       headers: headers,
       rows: rows,
-      truncatedRows: decoded.e.r > range.s.r + headerRow + MAX_ROWS,
-      truncatedColumns: decoded.e.c >= range.s.c + MAX_COLUMNS
+      // Excel often keeps a historically formatted UsedRange far beyond the
+      // actual data. Enforce limits against populated cells, not inflated !ref.
+      truncatedRows: contentBounds.maxRow > range.s.r + headerRow + MAX_ROWS,
+      truncatedColumns: contentBounds.maxColumn >= range.s.c + MAX_COLUMNS
     };
   }
 
@@ -270,13 +335,6 @@
     return row.some(function (cell) { return isSummaryValue(cell); });
   }
 
-  function hasRealMappedIdentity(row, mapping) {
-    return ["product", "sku"].some(function (field) {
-      var value = valueAt(row, mapping, field);
-      return !isBlank(value) && !isSummaryValue(value);
-    });
-  }
-
   function hasMappedSummaryIdentity(row, mapping) {
     var sku = valueAt(row, mapping, "sku");
     var product = valueAt(row, mapping, "product");
@@ -286,7 +344,7 @@
 
   function isMarkedSummaryRow(row, mapping) {
     if (hasMappedSummaryIdentity(row, mapping)) return true;
-    return hasSummaryMarker(row) && !hasRealMappedIdentity(row, mapping);
+    return hasSummaryMarker(row);
   }
 
   function nearlyEqual(left, right) {
@@ -424,10 +482,10 @@
         return;
       }
 
-      var rowWeightUnit = overrideWeight || detectWeightUnit(valueAt(row, mapping, "weightUnit")) || detectWeightUnit(valueAt(row, mapping, "unitWeight")) || detectWeightUnit(valueAt(row, mapping, "totalWeight")) || headerWeightUnit;
-      var rowVolumeUnit = overrideVolume || detectVolumeUnit(valueAt(row, mapping, "volumeUnit")) || detectVolumeUnit(valueAt(row, mapping, "unitVolume")) || detectVolumeUnit(valueAt(row, mapping, "totalVolume")) || headerVolumeUnit;
+      var rowWeightUnit = detectWeightUnit(valueAt(row, mapping, "weightUnit")) || detectWeightUnit(valueAt(row, mapping, "unitWeight")) || detectWeightUnit(valueAt(row, mapping, "totalWeight")) || headerWeightUnit || overrideWeight;
+      var rowVolumeUnit = detectVolumeUnit(valueAt(row, mapping, "volumeUnit")) || detectVolumeUnit(valueAt(row, mapping, "unitVolume")) || detectVolumeUnit(valueAt(row, mapping, "totalVolume")) || headerVolumeUnit || overrideVolume;
       var rowCurrency = detectCurrency(valueAt(row, mapping, "currency")) || detectCurrency(valueAt(row, mapping, "amount")) || detectCurrency(valueAt(row, mapping, "unitPrice")) || headerCurrency || overrideCurrency || "CNY";
-      var rowDimensionUnit = overrideDimension || detectDimensionUnit(valueAt(row, mapping, "dimensionUnit")) || headerDimensionUnit;
+      var rowDimensionUnit = detectDimensionUnit(valueAt(row, mapping, "dimensionUnit")) || detectDimensionUnit([valueAt(row, mapping, "length"), valueAt(row, mapping, "width"), valueAt(row, mapping, "height")].join(" ")) || headerDimensionUnit || overrideDimension;
       var computedWeight = null;
       var computedVolume = null;
       var computedAmount = null;

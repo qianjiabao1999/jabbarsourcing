@@ -9,8 +9,21 @@ const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/
 const OUTPUT_DIR = process.env.QA_ORDER_OUTPUT_DIR || "/tmp/jabbar-order-analyzer-qa";
 const REAL_WORKBOOK = process.env.ORDER_WORKBOOK || "/Users/jabbar/Downloads/订单SHD-260713-0003明细.xlsx";
 const SUMMARY_WORKBOOK = process.env.SUMMARY_ORDER_WORKBOOK || "/Users/jabbar/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files/wxid_svlu2ime3h3l12_c4b7/msg/file/2026-07/Biiabaa01.xlsx";
+const BARCODE_WORKBOOK = process.env.BARCODE_ORDER_WORKBOOK || "/Users/jabbar/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files/wxid_svlu2ime3h3l12_c4b7/msg/file/2026-07/Ant 整件85件.xlsx";
 const FIXTURE_NAME = "qa-order-analyzer-190-products.xlsx";
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const LOCALIZED_SUMMARY_PHRASES = [
+  "订单总计（共1款）",
+  "Grand Total",
+  "Total general",
+  "Total général",
+  "Gesamtsumme",
+  "Totale complessivo",
+  "Genel toplam",
+  "Общий итог",
+  "المجموع الكلي",
+  "Total geral"
+];
 
 await mkdir(OUTPUT_DIR, { recursive: true });
 
@@ -71,6 +84,80 @@ async function createUsdHeaderFixture(browser) {
   });
   await context.close();
   return Buffer.from(base64, "base64");
+}
+
+async function createBarcodeFixtures(browser) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.setContent("<!doctype html><html><head></head><body></body></html>");
+  await page.addScriptTag({ url: `${BASE_URL}/assets/vendor/xlsx.full.min.js?v=0.20.3` });
+  const fixtures = await page.evaluate(() => {
+    function workbookBase64(rows, sheetName) {
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), sheetName);
+      return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
+    }
+    return {
+      zh: workbookBase64([
+        ["商品编号", "商品条码", "商品名称", "数量", "金额"],
+        ["MUG-001", "6971234567890", "陶瓷杯", 2, 20]
+      ], "中文条码"),
+      en: workbookBase64([
+        ["Product Barcode", "Product Name", "Quantity", "Amount USD"],
+        ["012345678905", "Ceramic Mug", 3, 30]
+      ], "English Barcode"),
+      only: workbookBase64([
+        ["条形码编码", "数量", "金额"],
+        ["6901234567892", 4, 40]
+      ], "仅条码")
+    };
+  });
+  await context.close();
+  return Object.fromEntries(Object.entries(fixtures).map(([key, value]) => [key, Buffer.from(value, "base64")]));
+}
+
+async function createAuditEdgeFixtures(browser) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.setContent("<!doctype html><html><head></head><body></body></html>");
+  await page.addScriptTag({ url: `${BASE_URL}/assets/vendor/xlsx.full.min.js?v=0.20.3` });
+  const fixtures = await page.evaluate((localizedSummaryPhrases) => {
+    function workbookBase64(rows, sheetName) {
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), sheetName);
+      return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
+    }
+    return {
+      foreignCurrency: workbookBase64([
+        ["商品名称", "数量", "金额（美元）"],
+        ["美元商品", 1, 12]
+      ], "中文美元"),
+      mixedUnits: workbookBase64([
+        ["商品名称", "数量", "总重量", "重量单位", "总体积", "体积单位", "金额"],
+        ["克与立方厘米", 1, 500, "g", 1000, "cm³", 1],
+        ["千克与立方米", 1, 2, "kg", 1, "m³", 2]
+      ], "混合单位"),
+      annotatedSummary: workbookBase64([
+        ["商品名称", "数量", "金额", "总重量（kg）", "总体积（m³）", "备注"],
+        ["商品 A", 2, 20, 4, 0.2, ""],
+        ["商品 B", 3, 30, 6, 0.3, ""],
+        ["合计（共2款）", 5, 50, 10, 0.5, ""],
+        ["订单汇总", 5, 50, 10, 0.5, ""],
+        ["系统记录", 5, 50, 10, 0.5, "合计"]
+      ], "带注释合计"),
+      localizedSummaries: workbookBase64([
+        ["商品名称", "数量", "金额", "总重量（kg）", "总体积（m³）"],
+        ["基准商品", 5, 50, 10, 0.5],
+        ...localizedSummaryPhrases.map((phrase) => [phrase, 5, 50, 10, 0.5])
+      ], "多语种总计"),
+      imageHeaders: workbookBase64([
+        ["商品编号", "商品图片", "Product Image", "商品名称", "数量", "金额"],
+        ["IMG-001", "photo-a.jpg", "photo-b.jpg", "真实商品名称", 1, 10]
+      ], "图片列")
+    };
+  }, LOCALIZED_SUMMARY_PHRASES);
+  await context.close();
+  return Object.fromEntries(Object.entries(fixtures).map(([key, value]) => [key, Buffer.from(value, "base64")]));
 }
 
 async function createNegativeFixture(browser) {
@@ -177,6 +264,89 @@ async function createLimitFixture(browser, kind) {
   return Buffer.from(base64, "base64");
 }
 
+async function createInflatedRangeFixture(browser) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.setContent("<!doctype html><html><head></head><body></body></html>");
+  await page.addScriptTag({ url: `${BASE_URL}/assets/vendor/xlsx.full.min.js?v=0.20.3` });
+  const base64 = await page.evaluate(() => {
+    const rows = [
+      ["商品名称", "数量", "金额", "总重量（kg）", "总体积（m³）"],
+      ["有效商品", 2, 20, 4, 0.2]
+    ];
+    const sheet = XLSX.utils.aoa_to_sheet(rows);
+    sheet["!ref"] = "A1:CW10002";
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, "膨胀已用区域");
+    return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
+  });
+  await context.close();
+  return Buffer.from(base64, "base64");
+}
+
+async function createMultiFileFixtures(browser) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.setContent("<!doctype html><html><head></head><body></body></html>");
+  await page.addScriptTag({ url: `${BASE_URL}/assets/vendor/xlsx.full.min.js?v=0.20.3` });
+  const fixtures = await page.evaluate(() => {
+    function workbookBase64(rows, sheetName) {
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), sheetName);
+      return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
+    }
+    const header = ["商品名称", "数量", "金额", "总重量（kg）", "总体积（m³）"];
+    return [
+      workbookBase64([
+        header,
+        ["多文件商品 A1", 2, 20, 4, 0.2],
+        ["多文件商品 A2", 3, 30, 6, 0.3]
+      ], "多文件 A"),
+      workbookBase64([
+        header,
+        ["多文件商品 B1", 1, 10, 2, 0.1],
+        ["多文件商品 B2", 2, 20, 4, 0.2]
+      ], "多文件 B"),
+      workbookBase64([
+        header,
+        ["多文件商品 C1", 1, 10, 1, 0.1],
+        ["多文件商品 C2", 3, 30, 4, 0.3]
+      ], "多文件 C")
+    ];
+  });
+  await context.close();
+  return fixtures.map((value, index) => ({
+    name: `qa-multi-order-${index + 1}.xlsx`,
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: Buffer.from(value, "base64")
+  }));
+}
+
+async function createGenericPendingBatchFixtures(browser) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.setContent("<!doctype html><html><head></head><body></body></html>");
+  await page.addScriptTag({ url: `${BASE_URL}/assets/vendor/xlsx.full.min.js?v=0.20.3` });
+  const fixtures = await page.evaluate(() => {
+    function workbookBase64(rows, sheetName) {
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), sheetName);
+      return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
+    }
+    const header = ["商品名称", "数量", "金额", "重量", "体积"];
+    return [
+      workbookBase64([header, ["待确认商品 A", 2, 20, 3, 0.2]], "通用表头 A"),
+      workbookBase64([header, ["待确认商品 B", 3, 30, 4, 0.3]], "通用表头 B")
+    ];
+  });
+  await context.close();
+  return fixtures.map((value, index) => ({
+    name: `qa-generic-pending-${index + 1}.xlsx`,
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: Buffer.from(value, "base64")
+  }));
+}
+
 async function waitForAnalyzer(page) {
   await page.waitForFunction(() => window.JABBAR_ORDER_ANALYZER_QA?.ready === true);
   await page.locator("[data-order-file]").waitFor({ state: "attached" });
@@ -191,6 +361,33 @@ async function uploadWorkbook(page, file) {
     return qa?.lastResult?.fileName === name && root?.getAttribute("aria-busy") !== "true";
   }, expectedName);
   return page.evaluate(() => window.JABBAR_ORDER_ANALYZER_QA.lastResult);
+}
+
+async function uploadWorkbooks(page, files) {
+  const expectedNames = files.map((file) => typeof file === "string" ? basename(file) : file.name);
+  await page.locator("[data-order-file]").setInputFiles(files);
+  await page.waitForFunction(({ names, count }) => {
+    const qa = window.JABBAR_ORDER_ANALYZER_QA || {};
+    const root = document.querySelector("[data-order-analyzer]");
+    const fileResults = qa.fileResults || qa.lastResults || qa.results || [];
+    const combined = qa.combinedResult || qa.lastResult;
+    const itemNames = [...document.querySelectorAll("[data-order-file-item]")].map((item) => item.textContent || "");
+    return root?.getAttribute("aria-busy") !== "true"
+      && combined?.result?.metrics
+      && fileResults.length === count
+      && itemNames.length === count
+      && names.every((name) => itemNames.some((text) => text.includes(name)));
+  }, { names: expectedNames, count: files.length });
+  return page.evaluate(() => {
+    const qa = window.JABBAR_ORDER_ANALYZER_QA || {};
+    return {
+      combined: qa.combinedResult || qa.lastResult,
+      fileResults: qa.fileResults || qa.lastResults || qa.results || [],
+      maxFiles: qa.maxFiles,
+      itemNames: [...document.querySelectorAll("[data-order-file-item]")].map((item) => item.textContent || ""),
+      fileListText: document.querySelector("[data-order-file-list]")?.textContent || ""
+    };
+  });
 }
 
 async function confirmUnits(page) {
@@ -246,11 +443,15 @@ async function captureExport(page, expectedPages, label) {
       assert(bytes.subarray(0, 8).equals(PNG_SIGNATURE), `${label}: invalid PNG signature for ${download.suggestedFilename()}`);
       const width = bytes.readUInt32BE(16);
       const height = bytes.readUInt32BE(20);
-      assert.equal(width, 1600, `${label}: PNG width`);
-      assert(height >= 980 && height <= 8400, `${label}: PNG height ${height}`);
+      const bitDepth = bytes.readUInt8(24);
+      const colorType = bytes.readUInt8(25);
+      assert(width >= 3840, `${label}: PNG width ${width} is below the 3840 px UHD lossless target`);
+      assert(height >= 2160, `${label}: PNG height ${height} is below the 2160 px UHD target`);
+      assert.equal(bitDepth, 8, `${label}: PNG bit depth`);
+      assert([2, 6].includes(colorType), `${label}: PNG must use lossless true-colour pixels, got colour type ${colorType}`);
       assert(download.suggestedFilename().endsWith(".png"), `${label}: PNG filename`);
       await download.saveAs(`${OUTPUT_DIR}/${download.suggestedFilename()}`);
-      return { name: download.suggestedFilename(), size: bytes.length, width, height };
+      return { name: download.suggestedFilename(), size: bytes.length, width, height, bitDepth, colorType };
     })());
   };
   page.on("download", handler);
@@ -294,12 +495,17 @@ let fixtureExport = null;
 try {
   const fixture = await createFixture(browser);
   const usdHeaderFixture = await createUsdHeaderFixture(browser);
+  const barcodeFixtures = await createBarcodeFixtures(browser);
+  const auditEdgeFixtures = await createAuditEdgeFixtures(browser);
   const negativeFixture = await createNegativeFixture(browser);
   const summaryFixture = await createSummaryFixture(browser);
   const continuationFixture = await createContinuationFixture(browser);
   const allQuantityOneFixture = await createAllQuantityOneFixture(browser);
   const rowLimitFixture = await createLimitFixture(browser, "rows");
   const columnLimitFixture = await createLimitFixture(browser, "columns");
+  const inflatedRangeFixture = await createInflatedRangeFixture(browser);
+  const multiFileFixtures = await createMultiFileFixtures(browser);
+  const genericPendingBatchFixtures = await createGenericPendingBatchFixtures(browser);
   assert(fixture.length > 1000, "runtime XLSX fixture is unexpectedly small");
 
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
@@ -357,7 +563,200 @@ try {
   await assertNoOverflow(page, "Chinese desktop 1280");
   await page.locator("[data-order-analyzer]").screenshot({ path: `${OUTPUT_DIR}/fixture-desktop-1280.png` });
 
-  fixtureExport = await captureExport(page, 2, "fixture export");
+  fixtureExport = await captureExport(page, 1, "fixture export");
+
+  assert.equal(await page.locator("[data-order-file]").getAttribute("multiple"), "", "multi-file input is not enabled");
+  const multiUpload = await uploadWorkbooks(page, multiFileFixtures);
+  assert.equal(multiUpload.maxFiles, 10, "multi-file upload limit");
+  assert.equal(multiUpload.fileResults.length, 3, "multi-file result count");
+  assert.equal(multiUpload.itemNames.length, 3, "multi-file collection item count");
+  for (const fixtureFile of multiFileFixtures) {
+    assert.match(multiUpload.fileListText, new RegExp(fixtureFile.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `multi-file list missing ${fixtureFile.name}`);
+  }
+  assertMetrics(multiUpload.combined, { productRows: 6, uniqueProducts: 6, quantity: 12, weight: 21, volume: 1.2, amount: 120, currency: "CNY" }, "three-file combined result", true);
+  assert.equal(await page.locator("[data-order-export]").isEnabled(), true, "three-file combined export is disabled");
+  await page.locator("[data-order-analyzer]").screenshot({ path: `${OUTPUT_DIR}/multi-file-collection-desktop-1280.png` });
+  const multiExport = await captureExport(page, 1, "three-file combined export");
+  assert.equal(multiExport.files.length, 1, "three-file combined export must download exactly one PNG");
+  assert.equal(multiExport.files[0].width >= 3840, true, "three-file combined export is not UHD");
+
+  const genericPendingBatch = await uploadWorkbooks(page, genericPendingBatchFixtures);
+  assert.equal(genericPendingBatch.fileResults.length, 2, "generic-header batch result count");
+  assert(genericPendingBatch.fileResults.every((result) => result.result.pending.weightMeaning && result.result.pending.volumeMeaning), "generic-header batch did not require per-file weight/volume meaning confirmation");
+  let genericPendingUi = await page.evaluate(() => {
+    const qa = window.JABBAR_ORDER_ANALYZER_QA || {};
+    const root = document.querySelector("[data-order-analyzer]");
+    const instance = root?.__jabbarOrderAnalyzer;
+    return {
+      mappingHidden: document.querySelector("[data-order-mapping]")?.hidden,
+      mappingOpen: document.querySelector("[data-order-mapping]")?.open,
+      mappingFileIndex: instance?.mappingFileIndex,
+      exportDisabled: document.querySelector("[data-order-export]")?.disabled,
+      fileNames: (qa.fileResults || []).map((result) => result.fileName),
+      confirmed: (qa.fileResults || []).map((result) => result.overrides?.mappingConfirmed === true)
+    };
+  });
+  assert.equal(genericPendingUi.mappingHidden, false, "generic-header batch did not expose the mapping confirmation entry");
+  assert.equal(genericPendingUi.mappingOpen, true, "generic-header batch mapping confirmation was not opened");
+  assert.equal(genericPendingUi.mappingFileIndex, 0, "generic-header batch did not target its first pending workbook");
+  assert.equal(genericPendingUi.exportDisabled, true, "generic-header batch enabled export before confirmation");
+  assert.deepEqual(genericPendingUi.fileNames, genericPendingBatchFixtures.map((file) => file.name), "generic-header batch file/result order changed before confirmation");
+  assert.deepEqual(genericPendingUi.confirmed, [false, false], "generic-header batch was unexpectedly pre-confirmed");
+
+  await page.locator("[data-order-apply]").click();
+  await page.waitForFunction(() => {
+    const qa = window.JABBAR_ORDER_ANALYZER_QA || {};
+    const root = document.querySelector("[data-order-analyzer]");
+    const instance = root?.__jabbarOrderAnalyzer;
+    return root?.getAttribute("aria-busy") !== "true"
+      && qa.fileResults?.[0]?.overrides?.mappingConfirmed === true
+      && qa.fileResults?.[1]?.overrides?.mappingConfirmed !== true
+      && instance?.mappingFileIndex === 1
+      && document.querySelector("[data-order-mapping]")?.hidden === false
+      && document.querySelector("[data-order-mapping]")?.open === true;
+  });
+  await page.locator("[data-order-apply]").click();
+  await page.waitForFunction(() => {
+    const qa = window.JABBAR_ORDER_ANALYZER_QA || {};
+    const root = document.querySelector("[data-order-analyzer]");
+    const combined = qa.combinedResult || qa.lastResult;
+    return root?.getAttribute("aria-busy") !== "true"
+      && qa.fileResults?.length === 2
+      && qa.fileResults.every((result) => result.overrides?.mappingConfirmed === true)
+      && combined?.overrides?.mappingConfirmed === true
+      && !Object.values(combined?.result?.pending || {}).some(Boolean)
+      && document.querySelector("[data-order-mapping]")?.hidden === true
+      && document.querySelector("[data-order-export]")?.disabled === false;
+  });
+  genericPendingUi = await page.evaluate(() => {
+    const qa = window.JABBAR_ORDER_ANALYZER_QA || {};
+    const combined = qa.combinedResult || qa.lastResult;
+    return {
+      mappingHidden: document.querySelector("[data-order-mapping]")?.hidden,
+      exportDisabled: document.querySelector("[data-order-export]")?.disabled,
+      pending: combined?.result?.pending || {},
+      fileNames: (qa.fileResults || []).map((result) => result.fileName),
+      confirmed: (qa.fileResults || []).map((result) => result.overrides?.mappingConfirmed === true)
+    };
+  });
+  assert.equal(genericPendingUi.mappingHidden, true, "generic-header batch mapping remained visible after both confirmations");
+  assert.equal(genericPendingUi.exportDisabled, false, "generic-header batch export remained disabled after both confirmations");
+  assert.equal(Object.values(genericPendingUi.pending).some(Boolean), false, "generic-header batch retained a pending flag after both confirmations");
+  assert.deepEqual(genericPendingUi.fileNames, genericPendingBatchFixtures.map((file) => file.name), "generic-header batch confirmation mismatched workbook results");
+  assert.deepEqual(genericPendingUi.confirmed, [true, true], "generic-header batch was not confirmed one workbook at a time");
+
+  const raceFirst = { ...multiFileFixtures[0], name: "qa-race-first.xlsx" };
+  const raceSecond = { ...multiFileFixtures[1], name: "qa-race-rejected.xlsx" };
+  const raceStarted = await page.evaluate(async ({ first, second }) => {
+    function fileFromBase64(descriptor) {
+      const binary = atob(descriptor.base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+      return new File([bytes], descriptor.name, { type: descriptor.mimeType });
+    }
+    const root = document.querySelector("[data-order-analyzer]");
+    const instance = root.__jabbarOrderAnalyzer;
+    const qa = window.__JABBAR_ORDER_ANALYZER_QA__;
+    const firstFile = fileFromBase64(first);
+    const secondFile = fileFromBase64(second);
+    const originalParseOneFile = instance.parseOneFile;
+    let releaseFirst;
+    let delayed = false;
+    instance.parseOneFile = async function (file) {
+      if (!delayed && file.name === first.name) {
+        delayed = true;
+        await new Promise((resolve) => { releaseFirst = resolve; });
+      }
+      return originalParseOneFile.call(this, file);
+    };
+    const firstPromise = instance.parseFiles([firstFile]);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    qa.__raceTest = { releaseFirst, firstPromise, originalParseOneFile };
+    const directResult = await instance.parseFiles([secondFile]);
+    const transfer = { files: [secondFile] };
+    const dropEvent = new Event("drop", { bubbles: true, cancelable: true });
+    Object.defineProperty(dropEvent, "dataTransfer", { value: transfer });
+    document.querySelector("[data-order-dropzone]").dispatchEvent(dropEvent);
+    return {
+      directResult,
+      busy: instance.busy,
+      currentFiles: instance.currentFiles.map((file) => file.name),
+      entryFiles: instance.fileEntries.map((entry) => entry.file.name),
+      fileMeta: document.querySelector(".order-analyzer__file-meta")?.textContent || "",
+      dropPrevented: dropEvent.defaultPrevented,
+      qaFileResults: (qa.fileResults || []).length
+    };
+  }, {
+    first: { name: raceFirst.name, mimeType: raceFirst.mimeType, base64: raceFirst.buffer.toString("base64") },
+    second: { name: raceSecond.name, mimeType: raceSecond.mimeType, base64: raceSecond.buffer.toString("base64") }
+  });
+  assert.equal(raceStarted.directResult, null, "busy analyzer accepted a second direct parse");
+  assert.equal(raceStarted.busy, true, "race fixture did not hold the first parse busy");
+  assert.deepEqual(raceStarted.currentFiles, [raceFirst.name], "busy second parse reset the first selection");
+  assert.deepEqual(raceStarted.entryFiles, [raceFirst.name], "busy second drop replaced the first file entry");
+  assert.match(raceStarted.fileMeta, new RegExp(raceFirst.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), "busy second parse changed the first file metadata");
+  assert.equal(raceStarted.dropPrevented, true, "busy second drop was not consumed by the dropzone");
+  assert.equal(raceStarted.qaFileResults, 0, "race fixture unexpectedly completed before release");
+
+  await page.evaluate(() => window.__JABBAR_ORDER_ANALYZER_QA__.__raceTest.releaseFirst());
+  await page.waitForFunction((expectedName) => {
+    const qa = window.JABBAR_ORDER_ANALYZER_QA || {};
+    const root = document.querySelector("[data-order-analyzer]");
+    return root?.getAttribute("aria-busy") !== "true"
+      && qa.lastResult?.fileName === expectedName
+      && qa.fileResults?.length === 1;
+  }, raceFirst.name);
+  const raceFinished = await page.evaluate(async () => {
+    const qa = window.__JABBAR_ORDER_ANALYZER_QA__;
+    const root = document.querySelector("[data-order-analyzer]");
+    const instance = root.__jabbarOrderAnalyzer;
+    await qa.__raceTest.firstPromise;
+    instance.parseOneFile = qa.__raceTest.originalParseOneFile;
+    delete qa.__raceTest;
+    return {
+      busy: instance.busy,
+      currentFiles: instance.currentFiles.map((file) => file.name),
+      entryFiles: instance.fileEntries.map((entry) => entry.file.name),
+      resultFile: qa.lastResult?.fileName,
+      resultFiles: (qa.fileResults || []).map((result) => result.fileName),
+      fileList: [...document.querySelectorAll("[data-order-file-item]")].map((item) => item.textContent || ""),
+      rejectedPresent: document.body.textContent.includes("qa-race-rejected.xlsx")
+    };
+  });
+  assert.equal(raceFinished.busy, false, "first parse remained busy after release");
+  assert.deepEqual(raceFinished.currentFiles, [raceFirst.name], "rejected parse changed the completed selection");
+  assert.deepEqual(raceFinished.entryFiles, [raceFirst.name], "rejected drop changed the completed file entry");
+  assert.equal(raceFinished.resultFile, raceFirst.name, "rejected parse overwrote the first result");
+  assert.deepEqual(raceFinished.resultFiles, [raceFirst.name], "rejected parse produced a mismatched result list");
+  assert.equal(raceFinished.fileList.length, 1, "rejected drop created an extra collection item");
+  assert.match(raceFinished.fileList[0], new RegExp(raceFirst.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), "completed file collection no longer references the first parse");
+  assert.equal(raceFinished.rejectedPresent, false, "rejected second file leaked into the rendered analyzer");
+
+  const tenFiles = Array.from({ length: 10 }, (_, index) => ({
+    ...multiFileFixtures[index % multiFileFixtures.length],
+    name: `qa-ten-file-${String(index + 1).padStart(2, "0")}.xlsx`
+  }));
+  const tenUpload = await uploadWorkbooks(page, tenFiles);
+  assert.equal(tenUpload.fileResults.length, 10, "ten-file selection was not fully accepted");
+  assert.equal(tenUpload.itemNames.length, 10, "ten-file collection UI item count");
+
+  const elevenFiles = [...tenFiles, { ...multiFileFixtures[0], name: "qa-eleventh-file.xlsx" }];
+  await page.locator("[data-order-file]").setInputFiles(elevenFiles);
+  await page.waitForFunction(() => {
+    const root = document.querySelector("[data-order-analyzer]");
+    const status = document.querySelector("[data-order-status]");
+    return root?.getAttribute("aria-busy") !== "true"
+      && status?.classList.contains("is-error")
+      && /10/.test(status.textContent || "");
+  });
+  const elevenState = await page.evaluate(() => ({
+    status: document.querySelector("[data-order-status]")?.textContent || "",
+    exportDisabled: document.querySelector("[data-order-export]")?.disabled,
+    lastError: window.JABBAR_ORDER_ANALYZER_QA?.lastError || ""
+  }));
+  assert.match(elevenState.status, /10/, "eleventh-file error does not explain the ten-file limit");
+  assert.equal(elevenState.exportDisabled, true, "eleventh-file rejection left export enabled");
+  assert.match(elevenState.lastError, /too_many_files|10/i, "eleventh-file QA error code is missing");
 
   await page.setViewportSize({ width: 390, height: 844 });
   await assertNoOverflow(page, "Chinese mobile 390");
@@ -388,6 +787,70 @@ try {
   assert.doesNotMatch(usdUi.metrics, /CNY/, "explicit USD header fixture: UI amount was relabeled as CNY");
   assert.equal(usdUi.mappingOpen, false, "explicit USD header fixture: mapping opened for manual confirmation");
   assert.equal(await page.locator("[data-order-export]").isEnabled(), true, "explicit USD header fixture: export blocked for manual confirmation");
+
+  for (const barcodeCase of [
+    { name: "qa-product-barcode-zh.xlsx", buffer: barcodeFixtures.zh, product: "陶瓷杯", sku: "MUG-001", productColumn: 2, currency: "CNY" },
+    { name: "qa-product-barcode-en.xlsx", buffer: barcodeFixtures.en, product: "Ceramic Mug", sku: "012345678905", productColumn: 1, currency: "USD" },
+    { name: "qa-barcode-only.xlsx", buffer: barcodeFixtures.only, product: "", sku: "6901234567892", productColumn: undefined, currency: "CNY" }
+  ]) {
+    payload = await uploadWorkbook(page, {
+      name: barcodeCase.name,
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer: barcodeCase.buffer
+    });
+    assert.equal(payload.mapping.sku, 0, `${barcodeCase.name}: barcode column was not mapped to SKU`);
+    assert.equal(payload.mapping.product, barcodeCase.productColumn, `${barcodeCase.name}: barcode column leaked into product mapping`);
+    assert.equal(payload.result.items.length, 1, `${barcodeCase.name}: detail row count`);
+    assert.equal(payload.result.items[0].sku, barcodeCase.sku, `${barcodeCase.name}: barcode value`);
+    assert.equal(payload.result.items[0].product, barcodeCase.product, `${barcodeCase.name}: product name`);
+    assert.equal(payload.result.metrics.amounts[0].currency, barcodeCase.currency, `${barcodeCase.name}: currency`);
+  }
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-chinese-usd-header.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.foreignCurrency
+  });
+  assert.equal(payload.result.metrics.amounts[0].currency, "USD", "中文美元表头被错误识别为 CNY");
+  near(payload.result.metrics.amounts[0].value, 12, 1e-8, "中文美元金额");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-mixed-row-units.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.mixedUnits
+  });
+  near(payload.result.metrics.weight, 2.5, 1e-9, "混合 g/kg 总重量");
+  near(payload.result.metrics.volume, 1.001, 1e-12, "混合 cm³/m³ 总体积");
+  assert.deepEqual(payload.result.items.map((item) => item.weightUnit), ["g", "kg"], "逐行重量单位未保留");
+  assert.deepEqual(payload.result.items.map((item) => item.volumeUnit), ["cm3", "m3"], "逐行体积单位未保留");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-annotated-summary-rows.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.annotatedSummary
+  });
+  assertMetrics(payload, { productRows: 2, uniqueProducts: 2, quantity: 5, weight: 10, volume: 0.5, amount: 50 }, "annotated summary fixture", true);
+  assert.equal(payload.result.skippedSummaryRows, 3, "annotated summary fixture: summary rows were not all skipped");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-localized-summary-rows.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.localizedSummaries
+  });
+  assertMetrics(payload, { productRows: 1, uniqueProducts: 1, quantity: 5, weight: 10, volume: 0.5, amount: 50 }, "localized summary fixture", true);
+  assert.equal(payload.result.skippedSummaryRows, LOCALIZED_SUMMARY_PHRASES.length, "localized summary fixture: skipped summary row count");
+  for (const phrase of LOCALIZED_SUMMARY_PHRASES) {
+    assert.equal(payload.result.items.some((item) => item.product === phrase), false, `localized summary fixture: ${phrase} remained as a product`);
+  }
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-product-image-columns.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.imageHeaders
+  });
+  assert.equal(payload.mapping.product, 3, "product image column stole product-name mapping");
+  assert.equal(payload.result.items[0].product, "真实商品名称", "image filename leaked into product name");
+  assert.equal(payload.headers.some((header) => /商品图片|Product Image/i.test(header.label)), false, "image-only headers were not filtered");
 
   payload = await uploadWorkbook(page, {
     name: "qa-summary-row-and-header-units.xlsx",
@@ -454,6 +917,16 @@ try {
     assert.equal(await page.locator("[data-order-export]").isDisabled(), true, `${boundary.name}: export enabled despite truncated data`);
   }
 
+  payload = await uploadWorkbook(page, {
+    name: "qa-inflated-used-range.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: inflatedRangeFixture
+  });
+  assertMetrics(payload, { productRows: 1, uniqueProducts: 1, quantity: 2, weight: 4, volume: 0.2, amount: 20 }, "inflated used-range fixture", true);
+  assert.equal(payload.result.warnings.includes("rows_truncated"), false, "inflated used-range fixture: false row-limit warning");
+  assert.equal(payload.result.warnings.includes("columns_truncated"), false, "inflated used-range fixture: false column-limit warning");
+  assert.equal(await page.locator("[data-order-export]").isEnabled(), true, "inflated used-range fixture: export was falsely blocked");
+
   let hasSummaryWorkbook = true;
   try { await access(SUMMARY_WORKBOOK); } catch { hasSummaryWorkbook = false; }
   if (hasSummaryWorkbook) {
@@ -467,6 +940,20 @@ try {
     await page.locator("[data-order-analyzer]").screenshot({ path: `${OUTPUT_DIR}/biiabaa01-mobile-390.png` });
   }
 
+  let hasBarcodeWorkbook = true;
+  try { await access(BARCODE_WORKBOOK); } catch { hasBarcodeWorkbook = false; }
+  if (hasBarcodeWorkbook) {
+    payload = await uploadWorkbook(page, BARCODE_WORKBOOK);
+    assert.equal(payload.mapping.sku, 0, "Ant workbook: 商品编号 was not retained as SKU");
+    assert.equal(payload.mapping.product, 8, "Ant workbook: 商品名称 column was not selected");
+    assert.equal(payload.mapping.qty, 12, "Ant workbook: 辅助数量 stole the real 数量 column");
+    assert.equal(payload.result.items[0].sku, "59984", "Ant workbook: first SKU");
+    assert.equal(payload.result.items[0].product, "812-12个衣夹", "Ant workbook: barcode leaked into first product name");
+    assert.equal(payload.result.items[0].quantity, 192, "Ant workbook: first quantity came from 辅助数量");
+    assert.equal(payload.result.metrics.quantity, 13071, "Ant workbook: total quantity");
+    assert(payload.result.items.every((item) => !/^\d{6,}$/.test(item.product)), "Ant workbook: a barcode remained in product names");
+  }
+
   let hasRealWorkbook = true;
   try { await access(REAL_WORKBOOK); } catch { hasRealWorkbook = false; }
   if (hasRealWorkbook) {
@@ -475,7 +962,7 @@ try {
     payload = await confirmUnits(page);
     assertMetrics(payload, { productRows: 325, uniqueProducts: 325, quantity: 9349, weight: 790.1845, volume: 3.1232867436, amount: 14070.73 }, "real workbook", true);
     realExport = await captureExport(page, null, "real workbook export");
-    assert(realExport.pageCount >= 2, `real workbook: expected multiple PNG pages, got ${realExport.pageCount}`);
+    assert.equal(realExport.pageCount, 1, `real workbook: expected one lossless PNG, got ${realExport.pageCount}`);
     await page.locator("[data-order-analyzer]").screenshot({ path: `${OUTPUT_DIR}/real-desktop-1280.png` });
   }
 
@@ -563,7 +1050,10 @@ try {
   console.log(JSON.stringify({
     ok: true,
     baseUrl: BASE_URL,
-    fixture: { rows: 190, pngPages: fixtureExport.pageCount },
+    fixture: { rows: 190, pngFiles: fixtureExport.pageCount },
+    multiFile: { files: 3, combinedRows: 6, combinedQuantity: 12, pngFiles: 1, minPngWidth: 3840 },
+    genericBatchConfirmation: { files: 2, confirmedSequentially: true, exportEnabled: true, pending: false },
+    busyRaceProtection: { rejectedDirectParse: true, rejectedDrop: true, firstBatchPreserved: true },
     realWorkbook: realExport ? { path: REAL_WORKBOOK, pngPages: realExport.pageCount } : { skipped: true, reason: "file not found" },
     screenshots: OUTPUT_DIR
   }, null, 2));

@@ -6,10 +6,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-160";
-const AI_VERSION = "ai-20260714a";
-const UI_VERSION = "ui-20260714b";
-const ORDER_VERSION = "order-20260714b";
+const CSS_VERSION = "apple-162";
+const AI_VERSION = "ai-20260714c";
+const UI_VERSION = "ui-20260714d";
+const ORDER_VERSION = "order-20260714d";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
   zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 关于我们", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
@@ -123,7 +123,7 @@ for (const { locale, file } of HOME_PAGES) {
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
   assert.match(html, /class="social-platform-groups container-wide"/, `${file}: social container is not centered`);
   assert.doesNotMatch(html, /class="[^"]*\bcontain\b[^"]*"/, `${file}: stale contain class`);
-  assert.equal(count(html, /class="mobile-conversion-bar"/g), 1, `${file}: mobile conversion bar count`);
+  assert.equal(count(html, /mobile-conversion-bar|has-mobile-conversion-bar/g), 0, `${file}: removed mobile conversion bar remains`);
   assert.equal(count(html, /class="faq-item"/g), 7, `${file}: FAQ item count`);
   assert.deepEqual(textsForClass(html, "p", "section-code"), SECTION_CODES[locale], `${file}: localized section code order`);
   assert.equal(countClass(html, "section-rule"), SECTION_CODES[locale].length, `${file}: section rule count`);
@@ -172,6 +172,14 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   const percentageTag = tagById(html, "cbmPct");
   const fillTag = tagById(html, "cbmFill");
   assert(hasClass(capTag, "num-mono"), `${file}: CBM capacity label is not monospaced`);
+  assert.doesNotMatch(html, /20GP|20英尺|28\s*(?:CBM|立方米)|["']twenty["']\s*:/, `${file}: legacy 20GP calculator example remains`);
+  assert.match(
+    html,
+    locale === "zh"
+      ? /id="cbmCap"[^>]*>40英尺高柜 · 0\.0 \/ 68 立方米<\//
+      : /id="cbmCap"[^>]*>40HQ · 0\.0 \/ 68 CBM<\//,
+    `${file}: default container example must be 40HQ`,
+  );
   assert(hasClass(percentageTag, "num-mono"), `${file}: CBM percentage is not monospaced`);
   for (const dataName of ["data-per-cbm", "data-total-cbm", "data-buffer-cbm", "data-weight-total"]) {
     assert(hasClass(tagWithAttribute(html, "strong", dataName), "num-mono"), `${file}: ${dataName} is not monospaced`);
@@ -199,6 +207,9 @@ for (const { file } of NAV_PAGES) {
   const toolLinks = tagsWithClass(html, "a", "site-nav-tool-pill");
   assert.equal(toolLinks.length, 1, `${file}: site-nav-tool-pill count`);
   assert(attribute(toolLinks[0][0], "href"), `${file}: site-nav-tool-pill href missing`);
+  const mobilePanels = regionsForClass(html, "nav", "site-nav-mobile-panel");
+  assert.equal(mobilePanels.length, 1, `${file}: mobile navigation panel count`);
+  assert.doesNotMatch(mobilePanels[0], /href="(?:\.\/|[^\"]*calculator\/?)"|href="[^\"]*#social-accounts"/, `${file}: calculator or team link remains in mobile navigation`);
 }
 
 for (const file of EXTRA_PAGES) {
@@ -228,22 +239,18 @@ for (const locale of LOCALES) {
   assert.match(javascript, new RegExp(`\\n\\s*${locale}: \\{`), `site-enhancements.js: missing ${locale} labels`);
 }
 for (const token of [
-  "contact-speed-dial", "renderCbmVisual", "service-country-marquee", "site-scroll-progress",
-  "ui-section-reveal", "faq-quick-tags", "whatsapp-qr.svg", "prefers-reduced-motion",
+  "renderCbmVisual", "service-country-marquee", "site-scroll-progress",
+  "faq-quick-tags", "whatsapp-qr.svg", "prefers-reduced-motion",
   "initTrustStamps", "initShipmentTicker", "Intl.RelativeTimeFormat", "shipments.json",
   "initAnalyticsEvents", "contact_whatsapp", "isPlaceholderRecord", "is-unavailable"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing ${token}`);
 }
-for (const token of ["contact-speed-dial-whatsapp", "contact-speed-dial-telegram", "contact-speed-dial-ai"]) {
-  assert(javascript.includes(token), `site-enhancements.js: missing independent contact option ${token}`);
-}
-assert(javascript.includes('createElement("div", "contact-speed-dial is-open")'), "site-enhancements.js: contact options must remain directly open");
-assert(javascript.includes("https://t.me/Jabbar_in_Yiwu"), "site-enhancements.js: new Telegram username missing");
 assert(!javascript.includes("Jabbar199901"), "site-enhancements.js: old Telegram username remains");
-for (const removedToken of ["contact-speed-dial-main", "function setOpen(", "menu.hidden", 'main.setAttribute("aria-expanded"']) {
-  assert(!javascript.includes(removedToken), `site-enhancements.js: removed contact collapse logic remains (${removedToken})`);
+for (const removedToken of ["contact-speed-dial", "initContactSpeedDial", "ui-section-reveal"]) {
+  assert(!javascript.includes(removedToken), `site-enhancements.js: removed floating/reveal token remains (${removedToken})`);
 }
+assert(javascript.includes("sharedObserver.observe(section)"), "site-enhancements.js: homepage sections must still be observed without being hidden");
 assert(javascript.includes('createElement("li", "shipment-ticker-item num-mono")'), "site-enhancements.js: dynamic shipment item must explicitly use num-mono");
 assert(javascript.includes('ticker.classList.add("is-ready")'), "site-enhancements.js: valid shipment data must opt into the visible state");
 assert(!javascript.includes("ja:"), "site-enhancements.js: Japanese labels must not return");
@@ -252,15 +259,19 @@ const inquiryJavascript = await load("assets/inquiry-form.js");
 const aiJavascript = await load("assets/ai-sourcing-assistant.js");
 assert(inquiryJavascript.includes('"inquiry_submit"'), "inquiry-form.js: successful direct inquiry event missing");
 assert(aiJavascript.includes('"ai_first_message"'), "ai-sourcing-assistant.js: first successful AI message event missing");
+assert(!aiJavascript.includes("mobile-conversion-bar"), "ai-sourcing-assistant.js: removed conversion bar integration remains");
 
 const css = await load("styles.css");
 for (const token of [
-  ".contact-speed-dial", ".cbm-visual", ".service-country-marquee", ".site-scroll-progress",
-  ".ui-section-reveal", ".faq-quick-tags", ".whatsapp-qr-card", "prefers-reduced-motion",
+  ".cbm-visual", ".service-country-marquee", ".site-scroll-progress",
+  ".faq-quick-tags", ".whatsapp-qr-card", "prefers-reduced-motion",
   "--font-mono-stack", ".num-mono", ".section-code", ".section-rule", ".stamp-row",
   ".shipment-ticker", ".cbm-dimension-line"
 ]) {
   assert(css.includes(token), `styles.css: missing ${token}`);
+}
+for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "has-mobile-conversion-bar", ".ui-section-reveal"]) {
+  assert(!css.includes(removedToken), `styles.css: removed floating control styles remain (${removedToken})`);
 }
 assert(css.includes(".social-platform-groups .section-heading"), "styles.css: social heading centering missing");
 const calculatorPageRule = cssRuleBody(css, ".calculator-page");

@@ -83,7 +83,6 @@
   document.body.appendChild(toggle);
   document.body.appendChild(panel);
 
-  var conversionBar = document.querySelector(".mobile-conversion-bar");
   var title = panel.querySelector(".jabbar-ai-head span");
   var close = panel.querySelector(".jabbar-ai-close");
   var log = panel.querySelector(".jabbar-ai-log");
@@ -128,18 +127,9 @@
 
     var hiddenRight = Math.max(0, layoutWidth - (viewportLeft + viewportWidth));
     var hiddenBottom = Math.max(0, layoutHeight - (viewportTop + viewportHeight));
-    var conversionBarHeight = 0;
-    if (conversionBar && !panel.classList.contains("is-open")) {
-      var conversionBarStyle = window.getComputedStyle(conversionBar);
-      if (conversionBarStyle.display !== "none" && conversionBarStyle.visibility !== "hidden") {
-        conversionBarHeight = Math.ceil(conversionBar.getBoundingClientRect().height);
-      }
-    }
-    var toggleBottom = conversionBarHeight ? conversionBarHeight + 16 : 72;
-
     toggle.style.setProperty("--jabbar-ai-vv-width", viewportWidth + "px");
     toggle.style.setProperty("--jabbar-ai-toggle-right", hiddenRight + 14 + "px");
-    toggle.style.setProperty("--jabbar-ai-toggle-bottom", hiddenBottom + toggleBottom + "px");
+    toggle.style.setProperty("--jabbar-ai-toggle-bottom", hiddenBottom + 72 + "px");
     panel.style.setProperty("--jabbar-ai-vv-width", viewportWidth + "px");
     panel.style.setProperty("--jabbar-ai-vv-height", viewportHeight + "px");
     panel.style.setProperty("--jabbar-ai-panel-right", hiddenRight + 12 + "px");

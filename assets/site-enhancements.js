@@ -4,52 +4,52 @@
   var lang = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
   var labels = {
     zh: {
-      contact: "联系我们", ai: "AI 采购助理", scan: "手机扫码直聊", reply: "在线 · 24 小时内回复",
+      scan: "手机扫码直聊", reply: "在线 · 24 小时内回复",
       countries: "服务国家和地区", shipments: "最近发运", cbmTitle: "集装箱装载示意",
       faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发"]
     },
     en: {
-      contact: "Contact us", ai: "AI Sourcing Assistant", scan: "Scan to chat", reply: "Online · replies within 24h",
+      scan: "Scan to chat", reply: "Online · replies within 24h",
       countries: "Countries and regions served", shipments: "Recent shipments", cbmTitle: "Container loading illustration",
       faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping"]
     },
     es: {
-      contact: "Contáctanos", ai: "Asistente de compras AI", scan: "Escanea para chatear", reply: "En línea · respuesta en 24 h",
+      scan: "Escanea para chatear", reply: "En línea · respuesta en 24 h",
       countries: "Países y regiones atendidos", shipments: "Envíos recientes", cbmTitle: "Ilustración de carga del contenedor",
       faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo"]
     },
     ar: {
-      contact: "تواصل معنا", ai: "مساعد الشراء بالذكاء الاصطناعي", scan: "امسح للدردشة", reply: "متصل · نرد خلال 24 ساعة",
+      scan: "امسح للدردشة", reply: "متصل · نرد خلال 24 ساعة",
       countries: "الدول والمناطق التي نخدمها", shipments: "الشحنات الأخيرة", cbmTitle: "رسم توضيحي لتحميل الحاوية",
       faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر"]
     },
     fr: {
-      contact: "Contactez-nous", ai: "Assistant achat IA", scan: "Scannez pour discuter", reply: "En ligne · réponse sous 24 h",
+      scan: "Scannez pour discuter", reply: "En ligne · réponse sous 24 h",
       countries: "Pays et régions desservis", shipments: "Expéditions récentes", cbmTitle: "Illustration du chargement du conteneur",
       faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe"]
     },
     pt: {
-      contact: "Fale conosco", ai: "Assistente de compras AI", scan: "Escaneie para conversar", reply: "Online · resposta em até 24 h",
+      scan: "Escaneie para conversar", reply: "Online · resposta em até 24 h",
       countries: "Países e regiões atendidos", shipments: "Envios recentes", cbmTitle: "Ilustração do carregamento do contêiner",
       faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping"]
     },
     ru: {
-      contact: "Связаться", ai: "AI помощник по закупкам", scan: "Сканируйте для чата", reply: "Онлайн · ответим в течение 24 ч",
+      scan: "Сканируйте для чата", reply: "Онлайн · ответим в течение 24 ч",
       countries: "Страны и регионы обслуживания", shipments: "Последние отправки", cbmTitle: "Схема загрузки контейнера",
       faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг"]
     },
     de: {
-      contact: "Kontakt", ai: "KI Einkaufsassistent", scan: "Zum Chatten scannen", reply: "Online · Antwort innerhalb 24 Std.",
+      scan: "Zum Chatten scannen", reply: "Online · Antwort innerhalb 24 Std.",
       countries: "Bediente Länder und Regionen", shipments: "Letzte Sendungen", cbmTitle: "Darstellung der Containerbeladung",
       faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping"]
     },
     it: {
-      contact: "Contattaci", ai: "Assistente acquisti AI", scan: "Scansiona per chattare", reply: "Online · risposta entro 24 ore",
+      scan: "Scansiona per chattare", reply: "Online · risposta entro 24 ore",
       countries: "Paesi e regioni serviti", shipments: "Spedizioni recenti", cbmTitle: "Illustrazione del carico del container",
       faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping"]
     },
     tr: {
-      contact: "İletişim", ai: "AI Satın Alma Asistanı", scan: "Sohbet için tarayın", reply: "Çevrimiçi · 24 saat içinde yanıt",
+      scan: "Sohbet için tarayın", reply: "Çevrimiçi · 24 saat içinde yanıt",
       countries: "Hizmet verilen ülkeler ve bölgeler", shipments: "Son gönderiler", cbmTitle: "Konteyner yükleme görseli",
       faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış"]
     }
@@ -287,76 +287,6 @@
     });
   }
 
-  function initContactSpeedDial() {
-    var aiToggle = document.querySelector(".jabbar-ai-toggle");
-    var aiPanel = document.querySelector(".jabbar-ai-panel");
-    if (!aiToggle || !aiPanel || document.querySelector(".contact-speed-dial")) return;
-
-    aiToggle.setAttribute("aria-hidden", "true");
-    aiToggle.setAttribute("tabindex", "-1");
-
-    var root = createElement("div", "contact-speed-dial is-open");
-    var menu = createElement("div", "contact-speed-dial-menu");
-
-    function optionLink(className, href, icon, text) {
-      var link = createElement("a", "contact-speed-dial-option " + className);
-      link.href = href;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      var iconWrap = createElement("span", "contact-speed-dial-option-icon");
-      if (icon.tag === "img") {
-        var image = document.createElement("img");
-        image.src = icon.src;
-        image.alt = "";
-        image.width = 24;
-        image.height = 24;
-        iconWrap.appendChild(image);
-      } else {
-        iconWrap.textContent = icon.text;
-      }
-      link.appendChild(iconWrap);
-      link.appendChild(createElement("span", "contact-speed-dial-option-label", text));
-      return link;
-    }
-
-    var whatsapp = optionLink(
-      "contact-speed-dial-whatsapp",
-      "https://wa.me/8618658925544",
-      { tag: "img", src: "/assets/whatsapp-ios-icon.webp" },
-      "WhatsApp"
-    );
-    var telegram = optionLink(
-      "contact-speed-dial-telegram",
-      "https://t.me/Jabbar_in_Yiwu",
-      { tag: "img", src: "/assets/telegram-ios-icon.svg" },
-      "Telegram"
-    );
-    var ai = createElement("button", "contact-speed-dial-option contact-speed-dial-ai");
-    ai.type = "button";
-    ai.appendChild(createElement("span", "contact-speed-dial-option-icon contact-speed-dial-ai-icon", "AI"));
-    ai.appendChild(createElement("span", "contact-speed-dial-option-label", copy.ai));
-
-    menu.appendChild(whatsapp);
-    menu.appendChild(telegram);
-    menu.appendChild(ai);
-
-    root.appendChild(menu);
-    document.body.appendChild(root);
-
-    ai.addEventListener("click", function () {
-      aiToggle.click();
-    });
-
-    var footer = document.querySelector(".site-footer");
-    if (footer && "IntersectionObserver" in window) {
-      new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          root.classList.toggle("is-footer-hidden", entry.isIntersecting);
-        });
-      }, { rootMargin: "0px 0px 48px" }).observe(footer);
-    }
-  }
-
   function initCbmVisual() {
     var results = document.querySelector(".calculator-results");
     if (!results) return;
@@ -583,7 +513,6 @@
     if (sharedObserver) {
       [".sourcing-gallery", ".company-intro", ".work-process", ".company-about", ".testimonials", ".faq-section", ".social-platform-groups"].forEach(function (selector) {
         document.querySelectorAll(selector).forEach(function (section) {
-          section.classList.add("ui-section-reveal");
           sharedObserver.observe(section);
         });
       });
@@ -710,7 +639,6 @@
   initAnalyticsEvents();
   initTrustStamps();
   initShipmentTicker();
-  initContactSpeedDial();
   initCbmVisual();
   initScrollProgress();
   initHomepageMotion();
