@@ -853,7 +853,7 @@
     }
     function syncReducedState() {
       marquee.classList.toggle("is-static", reducedMotion);
-      if (reducedMotion) track.style.transform = "translate3d(0,0,0)";
+      if (reducedMotion) track.style.transform = "none";
       else measure();
       sync();
     }
