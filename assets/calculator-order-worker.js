@@ -6,7 +6,7 @@
 (function (scope) {
   "use strict";
 
-  var VERSION = "order-20260714d";
+  var VERSION = "order-20260717a";
   var MAX_ROWS = 10000;
   var MAX_COLUMNS = 100;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
@@ -353,13 +353,37 @@
     return Math.abs(left - right) <= tolerance;
   }
 
-  function rawColumnSum(table, mapping, field, excludedIndex, multiplyByQuantity) {
+  function summaryNumericFields(mapping) {
+    var fields = ["qty", "cartons", "amount"];
+    if (mapping.totalWeight != null) fields.push("totalWeight");
+    else if (mapping.unitWeight != null) fields.push("unitWeight");
+    if (mapping.totalVolume != null) fields.push("totalVolume");
+    else if (mapping.unitVolume != null) fields.push("unitVolume");
+    return fields.filter(function (field, index) {
+      return mapping[field] != null && fields.indexOf(field) === index;
+    });
+  }
+
+  function hasBlankMappedIdentity(row, mapping) {
+    if (mapping.product == null && mapping.sku == null) return false;
+    return isBlank(valueAt(row, mapping, "product")) && isBlank(valueAt(row, mapping, "sku"));
+  }
+
+  function numericSummaryFieldCount(row, mapping) {
+    return summaryNumericFields(mapping).reduce(function (count, field) {
+      var value = numeric(valueAt(row, mapping, field));
+      return count + (value != null && value >= 0 ? 1 : 0);
+    }, 0);
+  }
+
+  function rawColumnSum(table, mapping, field, endIndex, multiplyByQuantity, reconciledSummaryRows) {
     var found = false;
     var sum = 0;
     table.rows.forEach(function (rowEntry, rowIndex) {
-      if (rowIndex === excludedIndex) return;
+      if (rowIndex >= endIndex) return;
       var row = rowCells(rowEntry);
       if (isMarkedSummaryRow(row, mapping)) return;
+      if (reconciledSummaryRows && reconciledSummaryRows[rowIndex]) return;
       var value = numeric(valueAt(row, mapping, field));
       if (value == null || value < 0) return;
       if (multiplyByQuantity) {
@@ -373,17 +397,79 @@
     return found ? sum : null;
   }
 
-  function inferLineTotalField(table, mapping, unitField, totalField) {
+  function detailRowCountBefore(table, mapping, endIndex, reconciledSummaryRows) {
+    var count = 0;
+    table.rows.forEach(function (rowEntry, rowIndex) {
+      if (rowIndex >= endIndex) return;
+      var row = rowCells(rowEntry);
+      if (!hasAnyMappedValue(row, mapping) || isMarkedSummaryRow(row, mapping)) return;
+      if (reconciledSummaryRows && reconciledSummaryRows[rowIndex]) return;
+      if (numericSummaryFieldCount(row, mapping)) count += 1;
+    });
+    return count;
+  }
+
+  function findReconciledSummaryRows(table, mapping) {
+    var reconciled = {};
+    var candidates = [];
+    var fields = summaryNumericFields(mapping);
+    if (!fields.length || (mapping.product == null && mapping.sku == null)) return reconciled;
+
+    // Only inspect the trailing summary region. Text-only footers and already
+    // labelled totals are transparent, while the first real detail row ends
+    // the scan. This keeps ordinary blank-name continuation lines eligible as
+    // details unless their values actually reconcile with the preceding rows.
+    for (var rowIndex = table.rows.length - 1; rowIndex >= 0; rowIndex -= 1) {
+      var row = rowCells(table.rows[rowIndex]);
+      if (!hasAnyMappedValue(row, mapping) || isMarkedSummaryRow(row, mapping)) continue;
+      var numericCount = numericSummaryFieldCount(row, mapping);
+      if (!numericCount) continue;
+      if (!hasBlankMappedIdentity(row, mapping) || !isBlank(valueAt(row, mapping, "unitPrice")) || numericCount < 2) break;
+      candidates.unshift(rowIndex);
+    }
+
+    candidates.forEach(function (candidateIndex) {
+      var candidate = rowCells(table.rows[candidateIndex]);
+      var matches = 0;
+      var keyMatches = 0;
+      var positiveMatches = 0;
+      var mismatches = 0;
+      fields.forEach(function (field) {
+        var statedTotal = numeric(valueAt(candidate, mapping, field));
+        if (statedTotal == null || statedTotal < 0) return;
+        var directSum = rawColumnSum(table, mapping, field, candidateIndex, false, reconciled);
+        if (directSum == null) return;
+        var matchesDirect = nearlyEqual(statedTotal, directSum);
+        var matchesMultiplied = false;
+        if (field === "unitWeight" || field === "unitVolume") {
+          var multipliedSum = rawColumnSum(table, mapping, field, candidateIndex, true, reconciled);
+          matchesMultiplied = multipliedSum != null && nearlyEqual(statedTotal, multipliedSum);
+        }
+        if (matchesDirect || matchesMultiplied) {
+          matches += 1;
+          if (field === "qty" || field === "cartons" || field === "amount") keyMatches += 1;
+          if (statedTotal > 0) positiveMatches += 1;
+        } else mismatches += 1;
+      });
+      var detailRows = detailRowCountBefore(table, mapping, candidateIndex, reconciled);
+      if (!mismatches && matches >= 2 && keyMatches >= 1 && positiveMatches >= 1 && (detailRows >= 2 || matches >= 3)) {
+        reconciled[candidateIndex] = true;
+      }
+    });
+    return reconciled;
+  }
+
+  function inferLineTotalField(table, mapping, unitField, totalField, reconciledSummaryRows) {
     if (mapping[unitField] == null || mapping[totalField] != null) return false;
     var kind = unitField === "unitWeight" ? "weight" : "volume";
     if (hasExplicitUnitMeaning(headerFor(table, mapping, unitField), kind)) return false;
     for (var rowIndex = table.rows.length - 1; rowIndex >= 0; rowIndex -= 1) {
       var row = rowCells(table.rows[rowIndex]);
-      if (!isMarkedSummaryRow(row, mapping)) continue;
+      if (!isMarkedSummaryRow(row, mapping) && !(reconciledSummaryRows && reconciledSummaryRows[rowIndex])) continue;
       var statedTotal = numeric(valueAt(row, mapping, unitField));
       if (statedTotal == null) continue;
-      var directSum = rawColumnSum(table, mapping, unitField, rowIndex, false);
-      var multipliedSum = rawColumnSum(table, mapping, unitField, rowIndex, true);
+      var directSum = rawColumnSum(table, mapping, unitField, rowIndex, false, reconciledSummaryRows);
+      var multipliedSum = rawColumnSum(table, mapping, unitField, rowIndex, true, reconciledSummaryRows);
       var directMatches = directSum != null && nearlyEqual(statedTotal, directSum);
       var multipliedMatches = multipliedSum != null && nearlyEqual(statedTotal, multipliedSum);
       if (directMatches && (!multipliedMatches || nearlyEqual(directSum, multipliedSum))) {
@@ -397,8 +483,9 @@
 
   function refineMapping(table, mapping) {
     var refined = Object.assign({}, mapping);
-    inferLineTotalField(table, refined, "unitWeight", "totalWeight");
-    inferLineTotalField(table, refined, "unitVolume", "totalVolume");
+    var reconciledSummaryRows = findReconciledSummaryRows(table, refined);
+    inferLineTotalField(table, refined, "unitWeight", "totalWeight", reconciledSummaryRows);
+    inferLineTotalField(table, refined, "unitVolume", "totalVolume", reconciledSummaryRows);
     return refined;
   }
 
@@ -450,6 +537,7 @@
     var negativeValuesSkipped = 0;
     var subtotalMismatchCount = 0;
     var items = [];
+    var reconciledSummaryRows = findReconciledSummaryRows(table, mapping);
 
     table.rows.forEach(function (rowEntry, rowOffset) {
       var row = rowCells(rowEntry);
@@ -471,7 +559,7 @@
       var width = numeric(valueAt(row, mapping, "width"));
       var height = numeric(valueAt(row, mapping, "height"));
 
-      if (isMarkedSummaryRow(row, mapping) || (!product && !sku && quantity == null && cartons == null)) {
+      if (isMarkedSummaryRow(row, mapping) || reconciledSummaryRows[rowOffset] || (!product && !sku && quantity == null && cartons == null)) {
         skippedSummaryRows += 1;
         return;
       }

@@ -127,6 +127,13 @@ async function createAuditEdgeFixtures(browser) {
       XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), sheetName);
       return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
     }
+    function formulaWorkbookBase64(rows, sheetName, formulas) {
+      const workbook = XLSX.utils.book_new();
+      const sheet = XLSX.utils.aoa_to_sheet(rows);
+      for (const [cell, formula] of Object.entries(formulas)) sheet[cell].f = formula;
+      XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+      return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
+    }
     return {
       foreignCurrency: workbookBase64([
         ["商品名称", "数量", "金额（美元）"],
@@ -145,6 +152,30 @@ async function createAuditEdgeFixtures(browser) {
         ["订单汇总", 5, 50, 10, 0.5, ""],
         ["系统记录", 5, 50, 10, 0.5, "合计"]
       ], "带注释合计"),
+      unlabeledFormulaSummary: formulaWorkbookBase64([
+        ["图片", "货号", "商品", "重量", "体积", "单价", "小计", "数量", "单位"],
+        ["", "SKU-001", "商品 A", 2, 0.2, 10, 20, 2, "件"],
+        ["", "SKU-002", "商品 B", 3, 0.3, 10, 30, 3, "件"],
+        ["", "", "", 5, 0.5, "", 50, 5, ""]
+      ], "无标签公式合计", {
+        D4: "SUM(D2:D3)",
+        E4: "SUM(E2:E3)",
+        G4: "SUM(G2:G3)",
+        H4: "SUM(H2:H3)"
+      }),
+      repeatedUnlabeledSummary: workbookBase64([
+        ["货号", "商品", "总重量（kg）", "总体积（m³）", "单价", "小计", "数量"],
+        ["SKU-001", "商品 A", 2, 0.2, 10, 20, 2],
+        ["SKU-002", "商品 B", 3, 0.3, 10, 30, 3],
+        ["", "", 5, 0.5, "", 50, 5],
+        ["", "", 5, 0.5, "", 50, 5]
+      ], "重复无标签合计"),
+      mismatchedUnlabeledRow: workbookBase64([
+        ["货号", "商品", "总重量（kg）", "总体积（m³）", "单价", "小计", "数量"],
+        ["SKU-001", "商品 A", 2, 0.2, 10, 20, 2],
+        ["SKU-002", "商品 B", 3, 0.3, 10, 30, 3],
+        ["", "", 999, 0.5, "", 50, 5]
+      ], "不吻合的空名称行"),
       localizedSummaries: workbookBase64([
         ["商品名称", "数量", "金额", "总重量（kg）", "总体积（m³）"],
         ["基准商品", 5, 50, 10, 0.5],
@@ -831,6 +862,37 @@ try {
   });
   assertMetrics(payload, { productRows: 2, uniqueProducts: 2, quantity: 5, weight: 10, volume: 0.5, amount: 50 }, "annotated summary fixture", true);
   assert.equal(payload.result.skippedSummaryRows, 3, "annotated summary fixture: summary rows were not all skipped");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-unlabeled-formula-summary-row.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.unlabeledFormulaSummary
+  });
+  assertMetrics(payload, { productRows: 2, uniqueProducts: 2, quantity: 5, weight: 5, volume: 0.5, amount: 50 }, "unlabeled formula summary fixture", true);
+  assert.equal(payload.result.skippedSummaryRows, 1, "unlabeled formula summary fixture: summary row was not reconciled once");
+  assert.equal(payload.result.items.some((item) => item.row === 4), false, "unlabeled formula summary fixture: summary row remained in details");
+  assert.equal(payload.mapping.totalWeight, 3, "unlabeled formula summary fixture: weight was not inferred as line total");
+  assert.equal(payload.mapping.totalVolume, 4, "unlabeled formula summary fixture: volume was not inferred as line total");
+  assert.equal(payload.mapping.unitWeight, undefined, "unlabeled formula summary fixture: weight remained mapped as per-unit");
+  assert.equal(payload.mapping.unitVolume, undefined, "unlabeled formula summary fixture: volume remained mapped as per-unit");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-repeated-unlabeled-summary-rows.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.repeatedUnlabeledSummary
+  });
+  assertMetrics(payload, { productRows: 2, uniqueProducts: 2, quantity: 5, weight: 5, volume: 0.5, amount: 50 }, "repeated unlabeled summary fixture", true);
+  assert.equal(payload.result.skippedSummaryRows, 2, "repeated unlabeled summary fixture: repeated totals were not each excluded exactly once");
+  assert.equal(payload.result.items.some((item) => item.row === 4 || item.row === 5), false, "repeated unlabeled summary fixture: a repeated summary remained in details");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-mismatched-unlabeled-row.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.mismatchedUnlabeledRow
+  });
+  assertMetrics(payload, { productRows: 3, uniqueProducts: 2, quantity: 10, weight: 1004, volume: 1, amount: 100 }, "mismatched unlabeled row fixture", true);
+  assert.equal(payload.result.skippedSummaryRows, 0, "mismatched unlabeled row fixture: non-total row was excluded");
+  assert(payload.result.items.some((item) => item.row === 4), "mismatched unlabeled row fixture: non-total row disappeared");
 
   payload = await uploadWorkbook(page, {
     name: "qa-localized-summary-rows.xlsx",
