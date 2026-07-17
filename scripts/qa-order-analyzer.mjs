@@ -163,6 +163,27 @@ async function createAuditEdgeFixtures(browser) {
         G4: "SUM(G2:G3)",
         H4: "SUM(H2:H3)"
       }),
+      singleItemTwoFieldFormulaSummary: formulaWorkbookBase64([
+        ["商品名称", "数量", "金额"],
+        ["单商品", 2, 20],
+        ["", 2, 20]
+      ], "单商品两列公式合计", {
+        B3: "SUM(B2:B2)",
+        C3: "SUM(C2:C2)"
+      }),
+      wrappedAggregateFormulaSummary: formulaWorkbookBase64([
+        ["商品名称", "数量", "金额"],
+        ["包装公式商品", 2, 20],
+        ["", 2, 20]
+      ], "外层包装公式合计", {
+        B3: "ROUND(SUM(B2:B2),0)",
+        C3: "IFERROR(SUM(C2:C2),0)"
+      }),
+      exactMatchContinuationWithoutFormula: workbookBase64([
+        ["商品名称", "数量", "金额", "总重量（kg）"],
+        ["正常商品", 2, 20, 4],
+        ["", 2, 20, 4]
+      ], "无公式三字段吻合续行"),
       repeatedUnlabeledSummary: workbookBase64([
         ["货号", "商品", "总重量（kg）", "总体积（m³）", "单价", "小计", "数量"],
         ["SKU-001", "商品 A", 2, 0.2, 10, 20, 2],
@@ -348,6 +369,45 @@ async function createMultiFileFixtures(browser) {
   await context.close();
   return fixtures.map((value, index) => ({
     name: `qa-multi-order-${index + 1}.xlsx`,
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: Buffer.from(value, "base64")
+  }));
+}
+
+async function createSummaryBatchFixtures(browser) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.setContent("<!doctype html><html><head></head><body></body></html>");
+  await page.addScriptTag({ url: `${BASE_URL}/assets/vendor/xlsx.full.min.js?v=0.20.3` });
+  const fixtures = await page.evaluate(() => {
+    function writeWorkbook(rows, sheetName, formulas = {}) {
+      const workbook = XLSX.utils.book_new();
+      const sheet = XLSX.utils.aoa_to_sheet(rows);
+      for (const [cell, formula] of Object.entries(formulas)) sheet[cell].f = formula;
+      XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+      return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
+    }
+    return [
+      writeWorkbook([
+        ["商品名称", "数量", "金额", "总重量（kg）", "总体积（m³）"],
+        ["批量商品 A", 2, 20, 4, 0.2],
+        ["", 2, 20, 4, 0.2]
+      ], "无标签公式合计", {
+        B3: "SUM(B2:B2)",
+        C3: "SUM(C2:C2)",
+        D3: "SUM(D2:D2)",
+        E3: "SUM(E2:E2)"
+      }),
+      writeWorkbook([
+        ["商品名称", "数量", "金额", "总重量（kg）", "总体积（m³）"],
+        ["批量商品 B", 3, 30, 6, 0.3],
+        ["合计", 3, 30, 6, 0.3]
+      ], "有标签合计")
+    ];
+  });
+  await context.close();
+  return fixtures.map((value, index) => ({
+    name: `qa-summary-batch-${index + 1}.xlsx`,
     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     buffer: Buffer.from(value, "base64")
   }));
@@ -541,6 +601,7 @@ try {
   const columnLimitFixture = await createLimitFixture(browser, "columns");
   const inflatedRangeFixture = await createInflatedRangeFixture(browser);
   const multiFileFixtures = await createMultiFileFixtures(browser);
+  const summaryBatchFixtures = await createSummaryBatchFixtures(browser);
   const genericPendingBatchFixtures = await createGenericPendingBatchFixtures(browser);
   assert(fixture.length > 1000, "runtime XLSX fixture is unexpectedly small");
 
@@ -617,6 +678,12 @@ try {
   const multiExport = await captureExport(page, 1, "three-file combined export");
   assert.equal(multiExport.files.length, 1, "three-file combined export must download exactly one PNG");
   assert.equal(multiExport.files[0].width >= 3840, true, "three-file combined export is not UHD");
+
+  const summaryBatch = await uploadWorkbooks(page, summaryBatchFixtures);
+  assertMetrics(summaryBatch.combined, { productRows: 2, uniqueProducts: 2, quantity: 5, weight: 10, volume: 0.5, amount: 50, currency: "CNY" }, "summary-row batch combined result", true);
+  assert.equal(summaryBatch.combined.result.skippedSummaryRows, 2, "summary-row batch: combined skipped total");
+  assert.equal(summaryBatch.combined.result.warningCounts.summary_rows_skipped, 2, "summary-row batch: combined warning count");
+  assert.deepEqual(summaryBatch.fileResults.map((result) => result.result.skippedSummaryRows), [1, 1], "summary-row batch: per-file skipped totals");
 
   const genericPendingBatch = await uploadWorkbooks(page, genericPendingBatchFixtures);
   assert.equal(genericPendingBatch.fileResults.length, 2, "generic-header batch result count");
@@ -882,6 +949,41 @@ try {
   assert.equal(payload.mapping.totalVolume, 4, "unlabeled formula summary fixture: volume was not inferred as line total");
   assert.equal(payload.mapping.unitWeight, undefined, "unlabeled formula summary fixture: weight remained mapped as per-unit");
   assert.equal(payload.mapping.unitVolume, undefined, "unlabeled formula summary fixture: volume remained mapped as per-unit");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-single-item-two-field-formula-summary.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.singleItemTwoFieldFormulaSummary
+  });
+  assert.equal(payload.result.metrics.productRows, 1, "single-item two-field formula summary fixture: product rows");
+  assert.equal(payload.result.metrics.uniqueProducts, 1, "single-item two-field formula summary fixture: unique products");
+  near(payload.result.metrics.quantity, 2, 1e-8, "single-item two-field formula summary fixture: quantity");
+  near(payload.result.metrics.amounts[0].value, 20, 1e-8, "single-item two-field formula summary fixture: amount");
+  assert.equal(payload.result.skippedSummaryRows, 1, "single-item two-field formula summary fixture: summary was not skipped");
+  assert.equal(payload.result.items.some((item) => item.row === 3), false, "single-item two-field formula summary fixture: total remained in details");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-wrapped-aggregate-formula-summary.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.wrappedAggregateFormulaSummary
+  });
+  assert.equal(payload.result.metrics.productRows, 1, "wrapped aggregate formula summary fixture: product rows");
+  near(payload.result.metrics.quantity, 2, 1e-8, "wrapped aggregate formula summary fixture: quantity");
+  near(payload.result.metrics.amounts[0].value, 20, 1e-8, "wrapped aggregate formula summary fixture: amount");
+  assert.equal(payload.result.skippedSummaryRows, 1, "wrapped aggregate formula summary fixture: summary was not skipped");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-exact-match-continuation-without-formula.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.exactMatchContinuationWithoutFormula
+  });
+  assert.equal(payload.result.metrics.productRows, 2, "exact-match continuation without formula fixture: product rows");
+  assert.equal(payload.result.metrics.uniqueProducts, 1, "exact-match continuation without formula fixture: unique products");
+  near(payload.result.metrics.quantity, 4, 1e-8, "exact-match continuation without formula fixture: quantity");
+  near(payload.result.metrics.weight, 8, 1e-8, "exact-match continuation without formula fixture: weight");
+  near(payload.result.metrics.amounts[0].value, 40, 1e-8, "exact-match continuation without formula fixture: amount");
+  assert.equal(payload.result.skippedSummaryRows, 0, "exact-match continuation without formula fixture: normal row was skipped");
+  assert(payload.result.items.some((item) => item.row === 3), "exact-match continuation without formula fixture: continuation disappeared");
 
   payload = await uploadWorkbook(page, {
     name: "qa-repeated-unlabeled-summary-rows.xlsx",

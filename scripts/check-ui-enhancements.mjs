@@ -9,7 +9,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CSS_VERSION = "apple-163";
 const AI_VERSION = "ai-20260714c";
 const UI_VERSION = "ui-20260718a";
-const ORDER_VERSION = "order-20260718a";
+const ORDER_VERSION = "order-20260718b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
   zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 关于我们", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],

@@ -6,7 +6,7 @@
 (function (scope) {
   "use strict";
 
-  var VERSION = "order-20260718a";
+  var VERSION = "order-20260718b";
   var MAX_ROWS = 10000;
   var MAX_COLUMNS = 100;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
@@ -254,6 +254,12 @@
     return { maxRow: maxRow, maxColumn: maxColumn };
   }
 
+  function worksheetCell(sheet, XLSX, rowIndex, columnIndex) {
+    var dense = sheet && sheet["!data"];
+    if (Array.isArray(dense)) return dense[rowIndex] && dense[rowIndex][columnIndex];
+    return sheet && sheet[XLSX.utils.encode_cell({ r: rowIndex, c: columnIndex })];
+  }
+
   function buildTable(sheet, XLSX) {
     if (!sheet || !sheet["!ref"]) return { headerRow: 0, headers: [], rows: [], truncatedRows: false, truncatedColumns: false };
     var decoded = XLSX.utils.decode_range(sheet["!ref"]);
@@ -289,10 +295,17 @@
     }
     var rows = matrix.slice(headerRow + 1, headerRow + 1 + MAX_ROWS).map(function (row, rowOffset) {
       var cells = (row || []).slice(0, lastColumn + 1);
+      var sheetRowIndex = range.s.r + headerRow + rowOffset + 1;
+      var formulaColumns = {};
+      for (var formulaColumn = 0; formulaColumn <= lastColumn; formulaColumn += 1) {
+        var formulaCell = worksheetCell(sheet, XLSX, sheetRowIndex, range.s.c + formulaColumn);
+        if (formulaCell && typeof formulaCell.f === "string" && formulaCell.f.trim()) formulaColumns[formulaColumn] = formulaCell.f;
+      }
       Object.keys(ignoredImageColumns).forEach(function (index) { cells[Number(index)] = null; });
       return {
         sourceRow: range.s.r + headerRow + rowOffset + 2,
-        cells: cells
+        cells: cells,
+        formulaColumns: formulaColumns
       };
     }).filter(function (entry) {
       return entry.cells.some(function (cell) { return !isBlank(cell); });
@@ -329,6 +342,19 @@
 
   function rowCells(rowEntry) {
     return Array.isArray(rowEntry) ? rowEntry : (rowEntry && rowEntry.cells) || [];
+  }
+
+  function formulaAt(rowEntry, mapping, field) {
+    if (Array.isArray(rowEntry) || !rowEntry || !rowEntry.formulaColumns) return "";
+    var index = mapping[field];
+    return index == null ? "" : String(rowEntry.formulaColumns[Number(index)] || "");
+  }
+
+  function isAggregateFormula(formula) {
+    // Excel may wrap a total in ROUND/IFERROR while the aggregate function is
+    // still the provenance signal we need. We never evaluate the formula; its
+    // cached value must independently reconcile with the preceding rows.
+    return /(?:^|[^a-z0-9_])(?:_xlfn\.)?(?:sum|subtotal|aggregate)\s*\(/i.test(String(formula || "").replace(/^=/, "").trim());
   }
 
   function hasSummaryMarker(row) {
@@ -429,10 +455,12 @@
     }
 
     candidates.forEach(function (candidateIndex) {
-      var candidate = rowCells(table.rows[candidateIndex]);
+      var candidateEntry = table.rows[candidateIndex];
+      var candidate = rowCells(candidateEntry);
       var matches = 0;
       var keyMatches = 0;
       var positiveMatches = 0;
+      var aggregateFormulaMatches = 0;
       var mismatches = 0;
       fields.forEach(function (field) {
         var statedTotal = numeric(valueAt(candidate, mapping, field));
@@ -449,10 +477,15 @@
           matches += 1;
           if (field === "qty" || field === "cartons" || field === "amount") keyMatches += 1;
           if (statedTotal > 0) positiveMatches += 1;
+          if (isAggregateFormula(formulaAt(candidateEntry, mapping, field))) aggregateFormulaMatches += 1;
         } else mismatches += 1;
       });
       var detailRows = detailRowCountBefore(table, mapping, candidateIndex, reconciled);
-      if (!mismatches && matches >= 2 && keyMatches >= 1 && positiveMatches >= 1 && (detailRows >= 2 || matches >= 3)) {
+      var formulaBackedSingleDetail = detailRows >= 1 && aggregateFormulaMatches >= 2;
+      // A single detail row and a blank-identity continuation can contain the
+      // same three values, so value reconciliation alone is ambiguous. Only
+      // formula provenance can safely classify that one-detail case as total.
+      if (!mismatches && matches >= 2 && keyMatches >= 1 && positiveMatches >= 1 && (detailRows >= 2 || formulaBackedSingleDetail)) {
         reconciled[candidateIndex] = true;
       }
     });
@@ -719,7 +752,10 @@
         session.workbook = XLSX.read(buffer, {
           type: "array",
           cellDates: false,
-          cellFormula: false,
+          // Retain formula provenance so a one-item workbook can distinguish
+          // two cached SUM cells from an otherwise identical continuation row.
+          // Cached values remain the source of all displayed calculations.
+          cellFormula: true,
           cellHTML: false,
           cellStyles: false,
           bookFiles: false,

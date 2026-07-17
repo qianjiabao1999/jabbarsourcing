@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260718a";
+  var VERSION = "order-20260718b";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   var MAX_FILES = 10;
   var WORKER_TIMEOUT_MS = 60000;
