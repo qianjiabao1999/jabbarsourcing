@@ -47,9 +47,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-162" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-163" />
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20260714c" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20260717a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -188,6 +188,10 @@
                   <input name="product" type="text" maxlength="300" placeholder="es. articoli per dollar store, cucina, giocattoli, organizer…" autocomplete="off"  required/>
                 </label>
                 <label class="field">
+                  <span>Contatti</span>
+                  <input name="contact" type="text" maxlength="200" placeholder="WhatsApp / email / WeChat ID" autocomplete="on"  required/>
+                </label>
+                <label class="field">
                   <span>Categoria prodotto</span>
                   <select name="category">
                   <option value="">Seleziona</option>
@@ -213,10 +217,6 @@
                   <input name="market" type="text" maxlength="120" placeholder="es. USA, Francia, Arabia Saudita, Russia…" autocomplete="off" />
                 </label>
                 <label class="field">
-                  <span>Contatti</span>
-                  <input name="contact" type="text" maxlength="200" placeholder="WhatsApp / email / WeChat ID" autocomplete="off"  required/>
-                </label>
-                <label class="field">
                   <span>Nome / azienda</span>
                   <input name="company" type="text" maxlength="160" placeholder="Il tuo nome o azienda" autocomplete="organization" />
                 </label>
@@ -232,6 +232,7 @@
                   <p class="inquiry-privacy-error js-inquiry-privacy-error" aria-live="polite"></p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="it"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Invia direttamente la richiesta</button>
+                  <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
                 </div>
                 <p class="inquiry-fallback-label field-wide">Oppure usa una delle opzioni qui sotto</p>
                 <div class="inquiry-actions">
@@ -240,7 +241,6 @@
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="wechat"><img class="inquiry-button-icon" src="../../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Copia per WeChat</span></button>
                   <button type="button" class="inquiry-button js-inquiry-send" data-channel="telegram"><img class="inquiry-button-icon" src="../../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" decoding="async" width="64" height="64" /><span>Invia su Telegram</span></button>
                 </div>
-                <p class="inquiry-status" aria-live="polite"></p>
               </form>
             </div>
           </section>
@@ -371,7 +371,11 @@
             lines.push("Page: " + window.location.href.split("#")[0]);
             return lines.join("\n");
           };
-          var setStatus = function (message) { if (status) status.textContent = message || ""; };
+          var setStatus = function (message) {
+            if (!status) return;
+            status.classList.remove("is-success", "is-error", "is-pending");
+            status.textContent = message || "";
+          };
           form.querySelectorAll(".js-inquiry-send").forEach(function (button) {
             button.addEventListener("click", function () {
               if (typeof form.reportValidity === "function" && !form.reportValidity()) {
@@ -431,6 +435,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260714d" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260717a" defer></script>
   </body>
 </html>

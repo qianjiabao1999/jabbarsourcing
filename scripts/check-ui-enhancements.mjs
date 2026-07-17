@@ -6,9 +6,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-162";
+const CSS_VERSION = "apple-163";
 const AI_VERSION = "ai-20260714c";
-const UI_VERSION = "ui-20260714d";
+const UI_VERSION = "ui-20260717a";
 const ORDER_VERSION = "order-20260717a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
@@ -189,6 +189,14 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   assert.match(html, /setTextWithMonoNumbers\(out\.summary,\s*container\s*\+/, `${file}: dynamic summary numbers are not wrapped`);
   assert(Number(attribute(capTag, "y")) < Number(attribute(fillTag, "y")), `${file}: capacity label must sit above the container`);
   assert.equal(count(html, /window\.renderCbmVisual\(total\)/g), 1, `${file}: CBM visual hook count`);
+  assert.equal(count(html, /["']jabbar:calc-result["']/g), 1, `${file}: calculator result bridge event count`);
+  for (const detailField of ["message", "product", "quantity", "totalCbm", "bufferedCbm", "container"]) {
+    assert.match(html, new RegExp(`${detailField}:`), `${file}: calculator result event missing ${detailField}`);
+  }
+  assert.doesNotMatch(html, /aria-hidden="false"/, `${file}: CBM visual must not use aria-hidden=false`);
+  assert.doesNotMatch(fillTag, /\sfill=/, `${file}: CBM fill color must come from CSS`);
+  assert.doesNotMatch(tagById(html, "cbmRibs"), /\sstroke=/, `${file}: CBM rib color must come from CSS`);
+  assert.doesNotMatch(percentageTag, /\sfill=/, `${file}: CBM percentage color must come from CSS`);
   assert.equal(count(html, /["']calculator_calculate["']/g), 1, `${file}: valid manual calculator event count`);
   assert.equal(count(html, /mobile-conversion-bar/g), 0, `${file}: calculator must not include mobile conversion bar`);
   if (locale === "ar") assert.match(html, /<html[^>]+lang="ar"[^>]+dir="rtl"/, `${file}: Arabic RTL root missing`);
@@ -254,6 +262,15 @@ assert(javascript.includes("sharedObserver.observe(section)"), "site-enhancement
 assert(javascript.includes('createElement("li", "shipment-ticker-item num-mono")'), "site-enhancements.js: dynamic shipment item must explicitly use num-mono");
 assert(javascript.includes('ticker.classList.add("is-ready")'), "site-enhancements.js: valid shipment data must opt into the visible state");
 assert(!javascript.includes("ja:"), "site-enhancements.js: Japanese labels must not return");
+for (const token of [
+  "initCalculatorInquiryBridge", "calculator-inquiry-cta", "jabbarCalcResult", "calculator_result",
+  "calculator_inquiry", "service-country-toggle", "pauseCountries", "resumeCountries",
+  "reducedMotionQuery.addEventListener", 'event.key === "Escape"', "company-metric-visual"
+]) {
+  assert(javascript.includes(token), `site-enhancements.js: missing round 8 behavior ${token}`);
+}
+assert(!javascript.includes('setAttribute("aria-hidden", "false")'), "site-enhancements.js: aria-hidden=false must not return");
+assert(!javascript.includes('setAttribute("fill"'), "site-enhancements.js: dynamic CBM colors must use CSS classes");
 
 const inquiryJavascript = await load("assets/inquiry-form.js");
 const aiJavascript = await load("assets/ai-sourcing-assistant.js");
@@ -270,6 +287,13 @@ for (const token of [
 ]) {
   assert(css.includes(token), `styles.css: missing ${token}`);
 }
+for (const token of [
+  ".calculator-inquiry-cta", ".service-country-toggle", ".inquiry-status-icon",
+  ".inquiry-status-whatsapp", "#cbmFill.is-over", "#cbmRibs", ".field-label-marker"
+]) {
+  assert(css.includes(token), `styles.css: missing round 8 style ${token}`);
+}
+assert.doesNotMatch(css, /\.legal-content ul\s*\{[^}]*padding-left\s*:/s, "styles.css: legal list must use logical padding");
 for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "has-mobile-conversion-bar", ".ui-section-reveal"]) {
   assert(!css.includes(removedToken), `styles.css: removed floating control styles remain (${removedToken})`);
 }
@@ -324,5 +348,12 @@ shipments.forEach((shipment, index) => {
   CITY_FIELDS.forEach((field) => assert.equal(typeof shipment[field] === "string" && shipment[field].trim().length > 0, true, `${scope}: ${field}`));
   assert(isValidCalendarDate(shipment.when), `${scope}: invalid date`);
 });
+
+const packageJson = JSON.parse(await load("package.json"));
+assert.match(packageJson.scripts["build:css"], /--browserslist/, "package.json: CSS build must honor browser targets");
+assert(Array.isArray(packageJson.browserslist) && packageJson.browserslist.includes("Chrome >= 90"), "package.json: legacy browser targets missing");
+const minifiedCss = await load("styles.min.css");
+assert.doesNotMatch(minifiedCss, /(?:width|height)\s*[<>]=?|[<>]=?\s*(?:width|height)/, "styles.min.css: Media Queries Level 4 range syntax remains");
+assert.match(minifiedCss, /\(max-width:/, "styles.min.css: legacy max-width media queries missing");
 
 console.log(`UI enhancement static check passed: ${HOME_PAGES.length} homepages, ${CALCULATOR_PAGES.length} calculators, ${INQUIRY_PAGES.length} inquiry pages, CSS ${CSS_VERSION}, UI ${UI_VERSION}.`);

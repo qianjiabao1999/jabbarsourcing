@@ -4,7 +4,7 @@
   "description": "Static GitHub Pages website for `www.jabbarsourcing.com`.",
   "main": "script.js",
   "scripts": {
-    "build:css": "lightningcss --minify styles.css -o styles.min.css",
+    "build:css": "lightningcss --minify --browserslist styles.css -o styles.min.css",
     "test": "npm run test:inquiry-frontend && npm run test:ui-enhancements",
     "test:inquiry-frontend": "node scripts/check-inquiry-frontend.mjs",
     "test:ui-enhancements": "node scripts/check-ui-enhancements.mjs",
@@ -27,6 +27,13 @@
     "url": "https://github.com/qianjiabao1999/jabbarsourcing/issues"
   },
   "homepage": "https://github.com/qianjiabao1999/jabbarsourcing#readme",
+  "browserslist": [
+    "Chrome >= 90",
+    "Safari >= 13",
+    "iOS >= 13",
+    "Firefox >= 90",
+    "Edge >= 90"
+  ],
   "devDependencies": {
     "lightningcss-cli": "^1.32.0",
     "playwright": "^1.61.1"

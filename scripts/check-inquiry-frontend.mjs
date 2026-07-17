@@ -9,8 +9,8 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-12";
-const CSS_VERSION = "apple-162";
-const JS_VERSION = "inquiry-20260714c";
+const CSS_VERSION = "apple-163";
+const JS_VERSION = "inquiry-20260717a";
 const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
 const PAGES = [
@@ -123,6 +123,42 @@ function checkSingleTag(scope, tags, description) {
 
 function checkSharedJavascript(source) {
   const scope = "assets/inquiry-form.js";
+  for (const locale of PAGES.map((page) => page.locale)) {
+    const messageBlock = source.match(new RegExp(`\\n\\s*${locale}:\\s*\\{([\\s\\S]*?)\\n\\s*\\}`));
+    if (!messageBlock) {
+      fail(scope, `missing message block for ${locale}`);
+      continue;
+    }
+    if (!/sendingLabel\s*:/.test(messageBlock[1])) {
+      fail(scope, `${locale} messages must include sendingLabel`);
+    }
+    if (!/success\s*:\s*[^\n]*24/.test(messageBlock[1])) {
+      fail(scope, `${locale} success message must promise a reply within 24 hours`);
+    }
+  }
+
+  const requiredSourceFragments = [
+    ["calculator handoff key", '"jabbarCalcResult"'],
+    ["calculator handoff timestamp", "result.savedAt"],
+    ["calculator message-to-note handoff", "result.note || result.message"],
+    ["two-hour calculator handoff limit", "2 * 60 * 60 * 1000"],
+    ["submitting button label", "messages.sendingLabel : directButtonLabel"],
+    ["accessible success icon", 'icon.setAttribute("aria-hidden", "true")'],
+    ["WhatsApp success shortcut", '"https://wa.me/8618658925544"'],
+    ["safe external target", 'whatsapp.target = "_blank"'],
+    ["safe external relationship", 'whatsapp.rel = "noopener noreferrer"'],
+    ["status reveal animation frame", "window.requestAnimationFrame"],
+    ["reduced-motion status reveal", 'window.matchMedia("(prefers-reduced-motion: reduce)")'],
+    ["nearest status reveal", 'status.scrollIntoView({ block: "nearest"'],
+    ["status focus without extra scrolling", "status.focus({ preventScroll: true })"],
+    ["non-disruptive status focus guard", "var mayMoveFocus"],
+    ["localized optional field labels", "OPTIONAL_LABELS"],
+    ["required field marker", 'marker.classList.add("is-required")'],
+  ];
+  for (const [label, fragment] of requiredSourceFragments) {
+    if (!source.includes(fragment)) fail(scope, `missing ${label}`);
+  }
+
   const buildPayload = source.match(
     /function\s+buildPayload\s*\(\s*\)\s*\{([\s\S]*?)\n\s*\}\n\s*\n\s*function\s+completeSubmission/,
   );
@@ -234,6 +270,17 @@ function checkPage(page, html) {
     }
   }
 
+  const productPosition = formBody.indexOf('name="product"');
+  const contactPosition = formBody.indexOf('name="contact"');
+  const categoryPosition = formBody.indexOf('name="category"');
+  if (!(productPosition >= 0 && productPosition < contactPosition && contactPosition < categoryPosition)) {
+    fail(scope, "required contact field must appear immediately after product and before optional fields");
+  }
+  const contactControl = namedControls.find((candidate) => candidate.attributes.get("name") === "contact");
+  if (contactControl && contactControl.attributes.get("autocomplete") !== "on") {
+    fail(scope, "contact field must allow browser autofill with autocomplete=on");
+  }
+
   const privacyInputs = findTags(formBody, "input").filter((tag) => hasClass(tag, "js-inquiry-privacy"));
   const privacy = checkSingleTag(scope, privacyInputs, "privacy checkbox");
   if (privacy) {
@@ -284,6 +331,28 @@ function checkPage(page, html) {
     if (hasClass(directButton, "js-inquiry-send")) {
       fail(scope, "direct-submit button must not be treated as a fallback button");
     }
+  }
+
+  const statusElements = findTags(formBody, "p").filter((tag) => hasClass(tag, "inquiry-status"));
+  const status = checkSingleTag(scope, statusElements, "inquiry status");
+  if (status) {
+    const expectedAttributes = new Map([
+      ["role", "status"],
+      ["aria-live", "polite"],
+      ["aria-atomic", "true"],
+      ["tabindex", "-1"],
+    ]);
+    for (const [attribute, expected] of expectedAttributes) {
+      if (status.attributes.get(attribute) !== expected) {
+        fail(scope, `inquiry status ${attribute}: expected ${expected}, got ${status.attributes.get(attribute) ?? "missing"}`);
+      }
+    }
+  }
+  if (!/<button\b[^>]*\bjs-inquiry-direct\b[^>]*>[\s\S]*?<\/button>\s*<p\b[^>]*\binquiry-status\b[^>]*><\/p>\s*<\/div>\s*<p\b[^>]*\binquiry-fallback-label\b/i.test(formBody)) {
+    fail(scope, "inquiry status must be immediately after the direct-submit button, inside the direct panel and before fallback actions");
+  }
+  if (!html.includes('status.classList.remove("is-success", "is-error", "is-pending")')) {
+    fail(scope, "fallback status updates must clear direct-submit state styles");
   }
 
   const fallbackButtons = buttons.filter((button) => hasClass(button, "js-inquiry-send"));

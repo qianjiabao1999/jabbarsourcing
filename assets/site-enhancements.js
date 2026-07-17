@@ -5,58 +5,84 @@
   var labels = {
     zh: {
       scan: "手机扫码直聊", reply: "在线 · 24 小时内回复",
-      countries: "服务国家和地区", shipments: "最近发运", cbmTitle: "集装箱装载示意",
+      countries: "服务国家和地区", pauseCountries: "暂停国家滚动", resumeCountries: "继续国家滚动",
+      shipments: "最近发运", cbmTitle: "集装箱装载示意", quoteWithResult: "用此结果获取报价",
       faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发"]
     },
     en: {
       scan: "Scan to chat", reply: "Online · replies within 24h",
-      countries: "Countries and regions served", shipments: "Recent shipments", cbmTitle: "Container loading illustration",
+      countries: "Countries and regions served", pauseCountries: "Pause country list", resumeCountries: "Resume country list",
+      shipments: "Recent shipments", cbmTitle: "Container loading illustration", quoteWithResult: "Get a quote with this result",
       faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping"]
     },
     es: {
       scan: "Escanea para chatear", reply: "En línea · respuesta en 24 h",
-      countries: "Países y regiones atendidos", shipments: "Envíos recientes", cbmTitle: "Ilustración de carga del contenedor",
+      countries: "Países y regiones atendidos", pauseCountries: "Pausar lista de países", resumeCountries: "Reanudar lista de países",
+      shipments: "Envíos recientes", cbmTitle: "Ilustración de carga del contenedor", quoteWithResult: "Solicitar cotización con este resultado",
       faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo"]
     },
     ar: {
       scan: "امسح للدردشة", reply: "متصل · نرد خلال 24 ساعة",
-      countries: "الدول والمناطق التي نخدمها", shipments: "الشحنات الأخيرة", cbmTitle: "رسم توضيحي لتحميل الحاوية",
+      countries: "الدول والمناطق التي نخدمها", pauseCountries: "إيقاف قائمة الدول مؤقتًا", resumeCountries: "استئناف قائمة الدول",
+      shipments: "الشحنات الأخيرة", cbmTitle: "رسم توضيحي لتحميل الحاوية", quoteWithResult: "اطلب عرض سعر بهذه النتيجة",
       faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر"]
     },
     fr: {
       scan: "Scannez pour discuter", reply: "En ligne · réponse sous 24 h",
-      countries: "Pays et régions desservis", shipments: "Expéditions récentes", cbmTitle: "Illustration du chargement du conteneur",
+      countries: "Pays et régions desservis", pauseCountries: "Mettre la liste des pays en pause", resumeCountries: "Reprendre la liste des pays",
+      shipments: "Expéditions récentes", cbmTitle: "Illustration du chargement du conteneur", quoteWithResult: "Demander un devis avec ce résultat",
       faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe"]
     },
     pt: {
       scan: "Escaneie para conversar", reply: "Online · resposta em até 24 h",
-      countries: "Países e regiões atendidos", shipments: "Envios recentes", cbmTitle: "Ilustração do carregamento do contêiner",
+      countries: "Países e regiões atendidos", pauseCountries: "Pausar lista de países", resumeCountries: "Retomar lista de países",
+      shipments: "Envios recentes", cbmTitle: "Ilustração do carregamento do contêiner", quoteWithResult: "Pedir cotação com este resultado",
       faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping"]
     },
     ru: {
       scan: "Сканируйте для чата", reply: "Онлайн · ответим в течение 24 ч",
-      countries: "Страны и регионы обслуживания", shipments: "Последние отправки", cbmTitle: "Схема загрузки контейнера",
+      countries: "Страны и регионы обслуживания", pauseCountries: "Приостановить список стран", resumeCountries: "Продолжить список стран",
+      shipments: "Последние отправки", cbmTitle: "Схема загрузки контейнера", quoteWithResult: "Запросить расчёт с этим результатом",
       faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг"]
     },
     de: {
       scan: "Zum Chatten scannen", reply: "Online · Antwort innerhalb 24 Std.",
-      countries: "Bediente Länder und Regionen", shipments: "Letzte Sendungen", cbmTitle: "Darstellung der Containerbeladung",
+      countries: "Bediente Länder und Regionen", pauseCountries: "Länderliste pausieren", resumeCountries: "Länderliste fortsetzen",
+      shipments: "Letzte Sendungen", cbmTitle: "Darstellung der Containerbeladung", quoteWithResult: "Mit diesem Ergebnis Angebot anfragen",
       faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping"]
     },
     it: {
       scan: "Scansiona per chattare", reply: "Online · risposta entro 24 ore",
-      countries: "Paesi e regioni serviti", shipments: "Spedizioni recenti", cbmTitle: "Illustrazione del carico del container",
+      countries: "Paesi e regioni serviti", pauseCountries: "Metti in pausa l’elenco dei Paesi", resumeCountries: "Riprendi l’elenco dei Paesi",
+      shipments: "Spedizioni recenti", cbmTitle: "Illustrazione del carico del container", quoteWithResult: "Richiedi un preventivo con questo risultato",
       faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping"]
     },
     tr: {
       scan: "Sohbet için tarayın", reply: "Çevrimiçi · 24 saat içinde yanıt",
-      countries: "Hizmet verilen ülkeler ve bölgeler", shipments: "Son gönderiler", cbmTitle: "Konteyner yükleme görseli",
+      countries: "Hizmet verilen ülkeler ve bölgeler", pauseCountries: "Ülke listesini duraklat", resumeCountries: "Ülke listesini sürdür",
+      shipments: "Son gönderiler", cbmTitle: "Konteyner yükleme görseli", quoteWithResult: "Bu sonuçla teklif iste",
       faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış"]
     }
   };
   var copy = labels[lang] || labels.en;
   var reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   var reducedMotion = reducedMotionQuery.matches;
+  var reducedMotionSubscribers = [];
+
+  function onReducedMotionChange(callback) {
+    reducedMotionSubscribers.push(callback);
+  }
+
+  function syncReducedMotion(event) {
+    reducedMotion = Boolean(event.matches);
+    reducedMotionSubscribers.slice().forEach(function (callback) { callback(reducedMotion); });
+  }
+
+  if (typeof reducedMotionQuery.addEventListener === "function") {
+    reducedMotionQuery.addEventListener("change", syncReducedMotion);
+  } else if (typeof reducedMotionQuery.addListener === "function") {
+    reducedMotionQuery.addListener(syncReducedMotion);
+  }
 
   function createElement(tag, className, text) {
     var element = document.createElement(tag);
@@ -81,6 +107,85 @@
         page_type: "calculator"
       });
     }, true);
+  }
+
+  function initCalculatorInquiryBridge() {
+    var form = document.getElementById("cbm-calculator");
+    var results = document.querySelector(".calculator-results");
+    if (!form || !results || results.querySelector(".calculator-inquiry-cta")) return;
+
+    var inquiryPath = lang === "zh" ? "/inquiry/" : "/" + lang + "/inquiry/";
+    var quoteLink = createElement("a", "calculator-inquiry-cta", copy.quoteWithResult);
+    quoteLink.href = inquiryPath;
+    quoteLink.hidden = true;
+    results.appendChild(quoteLink);
+
+    var lastResult = null;
+
+    function hasValidDimensions() {
+      return ["length", "width", "height", "qty"].every(function (name) {
+        var field = form.elements.namedItem(name);
+        if (!field) return false;
+        var value = Number(field.value);
+        return name === "qty" ? Math.floor(value) > 0 : value > 0;
+      });
+    }
+
+    window.addEventListener("jabbar:calc-result", function (event) {
+      if (!event.detail || !event.detail.message) return;
+      lastResult = event.detail;
+      quoteLink.hidden = false;
+    });
+
+    quoteLink.addEventListener("click", function (event) {
+      if (!lastResult || !hasValidDimensions()) {
+        event.preventDefault();
+        return;
+      }
+      try {
+        window.sessionStorage.setItem("jabbarCalcResult", JSON.stringify({
+          savedAt: Date.now(),
+          message: lastResult.message,
+          product: lastResult.product || "",
+          quantity: lastResult.quantity || "",
+          totalCbm: Number(lastResult.totalCbm) || 0,
+          bufferedCbm: Number(lastResult.bufferedCbm) || 0,
+          container: lastResult.container || ""
+        }));
+      } catch (error) {}
+      window.jabbarTrack("calculator_inquiry", {
+        page_type: "calculator",
+        locale: document.documentElement.lang || lang
+      });
+    });
+
+    form.addEventListener("submit", function () {
+      if (!lastResult || !hasValidDimensions()) return;
+      var submittedResult = lastResult;
+      window.requestAnimationFrame(function () {
+        window.jabbarTrack("calculator_result", {
+          method: "manual",
+          locale: document.documentElement.lang || lang,
+          total_cbm: Number(Number(submittedResult.totalCbm || 0).toFixed(3))
+        });
+        if (window.matchMedia("(max-width: 900px)").matches) {
+          results.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+        }
+      });
+    });
+
+    var copyButton = form.querySelector("[data-copy-result]");
+    if (copyButton) {
+      copyButton.addEventListener("click", function () {
+        if (!lastResult || !hasValidDimensions()) return;
+        window.requestAnimationFrame(function () {
+          window.jabbarTrack("calculator_copy", {
+            page_type: "calculator",
+            locale: document.documentElement.lang || lang
+          });
+        });
+      });
+    }
   }
 
   function initTrustStamps() {
@@ -204,11 +309,6 @@
     }
 
     function startMotion(firstList) {
-      if (reducedMotion) {
-        ticker.classList.add("is-static");
-        return;
-      }
-
       var rtl = document.documentElement.dir === "rtl";
       var width = 0;
       var offset = 0;
@@ -238,13 +338,23 @@
         frameId = window.requestAnimationFrame(frame);
       }
       function sync() {
-        if (!visible || paused || document.hidden || width <= 0) stop();
+        if (reducedMotion || !visible || paused || document.hidden || width <= 0) stop();
         else if (!frameId) frameId = window.requestAnimationFrame(frame);
       }
       function setPaused(value) {
         paused = value;
         ticker.classList.toggle("is-paused", paused);
         sync();
+      }
+      function syncReducedState() {
+        ticker.classList.toggle("is-static", reducedMotion);
+        if (reducedMotion) {
+          track.style.transform = "translate3d(0,0,0)";
+          stop();
+        } else {
+          measure();
+          sync();
+        }
       }
 
       rail.addEventListener("pointerenter", function () { setPaused(true); });
@@ -259,8 +369,9 @@
           sync();
         }, { rootMargin: "120px 0px" }).observe(ticker);
       }
+      onReducedMotionChange(syncReducedState);
       measure();
-      sync();
+      syncReducedState();
     }
 
     fetch(source, { credentials: "same-origin", cache: "no-store" }).then(function (response) {
@@ -294,7 +405,6 @@
     var visual = results.querySelector(".cbm-visual");
     if (!visual) {
       visual = createElement("div", "cbm-visual");
-      visual.setAttribute("aria-hidden", "false");
       visual.innerHTML = [
         '<svg viewBox="0 0 320 150" role="img" aria-labelledby="cbmVizTitle">',
         '<title id="cbmVizTitle"></title>',
@@ -305,9 +415,9 @@
         '<rect x="8" y="44" width="284" height="80" rx="4" fill="none" stroke="#475569" stroke-width="3"/>',
         '<line x1="292" y1="52" x2="308" y2="52" stroke="#475569" stroke-width="3"/>',
         '<line x1="292" y1="116" x2="308" y2="116" stroke="#475569" stroke-width="3"/>',
-        '<rect id="cbmFill" x="12" y="48" width="0" height="72" fill="#5DCAA5"/>',
-        '<g id="cbmRibs" stroke="#0F6E56" stroke-width="1"></g>',
-        '<text id="cbmPct" class="num-mono" x="150" y="92" text-anchor="middle" font-size="18" font-weight="600" fill="#04342C">0%</text>',
+        '<rect id="cbmFill" x="12" y="48" width="0" height="72"/>',
+        '<g id="cbmRibs" stroke-width="1"></g>',
+        '<text id="cbmPct" class="num-mono" x="150" y="92" text-anchor="middle" font-size="18" font-weight="600">0%</text>',
         "</svg>"
       ].join("");
       var heading = results.querySelector("h2");
@@ -327,14 +437,17 @@
       var width = Math.round(276 * pct);
       var fill = visual.querySelector("#cbmFill");
       fill.setAttribute("width", width);
-      fill.setAttribute("fill", over ? "#EF9F27" : "#5DCAA5");
+      fill.classList.toggle("is-over", over);
       var ribs = visual.querySelector("#cbmRibs");
       ribs.innerHTML = "";
       for (var x = 46; x < 12 + width; x += 34) {
         ribs.insertAdjacentHTML("beforeend", '<line x1="' + x + '" y1="48" x2="' + x + '" y2="120"/>');
       }
-      visual.querySelector("#cbmPct").textContent = Math.round(totalCbm / pick[1] * 100) + "%";
-      visual.querySelector("#cbmCap").textContent = pick[0] + " · " + totalCbm.toFixed(1) + " / " + pick[1] + " " + volumeUnit + (over ? " ×" + Math.ceil(totalCbm / 68) : "");
+      var percentageText = Math.round(totalCbm / pick[1] * 100) + "%";
+      var capacityText = pick[0] + " · " + totalCbm.toFixed(1) + " / " + pick[1] + " " + volumeUnit + (over ? " ×" + Math.ceil(totalCbm / 68) : "");
+      visual.querySelector("#cbmPct").textContent = percentageText;
+      visual.querySelector("#cbmCap").textContent = capacityText;
+      if (title) title.textContent = copy.cbmTitle + ": " + percentageText + " · " + capacityText;
     };
     window.renderCbmVisual(0);
     var form = document.getElementById("cbm-calculator");
@@ -375,6 +488,8 @@
     if (!triggers.length) return;
 
     var card = createElement("aside", "whatsapp-qr-card");
+    card.id = "whatsapp-qr-preview";
+    card.setAttribute("role", "tooltip");
     card.hidden = true;
     var image = document.createElement("img");
     image.src = "/assets/whatsapp-qr.svg?v=20260712a";
@@ -402,8 +517,12 @@
     function positionCard(trigger) {
       var rect = trigger.getBoundingClientRect();
       var box = card.getBoundingClientRect();
+      var nav = document.querySelector(".site-nav");
+      var navBottom = nav ? nav.getBoundingClientRect().bottom : 68;
+      var safeTop = Math.max(8, navBottom + 8);
       var top = rect.top - box.height - 12;
-      if (top < 8) top = Math.min(window.innerHeight - box.height - 8, rect.bottom + 12);
+      if (top < safeTop) top = rect.bottom + 12;
+      top = Math.max(safeTop, Math.min(window.innerHeight - box.height - 8, top));
       var left = Math.min(window.innerWidth - box.width - 8, Math.max(8, rect.left + rect.width / 2 - box.width / 2));
       card.style.top = top + "px";
       card.style.left = left + "px";
@@ -427,11 +546,19 @@
     }
 
     triggers.forEach(function (trigger) {
+      var describedBy = (trigger.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+      if (describedBy.indexOf(card.id) === -1) describedBy.push(card.id);
+      trigger.setAttribute("aria-describedby", describedBy.join(" "));
       trigger.addEventListener("mouseenter", function () { show(trigger, 400); });
       trigger.addEventListener("mouseleave", function () { hide(200); });
+      trigger.addEventListener("focusin", function () { show(trigger, 0); });
+      trigger.addEventListener("focusout", function () { hide(100); });
     });
     card.addEventListener("mouseenter", clearTimers);
     card.addEventListener("mouseleave", function () { hide(200); });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !card.hidden) hide(0);
+    });
     window.addEventListener("scroll", function () { if (active && !card.hidden) hide(0); }, { passive: true });
     window.addEventListener("resize", function () { if (active && !card.hidden) positionCard(active); }, { passive: true });
   }
@@ -468,7 +595,12 @@
     var target = Number(token.replace(/[^0-9]/g, ""));
     if (!target) return null;
     numberElement.classList.add("company-metric-number", "num-mono");
-    strong.setAttribute("aria-label", original);
+    strong.removeAttribute("aria-label");
+    var visual = createElement("span", "company-metric-visual");
+    visual.setAttribute("aria-hidden", "true");
+    while (strong.firstChild) visual.appendChild(strong.firstChild);
+    strong.appendChild(visual);
+    strong.appendChild(createElement("span", "sr-only", original));
     numberElement.textContent = "0";
     return { element: numberElement, original: token, target: target, grouped: /[,.]/.test(token) };
   }
@@ -479,7 +611,7 @@
       var elapsed = Math.min(1, (now - start) / 1200);
       var eased = 1 - Math.pow(1 - elapsed, 3);
       var value = Math.round(counter.target * eased);
-      counter.element.textContent = value.toLocaleString("en-US", { useGrouping: counter.grouped });
+      counter.element.textContent = value.toLocaleString(document.documentElement.lang || "en", { useGrouping: counter.grouped });
       if (elapsed < 1) window.requestAnimationFrame(step);
       else counter.element.textContent = counter.original;
     }
@@ -492,16 +624,11 @@
 
     var metrics = Array.prototype.slice.call(document.querySelectorAll(".company-metric-card strong"));
     var counters = new Map();
-    var marqueeState = { visible: false };
     var sharedObserver = null;
 
     if (!reducedMotion && "IntersectionObserver" in window) {
       sharedObserver = new IntersectionObserver(function (entries, observer) {
         entries.forEach(function (entry) {
-          if (entry.target.classList.contains("service-country-marquee")) {
-            marqueeState.visible = entry.isIntersecting;
-            return;
-          }
           if (!entry.isIntersecting) return;
           if (counters.has(entry.target)) animateCounter(counters.get(entry.target));
           else entry.target.classList.add("is-visible");
@@ -540,6 +667,9 @@
     var marquee = createElement("div", "service-country-marquee");
     marquee.setAttribute("role", "region");
     marquee.setAttribute("aria-label", copy.countries);
+    var toggle = createElement("button", "service-country-toggle", copy.pauseCountries);
+    toggle.type = "button";
+    toggle.setAttribute("aria-pressed", "false");
     var track = createElement("div", "service-country-track");
     function countryList(hidden) {
       var list = createElement("ul", "service-country-list");
@@ -556,44 +686,71 @@
     var firstList = countryList(false);
     track.appendChild(firstList);
     track.appendChild(countryList(true));
+    marquee.appendChild(toggle);
     marquee.appendChild(track);
     introLayout.appendChild(marquee);
 
-    if (reducedMotion) {
-      marquee.classList.add("is-static");
-      return;
-    }
-    if (sharedObserver) sharedObserver.observe(marquee);
-    else marqueeState.visible = true;
-
     var offset = 0;
     var width = 0;
-    var paused = false;
+    var visible = true;
+    var hoverPaused = false;
+    var userPaused = false;
+    var frameId = 0;
     var last = 0;
     var rtl = document.documentElement.dir === "rtl";
+
     function measure() {
       width = firstList.getBoundingClientRect().width;
-      if (rtl) offset = -width;
+      if (rtl && offset === 0) offset = -width;
+    }
+    function stop() {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      frameId = 0;
+      last = 0;
     }
     function frame(now) {
       if (!last) last = now;
       var frameScale = Math.min(2, Math.max(0, (now - last) / 16.67));
       last = now;
-      if (!paused && marqueeState.visible && !document.hidden && width > 0) {
-        offset += (rtl ? 0.5 : -0.5) * frameScale;
-        if (!rtl && offset <= -width) offset += width;
-        if (rtl && offset >= 0) offset -= width;
-        track.style.transform = "translate3d(" + offset + "px,0,0)";
-      }
-      window.requestAnimationFrame(frame);
+      offset += (rtl ? 0.5 : -0.5) * frameScale;
+      if (!rtl && offset <= -width) offset += width;
+      if (rtl && offset >= 0) offset -= width;
+      track.style.transform = "translate3d(" + offset + "px,0,0)";
+      frameId = window.requestAnimationFrame(frame);
     }
-    marquee.addEventListener("pointerenter", function () { paused = true; });
-    marquee.addEventListener("pointerleave", function () { paused = false; });
-    marquee.addEventListener("focusin", function () { paused = true; });
-    marquee.addEventListener("focusout", function () { paused = false; });
-    window.addEventListener("resize", measure, { passive: true });
+    function sync() {
+      var paused = reducedMotion || hoverPaused || userPaused || !visible || document.hidden || width <= 0;
+      marquee.classList.toggle("is-paused", hoverPaused || userPaused);
+      if (paused) stop();
+      else if (!frameId) frameId = window.requestAnimationFrame(frame);
+    }
+    function syncReducedState() {
+      marquee.classList.toggle("is-static", reducedMotion);
+      if (reducedMotion) track.style.transform = "translate3d(0,0,0)";
+      else measure();
+      sync();
+    }
+    function setUserPaused(value) {
+      userPaused = value;
+      toggle.setAttribute("aria-pressed", String(userPaused));
+      toggle.textContent = userPaused ? copy.resumeCountries : copy.pauseCountries;
+      sync();
+    }
+
+    toggle.addEventListener("click", function () { setUserPaused(!userPaused); });
+    marquee.addEventListener("pointerenter", function () { hoverPaused = true; sync(); });
+    marquee.addEventListener("pointerleave", function () { hoverPaused = false; sync(); });
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("resize", function () { measure(); sync(); }, { passive: true });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) { visible = entry.isIntersecting; });
+        sync();
+      }, { rootMargin: "120px 0px" }).observe(marquee);
+    }
+    onReducedMotionChange(syncReducedState);
     measure();
-    window.requestAnimationFrame(frame);
+    syncReducedState();
   }
 
   function initFaqTags() {
@@ -637,6 +794,7 @@
   }
 
   initAnalyticsEvents();
+  initCalculatorInquiryBridge();
   initTrustStamps();
   initShipmentTicker();
   initCbmVisual();

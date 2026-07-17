@@ -152,7 +152,68 @@ function assertInquiryEvent(event, status, scope) {
   assert(event.locale === "zh", `${scope} inquiry_submit locale is ${event.locale}`);
 }
 
+await page.goto(`${BASE_URL}/inquiry/`, { waitUntil: "domcontentloaded" });
+await page.evaluate(() => {
+  sessionStorage.setItem("jabbarCalcResult", JSON.stringify({
+    savedAt: Date.now(),
+    product: "QA calculator product",
+    quantity: "3,600 pcs",
+    message: "QA calculator result: 12.4 CBM, one 20GP container"
+  }));
+});
 await openInquiry("/inquiry/");
+assert((await page.locator('[name="product"]').inputValue()) === "QA calculator product", "Fresh calculator handoff must prefill product");
+assert((await page.locator('[name="quantity"]').inputValue()) === "3,600 pcs", "Fresh calculator handoff must prefill quantity");
+assert(
+  (await page.locator('[name="note"]').inputValue()) === "QA calculator result: 12.4 CBM, one 20GP container",
+  "Calculator message must prefill note"
+);
+assert(
+  (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
+  "Consumed calculator handoff must be removed"
+);
+
+await page.evaluate(() => {
+  sessionStorage.setItem("jabbarCalcResult", JSON.stringify({
+    savedAt: Date.now() - (2 * 60 * 60 * 1000 + 1),
+    product: "QA stale calculator product",
+    quantity: "stale quantity",
+    message: "stale result"
+  }));
+});
+await openInquiry("/inquiry/");
+assert((await page.locator('[name="product"]').inputValue()) === "", "Calculator handoff older than two hours must be ignored");
+assert((await page.locator('[name="quantity"]').inputValue()) === "", "Stale calculator quantity must be ignored");
+assert((await page.locator('[name="note"]').inputValue()) === "", "Stale calculator note must be ignored");
+assert(
+  (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
+  "Stale calculator handoff must be removed"
+);
+
+const statusContract = await page.locator(".inquiry-status").evaluate((status) => ({
+  role: status.getAttribute("role"),
+  live: status.getAttribute("aria-live"),
+  atomic: status.getAttribute("aria-atomic"),
+  tabIndex: status.getAttribute("tabindex"),
+  insideDirectPanel: status.parentElement?.classList.contains("inquiry-direct-panel") || false,
+  immediatelyAfterDirectButton: status.previousElementSibling?.classList.contains("js-inquiry-direct") || false
+}));
+assert(statusContract.role === "status", "Inquiry feedback must expose role=status");
+assert(statusContract.live === "polite" && statusContract.atomic === "true", "Inquiry feedback must be an atomic polite live region");
+assert(statusContract.tabIndex === "-1", "Inquiry feedback must be programmatically focusable");
+assert(statusContract.insideDirectPanel, "Inquiry feedback must remain inside the direct-submit panel");
+assert(statusContract.immediatelyAfterDirectButton, "Inquiry feedback must immediately follow the direct-submit button");
+
+await page.evaluate(() => {
+  window.__inquiryScrollCalls = [];
+  var nativeScrollIntoView = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = function (options) {
+    if (this.classList && this.classList.contains("inquiry-status")) {
+      window.__inquiryScrollCalls.push(options || null);
+    }
+    try { return nativeScrollIntoView.call(this, options); } catch (error) { return nativeScrollIntoView.call(this); }
+  };
+});
 
 const fallbackSnapshot = await page.locator(".js-inquiry-send").evaluateAll((buttons) =>
   buttons.map((button) => ({ channel: button.dataset.channel, type: button.type }))
@@ -166,8 +227,12 @@ assert(fallbackChannelEvents[0].channel === "wechat", "Fallback click must prese
 assert((await analyticsEvents("inquiry_submit")).length === 0, "Fallback click must not emit inquiry_submit");
 
 await fillRequired("QA storage items", "qa@example.com");
-apiResponses.push(response(201, { ok: true, requestId: "qa-201" }));
+const directButtonLabel = (await page.locator(".js-inquiry-direct").textContent())?.trim();
+apiResponses.push({ ...response(201, { ok: true, requestId: "qa-201" }), delay: 300 });
 await clickDirect();
+await page.waitForFunction(() => document.querySelector(".js-inquiry-direct")?.getAttribute("aria-busy") === "true");
+assert((await page.locator(".js-inquiry-direct").textContent())?.trim() === "提交中…", "Submitting must replace the button label");
+assert(await page.locator(".js-inquiry-direct").isDisabled(), "Submitting must disable the direct-submit button");
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-success"));
 assert(apiPayloads.length === 1, "Happy path should issue one API request");
 assert(
@@ -178,6 +243,37 @@ assert(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.t
 assert(apiPayloads[0].privacyAcknowledged === true, "Privacy acknowledgement must be boolean true");
 assert((await page.locator('[name="product"]').inputValue()) === "", "Success must clear product");
 assert(!(await page.locator(".js-inquiry-privacy").isChecked()), "Success must clear privacy acknowledgement");
+assert((await page.locator(".js-inquiry-direct").textContent())?.trim() === directButtonLabel, "Submission completion must restore the original button label");
+assert(!(await page.locator(".js-inquiry-direct").isDisabled()), "Submission completion must re-enable the direct-submit button");
+assert((await page.locator(".inquiry-status").textContent()).includes("24"), "Success feedback must promise a reply within 24 hours");
+assert(await page.locator(".inquiry-status .inquiry-status-icon").getAttribute("aria-hidden") === "true", "Success check must not duplicate the live-region announcement");
+const successWhatsapp = await page.locator(".inquiry-status .inquiry-status-whatsapp").evaluate((link) => ({
+  href: link.getAttribute("href"),
+  target: link.getAttribute("target"),
+  rel: link.getAttribute("rel")
+}));
+assert(successWhatsapp.href === "https://wa.me/8618658925544", "Success feedback must include the WhatsApp shortcut");
+assert(successWhatsapp.target === "_blank", "Success WhatsApp shortcut must open separately");
+assert(successWhatsapp.rel === "noopener noreferrer", "Success WhatsApp shortcut must isolate the new page");
+await page.waitForFunction(() => (window.__inquiryScrollCalls || []).length >= 2);
+const successScrollCalls = await page.evaluate(() => window.__inquiryScrollCalls);
+assert(
+  successScrollCalls.some((options) => options?.block === "nearest" && options?.behavior === "smooth"),
+  "Non-reduced motion must reveal nonempty status with nearest smooth scrolling"
+);
+assert(await page.locator(".inquiry-status").evaluate((status) => document.activeElement === status), "Success feedback must receive focus without extra scrolling");
+
+await page.locator('[name="product"]').fill("QA fallback after direct success");
+await page.locator('[name="contact"]').fill("qa-fallback@example.com");
+await page.locator('.js-inquiry-send[data-channel="wechat"]').dispatchEvent("click");
+await page.waitForFunction(() => {
+  const status = document.querySelector(".inquiry-status");
+  return Boolean(status?.textContent.trim())
+    && !status.classList.contains("is-success")
+    && !status.classList.contains("is-error")
+    && !status.classList.contains("is-pending");
+});
+
 let inquiryEvents = await analyticsEvents("inquiry_submit");
 assert(inquiryEvents.length === 1, "201 success must emit inquiry_submit exactly once");
 assertInquiryEvent(inquiryEvents[0], 201, "201 success");
@@ -192,6 +288,8 @@ const beforeRetryEvents = inquiryEvents.length;
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
 assert((await analyticsEvents("inquiry_submit")).length === beforeRetryEvents, "502 failure must not emit inquiry_submit");
+assert(await page.locator(".inquiry-status").evaluate((status) => status.childElementCount === 0), "Non-success feedback must remain plain text");
+assert(await page.locator(".inquiry-status").evaluate((status) => document.activeElement === status), "Error feedback must receive focus without extra scrolling");
 await page.waitForFunction(() => window.__turnstileResetCount > 0 && window.__turnstileIssueCount > 1);
 assert((await page.locator('[name="product"]').inputValue()) === "QA retry product", "502 must preserve business fields");
 const firstRetryId = apiPayloads[beforeRetry].submissionId;
@@ -233,6 +331,10 @@ assert(
   (await page.locator('[name="product"]').inputValue()) === "QA unsent edit must remain",
   "A successful in-flight request must not clear later user edits"
 );
+assert(
+  await page.locator('[name="product"]').evaluate((field) => document.activeElement === field),
+  "Async feedback must not steal focus from a field edited during submission"
+);
 inquiryEvents = await analyticsEvents("inquiry_submit");
 assert(inquiryEvents.length === beforeInFlightEvents + 1, "In-flight success must emit inquiry_submit exactly once");
 assertInquiryEvent(inquiryEvents.at(-1), 201, "In-flight 201 success");
@@ -248,7 +350,15 @@ assert(apiPayloads.length === beforePrivacyGate, "Unchecked privacy gate must no
 assert((await analyticsEvents("inquiry_submit")).length === beforePrivacyEvents, "Privacy validation failure must not emit inquiry_submit");
 
 await page.locator(".js-inquiry-privacy").check();
+await page.emulateMedia({ reducedMotion: "reduce" });
+const scrollCallsBeforeReducedMotion = await page.evaluate(() => window.__inquiryScrollCalls.length);
 await page.evaluate(() => window.__turnstileOptions["expired-callback"]());
+await page.waitForFunction(
+  (before) => (window.__inquiryScrollCalls || []).length > before,
+  scrollCallsBeforeReducedMotion
+);
+const reducedMotionScroll = await page.evaluate(() => window.__inquiryScrollCalls.at(-1));
+assert(reducedMotionScroll?.block === "nearest" && reducedMotionScroll?.behavior === "auto", "Reduced motion must reveal status without smooth scrolling");
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
 assert(apiPayloads.length === beforePrivacyGate, "Expired Turnstile token must not call the API");
@@ -277,12 +387,16 @@ for (const viewport of [
     const metrics = await page.evaluate(() => {
       const direct = document.querySelector(".js-inquiry-direct")?.getBoundingClientRect();
       const panel = document.querySelector(".inquiry-direct-panel")?.getBoundingClientRect();
+      const status = document.querySelector(".inquiry-status");
       const mobileNavigation = document.querySelector(".site-nav-mobile-panel")?.getBoundingClientRect();
       const fallback = Array.from(document.querySelectorAll(".js-inquiry-send"));
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         directWidth: direct?.width || 0,
         panelWidth: panel?.width || 0,
+        statusInsideDirectPanel: status?.parentElement?.classList.contains("inquiry-direct-panel") || false,
+        statusAfterDirectButton: status?.previousElementSibling?.classList.contains("js-inquiry-direct") || false,
+        statusRole: status?.getAttribute("role") || "",
         fallbackCount: fallback.length,
         brokenImages: Array.from(document.images).filter((image) => image.complete && image.naturalWidth === 0).length,
         dir: document.documentElement.dir || "ltr",
@@ -292,6 +406,8 @@ for (const viewport of [
     });
     assert(metrics.overflow <= 1, `${item.locale} ${viewport.name} has horizontal overflow: ${metrics.overflow}px`);
     assert(metrics.directWidth > 0 && metrics.panelWidth > 0, `${item.locale} ${viewport.name} direct-submit layout is missing`);
+    assert(metrics.statusInsideDirectPanel && metrics.statusAfterDirectButton, `${item.locale} ${viewport.name} status placement regressed`);
+    assert(metrics.statusRole === "status", `${item.locale} ${viewport.name} status semantics regressed`);
     assert(metrics.fallbackCount === 4, `${item.locale} ${viewport.name} lost a fallback channel`);
     assert(metrics.brokenImages === 0, `${item.locale} ${viewport.name} has ${metrics.brokenImages} broken loaded images`);
     if (viewport.name === "mobile") {

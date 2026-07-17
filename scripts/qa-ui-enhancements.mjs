@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-162";
-const UI_VERSION = "ui-20260714d";
+const CSS_VERSION = "apple-163";
+const UI_VERSION = "ui-20260717a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -99,6 +99,7 @@ async function pageState(page) {
         content: style.content,
         height: numeric(style.height),
         width: numeric(style.width),
+        fontSize: numeric(style.fontSize),
         order: style.order,
         textAlign: style.textAlign,
         textDecorationLine: style.textDecorationLine,
@@ -389,6 +390,10 @@ function assertHeroCta(state, scope) {
   assert(["none", "normal"].includes(state.heroCta.buttonBefore.content), `${scope}: hero quote button decorative arrow remains`);
   assert.equal(state.heroCta.card.textDecorationLine, "none", `${scope}: hero quote CTA is underlined`);
   assert.equal(state.heroCta.button.textDecorationLine, "none", `${scope}: hero quote button is underlined`);
+  if (state.width <= 560) {
+    assert(state.heroCta.button.fontSize >= 15, `${scope}: mobile hero quote font is ${state.heroCta.button.fontSize}px`);
+    assert(state.heroCta.button.height >= 44, `${scope}: mobile hero quote height is ${state.heroCta.button.height}px`);
+  }
 }
 
 async function assertHeroCtaHover(page, scope) {
@@ -498,10 +503,10 @@ async function calculatorMatrix(browserType) {
   await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
   for (const value of ["length", "width", "height"]) await page.locator(`#${value}`).fill("100");
   const cases = [
-    { qty: 5, pct: "7%", cap: "40英尺高柜 · 5.0 / 68 立方米", fill: "#5DCAA5", width: "20" },
-    { qty: 40, pct: "59%", cap: "40英尺高柜 · 40.0 / 68 立方米", fill: "#5DCAA5", width: "162" },
-    { qty: 70, pct: "103%", cap: "40英尺高柜 · 70.0 / 68 立方米 ×2", fill: "#EF9F27", width: "276" },
-    { qty: 90, pct: "132%", cap: "40英尺高柜 · 90.0 / 68 立方米 ×2", fill: "#EF9F27", width: "276" }
+    { qty: 5, pct: "7%", cap: "40英尺高柜 · 5.0 / 68 立方米", fill: "rgb(93, 202, 165)", over: false, width: "20" },
+    { qty: 40, pct: "59%", cap: "40英尺高柜 · 40.0 / 68 立方米", fill: "rgb(93, 202, 165)", over: false, width: "162" },
+    { qty: 70, pct: "103%", cap: "40英尺高柜 · 70.0 / 68 立方米 ×2", fill: "rgb(239, 159, 39)", over: true, width: "276" },
+    { qty: 90, pct: "132%", cap: "40英尺高柜 · 90.0 / 68 立方米 ×2", fill: "rgb(239, 159, 39)", over: true, width: "276" }
   ];
   for (const testCase of cases) {
     await page.locator("#qty").fill(String(testCase.qty));
@@ -509,8 +514,11 @@ async function calculatorMatrix(browserType) {
     await page.waitForFunction((expected) => document.querySelector("#cbmCap")?.textContent === expected, testCase.cap);
     assert.equal(await page.locator("#cbmPct").textContent(), testCase.pct, `${testCase.qty} CBM percentage`);
     assert.equal(await page.locator("#cbmCap").textContent(), testCase.cap, `${testCase.qty} CBM capacity`);
-    assert.equal(await page.locator("#cbmFill").getAttribute("fill"), testCase.fill, `${testCase.qty} CBM fill color`);
+    assert.equal(await page.locator("#cbmFill").evaluate((element) => getComputedStyle(element).fill), testCase.fill, `${testCase.qty} CBM fill color`);
+    assert.equal(await page.locator("#cbmFill").evaluate((element) => element.classList.contains("is-over")), testCase.over, `${testCase.qty} CBM overload class`);
     assert.equal(await page.locator("#cbmFill").getAttribute("width"), testCase.width, `${testCase.qty} CBM fill width`);
+    const accessibleTitle = await page.locator("#cbmVizTitle").textContent();
+    assert(accessibleTitle.includes(testCase.pct) && accessibleTitle.includes(testCase.cap), `${testCase.qty} CBM accessible title is stale: ${accessibleTitle}`);
   }
   await page.locator(".calculator-results").screenshot({ path: `${OUTPUT_DIR}/calculator-visual-1280x900.png` });
   await page.screenshot({ path: `${OUTPUT_DIR}/calculator-blueprint-1280x900.png`, fullPage: true });
@@ -620,6 +628,17 @@ async function interactionChecks(browserType) {
   await page.locator(".site-nav").hover();
   await page.waitForTimeout(230);
   assert.equal(await page.locator(".whatsapp-qr-card").evaluate((element) => element.hidden), true, "QR card did not close after 200ms");
+  await footerWhatsapp.focus();
+  await page.waitForTimeout(40);
+  assert.equal(await page.locator(".whatsapp-qr-card").evaluate((element) => element.hidden), false, "QR card did not open on keyboard focus");
+  const qrPosition = await page.evaluate(() => ({
+    cardTop: document.querySelector(".whatsapp-qr-card").getBoundingClientRect().top,
+    navBottom: document.querySelector(".site-nav").getBoundingClientRect().bottom
+  }));
+  assert(qrPosition.cardTop >= qrPosition.navBottom + 7, `QR card overlaps sticky navigation: ${qrPosition.cardTop} < ${qrPosition.navBottom + 8}`);
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(20);
+  assert.equal(await page.locator(".whatsapp-qr-card").evaluate((element) => element.hidden), true, "QR card did not close on Escape");
 
   await page.locator(".shipment-ticker").scrollIntoViewIfNeeded();
   await page.waitForFunction((count) => document.querySelectorAll(".shipment-ticker-item").length === count, VALID_SHIPMENTS.length * 2);
@@ -654,8 +673,12 @@ async function interactionChecks(browserType) {
   await page.locator(".company-intro").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelector(".company-intro")?.classList.contains("is-visible"));
   await page.waitForTimeout(1300);
-  const metrics = await page.locator(".company-metric-card strong").allTextContents();
-  assert.deepEqual(metrics.map((item) => item.trim()), ["2021年", "300+", "50,000㎡", "全球 100+ 国家和地区", "5亿元人民币"], "company metrics changed or did not finish counting");
+  const metricVisuals = await page.locator(".company-metric-card strong .company-metric-visual").allTextContents();
+  const metricAccessible = await page.locator(".company-metric-card strong .sr-only").allTextContents();
+  const expectedMetrics = ["2021年", "300+", "50,000㎡", "全球 100+ 国家和地区", "5亿元人民币"];
+  assert.deepEqual(metricVisuals.map((item) => item.trim()), expectedMetrics, "company metric visuals changed or did not finish counting");
+  assert.deepEqual(metricAccessible.map((item) => item.trim()), expectedMetrics, "company metric accessible copy changed during animation");
+  assert.equal(await page.locator(".company-metric-card strong[aria-label]").count(), 0, "company metrics still rely on aria-label");
   await page.locator(".service-country-marquee").scrollIntoViewIfNeeded();
   await page.waitForTimeout(80);
   const firstTransform = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
@@ -668,11 +691,43 @@ async function interactionChecks(browserType) {
   await page.waitForTimeout(160);
   const pausedEnd = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
   assert(Math.abs(pausedEnd - pausedStart) < 1, `country strip did not pause: ${pausedStart} -> ${pausedEnd}`);
+  await page.mouse.move(0, 0);
+  const countryToggle = page.locator(".service-country-toggle");
+  await countryToggle.click();
+  await page.mouse.move(0, 0);
+  assert.equal(await countryToggle.getAttribute("aria-pressed"), "true", "country strip pause button state");
+  const userPausedStart = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
+  await page.waitForTimeout(180);
+  const userPausedEnd = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
+  assert(Math.abs(userPausedEnd - userPausedStart) < 1, `country strip user pause did not persist: ${userPausedStart} -> ${userPausedEnd}`);
+  await countryToggle.click();
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(180);
+  const resumedEnd = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
+  assert(resumedEnd < userPausedEnd - 1, `country strip did not resume: ${userPausedEnd} -> ${resumedEnd}`);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.waitForTimeout(40);
+  assert.equal(await page.locator(".service-country-marquee.is-static").count(), 1, "live reduced-motion change did not stop country strip");
+  assert.equal(await page.locator(".service-country-track").evaluate((element) => getComputedStyle(element).transform), "none", "country strip kept a transform after live reduced-motion change");
+  assert.equal(await page.locator(".shipment-ticker.is-static").count(), 1, "live reduced-motion change did not stop shipment ticker");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.waitForTimeout(180);
+  assert.equal(await page.locator(".service-country-marquee.is-static").count(), 0, "country strip did not leave static mode");
 
   for (let index = 0; index < 7; index += 1) {
     const button = page.locator(".faq-quick-tag").nth(index);
     await button.scrollIntoViewIfNeeded();
     await button.focus();
+    if (index === 0) {
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Shift+Tab");
+      const focusStyle = await button.evaluate((element) => ({
+        color: getComputedStyle(element).outlineColor,
+        width: getComputedStyle(element).outlineWidth
+      }));
+      assert.equal(focusStyle.color, "rgb(15, 118, 110)", `FAQ focus outline color ${focusStyle.color}`);
+      assert.equal(focusStyle.width, "2px", `FAQ focus outline width ${focusStyle.width}`);
+    }
     await page.keyboard.press("Enter");
     await page.waitForTimeout(30);
     const open = await page.locator(".faq-item").evaluateAll((items) => items.map((item) => item.open));
@@ -813,7 +868,50 @@ async function calculatorAnalyticsChecks(browserType) {
   assert.equal(calculatorEvents[0].method, "manual", "calculator event method");
   assert.equal(calculatorEvents[0].locale, "zh-CN", "calculator event locale");
 
+  await page.waitForFunction(() => (window.dataLayer || []).some((entry) => entry[0] === "event" && entry[1] === "calculator_result"));
+  const resultEvents = await events("calculator_result");
+  assert.equal(resultEvents.length, 1, "valid calculator submit must emit exactly one result event");
+  assert.equal(resultEvents[0].method, "manual", "calculator result method");
+  assert(Number(resultEvents[0].total_cbm) > 0, "calculator result CBM missing");
+  const quoteLink = page.locator(".calculator-inquiry-cta");
+  await quoteLink.waitFor({ state: "visible" });
+
+  await page.locator("#qty").fill("0.5");
+  await page.locator("#cbm-calculator button[type=submit]").click();
+  await page.waitForTimeout(80);
+  assert.equal((await events("calculator_calculate")).length, 1, "fractional carton below one emitted a calculate event");
+  assert.equal((await events("calculator_result")).length, 1, "fractional carton below one reused a stale result event");
+  await quoteLink.click();
+  assert.equal(page.url(), `${BASE_URL}/calculator/`, "fractional carton below one opened inquiry with stale data");
+  assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null, "invalid fractional carton stored a stale handoff");
+
+  await page.locator("#qty").fill("1350");
+  await quoteLink.click();
+  await page.waitForURL(`${BASE_URL}/inquiry/`);
+  assert.equal(await page.locator('[name="quantity"]').inputValue(), "1350", "calculator quantity was not transferred to inquiry");
+  assert((await page.locator('[name="note"]').inputValue()).includes("Total CBM"), "calculator summary was not transferred to inquiry notes");
+  assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null, "calculator handoff was not consumed");
+
   await context.close();
+
+  const mobileContext = await browserType.newContext({ viewport: { width: 390, height: 844 }, screen: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await blockAnalytics(mobileContext);
+  const mobilePage = await mobileContext.newPage();
+  await mobilePage.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
+  for (const [field, value] of [["length", "30"], ["width", "40"], ["height", "40"], ["qty", "100"]]) {
+    await mobilePage.locator(`#${field}`).fill(value);
+  }
+  const scrollBefore = await mobilePage.evaluate(() => window.scrollY);
+  await mobilePage.locator("#cbm-calculator button[type=submit]").click();
+  await mobilePage.waitForTimeout(650);
+  const mobileResult = await mobilePage.evaluate(() => ({
+    scrollY: window.scrollY,
+    resultTop: document.querySelector(".calculator-results").getBoundingClientRect().top,
+    navBottom: document.querySelector(".site-nav").getBoundingClientRect().bottom
+  }));
+  assert(mobileResult.scrollY > scrollBefore + 40, `mobile calculator did not scroll to results: ${scrollBefore} -> ${mobileResult.scrollY}`);
+  assert(mobileResult.resultTop >= mobileResult.navBottom - 2 && mobileResult.resultTop < 180, `mobile calculator result is not aligned below navigation: ${JSON.stringify(mobileResult)}`);
+  await mobileContext.close();
 }
 
 const chromiumBrowser = await chromium.launch({ headless: true });
