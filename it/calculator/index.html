@@ -47,7 +47,7 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-163" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-164" />
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -186,16 +186,17 @@
               </div>
               <div class="calculator-actions">
                 <button class="calculator-button" type="submit">Calcola</button>
-                <button class="calculator-secondary-button" type="button" data-copy-result>Copia risultato</button>
+                <button class="calculator-secondary-button" type="button" data-copy-result disabled>Copia risultato</button>
               </div>
               <p class="calculator-copy-status" data-copy-status aria-live="polite"></p>
             </form>
           </section>
-          <aside class="calculator-results" aria-live="polite">
-            <p class="section-code calculator-section-code" dir="ltr">Jabbar · 体积工具</p>
+          <aside class="calculator-results is-empty" data-result-state="empty" aria-live="polite" aria-busy="false">
+            <p class="section-code calculator-section-code" dir="ltr">Jabbar · Calcolo volume</p>
             <h2>Risultato</h2>
             <span class="section-rule" aria-hidden="true"></span>
-            <div class="cbm-visual">
+            <p class="calculator-summary calculator-result-status" data-result-status>Inserisci le misure per vedere il suggerimento.</p>
+            <div class="cbm-visual" data-result-detail hidden style="display: none">
               <svg viewBox="0 0 320 150" role="img" aria-labelledby="cbmVizTitle">
                 <title id="cbmVizTitle">Illustrazione del carico del container</title>
                 <text id="cbmCap" class="num-mono" x="150" y="18" text-anchor="middle" font-size="13" fill="#475569" direction="ltr">40HQ · 0.0 / 68 CBM</text>
@@ -210,14 +211,14 @@
                 <text id="cbmPct" class="num-mono" x="150" y="92" text-anchor="middle" font-size="18" font-weight="600">0%</text>
               </svg>
             </div>
-            <div class="calculator-result-grid">
+            <div class="calculator-result-grid" data-result-detail hidden style="display: none">
               <div class="calculator-result-card"><span>CBM / cartone</span><strong data-per-cbm class="num-mono">0.000</strong></div>
               <div class="calculator-result-card"><span>CBM totale</span><strong data-total-cbm class="num-mono">0.000</strong></div>
               <div class="calculator-result-card"><span>Con 5% margine</span><strong data-buffer-cbm class="num-mono">0.000</strong></div>
               <div class="calculator-result-card"><span>Suggerimento container</span><strong data-container>Adatto a LCL o ordine prova</strong></div>
               <div class="calculator-result-card"><span>Peso totale</span><strong data-weight-total class="num-mono">Non indicato</strong></div>
             </div>
-            <p class="calculator-summary" data-summary>Inserisci le misure per vedere il suggerimento.</p>
+            <p class="calculator-summary" data-summary data-result-detail hidden style="display: none">Inserisci le misure per vedere il suggerimento.</p>
           </aside>
         </div>
       </div>
@@ -242,6 +243,10 @@
       (function () {
         var t = {"title":"Calcolatore CBM | Stima volume container - Jabbar Sourcing","desc":"Carica un ordine Excel per sommare prodotti, quantità, peso, volume e importo ed esportare un report visivo completo.","kicker":"Strumento sourcing","h1":"Calcolatore CBM","intro":"Carica un ordine Excel per totali e visualizzazione del container, oppure inserisci le misure per una stima manuale rapida.","product":"Prodotto (opzionale)","productPh":"Es. cucina, giocattoli, organizer","unit":"Unità","length":"Lunghezza","width":"Larghezza","height":"Altezza","qty":"Cartoni","weight":"Peso per cartone kg (opzionale)","note":"Note (opzionale)","notePh":"Paese, consolidamento, tempi","calcBtn":"Calcola","copyBtn":"Copia risultato","result":"Risultato","perCbm":"CBM / cartone","totalCbm":"CBM totale","bufferCbm":"Con 5% margine","container":"Suggerimento container","weightTotal":"Peso totale","summary":"Inserisci le misure per vedere il suggerimento.","copied":"Risultato copiato","invalid":"Inserisci lunghezza, larghezza, altezza e cartoni.","noWeight":"Non indicato","forty":"40HQ circa","multi":"Servono circa {n} x 40HQ","lcl":"Adatto a LCL o ordine prova","copyTitle":"Risultato stima CBM"};
         var form = document.getElementById('cbm-calculator');
+        var results = document.querySelector('.calculator-results');
+        var resultStatus = results.querySelector('.calculator-result-status');
+        var resultDetails = results.querySelectorAll('[data-result-detail]');
+        var copyButton = form.querySelector('[data-copy-result]');
         var fields = ['length','width','height','qty','weight','unit','product','note'].reduce(function (acc, name) { acc[name] = form.elements.namedItem(name); return acc; }, {});
         var out = {
           per: document.querySelector('[data-per-cbm]'), total: document.querySelector('[data-total-cbm]'), buffer: document.querySelector('[data-buffer-cbm]'),
@@ -270,10 +275,38 @@
           if (cursor < text.length) fragment.appendChild(document.createTextNode(text.slice(cursor)));
           element.replaceChildren(fragment);
         }
+        function resetResult(message) {
+          out.per.textContent = '0.000';
+          out.total.textContent = '0.000';
+          out.buffer.textContent = '0.000';
+          out.container.textContent = t.lcl;
+          out.weight.textContent = t.noWeight;
+          setTextWithMonoNumbers(out.summary, message);
+          lastMessage = '';
+          var inquiryCta = results.querySelector('.calculator-inquiry-cta');
+          if (inquiryCta) inquiryCta.hidden = true;
+          if (window.renderCbmVisual) window.renderCbmVisual(0);
+        }
+        function setResultState(state, message) {
+          var ready = state === 'ready';
+          results.dataset.resultState = state;
+          results.classList.toggle('is-empty', state === 'empty');
+          results.classList.toggle('is-invalid', state === 'invalid');
+          results.classList.toggle('is-ready', ready);
+          Array.prototype.forEach.call(resultDetails, function (detail) {
+            detail.hidden = !ready;
+            detail.style.display = ready ? '' : 'none';
+          });
+          resultStatus.hidden = ready;
+          if (!ready) setTextWithMonoNumbers(resultStatus, message);
+          copyButton.disabled = !ready;
+          if (ready) copyButton.removeAttribute('aria-disabled'); else copyButton.setAttribute('aria-disabled', 'true');
+          if (!ready) resetResult(message);
+        }
         function calculate(showInvalid) {
           var l = val('length'), w = val('width'), h = val('height'), q = Math.max(0, Math.floor(val('qty'))), unit = fields.unit.value;
-          if (!l || !w || !h || !q) {
-            setTextWithMonoNumbers(out.summary, showInvalid ? t.invalid : t.summary);
+          if (!(l > 0 && w > 0 && h > 0 && q > 0)) {
+            setResultState(showInvalid ? 'invalid' : 'empty', showInvalid ? t.invalid : t.summary);
             return false;
           }
           var factor = unit === 'in' ? Math.pow(2.54, 3) : 1;
@@ -295,6 +328,7 @@
           var product = fields.product.value.trim() || '-';
           var note = fields.note.value.trim() || '-';
           lastMessage = [t.copyTitle, 'Product: ' + product, 'Size: ' + l + ' x ' + w + ' x ' + h + ' ' + unit, 'Cartons: ' + q, 'CBM/carton: ' + fmt(per) + ' m3', 'Total CBM: ' + fmt(total) + ' m3', 'With buffer: ' + fmt(buffer) + ' m3', 'Container: ' + container, 'Weight: ' + (weightTotal ? weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg' : t.noWeight), 'Note: ' + note].join('\n');
+          setResultState('ready', '');
           window.dispatchEvent(new CustomEvent('jabbar:calc-result', { detail: {
             message: lastMessage,
             product: fields.product.value.trim(),
@@ -311,7 +345,7 @@
           calculate(true);
         });
         form.addEventListener('input', function () { calculate(false); });
-        document.querySelector('[data-copy-result]').addEventListener('click', function () {
+        copyButton.addEventListener('click', function () {
           if (!calculate(true)) return;
           var done = function () { out.status.textContent = t.copied; window.setTimeout(function () { out.status.textContent = ''; }, 1800); };
           if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(lastMessage).then(done).catch(done); else done();
@@ -323,7 +357,7 @@
     window.JABBAR_AI_ASSISTANT_ENDPOINT = "https://jabbar-sourcing-ai-assistant.qianjiabao1999.workers.dev";
   </script>
   <script src="/assets/ai-sourcing-assistant.js?v=ai-20260714c" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20260718a" defer></script>
-  <script src="/assets/calculator-order-loader.js?v=order-20260718b" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260718b" defer></script>
+  <script src="/assets/calculator-order-loader.js?v=order-20260718c" defer></script>
   </body>
 </html>

@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-163";
-const UI_VERSION = "ui-20260718a";
+const CSS_VERSION = "apple-164";
+const UI_VERSION = "ui-20260718b";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -32,6 +32,18 @@ const HOME_SECTION_CODES = {
   de: ["Team", "Galerie", "Leistungen", "Ablauf", "Über uns", "Bewertungen", "FAQ", "Soziale Medien"],
   it: ["Team", "Galleria", "Servizi", "Processo", "Chi siamo", "Recensioni", "Domande frequenti", "Social"],
   tr: ["Ekip", "Galeri", "Hizmetler", "Süreç", "Hakkımızda", "Yorumlar", "SSS", "Sosyal medya"]
+};
+const CALCULATOR_SECTION_CODES = {
+  zh: "Jabbar · 体积工具",
+  en: "Jabbar · Volume tool",
+  es: "Jabbar · Herramienta de volumen",
+  ar: "Jabbar · أداة الحجم",
+  fr: "Jabbar · Outil de volume",
+  pt: "Jabbar · Ferramenta de volume",
+  ru: "Jabbar · Расчёт объёма",
+  de: "Jabbar · Volumenrechner",
+  it: "Jabbar · Calcolo volume",
+  tr: "Jabbar · Hacim aracı"
 };
 const TELEGRAM_URL = "https://t.me/Jabbar_in_Yiwu";
 const VALID_SHIPMENTS = [
@@ -204,6 +216,10 @@ async function pageState(page) {
       },
       calculator: {
         code: normalizeText(document.querySelector(".calculator-results > .section-code")?.textContent),
+        resultState: document.querySelector(".calculator-results")?.getAttribute("data-result-state") || "",
+        resultStatusHidden: document.querySelector("[data-result-status]")?.hidden ?? null,
+        hiddenDetails: document.querySelectorAll("[data-result-detail][hidden]").length,
+        copyDisabled: document.querySelector("[data-copy-result]")?.disabled ?? null,
         capY: Number(cap?.getAttribute("y")),
         fillY: Number(fill?.getAttribute("y")),
         blueprintImage: blueprint?.backgroundImage || "",
@@ -259,10 +275,20 @@ function assertHomeVisualSignature(state, scope, locale) {
   assert(!isMonoFamily(state.fonts.body), `${scope}: body copy inherited the monospaced font: ${state.fonts.body}`);
 }
 
-function assertCalculatorVisualSignature(state, scope) {
-  assert.equal(state.calculator.code, "Jabbar · 体积工具", `${scope}: calculator section code`);
+function assertCalculatorVisualSignature(state, scope, locale, expectedResultState = "empty") {
+  assert.equal(state.calculator.code, CALCULATOR_SECTION_CODES[locale], `${scope}: calculator section code`);
   assert.equal(state.counts.sectionCodes, 1, `${scope}: calculator section code count`);
   assert.equal(state.counts.sectionRules, 1, `${scope}: calculator section rule count`);
+  assert.equal(state.calculator.resultState, expectedResultState, `${scope}: calculator result state`);
+  if (expectedResultState === "ready") {
+    assert.equal(state.calculator.resultStatusHidden, true, `${scope}: ready calculator status remains visible`);
+    assert.equal(state.calculator.hiddenDetails, 0, `${scope}: ready calculator details remain hidden`);
+    assert.equal(state.calculator.copyDisabled, false, `${scope}: ready calculator copy action remains disabled`);
+  } else {
+    assert.equal(state.calculator.resultStatusHidden, false, `${scope}: initial calculator result status hidden`);
+    assert.equal(state.calculator.hiddenDetails, 3, `${scope}: initial calculator details must stay hidden`);
+    assert.equal(state.calculator.copyDisabled, true, `${scope}: copy result must start disabled`);
+  }
   assert(state.counts.dimensionLines >= 3, `${scope}: dimension line count ${state.counts.dimensionLines}`);
   assert(state.calculator.capY < state.calculator.fillY, `${scope}: capacity annotation is not above the container`);
   assert.match(state.calculator.blueprintImage, /linear-gradient/i, `${scope}: blueprint grid missing`);
@@ -396,6 +422,71 @@ function assertHeroCta(state, scope) {
   }
 }
 
+async function assertMobileSocialDisclosure(page, scope) {
+  const groups = await page.locator(".social-platform-group").evaluateAll((items) => items.map((group) => {
+    const cards = Array.from(group.querySelectorAll(":scope > .team-grid > .team-card"));
+    const toggle = group.querySelector(":scope > .social-platform-toggle");
+    const visibleCards = cards.filter((card) => getComputedStyle(card).display !== "none");
+    return {
+      total: cards.length,
+      visible: visibleCards.length,
+      toggle: toggle ? {
+        hidden: toggle.hidden || getComputedStyle(toggle).display === "none",
+        expanded: toggle.getAttribute("aria-expanded"),
+        controls: toggle.getAttribute("aria-controls"),
+        gridId: group.querySelector(":scope > .team-grid")?.id || "",
+        height: toggle.getBoundingClientRect().height
+      } : null
+    };
+  }));
+
+  for (const [index, group] of groups.entries()) {
+    assert.equal(group.visible, Math.min(4, group.total), `${scope}: social group ${index + 1} collapsed card count`);
+    if (group.total <= 4) {
+      assert.equal(group.toggle, null, `${scope}: social group ${index + 1} has an unnecessary toggle`);
+      continue;
+    }
+    assert(group.toggle, `${scope}: social group ${index + 1} toggle missing`);
+    assert.equal(group.toggle.hidden, false, `${scope}: social group ${index + 1} toggle hidden on mobile`);
+    assert.equal(group.toggle.expanded, "false", `${scope}: social group ${index + 1} initial expanded state`);
+    assert.equal(group.toggle.controls, group.toggle.gridId, `${scope}: social group ${index + 1} aria-controls mismatch`);
+    assert(group.toggle.height >= 44, `${scope}: social group ${index + 1} toggle height ${group.toggle.height}`);
+  }
+
+  const toggle = page.locator(".social-platform-toggle").first();
+  if (!await toggle.count()) return;
+  await toggle.focus();
+  await toggle.press("Enter");
+  assert.equal(await toggle.getAttribute("aria-expanded"), "true", `${scope}: Enter did not expand social accounts`);
+  const expandedVisible = await toggle.locator("xpath=..").locator(":scope > .team-grid > .team-card").evaluateAll((cards) => cards.filter((card) => getComputedStyle(card).display !== "none").length);
+  const expandedTotal = await toggle.locator("xpath=..").locator(":scope > .team-grid > .team-card").count();
+  assert.equal(expandedVisible, expandedTotal, `${scope}: expanded social accounts remain hidden`);
+  await toggle.press("Space");
+  assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${scope}: Space did not collapse social accounts`);
+}
+
+async function assertMobileRtlProcessLayout(page, scope) {
+  const cards = await page.locator(".process-step").evaluateAll((items) => items.map((card) => {
+    const rect = (element) => {
+      const box = element.getBoundingClientRect();
+      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+    };
+    return {
+      number: rect(card.querySelector(".process-step-number")),
+      heading: rect(card.querySelector("h3")),
+      paragraph: rect(card.querySelector("p")),
+      paddingInlineStart: Number.parseFloat(getComputedStyle(card).paddingInlineStart),
+      paddingInlineEnd: Number.parseFloat(getComputedStyle(card).paddingInlineEnd)
+    };
+  }));
+  assert.equal(cards.length, 4, `${scope}: process card count`);
+  cards.forEach((card, index) => {
+    assert(card.paddingInlineStart > card.paddingInlineEnd, `${scope}: process card ${index + 1} does not reserve RTL leading space`);
+    assert(card.heading.right <= card.number.left + 1, `${scope}: process card ${index + 1} number overlaps heading`);
+    assert(card.paragraph.right <= card.number.left + 1, `${scope}: process card ${index + 1} number overlaps paragraph`);
+  });
+}
+
 async function assertHeroCtaHover(page, scope) {
   const cta = page.locator(".team-heading .quote-entry .inquiry-entry-card-cta");
   await cta.hover();
@@ -463,8 +554,15 @@ async function homeMatrix(browserType) {
       assert(Math.abs(socialCenter - headingCenter) <= 1, `${scope}: social heading center delta ${headingCenter - socialCenter}`);
       if (viewport.mobile) {
         assert.equal(state.counts.qrCards, 0, `${scope}: QR hover card must not initialize on touch`);
+        await assertMobileSocialDisclosure(page, scope);
+        if (item.rtl) await assertMobileRtlProcessLayout(page, scope);
       } else {
         assert.equal(state.counts.qrCards, 1, `${scope}: desktop QR card missing`);
+        assert.equal(await page.locator(".team-card.is-social-card-collapsed, .team-card[hidden]").count(), 0, `${scope}: social cards remain collapsed on desktop`);
+        const desktopSocialToggles = page.locator(".social-platform-toggle");
+        for (let index = 0; index < await desktopSocialToggles.count(); index += 1) {
+          assert.equal(await desktopSocialToggles.nth(index).isHidden(), true, `${scope}: social toggle visible on desktop`);
+        }
         assertDesktopFooter(state, scope, { contacts: true });
         await assertHeroCtaHover(page, scope);
       }
@@ -490,7 +588,7 @@ async function calculatorMatrix(browserType) {
     assertHeaderNavigation(state, scope, { desktop: true });
     assertNoFloatingControls(state, scope);
     assertMobileMenuTrimmed(state, scope);
-    assertCalculatorVisualSignature(state, scope);
+    assertCalculatorVisualSignature(state, scope, item.locale);
     assertDesktopFooter(state, scope);
     assert(state.aiVersion.includes("ai-sourcing-assistant.js?v="), `${scope}: AI assistant missing`);
     assert.equal(state.counts.cbm, 1, `${scope}: CBM visual count`);
@@ -512,6 +610,10 @@ async function calculatorMatrix(browserType) {
     await page.locator("#qty").fill(String(testCase.qty));
     await page.locator("#qty").dispatchEvent("input");
     await page.waitForFunction((expected) => document.querySelector("#cbmCap")?.textContent === expected, testCase.cap);
+    assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"), "ready", `${testCase.qty} CBM result state`);
+    assert.equal(await page.locator("[data-result-detail][hidden]").count(), 0, `${testCase.qty} CBM result details remain hidden`);
+    assert.equal(await page.locator("[data-result-status]").isHidden(), true, `${testCase.qty} CBM empty-state status remains visible`);
+    assert.equal(await page.locator("[data-copy-result]").isDisabled(), false, `${testCase.qty} CBM copy result remains disabled`);
     assert.equal(await page.locator("#cbmPct").textContent(), testCase.pct, `${testCase.qty} CBM percentage`);
     assert.equal(await page.locator("#cbmCap").textContent(), testCase.cap, `${testCase.qty} CBM capacity`);
     assert.equal(await page.locator("#cbmFill").evaluate((element) => getComputedStyle(element).fill), testCase.fill, `${testCase.qty} CBM fill color`);
@@ -522,6 +624,11 @@ async function calculatorMatrix(browserType) {
   }
   await page.locator(".calculator-results").screenshot({ path: `${OUTPUT_DIR}/calculator-visual-1280x900.png` });
   await page.screenshot({ path: `${OUTPUT_DIR}/calculator-blueprint-1280x900.png`, fullPage: true });
+  await page.locator("#qty").fill("0.5");
+  assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"), "empty", "invalid live input did not reset the result state");
+  assert.equal(await page.locator("[data-result-detail][hidden]").count(), 3, "invalid live input left result details visible");
+  assert.equal(await page.locator("[data-copy-result]").isDisabled(), true, "invalid live input left copy result enabled");
+  assert.equal(await page.locator("[data-total-cbm]").textContent(), "0.000", "invalid live input retained the previous total");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
   await page.locator("#cbmFill").waitFor({ state: "attached" });
@@ -530,7 +637,7 @@ async function calculatorMatrix(browserType) {
   assertHeaderNavigation(mobileState, "zh calculator 390x844");
   assertNoFloatingControls(mobileState, "zh calculator 390x844");
   assertMobileMenuTrimmed(mobileState, "zh calculator 390x844");
-  assertCalculatorVisualSignature(mobileState, "zh calculator 390x844");
+  assertCalculatorVisualSignature(mobileState, "zh calculator 390x844", "zh");
   assert.equal(mobileState.rects.conversionBar, null, "zh calculator 390x844: calculator must not have mobile bar");
   await page.screenshot({ path: `${OUTPUT_DIR}/calculator-blueprint-390x844.png`, fullPage: true });
   await context.close();
@@ -555,6 +662,18 @@ async function inquiryMatrix(browserType) {
     assert.equal(state.counts.progress, 0, `${scope}: short inquiry page must not have progress bar`);
     assert.equal(state.counts.qrCards, 1, `${scope}: desktop QR enhancement missing`);
     assert.equal(state.rects.conversionBar, null, `${scope}: inquiry must not have mobile conversion bar`);
+    if (item.locale === "en") {
+      const productField = page.locator('.inquiry-form [name="product"]');
+      await productField.focus();
+      const focusStyle = await productField.evaluate((element) => ({
+        color: getComputedStyle(element).outlineColor,
+        width: getComputedStyle(element).outlineWidth,
+        offset: getComputedStyle(element).outlineOffset
+      }));
+      assert.equal(focusStyle.color, "rgb(15, 107, 168)", `${scope}: inquiry focus outline color ${focusStyle.color}`);
+      assert.equal(focusStyle.width, "3px", `${scope}: inquiry focus outline width ${focusStyle.width}`);
+      assert.equal(focusStyle.offset, "2px", `${scope}: inquiry focus outline offset ${focusStyle.offset}`);
+    }
     if (item.rtl) assert.equal(state.direction, "rtl", `${scope}: Arabic direction`);
     assert.equal(errors.length, 0, `${scope}: console errors ${errors.splice(0).join(" | ")}`);
   }
@@ -791,6 +910,12 @@ async function accessibilityFallbackChecks(browserType) {
   assert.equal(await noJsPage.locator(".company-metric-number.num-mono").count(), 5, "no-JS metric numbers missing");
   assert.equal(await noJsPage.locator(".shipment-ticker-list").count(), 1, "no-JS shipment fallback count");
   assert.equal(await noJsPage.locator(".shipment-ticker").evaluate((element) => getComputedStyle(element).display), "none", "no-JS shipment placeholder is visible");
+  assert.equal(await noJsPage.locator(".social-platform-toggle").count(), 0, "no-JS page injected a social disclosure control");
+  const noJsHiddenAccounts = await noJsPage.locator(".social-platform-group .team-card").evaluateAll((cards) => cards.filter((card) => {
+    const style = getComputedStyle(card);
+    return card.hidden || style.display === "none" || style.visibility === "hidden";
+  }).length);
+  assert.equal(noJsHiddenAccounts, 0, "no-JS social accounts are hidden");
   await noJs.close();
 }
 
@@ -858,11 +983,17 @@ async function calculatorAnalyticsChecks(browserType) {
 
   await page.locator("#cbm-calculator button[type=submit]").click();
   assert.equal((await events("calculator_calculate")).length, 0, "invalid calculator submit emitted a conversion event");
+  assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"), "invalid", "invalid calculator submit did not expose the invalid state");
+  assert.equal(await page.locator("[data-result-detail][hidden]").count(), 3, "invalid calculator submit exposed result details");
+  assert.equal(await page.locator("[data-copy-result]").isDisabled(), true, "invalid calculator submit enabled copying");
   for (const [field, value] of [["length", "30"], ["width", "40"], ["height", "40"], ["qty", "1350"]]) {
     await page.locator(`#${field}`).fill(value);
   }
   await page.locator("#cbm-calculator button[type=submit]").click();
   await page.waitForFunction(() => (window.dataLayer || []).some((entry) => entry[0] === "event" && entry[1] === "calculator_result"));
+  assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"), "ready", "valid calculator submit did not expose the ready state");
+  assert.equal(await page.locator("[data-result-detail][hidden]").count(), 0, "valid calculator submit left result details hidden");
+  assert.equal(await page.locator("[data-copy-result]").isDisabled(), false, "valid calculator submit left copying disabled");
   assert.equal((await events("calculator_calculate")).length, 0, "deprecated duplicate calculator event returned");
   const resultEvents = await events("calculator_result");
   assert.equal(resultEvents.length, 1, "valid calculator submit must emit exactly one result event");
@@ -878,11 +1009,12 @@ async function calculatorAnalyticsChecks(browserType) {
   await page.waitForTimeout(80);
   assert.equal((await events("calculator_calculate")).length, 0, "fractional carton below one emitted the deprecated calculate event");
   assert.equal((await events("calculator_result")).length, 1, "fractional carton below one reused a stale result event");
-  await quoteLink.click();
+  assert.equal(await quoteLink.isHidden(), true, "fractional carton below one left the inquiry action visible");
   assert.equal(page.url(), `${BASE_URL}/calculator/`, "fractional carton below one opened inquiry with stale data");
   assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null, "invalid fractional carton stored a stale handoff");
 
   await page.locator("#qty").fill("1350");
+  await quoteLink.waitFor({ state: "visible" });
   await quoteLink.click();
   await page.waitForURL(`${BASE_URL}/inquiry/`);
   assert.equal(await page.locator('[name="quantity"]').inputValue(), "1350", "calculator quantity was not transferred to inquiry");
@@ -964,7 +1096,7 @@ assertShared(webkitCalculatorState, "WebKit zh calculator 390x844");
 assertHeaderNavigation(webkitCalculatorState, "WebKit zh calculator 390x844");
 assertNoFloatingControls(webkitCalculatorState, "WebKit zh calculator 390x844");
 assertMobileMenuTrimmed(webkitCalculatorState, "WebKit zh calculator 390x844");
-assertCalculatorVisualSignature(webkitCalculatorState, "WebKit zh calculator 390x844");
+assertCalculatorVisualSignature(webkitCalculatorState, "WebKit zh calculator 390x844", "zh", "ready");
 assert((await webkitPage.locator("[data-container] .num-mono").count()) >= 1, "WebKit calculator container number is not wrapped");
 assert((await webkitPage.locator("[data-summary] .num-mono").count()) >= 2, "WebKit calculator summary numbers are not wrapped");
 await webkitPage.screenshot({ path: `${OUTPUT_DIR}/calculator-blueprint-webkit-390x844.png`, fullPage: true });

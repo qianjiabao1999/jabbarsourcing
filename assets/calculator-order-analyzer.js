@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260718b";
+  var VERSION = "order-20260718c";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   var MAX_FILES = 10;
   var WORKER_TIMEOUT_MS = 60000;
@@ -13,6 +13,7 @@
   var scriptPromises = {};
 
   var EN = {
+    toolLabel: "Jabbar · Volume tool",
     eyebrow: "ORDER WORKBOOK",
     title: "Analyze an Excel order",
     intro: "Upload a customer order to calculate products, quantity, weight, volume, value and container usage.",
@@ -98,6 +99,7 @@
   var LOCALES = {
     en: EN,
     zh: Object.assign({}, EN, {
+      toolLabel: "Jabbar · 体积工具",
       eyebrow: "订单表格分析", title: "上传 Excel 自动统计订单", intro: "自动统计商品种类、数量、重量、体积、金额，并生成集装箱装载可视化。",
       privacy: "文件只在当前浏览器本地处理，不会上传到 Jabbar Sourcing 或任何第三方。", dropLead: "拖入 Excel 表格，或点击选择文件", dropHint: ".xlsx、.xls、.xlsm 或 .csv，最大 50 MB",
       selectedFile: "已选择文件", parsing: "正在本地读取表格…", loadingLib: "正在加载本地 Excel 解析组件…", ready: "分析完成。导出前请检查识别的列。",
@@ -120,6 +122,7 @@
       fields: { product: "商品名称", sku: "SKU / 货号", qty: "数量", cartons: "箱数", unitWeight: "单件重量", totalWeight: "本行总重量", unitVolume: "单件体积", totalVolume: "本行总体积", unitPrice: "单价", amount: "小计 / 金额", length: "长", width: "宽", height: "高", currency: "币种列", weightUnit: "重量单位列", volumeUnit: "体积单位列", dimensionUnit: "尺寸单位列" }
     }),
     es: {
+      toolLabel: "Jabbar · Herramienta de volumen",
       eyebrow: "HOJA DE PEDIDO",
       title: "Analizar un pedido de Excel",
       intro: "Sube un pedido de cliente para calcular productos, cantidad, peso, volumen, valor y ocupación del contenedor.",
@@ -202,6 +205,7 @@
       }
     },
     ar: {
+      toolLabel: "Jabbar · أداة الحجم",
       eyebrow: "جدول الطلب",
       title: "تحليل طلب Excel",
       intro: "ارفع طلب العميل لحساب المنتجات والكمية والوزن والحجم والقيمة ونسبة استخدام الحاوية.",
@@ -284,6 +288,7 @@
       }
     },
     fr: {
+      toolLabel: "Jabbar · Outil de volume",
       eyebrow: "FEUILLE DE COMMANDE",
       title: "Analyser une commande Excel",
       intro: "Importez une commande client pour calculer les produits, la quantité, le poids, le volume, la valeur et le taux de chargement du conteneur.",
@@ -366,6 +371,7 @@
       }
     },
     pt: {
+      toolLabel: "Jabbar · Ferramenta de volume",
       eyebrow: "PLANILHA DO PEDIDO",
       title: "Analisar um pedido Excel",
       intro: "Envie um pedido de cliente para calcular produtos, quantidade, peso, volume, valor e ocupação do contêiner.",
@@ -448,6 +454,7 @@
       }
     },
     ru: {
+      toolLabel: "Jabbar · Расчёт объёма",
       eyebrow: "ТАБЛИЦА ЗАКАЗА",
       title: "Анализ заказа Excel",
       intro: "Загрузите заказ клиента, чтобы рассчитать товары, количество, вес, объем, стоимость и загрузку контейнера.",
@@ -530,6 +537,7 @@
       }
     },
     de: {
+      toolLabel: "Jabbar · Volumenrechner",
       eyebrow: "BESTELLTABELLE",
       title: "Excel-Bestellung analysieren",
       intro: "Laden Sie eine Kundenbestellung hoch, um Produkte, Menge, Gewicht, Volumen, Wert und Containerauslastung zu berechnen.",
@@ -612,6 +620,7 @@
       }
     },
     it: {
+      toolLabel: "Jabbar · Calcolo volume",
       eyebrow: "FOGLIO ORDINE",
       title: "Analizza un ordine Excel",
       intro: "Carica un ordine cliente per calcolare prodotti, quantità, peso, volume, valore e utilizzo del container.",
@@ -694,6 +703,7 @@
       }
     },
     tr: {
+      toolLabel: "Jabbar · Hacim aracı",
       eyebrow: "SİPARİŞ TABLOSU",
       title: "Excel siparişini analiz et",
       intro: "Ürünleri, miktarı, ağırlığı, hacmi, tutarı ve konteyner kullanımını hesaplamak için müşteri siparişini yükleyin.",
@@ -1737,7 +1747,7 @@
     ctx.direction = this.rtl ? "rtl" : "ltr";
     ctx.textAlign = this.rtl ? "right" : "left";
     var startX = this.rtl ? width - margin : margin;
-    ctx.fillStyle = "#0f766e"; ctx.font = '800 18px ui-monospace,"SF Mono",Consolas,monospace'; ctx.fillText("Jabbar · 体积工具", startX, 92);
+    ctx.fillStyle = "#0f766e"; ctx.font = '800 18px ui-monospace,"SF Mono",Consolas,monospace'; ctx.fillText(this.copy.toolLabel, startX, 92);
     ctx.fillStyle = "#0f172a"; ctx.font = '900 46px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif'; ctx.fillText(this.copy.reportTitle, startX, 150);
     ctx.fillStyle = "#64748b"; ctx.font = '20px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
     ctx.fillText(this.copy.file + ": " + this.payload.fileName + " · " + this.copy.sheet + ": " + this.payload.sheetName, startX, 192);
@@ -1857,7 +1867,7 @@
     ctx.textAlign = this.rtl ? "right" : "left";
     ctx.fillStyle = "#0f766e";
     ctx.font = '900 34px ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace';
-    ctx.fillText("Jabbar · 体积工具", startX, 155);
+    ctx.fillText(this.copy.toolLabel, startX, 155);
     ctx.fillStyle = "#0f172a";
     ctx.font = '950 70px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
     ctx.fillText(this.isBatchMode ? this.copy.combinedReport : this.copy.reportTitle, startX, 245);

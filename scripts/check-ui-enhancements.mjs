@@ -6,10 +6,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-163";
+const CSS_VERSION = "apple-164";
 const AI_VERSION = "ai-20260714c";
-const UI_VERSION = "ui-20260718a";
-const ORDER_VERSION = "order-20260718b";
+const UI_VERSION = "ui-20260718b";
+const ORDER_VERSION = "order-20260718c";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
   zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 关于我们", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
@@ -22,6 +22,18 @@ const SECTION_CODES = {
   de: ["Jabbar · Team", "Jabbar · Galerie", "Jabbar · Leistungen", "Jabbar · Ablauf", "Jabbar · Über uns", "Jabbar · Bewertungen", "Jabbar · FAQ", "Jabbar · Soziale Medien"],
   it: ["Jabbar · Team", "Jabbar · Galleria", "Jabbar · Servizi", "Jabbar · Processo", "Jabbar · Chi siamo", "Jabbar · Recensioni", "Jabbar · Domande frequenti", "Jabbar · Social"],
   tr: ["Jabbar · Ekip", "Jabbar · Galeri", "Jabbar · Hizmetler", "Jabbar · Süreç", "Jabbar · Hakkımızda", "Jabbar · Yorumlar", "Jabbar · SSS", "Jabbar · Sosyal medya"]
+};
+const CALCULATOR_SECTION_CODES = {
+  zh: "Jabbar · 体积工具",
+  en: "Jabbar · Volume tool",
+  es: "Jabbar · Herramienta de volumen",
+  ar: "Jabbar · أداة الحجم",
+  fr: "Jabbar · Outil de volume",
+  pt: "Jabbar · Ferramenta de volume",
+  ru: "Jabbar · Расчёт объёма",
+  de: "Jabbar · Volumenrechner",
+  it: "Jabbar · Calcolo volume",
+  tr: "Jabbar · Hacim aracı"
 };
 const STAMP_TOKENS = ["QC PASSED ✓", "REPLY < 24H", "TRIAL $1,000"];
 const CITY_FIELDS = LOCALES.map((locale) => `city_${locale}`).sort();
@@ -166,8 +178,16 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   assert.equal(count(html, /class="cbm-visual"/g), 1, `${file}: static CBM visual count`);
   assert.equal(count(html, /<svg[^>]+aria-labelledby="cbmVizTitle"/g), 1, `${file}: static CBM SVG count`);
   assert.equal(count(html, /id="cbmFill"/g), 1, `${file}: static CBM fill count`);
-  assert.deepEqual(textsForClass(html, "p", "section-code"), ["Jabbar · 体积工具"], `${file}: calculator section code`);
+  assert.deepEqual(textsForClass(html, "p", "section-code"), [CALCULATOR_SECTION_CODES[locale]], `${file}: calculator section code`);
   assert.equal(countClass(html, "section-rule"), 1, `${file}: calculator section rule count`);
+  assert.match(html, /class="calculator-results is-empty"[^>]+data-result-state="empty"/, `${file}: calculator initial result state`);
+  assert.equal(count(html, /data-result-detail(?:\s|>)/g), 3, `${file}: progressive result detail count`);
+  assert.equal(count(html, /data-result-status/g), 1, `${file}: calculator result status count`);
+  assert.doesNotMatch(html, /data-result-status[^>]*role="status"/, `${file}: nested live result status must not return`);
+  assert.match(tagWithAttribute(html, "button", "data-copy-result"), /\sdisabled(?:\s|>)/, `${file}: copy result must start disabled`);
+  for (const token of ["setResultState", "resetResult", "'empty'", "'invalid'", "'ready'"]) {
+    assert(html.includes(token), `${file}: missing calculator result state token ${token}`);
+  }
   assert(tagsWithClass(html, "line", "cbm-dimension-line").length >= 3, `${file}: CBM dimension line count`);
   const capTag = tagById(html, "cbmCap");
   const percentageTag = tagById(html, "cbmPct");
@@ -334,6 +354,8 @@ const javascript = await load("assets/site-enhancements.js");
 for (const locale of LOCALES) {
   assert.match(javascript, new RegExp(`\\n\\s*${locale}: \\{`), `site-enhancements.js: missing ${locale} labels`);
 }
+assert.equal(count(javascript, /showAllAccounts:/g), LOCALES.length, "site-enhancements.js: show-all account label count");
+assert.equal(count(javascript, /showFewerAccounts:/g), LOCALES.length, "site-enhancements.js: show-fewer account label count");
 for (const token of [
   "renderCbmVisual", "service-country-marquee", "site-scroll-progress",
   "faq-quick-tags", "whatsapp-qr.svg", "prefers-reduced-motion",
@@ -353,7 +375,9 @@ assert(!javascript.includes("ja:"), "site-enhancements.js: Japanese labels must 
 for (const token of [
   "initCalculatorInquiryBridge", "calculator-inquiry-cta", "jabbarCalcResult", "calculator_result",
   "calculator_inquiry", "service-country-toggle", "pauseCountries", "resumeCountries",
-  "reducedMotionQuery.addEventListener", 'event.key === "Escape"', "company-metric-visual"
+  "reducedMotionQuery.addEventListener", 'event.key === "Escape"', "company-metric-visual",
+  "initSocialAccountDisclosure", "showAllAccounts", "showFewerAccounts",
+  "social-platform-toggle", "is-social-card-collapsed"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing round 8 behavior ${token}`);
 }
@@ -377,7 +401,9 @@ for (const token of [
 }
 for (const token of [
   ".calculator-inquiry-cta", ".service-country-toggle", ".inquiry-status-icon",
-  ".inquiry-status-whatsapp", "#cbmFill.is-over", "#cbmRibs", ".field-label-marker"
+  ".inquiry-status-whatsapp", "#cbmFill.is-over", "#cbmRibs", ".field-label-marker",
+  ".social-platform-toggle", ".is-social-card-collapsed", ".calculator-result-status",
+  ".calculator-secondary-button:disabled"
 ]) {
   assert(css.includes(token), `styles.css: missing round 8 style ${token}`);
 }
@@ -386,6 +412,12 @@ for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "ha
   assert(!css.includes(removedToken), `styles.css: removed floating control styles remain (${removedToken})`);
 }
 assert(css.includes(".social-platform-groups .section-heading"), "styles.css: social heading centering missing");
+const rtlMobileProcessRule = css.match(/\[dir="rtl"\]\s+\.process-step\s*\{([^}]*)\}/m)?.[1] || "";
+assert.match(rtlMobileProcessRule, /padding-inline-start:\s*78px\s*;/, "styles.css: RTL mobile process cards must reserve space beside the leading number");
+assert.match(rtlMobileProcessRule, /padding-inline-end:\s*22px\s*;/, "styles.css: RTL mobile process card trailing padding regressed");
+const inquiryFieldFocusRule = cssRuleBody(css, ".field textarea:focus-visible");
+assert.match(inquiryFieldFocusRule, /outline:\s*3px solid #0f6ba8\s*;/, "styles.css: inquiry fields need a solid high-contrast focus outline");
+assert.match(inquiryFieldFocusRule, /outline-offset:\s*2px\s*;/, "styles.css: inquiry focus outline needs separation from the field border");
 const calculatorPageRule = cssRuleBody(css, ".calculator-page");
 const calculatorGridAlphas = Array.from(calculatorPageRule.matchAll(/rgba\(24,\s*165,\s*192,\s*([0-9.]+)\)/g), (match) => Number(match[1]));
 assert(calculatorPageRule.includes("24px 24px"), "styles.css: calculator grid must be applied directly to .calculator-page");
@@ -412,6 +444,10 @@ for (const removedToken of ["data-order-wechat", "shareToWeChat", "navigator.sha
   assert(!orderAnalyzer.includes(removedToken), `calculator-order-analyzer.js: removed sharing token remains (${removedToken})`);
 }
 assert.doesNotMatch(orderAnalyzer, /WeChat|微信/, "calculator-order-analyzer.js: removed WeChat instructions remain");
+assert.equal(count(orderAnalyzer, /toolLabel:/g), LOCALES.length, "calculator-order-analyzer.js: localized tool label count");
+assert.doesNotMatch(orderAnalyzer, /fillText\(["']Jabbar · 体积工具["']/, "calculator-order-analyzer.js: exported report still hardcodes the Chinese tool label");
+assert.match(orderAnalyzer, /fillText\(this\.copy\.toolLabel, startX, 92\)/, "calculator-order-analyzer.js: first export header is not localized");
+assert.match(orderAnalyzer, /fillText\(this\.copy\.toolLabel, startX, 155\)/, "calculator-order-analyzer.js: paged export header is not localized");
 assert.match(orderAnalyzer, /var MAX_FILE_BYTES = 50 \* 1024 \* 1024;/, "calculator-order-analyzer.js: file limit must be 50 MB");
 assert.match(orderAnalyzer, /var WORKER_TIMEOUT_MS = 60000;/, "calculator-order-analyzer.js: Worker timeout must be 60 seconds");
 for (const token of ["xlsx.full.min.js?v=0.20.3", "MAX_ROWS", "unitWeight", "unitVolume", "amount"])

@@ -7,60 +7,70 @@
       scan: "手机扫码直聊", reply: "在线 · 24 小时内回复",
       countries: "服务国家和地区", pauseCountries: "暂停国家滚动", resumeCountries: "继续国家滚动",
       shipments: "最近发运", cbmTitle: "集装箱装载示意", quoteWithResult: "用此结果获取报价",
+      showAllAccounts: "查看全部账号", showFewerAccounts: "收起账号",
       faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发"]
     },
     en: {
       scan: "Scan to chat", reply: "Online · replies within 24h",
       countries: "Countries and regions served", pauseCountries: "Pause country list", resumeCountries: "Resume country list",
       shipments: "Recent shipments", cbmTitle: "Container loading illustration", quoteWithResult: "Get a quote with this result",
+      showAllAccounts: "View all accounts", showFewerAccounts: "Show fewer accounts",
       faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping"]
     },
     es: {
       scan: "Escanea para chatear", reply: "En línea · respuesta en 24 h",
       countries: "Países y regiones atendidos", pauseCountries: "Pausar lista de países", resumeCountries: "Reanudar lista de países",
       shipments: "Envíos recientes", cbmTitle: "Ilustración de carga del contenedor", quoteWithResult: "Solicitar cotización con este resultado",
+      showAllAccounts: "Ver todas las cuentas", showFewerAccounts: "Mostrar menos cuentas",
       faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo"]
     },
     ar: {
       scan: "امسح للدردشة", reply: "متصل · نرد خلال 24 ساعة",
       countries: "الدول والمناطق التي نخدمها", pauseCountries: "إيقاف قائمة الدول مؤقتًا", resumeCountries: "استئناف قائمة الدول",
       shipments: "الشحنات الأخيرة", cbmTitle: "رسم توضيحي لتحميل الحاوية", quoteWithResult: "اطلب عرض سعر بهذه النتيجة",
+      showAllAccounts: "عرض كل الحسابات", showFewerAccounts: "عرض حسابات أقل",
       faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر"]
     },
     fr: {
       scan: "Scannez pour discuter", reply: "En ligne · réponse sous 24 h",
       countries: "Pays et régions desservis", pauseCountries: "Mettre la liste des pays en pause", resumeCountries: "Reprendre la liste des pays",
       shipments: "Expéditions récentes", cbmTitle: "Illustration du chargement du conteneur", quoteWithResult: "Demander un devis avec ce résultat",
+      showAllAccounts: "Voir tous les comptes", showFewerAccounts: "Afficher moins de comptes",
       faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe"]
     },
     pt: {
       scan: "Escaneie para conversar", reply: "Online · resposta em até 24 h",
       countries: "Países e regiões atendidos", pauseCountries: "Pausar lista de países", resumeCountries: "Retomar lista de países",
       shipments: "Envios recentes", cbmTitle: "Ilustração do carregamento do contêiner", quoteWithResult: "Pedir cotação com este resultado",
+      showAllAccounts: "Ver todas as contas", showFewerAccounts: "Mostrar menos contas",
       faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping"]
     },
     ru: {
       scan: "Сканируйте для чата", reply: "Онлайн · ответим в течение 24 ч",
       countries: "Страны и регионы обслуживания", pauseCountries: "Приостановить список стран", resumeCountries: "Продолжить список стран",
       shipments: "Последние отправки", cbmTitle: "Схема загрузки контейнера", quoteWithResult: "Запросить расчёт с этим результатом",
+      showAllAccounts: "Показать все аккаунты", showFewerAccounts: "Свернуть список",
       faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг"]
     },
     de: {
       scan: "Zum Chatten scannen", reply: "Online · Antwort innerhalb 24 Std.",
       countries: "Bediente Länder und Regionen", pauseCountries: "Länderliste pausieren", resumeCountries: "Länderliste fortsetzen",
       shipments: "Letzte Sendungen", cbmTitle: "Darstellung der Containerbeladung", quoteWithResult: "Mit diesem Ergebnis Angebot anfragen",
+      showAllAccounts: "Alle Konten anzeigen", showFewerAccounts: "Weniger Konten anzeigen",
       faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping"]
     },
     it: {
       scan: "Scansiona per chattare", reply: "Online · risposta entro 24 ore",
       countries: "Paesi e regioni serviti", pauseCountries: "Metti in pausa l’elenco dei Paesi", resumeCountries: "Riprendi l’elenco dei Paesi",
       shipments: "Spedizioni recenti", cbmTitle: "Illustrazione del carico del container", quoteWithResult: "Richiedi un preventivo con questo risultato",
+      showAllAccounts: "Vedi tutti gli account", showFewerAccounts: "Mostra meno account",
       faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping"]
     },
     tr: {
       scan: "Sohbet için tarayın", reply: "Çevrimiçi · 24 saat içinde yanıt",
       countries: "Hizmet verilen ülkeler ve bölgeler", pauseCountries: "Ülke listesini duraklat", resumeCountries: "Ülke listesini sürdür",
       shipments: "Son gönderiler", cbmTitle: "Konteyner yükleme görseli", quoteWithResult: "Bu sonuçla teklif iste",
+      showAllAccounts: "Tüm hesapları göster", showFewerAccounts: "Daha az hesap göster",
       faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış"]
     }
   };
@@ -910,6 +920,59 @@
     else faq.insertBefore(tags, faq.firstChild);
   }
 
+  function initSocialAccountDisclosure() {
+    var social = document.querySelector(".social-platform-groups");
+    if (!social) return;
+
+    var mobileQuery = window.matchMedia("(max-width: 767px)");
+    var groups = Array.prototype.slice.call(social.querySelectorAll(".social-platform-group"));
+
+    groups.forEach(function (group, groupIndex) {
+      var grid = group.querySelector(".team-grid");
+      if (!grid) return;
+      var cards = Array.prototype.filter.call(grid.children, function (child) {
+        return child.classList.contains("team-card");
+      });
+      if (cards.length <= 4 || group.querySelector(".social-platform-toggle")) return;
+
+      group.classList.add("has-social-overflow");
+      if (!grid.id) {
+        var title = group.querySelector(".social-platform-title[id]");
+        var idBase = title ? title.id.replace(/-title$/, "") : "social-platform-" + (groupIndex + 1);
+        grid.id = idBase + "-accounts";
+      }
+
+      var expanded = false;
+      var toggle = createElement("button", "social-platform-toggle", copy.showAllAccounts);
+      toggle.type = "button";
+      toggle.setAttribute("aria-controls", grid.id);
+      toggle.setAttribute("aria-expanded", "false");
+      group.appendChild(toggle);
+
+      function sync() {
+        var mobile = mobileQuery.matches;
+        var collapsed = mobile && !expanded;
+        cards.forEach(function (card, cardIndex) {
+          var hidden = collapsed && cardIndex >= 4;
+          card.hidden = hidden;
+          card.classList.toggle("is-social-card-collapsed", hidden);
+        });
+        group.classList.toggle("is-social-expanded", mobile && expanded);
+        toggle.hidden = !mobile;
+        toggle.setAttribute("aria-expanded", String(mobile && expanded));
+        toggle.textContent = expanded ? copy.showFewerAccounts : copy.showAllAccounts;
+      }
+
+      toggle.addEventListener("click", function () {
+        expanded = !expanded;
+        sync();
+      });
+      if (typeof mobileQuery.addEventListener === "function") mobileQuery.addEventListener("change", sync);
+      else if (typeof mobileQuery.addListener === "function") mobileQuery.addListener(sync);
+      sync();
+    });
+  }
+
   initAnalyticsEvents();
   initCalculatorInquiryBridge();
   initTrustStamps();
@@ -918,5 +981,6 @@
   initScrollProgress();
   initHomepageMotion();
   initFaqTags();
+  initSocialAccountDisclosure();
   initWhatsappQr();
 })();

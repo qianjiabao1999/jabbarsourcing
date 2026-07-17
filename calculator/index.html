@@ -47,7 +47,7 @@
     <link rel="shortcut icon" href="../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../styles.min.css?v=apple-163" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-164" />
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -186,16 +186,17 @@
               </div>
               <div class="calculator-actions">
                 <button class="calculator-button" type="submit">立即计算</button>
-                <button class="calculator-secondary-button" type="button" data-copy-result>复制结果</button>
+                <button class="calculator-secondary-button" type="button" data-copy-result disabled>复制结果</button>
               </div>
               <p class="calculator-copy-status" data-copy-status aria-live="polite"></p>
             </form>
           </section>
-          <aside class="calculator-results" aria-live="polite">
+          <aside class="calculator-results is-empty" data-result-state="empty" aria-live="polite" aria-busy="false">
             <p class="section-code calculator-section-code" dir="ltr">Jabbar · 体积工具</p>
             <h2>估算结果</h2>
             <span class="section-rule" aria-hidden="true"></span>
-            <div class="cbm-visual">
+            <p class="calculator-summary calculator-result-status" data-result-status>填写箱规后会显示装柜建议。</p>
+            <div class="cbm-visual" data-result-detail hidden style="display: none">
               <svg viewBox="0 0 320 150" role="img" aria-labelledby="cbmVizTitle">
                 <title id="cbmVizTitle">集装箱装载示意</title>
                 <text id="cbmCap" class="num-mono" x="150" y="18" text-anchor="middle" font-size="13" fill="#475569" direction="ltr">40英尺高柜 · 0.0 / 68 立方米</text>
@@ -210,14 +211,14 @@
                 <text id="cbmPct" class="num-mono" x="150" y="92" text-anchor="middle" font-size="18" font-weight="600">0%</text>
               </svg>
             </div>
-            <div class="calculator-result-grid">
+            <div class="calculator-result-grid" data-result-detail hidden style="display: none">
               <div class="calculator-result-card"><span>单箱体积</span><strong data-per-cbm class="num-mono">0.000</strong></div>
               <div class="calculator-result-card"><span>总体积</span><strong data-total-cbm class="num-mono">0.000</strong></div>
               <div class="calculator-result-card"><span>含 5% 预留</span><strong data-buffer-cbm class="num-mono">0.000</strong></div>
               <div class="calculator-result-card"><span>装柜建议</span><strong data-container>适合拼箱或小批量试单</strong></div>
               <div class="calculator-result-card"><span>总重量</span><strong data-weight-total class="num-mono">未填写</strong></div>
             </div>
-            <p class="calculator-summary" data-summary>填写箱规后会显示装柜建议。</p>
+            <p class="calculator-summary" data-summary data-result-detail hidden style="display: none">填写箱规后会显示装柜建议。</p>
           </aside>
         </div>
       </div>
@@ -242,6 +243,10 @@
       (function () {
         var t = {"title":"体积估算器｜CBM 装柜计算器 - Jabbar Sourcing","desc":"上传 Excel 订单表，自动汇总商品种类、数量、重量、体积和金额，并生成装柜可视化与完整结果图片。","kicker":"采购工具","h1":"体积估算器","intro":"上传 Excel 订单表可自动汇总商品、数量、重量、体积和金额，也可手动输入箱规进行快速估算。","product":"产品名称（可选）","productPh":"例如：厨房用品、玩具、收纳用品","unit":"尺寸单位","length":"长","width":"宽","height":"高","qty":"箱数","weight":"单箱重量 kg（可选）","note":"补充说明（可选）","notePh":"目标国家、是否拼柜、交期要求等","calcBtn":"立即计算","copyBtn":"复制结果","result":"估算结果","perCbm":"单箱体积","totalCbm":"总体积","bufferCbm":"含 5% 预留","container":"装柜建议","weightTotal":"总重量","summary":"填写箱规后会显示装柜建议。","copied":"已复制结果","invalid":"请填写长、宽、高和箱数。","noWeight":"未填写","forty":"40英尺高柜装载约","multi":"需要约 {n} 个40英尺高柜","lcl":"适合拼箱或小批量试单","copyTitle":"CBM 体积估算结果"};
         var form = document.getElementById('cbm-calculator');
+        var results = document.querySelector('.calculator-results');
+        var resultStatus = results.querySelector('.calculator-result-status');
+        var resultDetails = results.querySelectorAll('[data-result-detail]');
+        var copyButton = form.querySelector('[data-copy-result]');
         var fields = ['length','width','height','qty','weight','unit','product','note'].reduce(function (acc, name) { acc[name] = form.elements.namedItem(name); return acc; }, {});
         var out = {
           per: document.querySelector('[data-per-cbm]'), total: document.querySelector('[data-total-cbm]'), buffer: document.querySelector('[data-buffer-cbm]'),
@@ -270,10 +275,38 @@
           if (cursor < text.length) fragment.appendChild(document.createTextNode(text.slice(cursor)));
           element.replaceChildren(fragment);
         }
+        function resetResult(message) {
+          out.per.textContent = '0.000';
+          out.total.textContent = '0.000';
+          out.buffer.textContent = '0.000';
+          out.container.textContent = t.lcl;
+          out.weight.textContent = t.noWeight;
+          setTextWithMonoNumbers(out.summary, message);
+          lastMessage = '';
+          var inquiryCta = results.querySelector('.calculator-inquiry-cta');
+          if (inquiryCta) inquiryCta.hidden = true;
+          if (window.renderCbmVisual) window.renderCbmVisual(0);
+        }
+        function setResultState(state, message) {
+          var ready = state === 'ready';
+          results.dataset.resultState = state;
+          results.classList.toggle('is-empty', state === 'empty');
+          results.classList.toggle('is-invalid', state === 'invalid');
+          results.classList.toggle('is-ready', ready);
+          Array.prototype.forEach.call(resultDetails, function (detail) {
+            detail.hidden = !ready;
+            detail.style.display = ready ? '' : 'none';
+          });
+          resultStatus.hidden = ready;
+          if (!ready) setTextWithMonoNumbers(resultStatus, message);
+          copyButton.disabled = !ready;
+          if (ready) copyButton.removeAttribute('aria-disabled'); else copyButton.setAttribute('aria-disabled', 'true');
+          if (!ready) resetResult(message);
+        }
         function calculate(showInvalid) {
           var l = val('length'), w = val('width'), h = val('height'), q = Math.max(0, Math.floor(val('qty'))), unit = fields.unit.value;
-          if (!l || !w || !h || !q) {
-            setTextWithMonoNumbers(out.summary, showInvalid ? t.invalid : t.summary);
+          if (!(l > 0 && w > 0 && h > 0 && q > 0)) {
+            setResultState(showInvalid ? 'invalid' : 'empty', showInvalid ? t.invalid : t.summary);
             return false;
           }
           var factor = unit === 'in' ? Math.pow(2.54, 3) : 1;
@@ -295,6 +328,7 @@
           var product = fields.product.value.trim() || '-';
           var note = fields.note.value.trim() || '-';
           lastMessage = [t.copyTitle, 'Product: ' + product, 'Size: ' + l + ' x ' + w + ' x ' + h + ' ' + unit, 'Cartons: ' + q, 'CBM/carton: ' + fmt(per) + ' m3', 'Total CBM: ' + fmt(total) + ' m3', 'With buffer: ' + fmt(buffer) + ' m3', 'Container: ' + container, 'Weight: ' + (weightTotal ? weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg' : t.noWeight), 'Note: ' + note].join('\n');
+          setResultState('ready', '');
           window.dispatchEvent(new CustomEvent('jabbar:calc-result', { detail: {
             message: lastMessage,
             product: fields.product.value.trim(),
@@ -311,7 +345,7 @@
           calculate(true);
         });
         form.addEventListener('input', function () { calculate(false); });
-        document.querySelector('[data-copy-result]').addEventListener('click', function () {
+        copyButton.addEventListener('click', function () {
           if (!calculate(true)) return;
           var done = function () { out.status.textContent = t.copied; window.setTimeout(function () { out.status.textContent = ''; }, 1800); };
           if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(lastMessage).then(done).catch(done); else done();
@@ -323,7 +357,7 @@
     window.JABBAR_AI_ASSISTANT_ENDPOINT = "https://jabbar-sourcing-ai-assistant.qianjiabao1999.workers.dev";
   </script>
   <script src="/assets/ai-sourcing-assistant.js?v=ai-20260714c" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20260718a" defer></script>
-  <script src="/assets/calculator-order-loader.js?v=order-20260718b" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260718b" defer></script>
+  <script src="/assets/calculator-order-loader.js?v=order-20260718c" defer></script>
   </body>
 </html>
