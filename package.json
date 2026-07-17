@@ -5,9 +5,10 @@
   "main": "script.js",
   "scripts": {
     "build:css": "lightningcss --minify --browserslist styles.css -o styles.min.css",
-    "test": "npm run test:inquiry-frontend && npm run test:ui-enhancements",
+    "test": "npm run test:inquiry-frontend && npm run test:ui-enhancements && npm run test:performance-loading",
     "test:inquiry-frontend": "node scripts/check-inquiry-frontend.mjs",
     "test:ui-enhancements": "node scripts/check-ui-enhancements.mjs",
+    "test:performance-loading": "node scripts/check-performance-loading.mjs",
     "qa:ai": "node scripts/qa-ai-assistant.mjs",
     "qa:ui": "node scripts/qa-ui-enhancements.mjs",
     "qa:inquiry": "node scripts/qa-inquiry-form.mjs",

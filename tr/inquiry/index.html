@@ -49,7 +49,7 @@
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
     <link rel="stylesheet" href="../../styles.min.css?v=apple-163" />
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20260717a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20260718a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -117,10 +117,6 @@
         if (whatsappLink) {
           window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
         }
-        var inquiryButton = event.target.closest(".js-inquiry-send");
-        if (inquiryButton) {
-          window.jabbarTrack("inquiry_channel_click", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
-        }
       }, true);
     </script>
   </head>
@@ -182,7 +178,7 @@
                 <h2 id="inquiry-title">Ne satın almak istediğinizi yazın</h2>
                 <p>Ürün, miktar ve iletişim bilgilerinizi paylaşın. Size Yiwu tedarikçileri, fiyat ve seçenekleri bulalım.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="tr" data-inquiry-source="/tr/inquiry/" data-privacy-version="2026-07-12" data-required-message="Lütfen en az ürün ihtiyacını ve iletişim bilgilerini doldurun." data-copied-message="Kopyalandı. WeChat’i açın, 18658925544 arayın ve talebi yapıştırın." data-copy-fail-message="Kopyalama başarısız. Lütfen talebi manuel kopyalayın." data-telegram-copied-message="Talep kopyalandi. Telegram acilinca yapistirip gonderin.">
+              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="tr" data-inquiry-source="/tr/inquiry/" data-privacy-version="2026-07-18" data-required-message="Lütfen en az ürün ihtiyacını ve iletişim bilgilerini doldurun." data-copied-message="Kopyalandı. WeChat’i açın, 18658925544 arayın ve talebi yapıştırın." data-copy-fail-message="Kopyalama başarısız. Lütfen talebi manuel kopyalayın." data-telegram-copied-message="Talep kopyalandi. Telegram acilinca yapistirip gonderin.">
                 <label class="field field-wide">
                   <span>Gerekli ürünler</span>
                   <input name="product" type="text" maxlength="300" placeholder="örn. tek fiyat mağazası ürünleri, mutfak, oyuncak, düzenleme…" autocomplete="off"  required/>
@@ -190,6 +186,10 @@
                 <label class="field">
                   <span>İletişim bilgileri</span>
                   <input name="contact" type="text" maxlength="200" placeholder="WhatsApp / e-posta / WeChat ID" autocomplete="on"  required/>
+                </label>
+                <label class="field field-wide">
+                  <span>Ürün referans bağlantısı (Alibaba / Amazon / TikTok)</span>
+                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="Alibaba, Amazon, TikTok veya başka bir ürün sayfasından https:// bağlantısı yapıştırın" title="Yalnızca http:// veya https:// bağlantıları kabul edilir" />
                 </label>
                 <label class="field">
                   <span>Ürün kategorisi</span>
@@ -435,6 +435,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260717a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260718a" defer></script>
   </body>
 </html>

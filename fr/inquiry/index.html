@@ -49,7 +49,7 @@
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
     <link rel="stylesheet" href="../../styles.min.css?v=apple-163" />
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20260717a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20260718a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -117,10 +117,6 @@
         if (whatsappLink) {
           window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
         }
-        var inquiryButton = event.target.closest(".js-inquiry-send");
-        if (inquiryButton) {
-          window.jabbarTrack("inquiry_channel_click", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
-        }
       }, true);
     </script>
   </head>
@@ -182,7 +178,7 @@
                 <h2 id="inquiry-title">Dites-nous ce que vous voulez acheter</h2>
                 <p>Indiquez vos produits, quantités et coordonnées. Nous vous proposerons des fournisseurs de Yiwu, des prix et des options de sourcing.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="fr" data-inquiry-source="/fr/inquiry/" data-privacy-version="2026-07-12" data-required-message="Veuillez renseigner au minimum les produits et le contact." data-copied-message="Copié. Ouvrez WeChat, recherchez 18658925544 et collez la demande." data-copy-fail-message="Copie impossible. Veuillez copier la demande manuellement." data-telegram-copied-message="Demande copiee. Collez-la dans Telegram apres ouverture du chat." data-product-required-message="Veuillez indiquer les produits à sourcer." data-contact-required-message="Veuillez indiquer vos coordonnées.">
+              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="fr" data-inquiry-source="/fr/inquiry/" data-privacy-version="2026-07-18" data-required-message="Veuillez renseigner au minimum les produits et le contact." data-copied-message="Copié. Ouvrez WeChat, recherchez 18658925544 et collez la demande." data-copy-fail-message="Copie impossible. Veuillez copier la demande manuellement." data-telegram-copied-message="Demande copiee. Collez-la dans Telegram apres ouverture du chat." data-product-required-message="Veuillez indiquer les produits à sourcer." data-contact-required-message="Veuillez indiquer vos coordonnées.">
                 <label class="field field-wide">
                   <span>Produits recherchés</span>
                   <input name="product" type="text" maxlength="300" required placeholder="Ex. articles discount, cuisine, jouets, rangement…" autocomplete="off" />
@@ -190,6 +186,10 @@
                 <label class="field">
                   <span>Contact</span>
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp / e-mail / WeChat ID" autocomplete="on" />
+                </label>
+                <label class="field field-wide">
+                  <span>Lien de référence du produit (Alibaba / Amazon / TikTok)</span>
+                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="Collez un lien https:// depuis Alibaba, Amazon, TikTok ou une autre page produit" title="Seuls les liens http:// ou https:// sont acceptés" />
                 </label>
                 <label class="field">
                   <span>Catégorie</span>
@@ -463,6 +463,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260717a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260718a" defer></script>
   </body>
 </html>

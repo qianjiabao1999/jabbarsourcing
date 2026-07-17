@@ -143,7 +143,7 @@ function createEnv(options: MockOptions = {}): {
     ALLOWED_HOSTNAMES: "www.jabbarsourcing.com,jabbarsourcing.com",
     INQUIRY_RECIPIENT: RECIPIENT,
     INQUIRY_FROM: SENDER,
-    PRIVACY_VERSION: "2026-07-12",
+    PRIVACY_VERSION: "2026-07-18",
   } satisfies Env;
 
   return {
@@ -159,6 +159,7 @@ function createEnv(options: MockOptions = {}): {
 function validPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     product: "Kitchen storage products",
+    referenceUrl: "https://www.alibaba.com/product-detail/example-123.html",
     category: "Home and kitchen",
     quantity: "1,000 pcs",
     budget: "USD 5,000",
@@ -169,9 +170,18 @@ function validPayload(overrides: Record<string, unknown> = {}): Record<string, u
     locale: "en",
     sourcePath: "/en/inquiry/",
     privacyAcknowledged: true,
-    privacyVersion: "2026-07-12",
+    privacyVersion: "2026-07-18",
     submissionId: "8f86cdd2-fcb8-4b39-9cc1-04ef23780243",
     turnstileToken: "test-turnstile-token",
+    attribution: {
+      landing_path: "/en/",
+      referrer_host: "www.google.com",
+      utm_source: "google",
+      utm_medium: "cpc",
+      utm_campaign: "summer_wholesale",
+      utm_term: "yiwu sourcing",
+      utm_content: "quote_cta",
+    },
     ...overrides,
   };
 }
@@ -180,6 +190,7 @@ async function testPayloadFingerprint(payload: Record<string, unknown>): Promise
   const canonicalPayload = JSON.stringify([
     payload.submissionId,
     payload.product,
+    payload.referenceUrl,
     payload.category,
     payload.quantity,
     payload.budget,
@@ -190,6 +201,13 @@ async function testPayloadFingerprint(payload: Record<string, unknown>): Promise
     payload.locale,
     payload.sourcePath,
     payload.privacyVersion,
+    (payload.attribution as Record<string, unknown>).landing_path,
+    (payload.attribution as Record<string, unknown>).referrer_host,
+    (payload.attribution as Record<string, unknown>).utm_source,
+    (payload.attribution as Record<string, unknown>).utm_medium,
+    (payload.attribution as Record<string, unknown>).utm_campaign,
+    (payload.attribution as Record<string, unknown>).utm_term,
+    (payload.attribution as Record<string, unknown>).utm_content,
   ]);
   const digest = new Uint8Array(
     await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonicalPayload)),
@@ -392,6 +410,124 @@ describe("inquiry Worker security regressions", () => {
     expect(context.trace).toEqual(["edge"]);
     expect(context.turnstileCalls).toHaveLength(0);
     expect(context.email.attempts).toBe(0);
+  });
+
+  it.each([
+    ["javascript scheme", "javascript:alert(1)"],
+    ["file scheme", "file:///etc/passwd"],
+    ["ftp scheme", "ftp://example.com/product"],
+    ["embedded credentials", "https://buyer:secret@example.com/product"],
+    ["relative URL", "/product/123"],
+  ])("rejects an unsafe product reference URL using %s", async (_label, referenceUrl) => {
+    const context = createEnv();
+    const response = await handleRequest(
+      inquiryRequest(validPayload({ referenceUrl })),
+      context.env,
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_reference_url" });
+    expect(context.trace).toEqual(["edge"]);
+    expect(context.turnstileCalls).toHaveLength(0);
+    expect(context.email.attempts).toBe(0);
+  });
+
+  it.each([
+    [
+      "unknown nested field",
+      { ...(validPayload().attribution as Record<string, unknown>), attackerControlled: "ignored" },
+      "unknown_attribution_field",
+    ],
+    [
+      "unsafe landing path",
+      { ...(validPayload().attribution as Record<string, unknown>), landing_path: "/buyer@example.com" },
+      "invalid_landing_path",
+    ],
+    [
+      "referrer URL instead of host",
+      { ...(validPayload().attribution as Record<string, unknown>), referrer_host: "https://google.com/path" },
+      "invalid_referrer_host",
+    ],
+    [
+      "oversized campaign",
+      { ...(validPayload().attribution as Record<string, unknown>), utm_campaign: "x".repeat(101) },
+      "utm_campaign_too_long",
+    ],
+  ])("rejects unsafe attribution: %s", async (_label, attribution, error) => {
+    const context = createEnv();
+    const response = await handleRequest(
+      inquiryRequest(validPayload({ attribution })),
+      context.env,
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error });
+    expect(context.trace).toEqual(["edge"]);
+    expect(context.turnstileCalls).toHaveLength(0);
+    expect(context.email.attempts).toBe(0);
+  });
+
+  it("keeps the exact 7/12 legacy shape compatible during the atomic rollout", async () => {
+    const context = createEnv();
+    const payload = validPayload({ privacyVersion: "2026-07-12" });
+    delete payload.referenceUrl;
+    delete payload.attribution;
+    const response = await handleRequest(inquiryRequest(payload), context.env);
+
+    expect(response.status).toBe(201);
+    expect(context.email.sent).toHaveLength(1);
+    expect(context.email.sent[0]?.text).toContain("Product reference URL: Not provided");
+    expect(context.email.sent[0]?.text).toContain("Landing page: /en/inquiry/");
+  });
+
+  it.each(["referenceUrl", "attribution"])(
+    "rejects the legacy privacy version when the new %s field is present",
+    async (newField) => {
+      const context = createEnv();
+      const source = validPayload();
+      const payload = validPayload({ privacyVersion: "2026-07-12" });
+      delete payload.referenceUrl;
+      delete payload.attribution;
+      payload[newField] = source[newField];
+
+      const response = await handleRequest(inquiryRequest(payload), context.env);
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({ error: "invalid_privacy_version" });
+      expect(context.trace).toEqual(["edge"]);
+      expect(context.turnstileCalls).toHaveLength(0);
+      expect(context.email.attempts).toBe(0);
+    },
+  );
+
+  it("does not accept arbitrary older privacy versions for a legacy-shaped payload", async () => {
+    const context = createEnv();
+    const payload = validPayload({ privacyVersion: "2026-07-01" });
+    delete payload.referenceUrl;
+    delete payload.attribution;
+
+    const response = await handleRequest(inquiryRequest(payload), context.env);
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_privacy_version" });
+    expect(context.trace).toEqual(["edge"]);
+    expect(context.turnstileCalls).toHaveLength(0);
+    expect(context.email.attempts).toBe(0);
+  });
+
+  it("includes the product reference and restricted attribution fields in the inquiry email", async () => {
+    const context = createEnv();
+    const response = await handleRequest(inquiryRequest(validPayload()), context.env);
+
+    expect(response.status).toBe(201);
+    expect(context.email.sent).toHaveLength(1);
+    expect(context.email.sent[0]?.text).toContain(
+      "Product reference URL: https://www.alibaba.com/product-detail/example-123.html",
+    );
+    expect(context.email.sent[0]?.text).toContain("Landing page: /en/");
+    expect(context.email.sent[0]?.text).toContain("External referrer host: www.google.com");
+    expect(context.email.sent[0]?.text).toContain("UTM campaign: summer_wholesale");
+    expect(context.email.sent[0]?.html).toContain("https://www.alibaba.com/product-detail/example-123.html");
   });
 
   it("requires the current privacy acknowledgement before Turnstile or email", async () => {

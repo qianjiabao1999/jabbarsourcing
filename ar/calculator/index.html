@@ -308,9 +308,7 @@
         }
         form.addEventListener('submit', function (event) {
           event.preventDefault();
-          if (calculate(true) && typeof window.gtag === 'function') {
-            window.gtag('event', 'calculator_calculate', { method: 'manual', locale: locale });
-          }
+          calculate(true);
         });
         form.addEventListener('input', function () { calculate(false); });
         document.querySelector('[data-copy-result]').addEventListener('click', function () {
@@ -325,7 +323,7 @@
     window.JABBAR_AI_ASSISTANT_ENDPOINT = "https://jabbar-sourcing-ai-assistant.qianjiabao1999.workers.dev";
   </script>
   <script src="/assets/ai-sourcing-assistant.js?v=ai-20260714c" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20260717a" defer></script>
-  <script src="/assets/calculator-order-analyzer.js?v=order-20260717a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260718a" defer></script>
+  <script src="/assets/calculator-order-loader.js?v=order-20260718a" defer></script>
   </body>
 </html>

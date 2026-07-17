@@ -49,7 +49,7 @@
     <link rel="manifest" href="../site.webmanifest?v=jabbar-5" />
     <link rel="stylesheet" href="../styles.min.css?v=apple-163" />
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20260717a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20260718a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -117,10 +117,6 @@
         if (whatsappLink) {
           window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
         }
-        var inquiryButton = event.target.closest(".js-inquiry-send");
-        if (inquiryButton) {
-          window.jabbarTrack("inquiry_channel_click", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
-        }
       }, true);
     </script>
   </head>
@@ -182,7 +178,7 @@
                 <h2 id="inquiry-title">告诉我们你想采购什么</h2>
                 <p>填写产品、数量和联系方式，我们会根据你的需求匹配义乌货源、报价与采购方案。</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="zh" data-inquiry-source="/inquiry/" data-privacy-version="2026-07-12" data-required-message="请至少填写产品需求和联系方式。" data-copied-message="已复制需求内容，请在微信中搜索 18658925544 添加并粘贴发送。" data-copy-fail-message="复制失败，请手动复制页面中的需求内容。" data-telegram-copied-message="已复制需求内容，Telegram 打开后请粘贴发送。" data-product-required-message="请填写想采购的产品。" data-contact-required-message="请填写联系方式。">
+              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="zh" data-inquiry-source="/inquiry/" data-privacy-version="2026-07-18" data-required-message="请至少填写产品需求和联系方式。" data-copied-message="已复制需求内容，请在微信中搜索 18658925544 添加并粘贴发送。" data-copy-fail-message="复制失败，请手动复制页面中的需求内容。" data-telegram-copied-message="已复制需求内容，Telegram 打开后请粘贴发送。" data-product-required-message="请填写想采购的产品。" data-contact-required-message="请填写联系方式。">
                 <label class="field field-wide">
                   <span>想采购的产品</span>
                   <input name="product" type="text" maxlength="300" required placeholder="例如：一元店百货、厨房用品、玩具、收纳用品…" autocomplete="off" />
@@ -190,6 +186,10 @@
                 <label class="field">
                   <span>联系方式</span>
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp / 邮箱 / 微信号" autocomplete="on" />
+                </label>
+                <label class="field field-wide">
+                  <span>产品参考链接（Alibaba / Amazon / TikTok）</span>
+                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="粘贴 Alibaba、Amazon、TikTok 或其他商品页面的 https:// 链接" title="仅接受 http:// 或 https:// 链接" />
                 </label>
                 <label class="field">
                   <span>产品方向</span>
@@ -463,6 +463,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260717a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260718a" defer></script>
   </body>
 </html>

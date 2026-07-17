@@ -7,7 +7,7 @@ import { chromium, webkit } from "playwright";
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
 const CSS_VERSION = "apple-163";
-const UI_VERSION = "ui-20260717a";
+const UI_VERSION = "ui-20260718a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -862,16 +862,13 @@ async function calculatorAnalyticsChecks(browserType) {
     await page.locator(`#${field}`).fill(value);
   }
   await page.locator("#cbm-calculator button[type=submit]").click();
-  const calculatorEvents = await events("calculator_calculate");
-  assert.equal(calculatorEvents.length, 1, "valid calculator submit must emit exactly one conversion event");
-  assert.deepEqual(Object.keys(calculatorEvents[0]).sort(), ["locale", "method"], "calculator event contains unexpected data");
-  assert.equal(calculatorEvents[0].method, "manual", "calculator event method");
-  assert.equal(calculatorEvents[0].locale, "zh-CN", "calculator event locale");
-
   await page.waitForFunction(() => (window.dataLayer || []).some((entry) => entry[0] === "event" && entry[1] === "calculator_result"));
+  assert.equal((await events("calculator_calculate")).length, 0, "deprecated duplicate calculator event returned");
   const resultEvents = await events("calculator_result");
   assert.equal(resultEvents.length, 1, "valid calculator submit must emit exactly one result event");
+  assert.deepEqual(Object.keys(resultEvents[0]).sort(), ["locale", "method", "total_cbm"], "calculator result contains unexpected data");
   assert.equal(resultEvents[0].method, "manual", "calculator result method");
+  assert.equal(resultEvents[0].locale, "zh-CN", "calculator result locale");
   assert(Number(resultEvents[0].total_cbm) > 0, "calculator result CBM missing");
   const quoteLink = page.locator(".calculator-inquiry-cta");
   await quoteLink.waitFor({ state: "visible" });
@@ -879,7 +876,7 @@ async function calculatorAnalyticsChecks(browserType) {
   await page.locator("#qty").fill("0.5");
   await page.locator("#cbm-calculator button[type=submit]").click();
   await page.waitForTimeout(80);
-  assert.equal((await events("calculator_calculate")).length, 1, "fractional carton below one emitted a calculate event");
+  assert.equal((await events("calculator_calculate")).length, 0, "fractional carton below one emitted the deprecated calculate event");
   assert.equal((await events("calculator_result")).length, 1, "fractional carton below one reused a stale result event");
   await quoteLink.click();
   assert.equal(page.url(), `${BASE_URL}/calculator/`, "fractional carton below one opened inquiry with stale data");

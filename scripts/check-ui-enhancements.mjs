@@ -8,8 +8,8 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CSS_VERSION = "apple-163";
 const AI_VERSION = "ai-20260714c";
-const UI_VERSION = "ui-20260717a";
-const ORDER_VERSION = "order-20260717a";
+const UI_VERSION = "ui-20260718a";
+const ORDER_VERSION = "order-20260718a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
   zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 关于我们", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
@@ -159,7 +159,8 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.match(html, new RegExp(`ai-sourcing-assistant\\.js\\?v=${AI_VERSION}`), `${file}: missing multilingual AI assistant`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
-  assert.match(html, new RegExp(`calculator-order-analyzer\\.js\\?v=${ORDER_VERSION}`), `${file}: missing Excel order analyzer`);
+  assert.match(html, new RegExp(`calculator-order-loader\\.js\\?v=${ORDER_VERSION}`), `${file}: missing deferred Excel order loader`);
+  assert.doesNotMatch(html, /<script[^>]+src="\/assets\/calculator-order-analyzer\.js/i, `${file}: Excel order analyzer must not load directly`);
   assert.equal(count(html, /data-order-analyzer/g), 1, `${file}: Excel order analyzer mount count`);
   assert.equal(count(html, /calculator-whatsapp|data-whatsapp|wa\.me\/8618658925544/g), 0, `${file}: calculator WhatsApp result action remains`);
   assert.equal(count(html, /class="cbm-visual"/g), 1, `${file}: static CBM visual count`);
@@ -197,7 +198,7 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   assert.doesNotMatch(fillTag, /\sfill=/, `${file}: CBM fill color must come from CSS`);
   assert.doesNotMatch(tagById(html, "cbmRibs"), /\sstroke=/, `${file}: CBM rib color must come from CSS`);
   assert.doesNotMatch(percentageTag, /\sfill=/, `${file}: CBM percentage color must come from CSS`);
-  assert.equal(count(html, /["']calculator_calculate["']/g), 1, `${file}: valid manual calculator event count`);
+  assert.equal(count(html, /["']calculator_calculate["']/g), 0, `${file}: duplicate calculator event must not return`);
   assert.equal(count(html, /mobile-conversion-bar/g), 0, `${file}: calculator must not include mobile conversion bar`);
   if (locale === "ar") assert.match(html, /<html[^>]+lang="ar"[^>]+dir="rtl"/, `${file}: Arabic RTL root missing`);
 }
@@ -236,10 +237,97 @@ for (const { file } of TELEGRAM_PAGES) {
 }
 
 assert.equal(FALLBACK_EVENT_PAGES.length, 23, "fallback analytics page count");
+const inquiryFallbackFiles = new Set(INQUIRY_PAGES.map(({ file }) => file));
 for (const file of FALLBACK_EVENT_PAGES) {
   const html = await load(file);
-  assert.match(html, /window\.jabbarTrack\(["']inquiry_channel_click["']/, `${file}: fallback channel event missing`);
+  if (inquiryFallbackFiles.has(file)) {
+    assert.doesNotMatch(html, /window\.jabbarTrack\(["']inquiry_channel_click["']/, `${file}: superseded inquiry channel event remains`);
+  } else {
+    assert.match(html, /window\.jabbarTrack\(["']inquiry_channel_click["']/, `${file}: fallback channel event missing`);
+  }
   assert.doesNotMatch(html, /(?:jabbarTrack|gtag)\s*\([^)]*["']inquiry_submit["']/, `${file}: fallback channel must not impersonate a successful inquiry`);
+}
+const inquiryFormJavascript = await load("assets/inquiry-form.js");
+assert.match(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']/, "inquiry-form.js: shared fallback channel event missing");
+
+{
+  const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
+  const EXPECTED_LANGUAGE_MATRIX_LASTMOD = "2026-07-18";
+  const EXPECTED_LEGAL_LASTMOD = {
+    [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-18",
+    [`${PUBLIC_ORIGIN}/support.html`]: "2026-07-12"
+  };
+  const LEGAL_PAGE_URLS = [
+    `${PUBLIC_ORIGIN}/privacy-policy.html`,
+    `${PUBLIC_ORIGIN}/support.html`
+  ];
+  const publicUrlForFile = (file) => {
+    if (file === "index.html") return `${PUBLIC_ORIGIN}/`;
+    if (file.endsWith("/index.html")) return `${PUBLIC_ORIGIN}/${file.slice(0, -"index.html".length)}`;
+    return `${PUBLIC_ORIGIN}/${file}`;
+  };
+  const linkTag = (html, rel) => (html.match(/<link\b[^>]*>/gi) || [])
+    .filter((tag) => attribute(tag, "rel") === rel);
+  const sitemap = await load("sitemap.xml");
+  const sitemapEntries = Array.from(sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g), (match) => {
+    const block = match[1];
+    return {
+      url: block.match(/<loc>([^<]+)<\/loc>/)?.[1] || "",
+      lastmod: block.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1] || "",
+      alternates: Array.from(
+        block.matchAll(/<xhtml:link\s+rel="alternate"\s+hreflang="([^"]+)"\s+href="([^"]+)"\s*\/>/g),
+        (alternate) => [alternate[1], alternate[2]],
+      )
+    };
+  });
+  const entriesByUrl = new Map(sitemapEntries.map((entry) => [entry.url, entry]));
+  const matrixGroups = [
+    { name: "home", pages: HOME_PAGES },
+    { name: "calculator", pages: CALCULATOR_PAGES },
+    { name: "inquiry", pages: INQUIRY_PAGES }
+  ];
+  const expectedPublicUrls = [
+    ...NAV_PAGES.map(({ file }) => publicUrlForFile(file)),
+    ...LEGAL_PAGE_URLS
+  ].sort();
+
+  assert.equal(sitemapEntries.length, 32, "sitemap.xml: public URL count");
+  assert.equal(entriesByUrl.size, sitemapEntries.length, "sitemap.xml: duplicate URL");
+  assert.deepEqual([...entriesByUrl.keys()].sort(), expectedPublicUrls, "sitemap.xml: public URL set");
+  assert.doesNotMatch(sitemap, /\/ja\/|hreflang="ja"/, "sitemap.xml: Japanese route or hreflang must not return");
+  for (const [url, lastmod] of Object.entries(EXPECTED_LEGAL_LASTMOD)) {
+    assert.equal(entriesByUrl.get(url)?.lastmod, lastmod, `sitemap.xml: stale legal URL ${url}`);
+  }
+
+  for (const { name, pages } of matrixGroups) {
+    const urlsByLocale = Object.fromEntries(pages.map(({ locale, file }) => [locale, publicUrlForFile(file)]));
+    const expectedAlternates = [
+      ["x-default", urlsByLocale.en],
+      ...LOCALES.map((locale) => [locale === "zh" ? "zh-Hans" : locale, urlsByLocale[locale]])
+    ].sort(([left], [right]) => left.localeCompare(right));
+
+    for (const { locale, file } of pages) {
+      const url = urlsByLocale[locale];
+      const entry = entriesByUrl.get(url);
+      const html = await load(file);
+      const canonicalTags = linkTag(html, "canonical");
+      const htmlAlternates = linkTag(html, "alternate")
+        .map((tag) => [attribute(tag, "hreflang"), attribute(tag, "href")])
+        .sort(([left], [right]) => left.localeCompare(right));
+      assert(entry, `sitemap.xml: missing ${name} URL ${url}`);
+      assert.equal(entry.lastmod, EXPECTED_LANGUAGE_MATRIX_LASTMOD, `sitemap.xml: stale ${file} lastmod`);
+      assert.equal(entry.alternates.length, expectedAlternates.length, `sitemap.xml: ${file} alternate count`);
+      assert.deepEqual(
+        [...entry.alternates].sort(([left], [right]) => left.localeCompare(right)),
+        expectedAlternates,
+        `sitemap.xml: ${file} language matrix`,
+      );
+      assert.equal(canonicalTags.length, 1, `${file}: canonical count`);
+      assert.equal(attribute(canonicalTags[0], "href"), url, `${file}: canonical URL`);
+      assert.deepEqual(htmlAlternates, expectedAlternates, `${file}: HTML language matrix`);
+      assert.doesNotMatch(html, /\/ja\/|hreflang="ja"/, `${file}: Japanese route or hreflang must not return`);
+    }
+  }
 }
 
 const javascript = await load("assets/site-enhancements.js");
@@ -314,7 +402,11 @@ for (const token of [
 
 const orderAnalyzer = await load("assets/calculator-order-analyzer.js");
 const orderWorker = await load("assets/calculator-order-worker.js");
-for (const token of ["data-order-export", "toBlob", "JABBAR_ORDER_ANALYZER_QA"])
+for (const token of [
+  "data-order-export", "toBlob", "JABBAR_ORDER_ANALYZER_QA",
+  "order_file_selected", "order_parse_success", "order_parse_error",
+  "order_export_png", "order_export_error"
+])
   assert(orderAnalyzer.includes(token), `calculator-order-analyzer.js: missing ${token}`);
 for (const removedToken of ["data-order-wechat", "shareToWeChat", "navigator.share"]) {
   assert(!orderAnalyzer.includes(removedToken), `calculator-order-analyzer.js: removed sharing token remains (${removedToken})`);

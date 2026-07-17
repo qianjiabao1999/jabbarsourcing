@@ -3,6 +3,7 @@
 
   var FIELD_NAMES = [
     "product",
+    "referenceUrl",
     "category",
     "quantity",
     "budget",
@@ -14,6 +15,16 @@
 
   var CALCULATOR_RESULT_KEY = "jabbarCalcResult";
   var CALCULATOR_RESULT_MAX_AGE = 2 * 60 * 60 * 1000;
+  var ATTRIBUTION_KEY = "jabbarAttributionV1";
+  var ATTRIBUTION_FIELDS = [
+    "landing_path",
+    "referrer_host",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_term",
+    "utm_content"
+  ];
   var WHATSAPP_URL = "https://wa.me/8618658925544";
   var OPTIONAL_LABELS = {
     zh: "可选", en: "optional", es: "opcional", ar: "اختياري", fr: "facultatif",
@@ -164,6 +175,82 @@
     return response.json().catch(function () { return {}; });
   }
 
+  function normalizeAttributionValue(value, maximum) {
+    if (typeof value !== "string") return "";
+    return value
+      .replace(/[\u0000-\u001f\u007f]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, maximum);
+  }
+
+  function safeLandingPath(value) {
+    var path = normalizeAttributionValue(value, 160);
+    path = path.replace(/\/index\.html$/, "/");
+    if (/^\/(?:(?:en|es|ar|fr|pt|ru|de|it|tr)\/)?(?:inquiry\/|calculator\/)?$/.test(path)) return path;
+    if (["/privacy-policy.html", "/support.html", "/404.html"].indexOf(path) !== -1) return path;
+    return "/other";
+  }
+
+  function sanitizeAttribution(record) {
+    record = record && typeof record === "object" ? record : {};
+    return {
+      landing_path: safeLandingPath(record.landing_path || window.location.pathname),
+      referrer_host: normalizeAttributionValue(record.referrer_host || "", 253).toLowerCase(),
+      utm_source: normalizeAttributionValue(record.utm_source || "", 100),
+      utm_medium: normalizeAttributionValue(record.utm_medium || "", 100),
+      utm_campaign: normalizeAttributionValue(record.utm_campaign || "", 100),
+      utm_term: normalizeAttributionValue(record.utm_term || "", 100),
+      utm_content: normalizeAttributionValue(record.utm_content || "", 100)
+    };
+  }
+
+  function externalReferrerHost() {
+    if (!document.referrer) return "";
+    try {
+      var referrerHost = new URL(document.referrer).hostname.toLowerCase();
+      var currentHost = window.location.hostname.toLowerCase();
+      if (!referrerHost || referrerHost === currentHost) return "";
+      if (/(^|\.)jabbarsourcing\.com$/.test(referrerHost) && /(^|\.)jabbarsourcing\.com$/.test(currentHost)) return "";
+      return normalizeAttributionValue(referrerHost, 253);
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function captureAttribution() {
+    try {
+      var stored = window.sessionStorage.getItem(ATTRIBUTION_KEY);
+      if (stored) {
+        var existing = sanitizeAttribution(JSON.parse(stored));
+        window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(existing));
+        return existing;
+      }
+    } catch (error) {}
+
+    var attribution = {
+      landing_path: safeLandingPath(window.location.pathname),
+      referrer_host: externalReferrerHost(),
+      utm_source: "",
+      utm_medium: "",
+      utm_campaign: "",
+      utm_term: "",
+      utm_content: ""
+    };
+    try {
+      var query = new URLSearchParams(window.location.search);
+      ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"].forEach(function (key) {
+        attribution[key] = normalizeAttributionValue(query.get(key) || "", 100);
+      });
+      window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+    } catch (error) {}
+    return attribution;
+  }
+
+  if (typeof window.jabbarCaptureAttribution !== "function") {
+    window.jabbarCaptureAttribution = captureAttribution;
+  }
+
   function initializeForm(form) {
     if (form.getAttribute("data-direct-inquiry-ready") === "true") return;
     form.setAttribute("data-direct-inquiry-ready", "true");
@@ -182,12 +269,61 @@
     var turnstileToken = "";
     var currentSubmissionId = "";
     var submitting = false;
+    var formStarted = false;
+    var nativeValidationTracked = false;
+    var fallbackValidationInProgress = false;
+    var attribution = sanitizeAttribution(window.jabbarCaptureAttribution());
 
     if (!directButton || !privacyCheckbox || !turnstileElement || !endpoint || !sourcePath || !privacyVersion) {
       return;
     }
 
     var directButtonLabel = directButton.textContent;
+
+    function analyticsParams(extra) {
+      var params = {
+        locale: locale,
+        source_path: sourcePath
+      };
+      ATTRIBUTION_FIELDS.forEach(function (key) {
+        params[key] = attribution[key] || "";
+      });
+      return Object.assign(params, extra || {});
+    }
+
+    function trackEvent(eventName, extra) {
+      var params = analyticsParams(extra);
+      if (typeof window.jabbarTrack === "function") {
+        window.jabbarTrack(eventName, params);
+      } else if (typeof window.gtag === "function") {
+        window.gtag("event", eventName, params);
+      }
+    }
+
+    function boundedDuration(startedAt) {
+      var elapsed = Number.isFinite(startedAt) ? Date.now() - startedAt : 0;
+      return Math.max(0, Math.min(60000, Math.round(elapsed)));
+    }
+
+    function trackSubmitError(errorCode, statusCode, stage, startedAt) {
+      var normalizedCode = typeof errorCode === "string" && /^[a-z0-9_]{1,64}$/.test(errorCode)
+        ? errorCode
+        : "request_failed";
+      trackEvent("inquiry_submit_error", {
+        method: "direct",
+        status: Number(statusCode) || 0,
+        stage: stage,
+        error_code: normalizedCode,
+        duration_ms: boundedDuration(startedAt)
+      });
+    }
+
+    function trackNativeValidationError() {
+      if (nativeValidationTracked) return;
+      nativeValidationTracked = true;
+      trackSubmitError("native_validation", 0, "validation");
+      window.setTimeout(function () { nativeValidationTracked = false; }, 0);
+    }
 
     function decorateFieldLabels() {
       Array.prototype.forEach.call(form.querySelectorAll("label.field"), function (label) {
@@ -320,13 +456,19 @@
     }
 
     function contentKey() {
-      return JSON.stringify(FIELD_NAMES.map(readValue).concat([locale, sourcePath, privacyVersion]));
+      return JSON.stringify(FIELD_NAMES.map(readValue).concat([
+        locale,
+        sourcePath,
+        privacyVersion,
+        JSON.stringify(attribution)
+      ]));
     }
 
     function buildPayload() {
       if (!currentSubmissionId) currentSubmissionId = newSubmissionId();
       return {
         product: readValue("product"),
+        referenceUrl: readValue("referenceUrl"),
         category: readValue("category"),
         quantity: readValue("quantity"),
         budget: readValue("budget"),
@@ -339,46 +481,73 @@
         privacyAcknowledged: true,
         privacyVersion: privacyVersion,
         submissionId: currentSubmissionId,
-        turnstileToken: turnstileToken
+        turnstileToken: turnstileToken,
+        attribution: attribution
       };
     }
 
-    function completeSubmission(message, submittedContentKey, statusCode) {
+    function completeSubmission(message, submittedContentKey, statusCode, startedAt) {
       if (!submittedContentKey || contentKey() === submittedContentKey) form.reset();
       currentSubmissionId = "";
       setPrivacyError("");
       resetTurnstile();
       setStatus(message, "success");
-      var analyticsParams = {
+      trackEvent("inquiry_submit", {
         method: "direct",
         status: Number(statusCode),
-        locale: locale
-      };
-      if (typeof window.jabbarTrack === "function") {
-        window.jabbarTrack("inquiry_submit", analyticsParams);
-      } else if (typeof window.gtag === "function") {
-        window.gtag("event", "inquiry_submit", analyticsParams);
-      }
+        duration_ms: boundedDuration(startedAt)
+      });
+    }
+
+    function markFormStart() {
+      if (formStarted) return;
+      formStarted = true;
+      trackEvent("inquiry_form_start", { form_name: "sourcing_inquiry" });
     }
 
     FIELD_NAMES.forEach(function (name) {
       var field = form.elements[name];
       if (!field) return;
       field.addEventListener("input", function () {
+        markFormStart();
         if (!submitting) currentSubmissionId = "";
         setStatus("", "");
       });
       field.addEventListener("change", function () {
+        markFormStart();
         if (!submitting) currentSubmissionId = "";
         setStatus("", "");
       });
     });
 
     privacyCheckbox.addEventListener("change", function () {
+      markFormStart();
       if (privacyCheckbox.checked) setPrivacyError("");
     });
 
+    form.querySelectorAll(".js-inquiry-send").forEach(function (button) {
+      button.addEventListener("click", function () {
+        trackEvent("channel_fallback", {
+          channel: button.getAttribute("data-channel") || "unknown"
+        });
+      });
+    });
+
+    form.addEventListener("click", function (event) {
+      var target = event.target && event.target.closest
+        ? event.target.closest(".js-inquiry-send")
+        : null;
+      if (!target) return;
+      fallbackValidationInProgress = true;
+      window.setTimeout(function () { fallbackValidationInProgress = false; }, 0);
+    }, true);
+
+    form.addEventListener("invalid", function () {
+      if (!fallbackValidationInProgress) trackNativeValidationError();
+    }, true);
+
     directButton.disabled = false;
+    trackEvent("inquiry_view", { form_name: "sourcing_inquiry" });
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -386,14 +555,19 @@
       setPrivacyError("");
       setStatus("", "");
 
-      if (typeof form.reportValidity === "function" && !form.reportValidity()) return;
+      if (typeof form.reportValidity === "function" && !form.reportValidity()) {
+        trackNativeValidationError();
+        return;
+      }
       if (!privacyCheckbox.checked) {
         setPrivacyError(messages.privacyError);
         privacyCheckbox.focus();
+        trackSubmitError("privacy_required", 0, "privacy");
         return;
       }
       if (!turnstileToken) {
         setStatus(messages.verifyError, "error");
+        trackSubmitError("turnstile_missing", 0, "turnstile");
         return;
       }
 
@@ -404,13 +578,16 @@
         submittedContentKey = contentKey();
       } catch (error) {
         setStatus(messages.genericError, "error");
+        trackSubmitError("payload_build_failed", 0, "client");
         return;
       }
 
       var controller = typeof AbortController === "function" ? new AbortController() : null;
       var timeoutId = controller ? window.setTimeout(function () { controller.abort(); }, 20000) : null;
+      var submissionStartedAt = Date.now();
       setSubmitting(true);
       setStatus(messages.sending, "pending");
+      trackEvent("inquiry_submit_start", { method: "direct", duration_ms: 0 });
 
       fetch(endpoint, {
         method: "POST",
@@ -427,14 +604,15 @@
         var body = result.body || {};
 
         if (response.status === 200 || response.status === 201) {
-          completeSubmission(messages.success, submittedContentKey, response.status);
+          completeSubmission(messages.success, submittedContentKey, response.status, submissionStartedAt);
           return;
         }
         if (response.status === 202) {
-          completeSubmission(messages.accepted, submittedContentKey, response.status);
+          completeSubmission(messages.accepted, submittedContentKey, response.status, submissionStartedAt);
           return;
         }
 
+        trackSubmitError(body.error, response.status, "response", submissionStartedAt);
         resetTurnstile();
         if (response.status === 409 && body.error === "submission_in_progress") {
           var pendingRetryAfter = response.headers.get("Retry-After");
@@ -459,6 +637,7 @@
       }).catch(function () {
         resetTurnstile();
         setStatus(messages.genericError, "error");
+        trackSubmitError("network_or_timeout", 0, "network", submissionStartedAt);
       }).finally(function () {
         if (timeoutId !== null) window.clearTimeout(timeoutId);
         if (submittedContentKey && contentKey() !== submittedContentKey) currentSubmissionId = "";

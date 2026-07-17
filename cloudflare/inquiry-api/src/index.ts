@@ -8,6 +8,8 @@ const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 const PENDING_LEASE_MS = 10 * 60 * 1000;
 const IDEMPOTENCY_STORAGE_KEY = "submission";
 const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const CURRENT_PRIVACY_VERSION = "2026-07-18";
+const LEGACY_CACHED_PRIVACY_VERSION = "2026-07-12";
 
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"] as const;
 type Locale = (typeof LOCALES)[number];
@@ -27,6 +29,7 @@ const SOURCE_PATHS: Record<Locale, string> = {
 
 const PAYLOAD_FIELDS = new Set([
   "product",
+  "referenceUrl",
   "category",
   "quantity",
   "budget",
@@ -40,10 +43,32 @@ const PAYLOAD_FIELDS = new Set([
   "privacyVersion",
   "submissionId",
   "turnstileToken",
+  "attribution",
 ]);
+
+const ATTRIBUTION_FIELDS = new Set([
+  "landing_path",
+  "referrer_host",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+]);
+
+interface InquiryAttribution {
+  landing_path: string;
+  referrer_host: string;
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_term: string;
+  utm_content: string;
+}
 
 interface InquiryPayload {
   product: string;
+  referenceUrl: string;
   category: string;
   quantity: string;
   budget: string;
@@ -57,6 +82,7 @@ interface InquiryPayload {
   privacyVersion: string;
   submissionId: string;
   turnstileToken: string;
+  attribution: InquiryAttribution;
 }
 
 interface SiteverifyResult {
@@ -349,6 +375,91 @@ function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
 }
 
+function readHttpUrl(input: Record<string, unknown>, key: string, maxLength: number): string {
+  const value = readText(input, key, maxLength, false);
+  if (!value) return "";
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new HttpError(400, "invalid_reference_url");
+  }
+
+  if (
+    (parsed.protocol !== "http:" && parsed.protocol !== "https:") ||
+    !parsed.hostname ||
+    parsed.username ||
+    parsed.password ||
+    parsed.href.length > maxLength
+  ) {
+    throw new HttpError(400, "invalid_reference_url");
+  }
+  return parsed.href;
+}
+
+function isSafeLandingPath(value: string): boolean {
+  return /^\/(?:(?:en|es|ar|fr|pt|ru|de|it|tr)\/)?(?:inquiry\/|calculator\/)?$/.test(value) ||
+    ["/privacy-policy.html", "/support.html", "/404.html", "/other"].includes(value);
+}
+
+function isSafeHostname(value: string): boolean {
+  if (
+    !value ||
+    value.length > 253 ||
+    !/^[a-z0-9.-]+$/.test(value) ||
+    value.startsWith(".") ||
+    value.endsWith(".") ||
+    value.includes("..") ||
+    value.split(".").some((label) => !label || label.length > 63 || label.startsWith("-") || label.endsWith("-"))
+  ) return false;
+  try {
+    const parsed = new URL(`https://${value}`);
+    return parsed.hostname === value && !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
+}
+
+function validateAttribution(value: unknown, sourcePath: string): InquiryAttribution {
+  if (value === undefined || value === null) {
+    return {
+      landing_path: sourcePath,
+      referrer_host: "",
+      utm_source: "",
+      utm_medium: "",
+      utm_campaign: "",
+      utm_term: "",
+      utm_content: "",
+    };
+  }
+  if (!isRecord(value)) {
+    throw new HttpError(400, "invalid_attribution");
+  }
+  if (Object.keys(value).some((key) => !ATTRIBUTION_FIELDS.has(key))) {
+    throw new HttpError(400, "unknown_attribution_field");
+  }
+
+  const landingPath = readText(value, "landing_path", 160, true);
+  if (!isSafeLandingPath(landingPath)) {
+    throw new HttpError(400, "invalid_landing_path");
+  }
+  const referrerHost = readText(value, "referrer_host", 253, false).toLowerCase();
+  if (referrerHost && !isSafeHostname(referrerHost)) {
+    throw new HttpError(400, "invalid_referrer_host");
+  }
+
+  return {
+    landing_path: landingPath,
+    referrer_host: referrerHost,
+    utm_source: readText(value, "utm_source", 100, false),
+    utm_medium: readText(value, "utm_medium", 100, false),
+    utm_campaign: readText(value, "utm_campaign", 100, false),
+    utm_term: readText(value, "utm_term", 100, false),
+    utm_content: readText(value, "utm_content", 100, false),
+  };
+}
+
 function validatePayload(input: unknown, env: Env): InquiryPayload {
   if (!isRecord(input)) {
     throw new HttpError(400, "invalid_payload");
@@ -373,7 +484,13 @@ function validatePayload(input: unknown, env: Env): InquiryPayload {
   }
 
   const privacyVersion = readText(input, "privacyVersion", 20, true);
-  if (privacyVersion !== env.PRIVACY_VERSION) {
+  const hasNewInquiryFields = Object.prototype.hasOwnProperty.call(input, "referenceUrl") ||
+    Object.prototype.hasOwnProperty.call(input, "attribution");
+  const isCurrentPrivacyVersion = privacyVersion === env.PRIVACY_VERSION;
+  const isStrictLegacyCachePayload = env.PRIVACY_VERSION === CURRENT_PRIVACY_VERSION &&
+    privacyVersion === LEGACY_CACHED_PRIVACY_VERSION &&
+    !hasNewInquiryFields;
+  if (!isCurrentPrivacyVersion && !isStrictLegacyCachePayload) {
     throw new HttpError(400, "invalid_privacy_version");
   }
 
@@ -383,6 +500,7 @@ function validatePayload(input: unknown, env: Env): InquiryPayload {
   }
   return {
     product: readText(input, "product", 300, true),
+    referenceUrl: readHttpUrl(input, "referenceUrl", 500),
     category: readText(input, "category", 120, false),
     quantity: readText(input, "quantity", 120, false),
     budget: readText(input, "budget", 120, false),
@@ -396,6 +514,7 @@ function validatePayload(input: unknown, env: Env): InquiryPayload {
     privacyVersion,
     submissionId,
     turnstileToken: readText(input, "turnstileToken", 2048, true),
+    attribution: validateAttribution(input.attribution, sourcePath),
   };
 }
 
@@ -403,6 +522,7 @@ async function inquiryPayloadFingerprint(payload: InquiryPayload): Promise<strin
   const canonicalPayload = JSON.stringify([
     payload.submissionId,
     payload.product,
+    payload.referenceUrl,
     payload.category,
     payload.quantity,
     payload.budget,
@@ -413,6 +533,13 @@ async function inquiryPayloadFingerprint(payload: InquiryPayload): Promise<strin
     payload.locale,
     payload.sourcePath,
     payload.privacyVersion,
+    payload.attribution.landing_path,
+    payload.attribution.referrer_host,
+    payload.attribution.utm_source,
+    payload.attribution.utm_medium,
+    payload.attribution.utm_campaign,
+    payload.attribution.utm_term,
+    payload.attribution.utm_content,
   ]);
   const digest = new Uint8Array(
     await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonicalPayload)),
@@ -531,7 +658,15 @@ function buildEmailText(payload: InquiryPayload, requestId: string, receivedAt: 
     `Received: ${receivedAt}`,
     `Language: ${payload.locale}`,
     `Source: ${payload.sourcePath}`,
+    `Landing page: ${payload.attribution.landing_path}`,
+    `External referrer host: ${displayValue(payload.attribution.referrer_host)}`,
+    `UTM source: ${displayValue(payload.attribution.utm_source)}`,
+    `UTM medium: ${displayValue(payload.attribution.utm_medium)}`,
+    `UTM campaign: ${displayValue(payload.attribution.utm_campaign)}`,
+    `UTM term: ${displayValue(payload.attribution.utm_term)}`,
+    `UTM content: ${displayValue(payload.attribution.utm_content)}`,
     `Product: ${payload.product}`,
+    `Product reference URL: ${displayValue(payload.referenceUrl)}`,
     `Category: ${displayValue(payload.category)}`,
     `Quantity: ${displayValue(payload.quantity)}`,
     `Budget: ${displayValue(payload.budget)}`,
@@ -549,7 +684,15 @@ function buildEmailHtml(payload: InquiryPayload, requestId: string, receivedAt: 
     ["Received", receivedAt],
     ["Language", payload.locale],
     ["Source", payload.sourcePath],
+    ["Landing page", payload.attribution.landing_path],
+    ["External referrer host", displayValue(payload.attribution.referrer_host)],
+    ["UTM source", displayValue(payload.attribution.utm_source)],
+    ["UTM medium", displayValue(payload.attribution.utm_medium)],
+    ["UTM campaign", displayValue(payload.attribution.utm_campaign)],
+    ["UTM term", displayValue(payload.attribution.utm_term)],
+    ["UTM content", displayValue(payload.attribution.utm_content)],
     ["Product", payload.product],
+    ["Product reference URL", displayValue(payload.referenceUrl)],
     ["Category", displayValue(payload.category)],
     ["Quantity", displayValue(payload.quantity)],
     ["Budget", displayValue(payload.budget)],

@@ -81,6 +81,7 @@ jobs:
             --exclude='/.gitignore' \
             --exclude='/cloudflare/' \
             --exclude='/node_modules/' \
+            --exclude='/assets/social-source/' \
             --exclude='/scripts/' \
             --exclude='/output/' \
             --exclude='/outputs/' \

@@ -7,6 +7,7 @@ const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_OUTPUT_DIR || "/tmp/jabbar-inquiry-qa";
 const API_URL = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const EXACT_PAYLOAD_KEYS = [
+  "attribution",
   "budget",
   "category",
   "company",
@@ -18,9 +19,33 @@ const EXACT_PAYLOAD_KEYS = [
   "privacyVersion",
   "product",
   "quantity",
+  "referenceUrl",
   "sourcePath",
   "submissionId",
   "turnstileToken"
+];
+const EXACT_ATTRIBUTION_KEYS = [
+  "landing_path",
+  "referrer_host",
+  "utm_campaign",
+  "utm_content",
+  "utm_medium",
+  "utm_source",
+  "utm_term"
+];
+const EXACT_SUCCESS_EVENT_KEYS = [
+  "duration_ms",
+  "landing_path",
+  "locale",
+  "method",
+  "referrer_host",
+  "source_path",
+  "status",
+  "utm_campaign",
+  "utm_content",
+  "utm_medium",
+  "utm_source",
+  "utm_term"
 ];
 const PAGES = [
   { locale: "zh", path: "/inquiry/" },
@@ -144,13 +169,50 @@ async function analyticsEvents(eventName) {
 function assertInquiryEvent(event, status, scope) {
   assert(Boolean(event), `${scope} did not emit inquiry_submit`);
   assert(
-    JSON.stringify(Object.keys(event).sort()) === JSON.stringify(["locale", "method", "status"]),
-    `${scope} inquiry_submit must contain only locale, method and status`
+    JSON.stringify(Object.keys(event).sort()) === JSON.stringify(EXACT_SUCCESS_EVENT_KEYS),
+    `${scope} inquiry_submit contains an unexpected or missing analytics field`
   );
   assert(event.method === "direct", `${scope} inquiry_submit method is ${event.method}`);
   assert(event.status === status, `${scope} inquiry_submit status is ${event.status}, expected ${status}`);
   assert(event.locale === "zh", `${scope} inquiry_submit locale is ${event.locale}`);
+  assert(Number.isInteger(event.duration_ms) && event.duration_ms >= 0 && event.duration_ms <= 60000, `${scope} inquiry_submit duration_ms is outside 0..60000`);
+  assert(!JSON.stringify(event).includes("qa@example.com"), `${scope} analytics leaked contact data`);
+  assert(!JSON.stringify(event).includes("QA storage items"), `${scope} analytics leaked product data`);
 }
+
+const indexGuardPage = await context.newPage();
+await indexGuardPage.goto(
+  `${BASE_URL}/en/inquiry/index.html?utm_source=index_guard`,
+  { waitUntil: "domcontentloaded" },
+);
+await indexGuardPage.waitForFunction(() => typeof window.jabbarCaptureAttribution === "function");
+const indexGuardAttribution = await indexGuardPage.evaluate(() =>
+  JSON.parse(sessionStorage.getItem("jabbarAttributionV1") || "{}"),
+);
+assert(
+  indexGuardAttribution.landing_path === "/en/inquiry/",
+  "Explicit index.html entry must normalize to the canonical directory landing path",
+);
+await indexGuardPage.close();
+
+await page.goto(
+  `${BASE_URL}/?utm_source=google&utm_medium=cpc&utm_campaign=summer_wholesale&utm_term=yiwu+sourcing&utm_content=hero_cta`,
+  { waitUntil: "domcontentloaded", referer: "https://www.google.com/search?q=yiwu+sourcing" }
+);
+await page.waitForFunction(() => typeof window.jabbarCaptureAttribution === "function");
+const firstTouchAttribution = await page.evaluate(() => JSON.parse(sessionStorage.getItem("jabbarAttributionV1") || "{}"));
+assert(firstTouchAttribution.landing_path === "/", "First-touch attribution must retain the landing page without query data");
+assert(firstTouchAttribution.referrer_host === "www.google.com", "Attribution must retain only the external referrer hostname");
+assert(firstTouchAttribution.utm_source === "google", "Attribution must retain utm_source");
+assert(firstTouchAttribution.utm_campaign === "summer_wholesale", "Attribution must retain utm_campaign");
+await page.evaluate(() => {
+  document.querySelector(".inquiry-entry-card-cta")?.addEventListener("click", (event) => event.preventDefault(), { once: true });
+});
+await page.locator(".inquiry-entry-card-cta").click();
+const quoteEvents = await analyticsEvents("quote_click");
+assert(quoteEvents.length === 1, "Homepage quote CTA must emit quote_click exactly once");
+assert(quoteEvents[0].placement === "hero", "Homepage quote_click must retain its placement");
+assert(quoteEvents[0].landing_path === "/" && quoteEvents[0].utm_source === "google", "quote_click must include first-touch attribution");
 
 await page.goto(`${BASE_URL}/inquiry/`, { waitUntil: "domcontentloaded" });
 await page.evaluate(() => {
@@ -189,6 +251,12 @@ assert(
   (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
   "Stale calculator handoff must be removed"
 );
+const persistedAttribution = await page.evaluate(() => JSON.parse(sessionStorage.getItem("jabbarAttributionV1") || "{}"));
+assert(persistedAttribution.landing_path === "/", "Inquiry navigation must preserve the first landing page");
+assert(persistedAttribution.referrer_host === "www.google.com", "Inquiry navigation must preserve the external referrer hostname");
+const viewEvents = await analyticsEvents("inquiry_view");
+assert(viewEvents.length === 1, "Inquiry page must emit inquiry_view exactly once per load");
+assert(viewEvents[0].source_path === "/inquiry/" && viewEvents[0].landing_path === "/", "inquiry_view must separate source and first landing paths");
 
 const statusContract = await page.locator(".inquiry-status").evaluate((status) => ({
   role: status.getAttribute("role"),
@@ -221,12 +289,34 @@ const fallbackSnapshot = await page.locator(".js-inquiry-send").evaluateAll((but
 assert(fallbackSnapshot.length === 4, "Expected four fallback buttons");
 assert(fallbackSnapshot.every((item) => item.type === "button"), "Fallback controls must remain type=button");
 await page.locator('.js-inquiry-send[data-channel="wechat"]').dispatchEvent("click");
-const fallbackChannelEvents = await analyticsEvents("inquiry_channel_click");
-assert(fallbackChannelEvents.length === 1, "Fallback click must emit inquiry_channel_click once");
+const fallbackChannelEvents = await analyticsEvents("channel_fallback");
+assert(fallbackChannelEvents.length === 1, "Fallback click must emit channel_fallback once even before required fields are complete");
 assert(fallbackChannelEvents[0].channel === "wechat", "Fallback click must preserve its channel");
+assert((await analyticsEvents("inquiry_channel_click")).length === 0, "Fallback click must not emit the superseded inquiry_channel_click event");
 assert((await analyticsEvents("inquiry_submit")).length === 0, "Fallback click must not emit inquiry_submit");
+await page.waitForTimeout(10);
+assert((await analyticsEvents("inquiry_submit_error")).length === 0, "Fallback validation must not impersonate a direct-submit error");
+
+await fillRequired("QA invalid reference", "qa-invalid-reference@example.com");
+await page.locator('[name="referenceUrl"]').fill("ftp://example.com/product");
+const beforeInvalidReferenceApi = apiPayloads.length;
+const beforeInvalidReferenceErrors = (await analyticsEvents("inquiry_submit_error")).length;
+await clickDirect();
+await page.waitForFunction(
+  (before) => (window.dataLayer || []).filter((entry) => entry[0] === "event" && entry[1] === "inquiry_submit_error").length > before,
+  beforeInvalidReferenceErrors,
+);
+assert(apiPayloads.length === beforeInvalidReferenceApi, "Invalid reference URL must be stopped before the API request");
+const invalidReferenceErrors = await analyticsEvents("inquiry_submit_error");
+assert(invalidReferenceErrors.at(-1)?.error_code === "native_validation", "Invalid reference URL must report controlled native validation");
+assert(invalidReferenceErrors.at(-1)?.stage === "validation", "Invalid reference URL must use the validation funnel stage");
+assert(invalidReferenceErrors.at(-1)?.duration_ms === 0, "Local validation error duration must remain zero");
 
 await fillRequired("QA storage items", "qa@example.com");
+await page.locator('[name="referenceUrl"]').fill("https://www.alibaba.com/product-detail/qa-storage-item.html");
+const formStartEvents = await analyticsEvents("inquiry_form_start");
+assert(formStartEvents.length === 1, "First business-field interaction must emit inquiry_form_start once");
+assert((await analyticsEvents("form_start")).length === 0, "Custom inquiry funnel must not duplicate GA4 form_start");
 const directButtonLabel = (await page.locator(".js-inquiry-direct").textContent())?.trim();
 apiResponses.push({ ...response(201, { ok: true, requestId: "qa-201" }), delay: 300 });
 await clickDirect();
@@ -237,14 +327,26 @@ await page.waitForFunction(() => document.querySelector(".inquiry-status")?.clas
 assert(apiPayloads.length === 1, "Happy path should issue one API request");
 assert(
   JSON.stringify(Object.keys(apiPayloads[0]).sort()) === JSON.stringify(EXACT_PAYLOAD_KEYS),
-  "Happy path payload must contain exactly 14 allowed keys"
+  `Happy path payload must contain exactly ${EXACT_PAYLOAD_KEYS.length} allowed keys`
 );
+assert(
+  JSON.stringify(Object.keys(apiPayloads[0].attribution).sort()) === JSON.stringify(EXACT_ATTRIBUTION_KEYS),
+  "Happy path attribution must contain only the allowed source fields"
+);
+assert(apiPayloads[0].referenceUrl === "https://www.alibaba.com/product-detail/qa-storage-item.html", "Happy path must include the product reference URL");
+assert(apiPayloads[0].attribution.landing_path === "/", "Payload must preserve first-touch landing_path");
+assert(apiPayloads[0].attribution.referrer_host === "www.google.com", "Payload must send hostname-only referrer attribution");
+assert(apiPayloads[0].attribution.utm_campaign === "summer_wholesale", "Payload must include bounded UTM attribution");
 assert(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(apiPayloads[0].submissionId), "submissionId must be UUIDv4");
 assert(apiPayloads[0].privacyAcknowledged === true, "Privacy acknowledgement must be boolean true");
 assert((await page.locator('[name="product"]').inputValue()) === "", "Success must clear product");
 assert(!(await page.locator(".js-inquiry-privacy").isChecked()), "Success must clear privacy acknowledgement");
 assert((await page.locator(".js-inquiry-direct").textContent())?.trim() === directButtonLabel, "Submission completion must restore the original button label");
 assert(!(await page.locator(".js-inquiry-direct").isDisabled()), "Submission completion must re-enable the direct-submit button");
+const submitStartEvents = await analyticsEvents("inquiry_submit_start");
+assert(submitStartEvents.length === 1, "Happy path must emit inquiry_submit_start exactly once");
+assert(submitStartEvents[0].duration_ms === 0, "Submit-start duration must begin at zero");
+assert((await analyticsEvents("inquiry_submit_success")).length === 0, "Existing inquiry_submit must remain the sole success event");
 assert((await page.locator(".inquiry-status").textContent()).includes("24"), "Success feedback must promise a reply within 24 hours");
 assert(await page.locator(".inquiry-status .inquiry-status-icon").getAttribute("aria-hidden") === "true", "Success check must not duplicate the live-region announcement");
 const successWhatsapp = await page.locator(".inquiry-status .inquiry-status-whatsapp").evaluate((link) => ({
@@ -285,9 +387,15 @@ apiResponses.push(
 );
 const beforeRetry = apiPayloads.length;
 const beforeRetryEvents = inquiryEvents.length;
+const beforeRetryErrors = (await analyticsEvents("inquiry_submit_error")).length;
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
 assert((await analyticsEvents("inquiry_submit")).length === beforeRetryEvents, "502 failure must not emit inquiry_submit");
+const retryErrors = await analyticsEvents("inquiry_submit_error");
+assert(retryErrors.length === beforeRetryErrors + 1, "502 failure must emit inquiry_submit_error exactly once");
+assert(retryErrors.at(-1)?.error_code === "email_delivery_failed" && retryErrors.at(-1)?.status === 502, "502 error analytics must retain a controlled response code and status");
+assert(retryErrors.at(-1)?.stage === "response", "502 error analytics must use the response funnel stage");
+assert(Number.isInteger(retryErrors.at(-1)?.duration_ms) && retryErrors.at(-1).duration_ms >= 0 && retryErrors.at(-1).duration_ms <= 60000, "502 error duration_ms must remain within 0..60000");
 assert(await page.locator(".inquiry-status").evaluate((status) => status.childElementCount === 0), "Non-success feedback must remain plain text");
 assert(await page.locator(".inquiry-status").evaluate((status) => document.activeElement === status), "Error feedback must receive focus without extra scrolling");
 await page.waitForFunction(() => window.__turnstileResetCount > 0 && window.__turnstileIssueCount > 1);
@@ -344,10 +452,14 @@ await page.locator('[name="contact"]').fill("qa-privacy@example.com");
 await page.locator(".js-inquiry-privacy").uncheck();
 const beforePrivacyGate = apiPayloads.length;
 const beforePrivacyEvents = inquiryEvents.length;
+const beforePrivacyErrors = (await analyticsEvents("inquiry_submit_error")).length;
 await clickDirect();
 await page.waitForFunction(() => Boolean(document.querySelector(".js-inquiry-privacy-error")?.textContent.trim()));
 assert(apiPayloads.length === beforePrivacyGate, "Unchecked privacy gate must not call the API");
 assert((await analyticsEvents("inquiry_submit")).length === beforePrivacyEvents, "Privacy validation failure must not emit inquiry_submit");
+const privacyErrors = await analyticsEvents("inquiry_submit_error");
+assert(privacyErrors.length === beforePrivacyErrors + 1, "Privacy validation failure must emit inquiry_submit_error once");
+assert(privacyErrors.at(-1)?.error_code === "privacy_required" && privacyErrors.at(-1)?.stage === "privacy", "Privacy failure analytics must use controlled fields");
 
 await page.locator(".js-inquiry-privacy").check();
 await page.emulateMedia({ reducedMotion: "reduce" });
@@ -359,10 +471,14 @@ await page.waitForFunction(
 );
 const reducedMotionScroll = await page.evaluate(() => window.__inquiryScrollCalls.at(-1));
 assert(reducedMotionScroll?.block === "nearest" && reducedMotionScroll?.behavior === "auto", "Reduced motion must reveal status without smooth scrolling");
+const beforeTurnstileErrors = (await analyticsEvents("inquiry_submit_error")).length;
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
 assert(apiPayloads.length === beforePrivacyGate, "Expired Turnstile token must not call the API");
 assert((await analyticsEvents("inquiry_submit")).length === beforePrivacyEvents, "Expired Turnstile token must not emit inquiry_submit");
+const turnstileErrors = await analyticsEvents("inquiry_submit_error");
+assert(turnstileErrors.length === beforeTurnstileErrors + 1, "Missing Turnstile token must emit inquiry_submit_error once");
+assert(turnstileErrors.at(-1)?.error_code === "turnstile_missing" && turnstileErrors.at(-1)?.stage === "turnstile", "Turnstile failure analytics must use controlled fields");
 
 // The deliberate 502 and 409 response cases above produce Chromium network
 // console entries. Start a clean console audit for normal page rendering.
@@ -428,11 +544,17 @@ for (const viewport of [
     overflow: document.documentElement.scrollWidth - window.innerWidth,
     inquirySections: document.querySelectorAll("#website-inquiries").length,
     mentionsAnalytics: document.querySelector("#website-inquiries")?.textContent.includes("Google Analytics 4") || false,
+    mentionsAttribution: document.querySelector("#website-inquiries")?.textContent.includes("first landing-page path") || false,
+    mentionsReferenceUrl: document.querySelector("#website-inquiries")?.textContent.includes("product reference URL") || false,
+    updatedDate: document.querySelector(".legal-hero p")?.textContent || "",
     title: document.title
   }));
   assert(privacyMetrics.overflow <= 1, `Privacy ${viewport.name} has horizontal overflow: ${privacyMetrics.overflow}px`);
   assert(privacyMetrics.inquirySections === 1, "Privacy policy must contain one website-inquiries section");
   assert(privacyMetrics.mentionsAnalytics, "Privacy policy must disclose analytics processing");
+  assert(privacyMetrics.mentionsAttribution, "Privacy policy must disclose first-touch inquiry attribution");
+  assert(privacyMetrics.mentionsReferenceUrl, "Privacy policy must disclose the product reference URL field");
+  assert(privacyMetrics.updatedDate.includes("July 18, 2026"), "Privacy policy must display the current disclosure date");
   assert(privacyMetrics.title === "Jabbar Sourcing Privacy Policy", "Privacy page title must cover public website inquiries");
 }
 

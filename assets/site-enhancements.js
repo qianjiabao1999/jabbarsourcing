@@ -65,6 +65,14 @@
     }
   };
   var copy = labels[lang] || labels.en;
+  var ATTRIBUTION_KEY = "jabbarAttributionV1";
+  var UTM_KEYS = {
+    utm_source: "utm_source",
+    utm_medium: "utm_medium",
+    utm_campaign: "utm_campaign",
+    utm_term: "utm_term",
+    utm_content: "utm_content"
+  };
   var reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   var reducedMotion = reducedMotionQuery.matches;
   var reducedMotionSubscribers = [];
@@ -91,6 +99,94 @@
     return element;
   }
 
+  function normalizeAttributionValue(value, maximum) {
+    if (typeof value !== "string") return "";
+    return value
+      .replace(/[\u0000-\u001f\u007f]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, maximum);
+  }
+
+  function safeLandingPath(value) {
+    var path = normalizeAttributionValue(value, 160);
+    path = path.replace(/\/index\.html$/, "/");
+    if (/^\/(?:(?:en|es|ar|fr|pt|ru|de|it|tr)\/)?(?:inquiry\/|calculator\/)?$/.test(path)) return path;
+    if (["/privacy-policy.html", "/support.html", "/404.html"].indexOf(path) !== -1) return path;
+    return "/other";
+  }
+
+  function sanitizeAttribution(record) {
+    record = record && typeof record === "object" ? record : {};
+    var sanitized = {
+      landing_path: safeLandingPath(record.landing_path || window.location.pathname),
+      referrer_host: normalizeAttributionValue(record.referrer_host || "", 253).toLowerCase(),
+      utm_source: "",
+      utm_medium: "",
+      utm_campaign: "",
+      utm_term: "",
+      utm_content: ""
+    };
+    Object.keys(UTM_KEYS).forEach(function (key) {
+      sanitized[key] = normalizeAttributionValue(record[key] || "", 100);
+    });
+    return sanitized;
+  }
+
+  function externalReferrerHost() {
+    if (!document.referrer) return "";
+    try {
+      var referrerHost = new URL(document.referrer).hostname.toLowerCase();
+      var currentHost = window.location.hostname.toLowerCase();
+      if (!referrerHost || referrerHost === currentHost) return "";
+      if (/(^|\.)jabbarsourcing\.com$/.test(referrerHost) && /(^|\.)jabbarsourcing\.com$/.test(currentHost)) return "";
+      return normalizeAttributionValue(referrerHost, 253);
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function captureAttribution() {
+    try {
+      var stored = window.sessionStorage.getItem(ATTRIBUTION_KEY);
+      if (stored) {
+        var existing = sanitizeAttribution(JSON.parse(stored));
+        window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(existing));
+        return existing;
+      }
+    } catch (error) {}
+
+    var attribution = {
+      landing_path: safeLandingPath(window.location.pathname),
+      referrer_host: externalReferrerHost(),
+      utm_source: "",
+      utm_medium: "",
+      utm_campaign: "",
+      utm_term: "",
+      utm_content: ""
+    };
+    try {
+      var query = new URLSearchParams(window.location.search);
+      Object.keys(UTM_KEYS).forEach(function (key) {
+        attribution[key] = normalizeAttributionValue(query.get(UTM_KEYS[key]) || "", 100);
+      });
+      window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+    } catch (error) {}
+    return attribution;
+  }
+
+  function withAttribution(params, attribution) {
+    var output = Object.assign({}, params);
+    var sanitized = sanitizeAttribution(attribution);
+    Object.keys(sanitized).forEach(function (key) {
+      output[key] = sanitized[key];
+    });
+    return output;
+  }
+
+  var pageAttribution = captureAttribution();
+  window.jabbarCaptureAttribution = captureAttribution;
+
   function initAnalyticsEvents() {
     if (typeof window.jabbarTrack !== "function") {
       window.jabbarTrack = function (eventName, params) {
@@ -99,7 +195,28 @@
       };
     }
 
-    if (!document.querySelector("main.calculator-page")) return;
+    var calculatorPage = document.querySelector("main.calculator-page");
+    var inquiryForm = document.querySelector(".js-inquiry-form");
+
+    if (!inquiryForm) {
+      document.addEventListener("click", function (event) {
+        var quoteLink = event.target.closest("a[href]");
+        if (!quoteLink || quoteLink.classList.contains("calculator-inquiry-cta")) return;
+        var destination;
+        try { destination = new URL(quoteLink.href, window.location.href); } catch (error) { return; }
+        if (destination.origin !== window.location.origin || !/\/inquiry\/$/.test(destination.pathname)) return;
+        var placement = quoteLink.classList.contains("site-nav-quote")
+          ? "navigation"
+          : quoteLink.classList.contains("inquiry-entry-card-cta") ? "hero" : "other";
+        window.jabbarTrack("quote_click", withAttribution({
+          locale: lang,
+          source_path: safeLandingPath(window.location.pathname),
+          placement: placement
+        }, pageAttribution));
+      }, true);
+    }
+
+    if (!calculatorPage) return;
     document.addEventListener("click", function (event) {
       var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp');
       if (!whatsappLink) return;

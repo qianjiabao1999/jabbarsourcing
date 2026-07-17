@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260717a";
+  var VERSION = "order-20260718a";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   var MAX_FILES = 10;
   var WORKER_TIMEOUT_MS = 60000;
@@ -796,6 +796,29 @@
     return LOCALES[code] ? code : "en";
   }
 
+  function trackEvent(eventName, params) {
+    var payload = Object.assign({
+      page_type: "calculator",
+      locale: document.documentElement.lang || languageCode(),
+      analyzer_version: VERSION
+    }, params || {});
+    if (typeof window.jabbarTrack === "function") {
+      window.jabbarTrack(eventName, payload);
+    } else if (typeof window.gtag === "function") {
+      window.gtag("event", eventName, payload);
+    }
+  }
+
+  function elapsedMilliseconds(startedAt) {
+    return Math.max(0, Math.min(600000, Date.now() - startedAt));
+  }
+
+  function safeErrorCode(value, fallback) {
+    var code = String(value || fallback || "unknown").split(":")[0].toLowerCase();
+    code = code.replace(/[^a-z0-9_-]+/g, "_").slice(0, 48);
+    return code || fallback || "unknown";
+  }
+
   function replaceVars(text, vars) {
     return String(text || "").replace(/\{([^}]+)\}/g, function (_, key) { return vars && vars[key] != null ? vars[key] : ""; });
   }
@@ -980,7 +1003,7 @@
     var self = this;
     this.fileInput.addEventListener("change", function () {
       if (self.busy) { self.fileInput.value = ""; return; }
-      if (self.fileInput.files.length) self.parseFiles(Array.from(self.fileInput.files));
+      if (self.fileInput.files.length) self.parseFiles(Array.from(self.fileInput.files), "picker");
     });
     var dropzone = this.root.querySelector("[data-order-dropzone]");
     ["dragenter", "dragover"].forEach(function (name) {
@@ -994,7 +1017,7 @@
     });
     dropzone.addEventListener("drop", function (event) {
       if (self.busy) return;
-      if (event.dataTransfer.files.length) self.parseFiles(Array.from(event.dataTransfer.files));
+      if (event.dataTransfer.files.length) self.parseFiles(Array.from(event.dataTransfer.files), "drop");
     });
     this.sheetSelect.addEventListener("change", function () { self.selectSheet(self.sheetSelect.value); });
     this.applyButton.addEventListener("click", function () { self.applyMapping(); });
@@ -1246,27 +1269,47 @@
   };
 
   Analyzer.prototype.parseFile = function (file) {
-    return this.parseFiles(file ? [file] : []);
+    return this.parseFiles(file ? [file] : [], "api");
   };
 
-  Analyzer.prototype.parseFiles = async function (files) {
+  Analyzer.prototype.parseFiles = async function (files, selectionMethod) {
     if (this.busy) return null;
+    var startedAt = Date.now();
     files = Array.from(files || []);
+    trackEvent("order_file_selected", {
+      method: selectionMethod || "api",
+      file_count: files.length
+    });
     this.resetAnalysis();
-    if (!files.length) { this.setStatus(this.copy.unsupported, true); return null; }
+    if (!files.length) {
+      trackEvent("order_parse_error", { error_code: "no_files", file_count: 0, duration_ms: elapsedMilliseconds(startedAt) });
+      this.setStatus(this.copy.unsupported, true);
+      return null;
+    }
     this.currentFiles = files.slice();
     this.fileMeta.textContent = (files.length === 1 ? this.copy.selectedFile : this.copy.selectedFiles) + ": " + (files.length === 1 ? files[0].name + " · " + (files[0].size / 1024 / 1024).toFixed(2) + " MB" : files.length);
     if (files.length > MAX_FILES) {
       qa.lastError = "too_many_files:" + MAX_FILES;
       this.deliveryBlocked = this.copy.tooManyFiles;
+      trackEvent("order_parse_error", { error_code: "too_many_files", file_count: files.length, duration_ms: elapsedMilliseconds(startedAt) });
       this.setStatus(this.copy.tooManyFiles, true);
       return null;
     }
     for (var validationIndex = 0; validationIndex < files.length; validationIndex += 1) {
       var validationFile = files[validationIndex];
       var extension = fileExtension(validationFile.name);
-      if (["xlsx", "xls", "xlsm", "csv"].indexOf(extension) === -1) { qa.lastError = "unsupported_file:" + validationFile.name; this.setStatus(this.copy.unsupported, true); return null; }
-      if (validationFile.size > MAX_FILE_BYTES) { qa.lastError = "file_too_large:" + validationFile.name; this.setStatus(this.copy.fileTooLarge, true); return null; }
+      if (["xlsx", "xls", "xlsm", "csv"].indexOf(extension) === -1) {
+        qa.lastError = "unsupported_file:" + validationFile.name;
+        trackEvent("order_parse_error", { error_code: "unsupported_file", file_count: files.length, duration_ms: elapsedMilliseconds(startedAt) });
+        this.setStatus(this.copy.unsupported, true);
+        return null;
+      }
+      if (validationFile.size > MAX_FILE_BYTES) {
+        qa.lastError = "file_too_large:" + validationFile.name;
+        trackEvent("order_parse_error", { error_code: "file_too_large", file_count: files.length, duration_ms: elapsedMilliseconds(startedAt) });
+        this.setStatus(this.copy.fileTooLarge, true);
+        return null;
+      }
     }
     this.fileEntries = files.map(function (file) { return { file: file, payload: null }; });
     this.renderFileList();
@@ -1298,6 +1341,12 @@
       this.setStatus(this.isBatchMode
         ? (this.payloadNeedsConfirmation(combined) ? this.copy.confirmBeforeExport : replaceVars(this.copy.combinedReady, { total: files.length }))
         : this.copy.ready, false);
+      trackEvent("order_parse_success", {
+        file_count: files.length,
+        batch: this.isBatchMode ? "yes" : "no",
+        duration_ms: elapsedMilliseconds(startedAt),
+        worker_mode: qa.fallbackUsed ? "fallback" : "worker"
+      });
       return combined;
     } catch (error) {
       qa.queueActive = 0;
@@ -1305,6 +1354,11 @@
       this.resetAnalysis();
       qa.lastError = errorMessage;
       this.deliveryBlocked = this.copy.parseError;
+      trackEvent("order_parse_error", {
+        error_code: safeErrorCode(errorMessage, "parse_failed"),
+        file_count: files.length,
+        duration_ms: elapsedMilliseconds(startedAt)
+      });
       this.setStatus(this.copy.parseError, true);
       return null;
     } finally {
@@ -1898,15 +1952,25 @@
   Analyzer.prototype.exportReport = async function () {
     if (!this.payload) { this.setStatus(this.copy.noResult, true); return []; }
     if (this.deliveryBlocked) { this.setStatus(this.deliveryBlocked, true); return []; }
+    var startedAt = Date.now();
     this.exportButton.disabled = true;
     this.setStatus(this.copy.exportPreparing, false);
     try {
       var files = await this.prepareExport();
       this.downloadFiles(files);
       this.setStatus(this.copy.exportDone, false);
+      trackEvent("order_export_png", {
+        page_count: files.length,
+        batch: this.isBatchMode ? "yes" : "no",
+        duration_ms: elapsedMilliseconds(startedAt)
+      });
       return files;
     } catch (error) {
       qa.lastError = error && error.message ? error.message : String(error);
+      trackEvent("order_export_error", {
+        error_code: safeErrorCode(qa.lastError, "export_failed"),
+        duration_ms: elapsedMilliseconds(startedAt)
+      });
       this.setStatus(this.copy.exportError, true);
       return [];
     } finally {

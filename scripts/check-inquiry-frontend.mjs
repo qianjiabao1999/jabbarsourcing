@@ -8,9 +8,9 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
-const PRIVACY_VERSION = "2026-07-12";
+const PRIVACY_VERSION = "2026-07-18";
 const CSS_VERSION = "apple-163";
-const JS_VERSION = "inquiry-20260717a";
+const JS_VERSION = "inquiry-20260718a";
 const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
 const PAGES = [
@@ -28,6 +28,7 @@ const PAGES = [
 
 const BUSINESS_FIELDS = [
   "product",
+  "referenceUrl",
   "category",
   "quantity",
   "budget",
@@ -45,10 +46,12 @@ const PAYLOAD_FIELDS = [
   "privacyVersion",
   "submissionId",
   "turnstileToken",
+  "attribution",
 ];
 
 const MAX_LENGTHS = new Map([
   ["product", "300"],
+  ["referenceUrl", "500"],
   ["category", "120"],
   ["quantity", "120"],
   ["budget", "120"],
@@ -154,6 +157,18 @@ function checkSharedJavascript(source) {
     ["non-disruptive status focus guard", "var mayMoveFocus"],
     ["localized optional field labels", "OPTIONAL_LABELS"],
     ["required field marker", 'marker.classList.add("is-required")'],
+    ["first-touch attribution storage", '"jabbarAttributionV1"'],
+    ["safe landing path", "safeLandingPath"],
+    ["canonical index-path normalization", 'path.replace(/\\/index\\.html$/, "/")'],
+    ["external referrer host only", "externalReferrerHost"],
+    ["inquiry view event", 'trackEvent("inquiry_view"'],
+    ["custom form-start event", 'trackEvent("inquiry_form_start"'],
+    ["submit-start event", 'trackEvent("inquiry_submit_start"'],
+    ["submit-error event", 'trackEvent("inquiry_submit_error"'],
+    ["bounded submit duration", "boundedDuration"],
+    ["duration upper bound", "Math.min(60000"],
+    ["fallback-channel event", 'trackEvent("channel_fallback"'],
+    ["canonical success event", 'trackEvent("inquiry_submit"'],
   ];
   for (const [label, fragment] of requiredSourceFragments) {
     if (!source.includes(fragment)) fail(scope, `missing ${label}`);
@@ -163,7 +178,7 @@ function checkSharedJavascript(source) {
     /function\s+buildPayload\s*\(\s*\)\s*\{([\s\S]*?)\n\s*\}\n\s*\n\s*function\s+completeSubmission/,
   );
   if (!buildPayload) {
-    fail(scope, "could not locate buildPayload() for the 14-field contract check");
+    fail(scope, "could not locate buildPayload() for the strict field contract check");
     return;
   }
 
@@ -180,6 +195,27 @@ function checkSharedJavascript(source) {
   expectExactSet(scope, "payload fields", keys, PAYLOAD_FIELDS);
   if (new Set(keys).size !== keys.length) {
     fail(scope, "payload object contains duplicate field names");
+  }
+  if (source.includes('trackEvent("inquiry_submit_success"')) {
+    fail(scope, "inquiry_submit must remain the sole canonical success event");
+  }
+}
+
+function checkAttributionJavascript(source) {
+  const scope = "assets/site-enhancements.js";
+  const requiredFragments = [
+    ["first-touch attribution storage", '"jabbarAttributionV1"'],
+    ["safe landing path", "safeLandingPath"],
+    ["canonical index-path normalization", 'path.replace(/\\/index\\.html$/, "/")'],
+    ["external referrer host only", "externalReferrerHost"],
+    ["quote click event", 'window.jabbarTrack("quote_click"'],
+    ["calculator result CTA exclusion", 'quoteLink.classList.contains("calculator-inquiry-cta")'],
+  ];
+  for (const [label, fragment] of requiredFragments) {
+    if (!source.includes(fragment)) fail(scope, `missing ${label}`);
+  }
+  if (!source.includes("if (!inquiryForm)")) {
+    fail(scope, "quote_click must include calculator navigation while excluding inquiry-page self-links");
   }
 }
 
@@ -255,6 +291,28 @@ function checkPage(page, html) {
       continue;
     }
 
+    if (fieldName === "referenceUrl") {
+      const expectedAttributes = new Map([
+        ["type", "url"],
+        ["inputmode", "url"],
+        ["autocomplete", "url"],
+        ["pattern", "https?://.*"],
+      ]);
+      for (const [attribute, expected] of expectedAttributes) {
+        if (control.attributes.get(attribute) !== expected) {
+          fail(scope, `referenceUrl ${attribute}: expected ${expected}, got ${control.attributes.get(attribute) ?? "missing"}`);
+        }
+      }
+      if (control.attributes.has("required")) {
+        fail(scope, "referenceUrl must remain optional");
+      }
+      const referencePosition = formBody.indexOf('name="referenceUrl"');
+      const referenceContext = formBody.slice(Math.max(0, referencePosition - 500), referencePosition + 700);
+      for (const brand of ["Alibaba", "Amazon", "TikTok"]) {
+        if (!referenceContext.includes(brand)) fail(scope, `referenceUrl guidance must mention ${brand}`);
+      }
+    }
+
     if (control.attributes.get("maxlength") !== expectedMaximum) {
       fail(
         scope,
@@ -272,9 +330,10 @@ function checkPage(page, html) {
 
   const productPosition = formBody.indexOf('name="product"');
   const contactPosition = formBody.indexOf('name="contact"');
+  const referencePosition = formBody.indexOf('name="referenceUrl"');
   const categoryPosition = formBody.indexOf('name="category"');
-  if (!(productPosition >= 0 && productPosition < contactPosition && contactPosition < categoryPosition)) {
-    fail(scope, "required contact field must appear immediately after product and before optional fields");
+  if (!(productPosition >= 0 && productPosition < contactPosition && contactPosition < referencePosition && referencePosition < categoryPosition)) {
+    fail(scope, "required contact must follow product, then optional referenceUrl before the remaining optional fields");
   }
   const contactControl = namedControls.find((candidate) => candidate.attributes.get("name") === "contact");
   if (contactControl && contactControl.attributes.get("autocomplete") !== "on") {
@@ -394,6 +453,9 @@ function checkPage(page, html) {
       fail(scope, `shared JS cache version: expected ${expected}, got ${inquiryScript.attributes.get("src") ?? "missing"}`);
     }
   }
+  if (html.includes('window.jabbarTrack("inquiry_channel_click"')) {
+    fail(scope, "legacy inquiry_channel_click must not double-count channel_fallback");
+  }
 
   const htmlTags = findTags(html, "html");
   const htmlTag = checkSingleTag(scope, htmlTags, "html root element");
@@ -406,6 +468,8 @@ function checkPage(page, html) {
 
 const sharedJavascript = await readFile(resolve(ROOT, "assets/inquiry-form.js"), "utf8");
 checkSharedJavascript(sharedJavascript);
+const attributionJavascript = await readFile(resolve(ROOT, "assets/site-enhancements.js"), "utf8");
+checkAttributionJavascript(attributionJavascript);
 
 for (const page of PAGES) {
   const html = await readFile(resolve(ROOT, page.file), "utf8");

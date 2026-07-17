@@ -379,6 +379,11 @@ async function createGenericPendingBatchFixtures(browser) {
 }
 
 async function waitForAnalyzer(page) {
+  const mount = page.locator("[data-order-analyzer]");
+  await mount.waitFor({ state: "attached" });
+  await mount.scrollIntoViewIfNeeded();
+  const loadButton = mount.locator("[data-order-load]");
+  if (await loadButton.count()) await loadButton.click();
   await page.waitForFunction(() => window.JABBAR_ORDER_ANALYZER_QA?.ready === true);
   await page.locator("[data-order-file]").waitFor({ state: "attached" });
 }
@@ -546,6 +551,8 @@ try {
   const page = await context.newPage();
   const errors = collectErrors(page);
   await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(600);
+  assert(!requests.some((request) => request.url.includes("/assets/calculator-order-analyzer.js")), "order analyzer loaded before user intent");
   await waitForAnalyzer(page);
   await page.waitForTimeout(200);
   assert(!requests.some((request) => request.url.includes("/assets/vendor/xlsx.full.min.js")), "vendor XLSX loaded before file selection");
