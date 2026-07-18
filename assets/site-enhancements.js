@@ -884,6 +884,66 @@
     window.requestAnimationFrame(step);
   }
 
+  function initGalleryMarquee() {
+    var gallery = document.querySelector(".sourcing-gallery");
+    if (!gallery) return;
+
+    var desktopQuery = window.matchMedia("(min-width: 768px)");
+    var tracks = Array.prototype.slice.call(gallery.querySelectorAll(".gallery-track"));
+
+    tracks.forEach(function (track) {
+      if (track.dataset.galleryLoopInitialized === "1") return;
+      var originals = Array.prototype.filter.call(track.children, function (frame) {
+        return frame.classList.contains("gallery-frame") && frame.dataset.galleryClone !== "true";
+      });
+      if (originals.length < 2) return;
+
+      track.dataset.galleryLoopInitialized = "1";
+      track.dataset.galleryOriginalCount = String(originals.length);
+      originals.forEach(function (frame) {
+        var clone = frame.cloneNode(true);
+        clone.dataset.galleryClone = "true";
+        clone.setAttribute("aria-hidden", "true");
+        clone.setAttribute("inert", "");
+        Array.prototype.forEach.call(clone.querySelectorAll("img"), function (image) {
+          image.alt = "";
+          image.loading = "lazy";
+          image.decoding = "async";
+          image.setAttribute("fetchpriority", "low");
+        });
+        track.appendChild(clone);
+      });
+
+      var resizeFrame = 0;
+      function syncLoop() {
+        if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
+        resizeFrame = window.requestAnimationFrame(function () {
+          resizeFrame = 0;
+          track.classList.remove("is-gallery-loop-ready");
+          track.style.removeProperty("--gallery-loop-distance");
+          track.style.removeProperty("--gallery-loop-duration");
+          if (!desktopQuery.matches || reducedMotion) return;
+
+          var firstOriginal = originals[0];
+          var firstClone = track.querySelector('[data-gallery-clone="true"]');
+          if (!firstOriginal || !firstClone) return;
+          var distance = firstClone.offsetLeft - firstOriginal.offsetLeft;
+          if (!Number.isFinite(distance) || distance <= 0) return;
+
+          track.style.setProperty("--gallery-loop-distance", (-distance).toFixed(2) + "px");
+          track.style.setProperty("--gallery-loop-duration", Math.max(28, distance / 72).toFixed(2) + "s");
+          track.classList.add("is-gallery-loop-ready");
+        });
+      }
+
+      if (typeof desktopQuery.addEventListener === "function") desktopQuery.addEventListener("change", syncLoop);
+      else if (typeof desktopQuery.addListener === "function") desktopQuery.addListener(syncLoop);
+      window.addEventListener("resize", syncLoop, { passive: true });
+      onReducedMotionChange(syncLoop);
+      syncLoop();
+    });
+  }
+
   function initHomepageMotion() {
     var home = document.querySelector("main > .team:not(.inquiry-page)");
     if (!home) return;
@@ -1070,6 +1130,7 @@
   initShipmentTicker();
   initCbmVisual();
   initScrollProgress();
+  initGalleryMarquee();
   initHomepageMotion();
   initFaqTags();
   initSocialAccountDisclosure();

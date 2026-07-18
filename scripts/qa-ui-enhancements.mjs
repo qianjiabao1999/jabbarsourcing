@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-167";
-const UI_VERSION = "ui-20260718d";
+const CSS_VERSION = "apple-168";
+const UI_VERSION = "ui-20260718e";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -589,7 +589,10 @@ async function assertMobileGalleryScroll(page, scope) {
         animationName: trackStyle.animationName,
         transform: trackStyle.transform,
         role: rail.getAttribute("role"),
-        tabIndex: rail.tabIndex
+        tabIndex: rail.tabIndex,
+        originalCount: track.querySelectorAll(':scope > .gallery-frame:not([data-gallery-clone="true"])').length,
+        cloneCount: track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone="true"]').length,
+        clonesHidden: Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone="true"]')).every((frame) => getComputedStyle(frame).display === "none")
       });
       rail.scrollLeft = 0;
     }
@@ -606,7 +609,64 @@ async function assertMobileGalleryScroll(page, scope) {
     assert(["none", "matrix(1, 0, 0, 1, 0, 0)"].includes(rail.transform), `${scope}: rail ${index + 1} track remains transformed (${rail.transform})`);
     assert.equal(rail.role, "region", `${scope}: rail ${index + 1} region role`);
     assert.equal(rail.tabIndex, 0, `${scope}: rail ${index + 1} keyboard access`);
+    assert.equal(rail.cloneCount, rail.originalCount, `${scope}: rail ${index + 1} desktop loop clone count`);
+    assert.equal(rail.clonesHidden, true, `${scope}: rail ${index + 1} loop clones must stay hidden on mobile`);
   }
+}
+
+async function assertDesktopGalleryMarquee(page, scope) {
+  await page.locator(".sourcing-gallery").scrollIntoViewIfNeeded();
+  await page.mouse.move(1, 1);
+  await page.waitForFunction(() => document.documentElement.classList.contains("gallery-ready")
+    && Array.from(document.querySelectorAll(".sourcing-gallery .gallery-track"))
+      .every((track) => track.classList.contains("is-gallery-loop-ready")));
+
+  const geometry = await page.locator(".sourcing-gallery .gallery-track").evaluateAll((tracks) => tracks.map((track) => {
+    const originals = Array.from(track.querySelectorAll(':scope > .gallery-frame:not([data-gallery-clone="true"])'));
+    const clones = Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone="true"]'));
+    const style = getComputedStyle(track);
+    const animation = track.getAnimations()[0];
+    if (animation) {
+      animation.currentTime = 0;
+      animation.play();
+    }
+    return {
+      originalCount: originals.length,
+      cloneCount: clones.length,
+      clonesHiddenFromA11y: clones.every((frame) => frame.getAttribute("aria-hidden") === "true"),
+      measuredDistance: clones[0] && originals[0] ? clones[0].offsetLeft - originals[0].offsetLeft : 0,
+      configuredDistance: Math.abs(Number.parseFloat(style.getPropertyValue("--gallery-loop-distance"))),
+      duration: Number.parseFloat(style.animationDuration) * 1000,
+      animationName: style.animationName,
+      timing: style.animationTimingFunction,
+      direction: style.animationDirection,
+      iterations: style.animationIterationCount,
+      playState: style.animationPlayState,
+      railScrollLeft: track.parentElement.scrollLeft
+    };
+  }));
+
+  await page.waitForTimeout(220);
+  const movement = await page.locator(".sourcing-gallery .gallery-track").evaluateAll((tracks) => tracks.map((track) => {
+    const transform = getComputedStyle(track).transform;
+    return transform === "none" ? 0 : new DOMMatrixReadOnly(transform).m41;
+  }));
+
+  assert.equal(geometry.length, 2, `${scope}: desktop gallery track count`);
+  geometry.forEach((track, index) => {
+    assert(track.originalCount >= 2, `${scope}: track ${index + 1} needs multiple originals`);
+    assert.equal(track.cloneCount, track.originalCount, `${scope}: track ${index + 1} clone count`);
+    assert.equal(track.clonesHiddenFromA11y, true, `${scope}: track ${index + 1} clones remain exposed to assistive tech`);
+    assert(Math.abs(track.measuredDistance - track.configuredDistance) <= 1, `${scope}: track ${index + 1} loop distance mismatch`);
+    assert(track.duration >= 28000, `${scope}: track ${index + 1} loop duration is too abrupt (${track.duration}ms)`);
+    assert.equal(track.animationName, "galleryMarquee", `${scope}: track ${index + 1} animation name`);
+    assert.equal(track.timing, "linear", `${scope}: track ${index + 1} animation must not ease or bounce`);
+    assert.equal(track.direction, "normal", `${scope}: track ${index + 1} animation must not reverse to the first image`);
+    assert.equal(track.iterations, "infinite", `${scope}: track ${index + 1} animation iteration`);
+    assert.equal(track.playState, "running", `${scope}: track ${index + 1} animation did not start`);
+    assert(Math.abs(track.railScrollLeft) <= 1, `${scope}: track ${index + 1} desktop scroll snapping moved the rail (${track.railScrollLeft}px)`);
+    assert(movement[index] < -4, `${scope}: track ${index + 1} did not move continuously (${movement[index]}px)`);
+  });
 }
 
 async function assertCompanyProofLayout(page, scope, mobile) {
@@ -713,6 +773,7 @@ async function homeMatrix(browserType) {
       assertPageTelegram(state, scope);
       assertHomeVisualSignature(state, scope, item.locale);
       assertHeroCta(state, scope);
+      if (!viewport.mobile) await assertDesktopGalleryMarquee(page, scope);
       await assertCompanyProofLayout(page, scope, viewport.mobile);
       await assertFooterJoin(page, scope);
       assert.equal(state.counts.faqTags, 7, `${scope}: FAQ tag count`);
@@ -1062,11 +1123,20 @@ async function accessibilityFallbackChecks(browserType) {
   const page = await reduced.newPage();
   await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction((count) => document.querySelectorAll(".shipment-ticker-item").length === count, VALID_SHIPMENTS.length * 2);
+  await page.waitForFunction(() => document.querySelectorAll('.gallery-frame[data-gallery-clone="true"]').length > 0);
   assert.equal(await page.locator(".ui-section-reveal").count(), 0, "reduced motion still hides sections for reveal");
   assert.equal(await page.locator(".service-country-marquee, .service-country-toggle, .service-country-item").count(), 0, "removed country strip exists in reduced-motion mode");
   assert.equal(await page.locator(".shipment-ticker.is-static").count(), 1, "reduced motion shipment ticker is not static");
   assert.equal(await page.locator(".shipment-ticker-track").evaluate((element) => getComputedStyle(element).transform), "none", "reduced motion shipment ticker still transforms");
   assert.equal(await page.locator(".shipment-ticker-list").nth(1).evaluate((element) => getComputedStyle(element).display), "none", "reduced motion duplicate shipment list is visible");
+  const reducedGallery = await page.locator(".sourcing-gallery .gallery-track").evaluateAll((tracks) => tracks.map((track) => ({
+    animationName: getComputedStyle(track).animationName,
+    transform: getComputedStyle(track).transform,
+    clonesHidden: Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone="true"]')).every((frame) => getComputedStyle(frame).display === "none")
+  })));
+  assert(reducedGallery.every((track) => track.animationName === "none"), `reduced motion gallery animation remains: ${JSON.stringify(reducedGallery)}`);
+  assert(reducedGallery.every((track) => track.transform === "none"), `reduced motion gallery transform remains: ${JSON.stringify(reducedGallery)}`);
+  assert(reducedGallery.every((track) => track.clonesHidden), `reduced motion gallery duplicate images remain visible: ${JSON.stringify(reducedGallery)}`);
   assert.equal(await page.locator(".stamp.land").count(), 3, "reduced motion stamps did not render immediately");
   const stampOpacities = await page.locator(".stamp").evaluateAll((items) => items.map((item) => Number.parseFloat(getComputedStyle(item).opacity)));
   assert(stampOpacities.every((opacity) => opacity >= 0.99), `reduced motion stamp opacity ${stampOpacities.join(", ")}`);

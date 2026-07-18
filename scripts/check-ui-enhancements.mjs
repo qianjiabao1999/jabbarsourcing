@@ -6,8 +6,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-167";
-const UI_VERSION = "ui-20260718d";
+const CSS_VERSION = "apple-168";
+const UI_VERSION = "ui-20260718e";
 const ORDER_VERSION = "order-20260718d";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
@@ -428,7 +428,9 @@ for (const token of [
   "reducedMotionQuery.addEventListener", 'event.key === "Escape"', "company-metric-visual",
   "initSocialAccountDisclosure", "showAllAccounts", "showFewerAccounts",
   "social-platform-toggle", "is-social-card-collapsed", "initCalculatorModes",
-  "calculator_mode_change", "social_profile_click", "social_accounts_view", "social_platform_filter"
+  "calculator_mode_change", "social_profile_click", "social_accounts_view", "social_platform_filter",
+  "initGalleryMarquee", "galleryLoopInitialized", "galleryOriginalCount",
+  "data-gallery-clone", "--gallery-loop-distance", "--gallery-loop-duration"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing round 8 behavior ${token}`);
 }
@@ -486,7 +488,21 @@ for (const removedToken of [".service-country-marquee", ".service-country-toggle
 }
 assert(css.includes("scroll-snap-type: x proximity"), "styles.css: mobile gallery proximity snapping missing");
 assert(css.includes("animation: none !important"), "styles.css: mobile gallery animation override missing");
+const galleryTrackRules = Array.from(css.matchAll(/(?:^|\n)\.gallery-track\s*\{([^}]*)\}/gm), (match) => match[1]);
+assert(galleryTrackRules.some((body) => /animation:\s*none\s*;/.test(body)), "styles.css: gallery must not use the old short alternate animation");
+const galleryLoopRule = cssRuleBody(css, ".gallery-track.is-gallery-loop-ready");
+assert.match(galleryLoopRule, /galleryMarquee var\(--gallery-loop-duration,\s*48s\) linear infinite/, "styles.css: desktop gallery loop must move continuously");
+assert.match(css, /@keyframes galleryMarquee\s*\{[\s\S]*var\(--gallery-loop-distance,\s*0px\)/, "styles.css: gallery loop must use the measured duplicate-set distance");
+assert.match(css, /@media \(min-width:\s*768px\)\s*\{[\s\S]*?\.sourcing-gallery \.gallery-rail\s*\{[^}]*scroll-snap-type:\s*none\s*;[^}]*scroll-padding-inline:\s*0\s*;/, "styles.css: desktop gallery must not snap against the marquee transform");
 assert(css.includes(".social-platform-groups .section-heading"), "styles.css: social heading centering missing");
+const partnershipRule = cssRuleBody(css, ".hero-brand-partnership");
+assert.match(partnershipRule, /--partnership-logo-size:\s*clamp\(124px,\s*13vw,\s*190px\)\s*;/, "styles.css: desktop joint logos must share the Jabbar logo size");
+const partnershipLogoRule = cssRuleBody(css, ".hero-brand-partnership .site-logo-lockup");
+assert.match(partnershipLogoRule, /width:\s*var\(--partnership-logo-size\)\s*;/, "styles.css: joint logo frames must share one width token");
+assert.match(partnershipLogoRule, /aspect-ratio:\s*1\s*\/\s*1\s*;/, "styles.css: joint logo frames must remain equal squares");
+const companyLogoImageRule = cssRuleBody(css, ".site-logo-lockup-company img");
+assert.match(companyLogoImageRule, /object-fit:\s*contain\s*;/, "styles.css: Haoduobao logo must remain fully visible");
+assert.match(companyLogoImageRule, /object-position:\s*center\s*;/, "styles.css: Haoduobao logo must remain centered");
 const rtlMobileProcessRule = css.match(/\[dir="rtl"\]\s+\.process-step\s*\{([^}]*)\}/m)?.[1] || "";
 assert.match(rtlMobileProcessRule, /padding-inline-start:\s*78px\s*;/, "styles.css: RTL mobile process cards must reserve space beside the leading number");
 assert.match(rtlMobileProcessRule, /padding-inline-end:\s*22px\s*;/, "styles.css: RTL mobile process card trailing padding regressed");

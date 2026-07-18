@@ -1213,7 +1213,12 @@ html[dir="rtl"] .social-platform-group .team-card-body {
   width: max-content;
   gap: 18px;
   padding: 10px clamp(32px, calc((100vw - clamp(620px, 88vw, 1180px) - 36px) / 2), 112px) 26px;
-  animation: galleryMarquee 10.5s ease-in-out infinite alternate;
+  animation: none;
+  animation-play-state: paused;
+  will-change: auto;
+}
+.gallery-track.is-gallery-loop-ready {
+  animation: galleryMarquee var(--gallery-loop-duration, 48s) linear infinite;
   animation-play-state: paused;
   will-change: transform;
 }
@@ -1222,7 +1227,6 @@ html.gallery-ready .gallery-track {
 }
 .gallery-block-portrait .gallery-track {
   padding-inline: clamp(32px, calc((100vw - clamp(736px, 84vw, 1200px) - 54px) / 2), 96px);
-  animation-duration: 9.5s;
 }
 .gallery-rail:hover .gallery-track,
 .gallery-rail:focus-within .gallery-track {
@@ -2345,7 +2349,7 @@ html.gallery-ready .gallery-track {
 
 @keyframes galleryMarquee {
   from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-18vw, 0, 0); }
+  to { transform: translate3d(var(--gallery-loop-distance, 0px), 0, 0); }
 }
 
 @keyframes gallerySkeleton {
@@ -2710,9 +2714,7 @@ html.gallery-ready .gallery-track {
   .gallery-track {
     gap: 10px;
     padding: 6px 10px 18px;
-    animation-duration: 8.5s;
   }
-  .gallery-block-portrait .gallery-track { animation-duration: 7.5s; }
   .gallery-block-landscape .gallery-frame {
     width: min(78vw, 330px);
     border-radius: 22px;
@@ -9982,19 +9984,20 @@ html[lang="ar"] .section-code {
 
 /* 2026-07-18 joint company identity and conversion-flow controls. */
 .hero-brand-partnership {
+  --partnership-logo-size: clamp(124px, 13vw, 190px);
   direction: ltr;
   gap: clamp(12px, 2vw, 26px);
 }
 
-.hero-brand-partnership .site-logo-lockup-company {
-  --logo-glow: 20, 79, 242;
-  width: clamp(176px, 18vw, 260px);
-  aspect-ratio: 1.55 / 1;
+.hero-brand-partnership .site-logo-lockup {
+  width: var(--partnership-logo-size);
+  aspect-ratio: 1 / 1;
 }
 
 .site-logo-lockup-company img {
   background: #fff;
   object-fit: contain;
+  object-position: center;
 }
 
 .brand-partnership-mark {
@@ -10240,15 +10243,8 @@ html[lang="ar"] .section-code {
 
 @media (max-width: 767px) {
   .hero-brand-partnership {
+    --partnership-logo-size: clamp(96px, 28vw, 124px);
     gap: clamp(6px, 2.3vw, 10px);
-  }
-
-  .hero-brand-partnership .site-logo-lockup-brand {
-    width: clamp(96px, 28vw, 124px);
-  }
-
-  .hero-brand-partnership .site-logo-lockup-company {
-    width: clamp(150px, 44vw, 188px);
   }
 
   .brand-partnership-mark {
@@ -10303,17 +10299,11 @@ html[lang="ar"] .section-code {
 .sourcing-gallery .gallery-rail {
   max-width: none !important;
   overscroll-behavior-inline: contain;
-  scroll-snap-type: x proximity;
-  scroll-padding-inline: clamp(14px, 4vw, 48px);
   touch-action: pan-x pan-y;
 }
 
 .sourcing-gallery .gallery-track {
   gap: 0 !important;
-}
-
-.sourcing-gallery .gallery-frame {
-  scroll-snap-align: start;
 }
 
 .sourcing-gallery .gallery-frame + .gallery-frame {
@@ -10323,16 +10313,6 @@ html[lang="ar"] .section-code {
 html.gallery-ready .sourcing-gallery .gallery-frame::before {
   animation: none;
   opacity: 0;
-}
-
-@media (min-width: 768px) {
-  .sourcing-gallery .gallery-track {
-    animation-duration: 8s;
-  }
-
-  .sourcing-gallery .gallery-block-portrait .gallery-track {
-    animation-duration: 7s;
-  }
 }
 
 #services .company-intro-layout.company-intro-metrics-layout {
@@ -10465,13 +10445,30 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
   line-height: 1.72;
 }
 
+@media (min-width: 768px) {
+  .sourcing-gallery .gallery-rail {
+    scroll-snap-type: none;
+    scroll-padding-inline: 0;
+  }
+}
+
 @media (max-width: 767px) {
+  .sourcing-gallery .gallery-frame[data-gallery-clone="true"] {
+    display: none !important;
+  }
+
   .sourcing-gallery .gallery-rail {
     width: 100vw;
     -webkit-mask-image: none;
     mask-image: none;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: clamp(14px, 4vw, 48px);
     scroll-behavior: auto;
     scrollbar-width: none;
+  }
+
+  .sourcing-gallery .gallery-frame {
+    scroll-snap-align: start;
   }
 
   .sourcing-gallery .gallery-track,
@@ -10593,6 +10590,10 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sourcing-gallery .gallery-frame[data-gallery-clone="true"] {
+    display: none !important;
+  }
+
   .sourcing-gallery .gallery-track,
   html.gallery-ready .sourcing-gallery .gallery-track {
     animation: none !important;
