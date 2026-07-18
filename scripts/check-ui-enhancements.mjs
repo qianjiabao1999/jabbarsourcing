@@ -6,8 +6,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-168";
-const UI_VERSION = "ui-20260718e";
+const CSS_VERSION = "apple-169";
+const UI_VERSION = "ui-20260718f";
 const ORDER_VERSION = "order-20260718d";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
@@ -35,6 +35,17 @@ const CALCULATOR_SECTION_CODES = {
   tr: "Jabbar · Hacim aracı"
 };
 const STAMP_TOKENS = ["QC PASSED ✓", "REPLY < 24H", "TRIAL $1,000"];
+const COMPANY_IDENTITY_LINES = [
+  "Jabbar × 好多宝(Haoduobao)",
+  "Zhejiang Haoduobao Brand Management Co., Ltd.",
+  "浙江好多宝品牌管理有限公司"
+];
+const SOCIAL_PLATFORM_CLASS_ORDER = [
+  "social-platform-group-tiktok",
+  "social-platform-group-instagram",
+  "social-platform-group-douyin",
+  "social-platform-group-xhs"
+];
 const CITY_FIELDS = LOCALES.map((locale) => `city_${locale}`).sort();
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const HOME_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale) }));
@@ -91,6 +102,24 @@ function regionsForClass(source, tagName, className) {
     .map((match) => match[0]);
 }
 
+function firstBalancedRegionForClass(source, tagName, className) {
+  const openingPattern = new RegExp(`<${tagName}\\b([^>]*)>`, "gi");
+  let opening;
+  while ((opening = openingPattern.exec(source))) {
+    if (!classListFromAttributes(opening[1]).includes(className)) continue;
+    const boundaryPattern = new RegExp(`<\\/?${tagName}\\b[^>]*>`, "gi");
+    boundaryPattern.lastIndex = opening.index;
+    let depth = 0;
+    let boundary;
+    while ((boundary = boundaryPattern.exec(source))) {
+      if (boundary[0].startsWith("</")) depth -= 1;
+      else if (!boundary[0].endsWith("/>")) depth += 1;
+      if (depth === 0) return source.slice(opening.index, boundary.index + boundary[0].length);
+    }
+  }
+  return "";
+}
+
 function tagById(source, id) {
   return (source.match(/<[a-z][^>]*>/gi) || []).find((tag) => tag.match(/\bid="([^"]*)"/)?.[1] === id) || "";
 }
@@ -111,6 +140,17 @@ function attribute(tag, name) {
 
 function hasClass(tag, className) {
   return classListFromAttributes(tag).includes(className);
+}
+
+function hasAttribute(tag, name) {
+  return new RegExp(`\\s${name}(?:\\s|=|/?>)`, "i").test(tag);
+}
+
+function sourceBetween(source, startToken, endToken, label) {
+  const start = source.indexOf(startToken);
+  const end = source.indexOf(endToken, start + startToken.length);
+  assert(start >= 0 && end > start, `${label}: source segment missing`);
+  return source.slice(start, end);
 }
 
 function isValidCalendarDate(value) {
@@ -147,6 +187,14 @@ for (const { locale, file } of HOME_PAGES) {
   assert.equal(countClass(html, "site-logo-lockup-company"), 1, `${file}: Haoduobao logo frame count`);
   assert.equal(count(html, /haoduobao-logo\.webp\?v=company-20260718a/g), 1, `${file}: Haoduobao logo asset count`);
   assert.equal(countClass(html, "company-identity"), 1, `${file}: company identity block count`);
+  assert.equal(countClass(html, "company-about"), 1, `${file}: About card count`);
+  const aboutCard = firstBalancedRegionForClass(html, "section", "company-about");
+  const companyIdentity = firstBalancedRegionForClass(aboutCard, "div", "company-identity");
+  assert(companyIdentity, `${file}: company identity must be inside the About card`);
+  assert.equal(decodeText(companyIdentity), COMPANY_IDENTITY_LINES.join(" "), `${file}: company identity must contain exactly the approved three lines`);
+  assert.equal(count(companyIdentity, /<strong\b/gi), 1, `${file}: company identity title count`);
+  assert.equal(count(companyIdentity, /<span\b/gi), 2, `${file}: company identity legal line count`);
+  assert.doesNotMatch(companyIdentity, /<(?:a|p)\b/i, `${file}: company identity must not add links or extra paragraphs`);
   const galleryRails = tagsWithClass(html, "div", "gallery-rail");
   assert.equal(galleryRails.length, 2, `${file}: gallery rail count`);
   assert(galleryRails.every((match) => attribute(match[0], "role") === "region"), `${file}: gallery rails need region semantics`);
@@ -158,9 +206,24 @@ for (const { locale, file } of HOME_PAGES) {
     assert(!html.includes(removedSocial), `${file}: removed social card remains (${removedSocial})`);
   }
   assert.match(html, /class="social-platform-groups container-wide"/, `${file}: social container is not centered`);
+  const socialGroups = tagsWithClass(html, "section", "social-platform-group");
+  assert.equal(socialGroups.length, 4, `${file}: social category count`);
+  assert.deepEqual(
+    socialGroups.map((match) => classListFromAttributes(match[1]).find((className) => className !== "social-platform-group" && className.startsWith("social-platform-group-"))),
+    SOCIAL_PLATFORM_CLASS_ORDER,
+    `${file}: social category order`,
+  );
+  assert(socialGroups.every((match) => !hasAttribute(match[0], "hidden")), `${file}: all social groups must be visible initially`);
+  const socialCards = tagsWithClass(html, "a", "team-card");
+  assert(socialCards.length > 0, `${file}: social account cards missing`);
+  assert(socialCards.every((match) => !hasAttribute(match[0], "hidden")), `${file}: all social accounts must be visible initially`);
+  assert.equal(countClass(html, "social-platform-toggle"), 0, `${file}: social account disclosure toggle must not be rendered`);
+  assert.equal(countClass(html, "social-platform-filter"), 0, `${file}: category filters must be generated once by JavaScript`);
   assert.doesNotMatch(html, /class="[^"]*\bcontain\b[^"]*"/, `${file}: stale contain class`);
   assert.equal(count(html, /mobile-conversion-bar|has-mobile-conversion-bar/g), 0, `${file}: removed mobile conversion bar remains`);
-  assert.equal(count(html, /class="faq-item"/g), 7, `${file}: FAQ item count`);
+  const faqItems = tagsWithClass(html, "details", "faq-item");
+  assert.equal(faqItems.length, 7, `${file}: FAQ item count`);
+  assert(faqItems.every((match) => !hasAttribute(match[0], "open")), `${file}: every FAQ item must start closed`);
   assert.deepEqual(textsForClass(html, "p", "section-code"), SECTION_CODES[locale], `${file}: localized section code order`);
   assert.equal(countClass(html, "section-rule"), SECTION_CODES[locale].length, `${file}: section rule count`);
   assert.equal(countClass(html, "stamp-row"), 1, `${file}: stamp row count`);
@@ -198,6 +261,9 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   assert.match(html, new RegExp(`calculator-order-loader\\.js\\?v=${ORDER_VERSION}`), `${file}: missing deferred Excel order loader`);
   assert.doesNotMatch(html, /<script[^>]+src="\/assets\/calculator-order-analyzer\.js/i, `${file}: Excel order analyzer must not load directly`);
   assert.equal(count(html, /data-order-analyzer/g), 1, `${file}: Excel order analyzer mount count`);
+  for (const fieldName of ["length", "width", "height", "unit", "qty", "product", "weight", "note"]) {
+    assert.equal(count(html, new RegExp(`\\bname="${fieldName}"`, "g")), 1, `${file}: calculator field ${fieldName} count`);
+  }
   assert.equal(count(html, /calculator-whatsapp|data-whatsapp|wa\.me\/8618658925544/g), 0, `${file}: calculator WhatsApp result action remains`);
   assert.equal(count(html, /class="cbm-visual"/g), 1, `${file}: static CBM visual count`);
   assert.equal(count(html, /<svg[^>]+aria-labelledby="cbmVizTitle"/g), 1, `${file}: static CBM SVG count`);
@@ -316,7 +382,7 @@ for (const file of FALLBACK_EVENT_PAGES) {
   assert.doesNotMatch(html, /(?:jabbarTrack|gtag)\s*\([^)]*["']inquiry_submit["']/, `${file}: fallback channel must not impersonate a successful inquiry`);
 }
 const inquiryFormJavascript = await load("assets/inquiry-form.js");
-assert.match(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']/, "inquiry-form.js: shared fallback channel event missing");
+assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']/, "inquiry-form.js: removed fallback channel event returned");
 
 {
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
@@ -402,10 +468,13 @@ const javascript = await load("assets/site-enhancements.js");
 for (const locale of LOCALES) {
   assert.match(javascript, new RegExp(`\\n\\s*${locale}: \\{`), `site-enhancements.js: missing ${locale} labels`);
 }
-assert.equal(count(javascript, /showAllAccounts:/g), LOCALES.length, "site-enhancements.js: show-all account label count");
-assert.equal(count(javascript, /showFewerAccounts:/g), LOCALES.length, "site-enhancements.js: show-fewer account label count");
 assert.equal(count(javascript, /calculatorModes:/g), LOCALES.length, "site-enhancements.js: calculator mode label count");
-assert.equal(count(javascript, /allPlatforms:/g), LOCALES.length, "site-enhancements.js: social filter label count");
+assert.equal(count(javascript, /calculatorOptional:/g), LOCALES.length, "site-enhancements.js: calculator optional-field label count");
+assert.equal(count(javascript, /faqPrompt:/g), LOCALES.length, "site-enhancements.js: FAQ quick-tag prompt count");
+assert.equal(count(javascript, /socialFilter:/g), LOCALES.length, "site-enhancements.js: social filter label count");
+for (const removedLabel of ["showAllAccounts", "showFewerAccounts", "allPlatforms"]) {
+  assert.equal(count(javascript, new RegExp(`${removedLabel}:`, "g")), 0, `site-enhancements.js: removed ${removedLabel} label returned`);
+}
 for (const token of [
   "renderCbmVisual", "site-scroll-progress",
   "faq-quick-tags", "whatsapp-qr.svg", "prefers-reduced-motion",
@@ -426,11 +495,12 @@ for (const token of [
   "initCalculatorInquiryBridge", "calculator-inquiry-cta", "jabbarCalcResult", "calculator_result",
   "calculator_inquiry",
   "reducedMotionQuery.addEventListener", 'event.key === "Escape"', "company-metric-visual",
-  "initSocialAccountDisclosure", "showAllAccounts", "showFewerAccounts",
-  "social-platform-toggle", "is-social-card-collapsed", "initCalculatorModes",
+  "initSocialAccountDisclosure", "initCalculatorModes",
   "calculator_mode_change", "social_profile_click", "social_accounts_view", "social_platform_filter",
   "initGalleryMarquee", "galleryLoopInitialized", "galleryOriginalCount",
-  "data-gallery-clone", "--gallery-loop-distance", "--gallery-loop-duration"
+  "data-gallery-clone", "--gallery-loop-distance", "--gallery-loop-duration",
+  "calculator-optional-details", "calculator-optional-summary", "calculator-optional-fields",
+  "runMobileLoop", "pauseMobileLoop", "resumeMobileLoopSoon", "is-gallery-mobile-loop-ready"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing round 8 behavior ${token}`);
 }
@@ -440,13 +510,48 @@ for (const removedToken of ["service-country-marquee", "service-country-toggle",
 assert(!javascript.includes('setAttribute("aria-hidden", "false")'), "site-enhancements.js: aria-hidden=false must not return");
 assert(!javascript.includes('setAttribute("fill"'), "site-enhancements.js: dynamic CBM colors must use CSS classes");
 
+const calculatorModeJavascript = sourceBetween(javascript, "  function initCalculatorModes()", "  function initCalculatorInquiryBridge()", "site-enhancements.js calculator mode");
+assert.match(calculatorModeJavascript, /var optionalFields = \["product", "weight", "note"\]\.map/, "site-enhancements.js: calculator optional field set");
+assert.match(calculatorModeJavascript, /\["length", "width", "height", "unit", "qty"\]\.forEach/, "site-enhancements.js: calculator primary field set");
+assert.match(calculatorModeJavascript, /createElement\("details", "calculator-optional-details"\)/, "site-enhancements.js: calculator optional details disclosure missing");
+assert.match(calculatorModeJavascript, /optionalDetails\.appendChild\(optionalSummary\)[\s\S]*optionalDetails\.appendChild\(optionalFieldGroup\)/, "site-enhancements.js: calculator optional details structure missing");
+assert.match(calculatorModeJavascript, /fieldGrid\.insertAdjacentElement\("afterend", optionalDetails\)/, "site-enhancements.js: calculator optional details placement missing");
+
+const galleryJavascript = sourceBetween(javascript, "  function initGalleryMarquee()", "  function initHomepageMotion()", "site-enhancements.js gallery");
+assert.match(galleryJavascript, /clone\.dataset\.galleryClone = "true"/, "site-enhancements.js: gallery clone marker missing");
+assert.match(galleryJavascript, /clone\.setAttribute\("aria-hidden", "true"\)/, "site-enhancements.js: gallery clones must be hidden from assistive technology");
+assert.match(galleryJavascript, /function runMobileLoop\(timestamp\)/, "site-enhancements.js: mobile gallery animation loop missing");
+assert.match(galleryJavascript, /rail\.scrollLeft \+= elapsed \* [0-9.]+/, "site-enhancements.js: mobile gallery must advance continuously");
+assert.match(galleryJavascript, /mobileFrame = window\.requestAnimationFrame\(runMobileLoop\)/, "site-enhancements.js: mobile gallery rAF scheduling missing");
+assert.match(galleryJavascript, /rail\.addEventListener\("pointerdown", pauseMobileLoop/, "site-enhancements.js: pointer interaction must pause mobile gallery");
+assert.match(galleryJavascript, /rail\.addEventListener\("pointerup", resumeMobileLoopSoon/, "site-enhancements.js: pointer interaction must resume mobile gallery");
+assert.match(galleryJavascript, /rail\.addEventListener\("pointercancel", resumeMobileLoopSoon/, "site-enhancements.js: cancelled pointer interaction must resume mobile gallery");
+assert.match(galleryJavascript, /rail\.addEventListener\("wheel", function \(\) \{\s*pauseMobileLoop\(\);\s*resumeMobileLoopSoon\(\);/s, "site-enhancements.js: manual wheel scrolling must pause and resume mobile gallery");
+
+const faqJavascript = sourceBetween(javascript, "  function initFaqTags()", "  function initSocialAccountDisclosure()", "site-enhancements.js FAQ");
+assert.match(faqJavascript, /items\.forEach\(function \(item\) \{ item\.open = false; \}\);/, "site-enhancements.js: FAQ items must be closed initially");
+assert.match(faqJavascript, /items\.forEach\(function \(other\) \{ other\.open = other === item; \}\);/, "site-enhancements.js: a quick tag must keep only its matching FAQ item open");
+assert.doesNotMatch(faqJavascript, /shouldOpen|!item\.open/, "site-enhancements.js: repeated quick-tag clicks must not close the answer");
+assert.match(faqJavascript, /item\.scrollIntoView\(\{[^}]*block: "center"[^}]*\}\)/, "site-enhancements.js: FAQ quick tag must scroll its answer into view");
+assert.doesNotMatch(faqJavascript, /\.focus\s*\(/, "site-enhancements.js: FAQ quick tags must not steal focus");
+assert.doesNotMatch(faqJavascript, /window\.open\s*\(|(?:window\.)?location(?:\.href)?\s*=|setAttribute\(["'](?:href|target)["']/, "site-enhancements.js: FAQ quick tags must not navigate or open a new page");
+
+const socialJavascript = sourceBetween(javascript, "  function initSocialAccountDisclosure()", "  initAnalyticsEvents();", "site-enhancements.js social filters");
+assert.match(socialJavascript, /group\.hidden = false/, "site-enhancements.js: social groups must start visible");
+assert.match(socialJavascript, /card\.hidden = false/, "site-enhancements.js: social accounts must start visible");
+assert.match(socialJavascript, /var filterItems = groups\.map\(/, "site-enhancements.js: category filters must map one-to-one from social groups");
+assert.match(socialJavascript, /filterItems\.forEach\([\s\S]*createElement\("button", "social-platform-filter", item\.label\)/, "site-enhancements.js: social category filter buttons missing");
+assert.doesNotMatch(socialJavascript, /filterItems\.(?:push|unshift|splice)\s*\(/, "site-enhancements.js: all-platform filter must not be injected");
+assert.doesNotMatch(socialJavascript, /createElement\("button", "social-platform-toggle"/, "site-enhancements.js: social account toggle must not be created");
+assert.match(socialJavascript, /group\.hidden = Boolean\(selected\) && group\.dataset\.socialPlatform !== selected/, "site-enhancements.js: social category filter behavior missing");
+
 const inquiryJavascript = await load("assets/inquiry-form.js");
 const aiJavascript = await load("assets/ai-sourcing-assistant.js");
 const socialAvatarUpdater = await load("scripts/update-social-avatars.mjs");
 const socialAvatarManifest = await load("assets/social-avatars-manifest.json");
 assert(inquiryJavascript.includes('"inquiry_submit"'), "inquiry-form.js: successful direct inquiry event missing");
-assert(inquiryJavascript.includes("inquiry_optional_details_toggle"), "inquiry-form.js: optional-details analytics missing");
-assert(inquiryJavascript.includes("inquiry-optional-details"), "inquiry-form.js: optional field disclosure missing");
+assert(!inquiryJavascript.includes("inquiry_optional_details_toggle"), "inquiry-form.js: removed optional-details analytics returned");
+assert(!inquiryJavascript.includes("inquiry-optional-details"), "inquiry-form.js: removed optional field disclosure returned");
 assert(aiJavascript.includes('"ai_first_message"'), "ai-sourcing-assistant.js: first successful AI message event missing");
 assert(!aiJavascript.includes("mobile-conversion-bar"), "ai-sourcing-assistant.js: removed conversion bar integration remains");
 for (const removedSocial of ["S99_Tv9at_I", "Yk8-Ra0NoRg", "douyin-89144212942", "douyin-dg661661"]) {
@@ -472,10 +577,10 @@ for (const token of [
 }
 for (const token of [
   ".calculator-inquiry-cta", ".inquiry-status-icon",
-  ".inquiry-status-whatsapp", "#cbmFill.is-over", "#cbmRibs", ".field-label-marker",
-  ".social-platform-toggle", ".is-social-card-collapsed", ".calculator-result-status",
+  "#cbmFill.is-over", "#cbmRibs", ".field-label-marker", ".calculator-result-status",
   ".calculator-secondary-button:disabled", ".hero-brand-partnership", ".company-identity",
-  ".inquiry-optional-details", ".calculator-mode-tabs", ".social-platform-filters"
+  ".calculator-mode-tabs", ".calculator-optional-details", ".calculator-optional-summary",
+  ".calculator-optional-fields", ".social-platform-filters"
 ]) {
   assert(css.includes(token), `styles.css: missing round 8 style ${token}`);
 }
@@ -486,8 +591,14 @@ for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "ha
 for (const removedToken of [".service-country-marquee", ".service-country-toggle", ".service-country-item", ".service-country-track"]) {
   assert(!css.includes(removedToken), `styles.css: removed country strip style remains (${removedToken})`);
 }
-assert(css.includes("scroll-snap-type: x proximity"), "styles.css: mobile gallery proximity snapping missing");
-assert(css.includes("animation: none !important"), "styles.css: mobile gallery animation override missing");
+const compactGalleryMarker = "/* 2026-07-18 buyer-flow compactness, hybrid gallery, and desktop navigation release. */";
+const compactGalleryMarkerIndex = css.indexOf(compactGalleryMarker);
+assert(compactGalleryMarkerIndex >= 0, "styles.css: compact gallery release block missing");
+const compactGalleryCss = css.slice(compactGalleryMarkerIndex);
+assert.match(compactGalleryCss, /@media \(max-width:\s*767px\)\s*\{[\s\S]*?\.sourcing-gallery \.gallery-frame\[data-gallery-clone="true"\]\s*\{[^}]*display:\s*block\s*!important\s*;/, "styles.css: mobile gallery clones must stay visible");
+assert.match(compactGalleryCss, /@media \(max-width:\s*767px\)\s*\{[\s\S]*?\.sourcing-gallery \.gallery-rail\s*\{[^}]*scroll-snap-type:\s*none\s*!important\s*;[^}]*scroll-padding-inline:\s*0\s*!important\s*;/, "styles.css: mobile auto-scroll rail must not snap back to the first image");
+assert.match(compactGalleryCss, /\.sourcing-gallery \.gallery-track,[\s\S]*?\.sourcing-gallery \.gallery-block-portrait \.gallery-track\s*\{[^}]*animation:\s*none\s*!important\s*;[^}]*transform:\s*none\s*!important\s*;/, "styles.css: mobile gallery must use the JavaScript loop instead of a competing CSS animation");
+assert.doesNotMatch(compactGalleryCss, /scroll-snap-type:\s*x proximity/, "styles.css: stale mobile gallery proximity snapping returned after the compact release");
 const galleryTrackRules = Array.from(css.matchAll(/(?:^|\n)\.gallery-track\s*\{([^}]*)\}/gm), (match) => match[1]);
 assert(galleryTrackRules.some((body) => /animation:\s*none\s*;/.test(body)), "styles.css: gallery must not use the old short alternate animation");
 const galleryLoopRule = cssRuleBody(css, ".gallery-track.is-gallery-loop-ready");

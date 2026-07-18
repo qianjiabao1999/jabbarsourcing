@@ -9,8 +9,8 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-18";
-const CSS_VERSION = "apple-168";
-const JS_VERSION = "inquiry-20260718b";
+const CSS_VERSION = "apple-169";
+const JS_VERSION = "inquiry-20260718c";
 const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
 const PAGES = [
@@ -61,7 +61,6 @@ const MAX_LENGTHS = new Map([
   ["note", "1500"],
 ]);
 
-const FALLBACK_CHANNELS = ["whatsapp", "gmail", "wechat", "telegram"];
 const failures = [];
 
 function fail(scope, message) {
@@ -147,9 +146,10 @@ function checkSharedJavascript(source) {
     ["two-hour calculator handoff limit", "2 * 60 * 60 * 1000"],
     ["submitting button label", "messages.sendingLabel : directButtonLabel"],
     ["accessible success icon", 'icon.setAttribute("aria-hidden", "true")'],
-    ["WhatsApp success shortcut", '"https://wa.me/8618658925544"'],
-    ["safe external target", 'whatsapp.target = "_blank"'],
-    ["safe external relationship", 'whatsapp.rel = "noopener noreferrer"'],
+    ["interaction-only Turnstile", 'appearance: "interaction-only"'],
+    ["token-gated submit button", "directButton.disabled = value || !turnstileToken"],
+    ["Turnstile reset disables submit", "directButton.disabled = true"],
+    ["Turnstile callback enables submit", "directButton.disabled = !turnstileToken"],
     ["status reveal animation frame", "window.requestAnimationFrame"],
     ["reduced-motion status reveal", 'window.matchMedia("(prefers-reduced-motion: reduce)")'],
     ["nearest status reveal", 'status.scrollIntoView({ block: "nearest"'],
@@ -167,11 +167,21 @@ function checkSharedJavascript(source) {
     ["submit-error event", 'trackEvent("inquiry_submit_error"'],
     ["bounded submit duration", "boundedDuration"],
     ["duration upper bound", "Math.min(60000"],
-    ["fallback-channel event", 'trackEvent("channel_fallback"'],
     ["canonical success event", 'trackEvent("inquiry_submit"'],
   ];
   for (const [label, fragment] of requiredSourceFragments) {
     if (!source.includes(fragment)) fail(scope, `missing ${label}`);
+  }
+
+  const removedFlowFragments = [
+    ["optional-details disclosure builder", "function groupOptionalFields"],
+    ["optional-details disclosure copy", "OPTIONAL_DETAILS_LABELS"],
+    ["privacy checkbox lookup", 'querySelector(".js-inquiry-privacy")'],
+    ["fallback-channel analytics", 'trackEvent("channel_fallback"'],
+    ["success-state WhatsApp shortcut", "inquiry-status-whatsapp"],
+  ];
+  for (const [label, fragment] of removedFlowFragments) {
+    if (source.includes(fragment)) fail(scope, `${label} must be removed from the single-action flow`);
   }
 
   const buildPayload = source.match(
@@ -195,6 +205,9 @@ function checkSharedJavascript(source) {
   expectExactSet(scope, "payload fields", keys, PAYLOAD_FIELDS);
   if (new Set(keys).size !== keys.length) {
     fail(scope, "payload object contains duplicate field names");
+  }
+  if (!/^\s*privacyAcknowledged\s*:\s*true\s*,?\s*$/m.test(returnedObject[1])) {
+    fail(scope, "payload privacyAcknowledged must remain literal boolean true");
   }
   if (source.includes('trackEvent("inquiry_submit_success"')) {
     fail(scope, "inquiry_submit must remain the sole canonical success event");
@@ -235,6 +248,9 @@ function checkPage(page, html) {
   const formBody = forms[0][2];
   if (!hasClass(formTag, "inquiry-form") || !hasClass(formTag, "js-inquiry-form")) {
     fail(scope, "the unique form must include inquiry-form and js-inquiry-form classes");
+  }
+  if (findTags(formBody, "details").length !== 0 || countClassToken(formBody, "inquiry-optional-details") !== 0) {
+    fail(scope, "all order-detail fields must remain expanded without a details disclosure");
   }
 
   const formExpectations = new Map([
@@ -341,19 +357,18 @@ function checkPage(page, html) {
   }
 
   const privacyInputs = findTags(formBody, "input").filter((tag) => hasClass(tag, "js-inquiry-privacy"));
-  const privacy = checkSingleTag(scope, privacyInputs, "privacy checkbox");
-  if (privacy) {
-    if (privacy.attributes.get("type") !== "checkbox") {
-      fail(scope, "privacy control must be type=checkbox");
-    }
-    if (privacy.attributes.has("required")) {
-      fail(scope, "privacy checkbox must not have native required because fallback buttons must remain usable");
-    }
-    if (privacy.attributes.get("aria-required") !== "true") {
-      fail(scope, "privacy checkbox must use aria-required=true");
-    }
-    if (privacy.attributes.has("name")) {
-      fail(scope, "privacy checkbox must not add a named form field to the strict JSON payload");
+  if (privacyInputs.length !== 0) fail(scope, "privacy checkbox must be removed from the single-action form");
+  const privacyNotices = findTags(formBody, "p").filter((tag) => hasClass(tag, "inquiry-privacy-notice"));
+  checkSingleTag(scope, privacyNotices, "privacy submit notice");
+
+  const privacyNoticeBlocks = Array.from(
+    formBody.matchAll(/<p\b([^>]*)>([\s\S]*?)<\/p>/gi),
+  ).filter((match) => hasClass({ name: "p", attributes: parseAttributes(match[1]) }, "inquiry-privacy-notice"));
+  if (privacyNoticeBlocks.length === 1) {
+    const text = privacyNoticeBlocks[0][2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    if (!text) fail(scope, "privacy submit notice must contain localized text");
+    if (!/href=["']\/privacy-policy\.html#website-inquiries["']/i.test(privacyNoticeBlocks[0][2])) {
+      fail(scope, "privacy submit notice must contain the website-inquiries policy link");
     }
   }
 
@@ -374,6 +389,9 @@ function checkPage(page, html) {
         scope,
         `Turnstile action: expected ${TURNSTILE_ACTION}, got ${turnstile.attributes.get("data-action") ?? "missing"}`,
       );
+    }
+    if (turnstile.attributes.get("data-appearance") !== "interaction-only") {
+      fail(scope, "Turnstile container must request interaction-only appearance");
     }
   }
 
@@ -407,28 +425,20 @@ function checkPage(page, html) {
       }
     }
   }
-  if (!/<button\b[^>]*\bjs-inquiry-direct\b[^>]*>[\s\S]*?<\/button>\s*<p\b[^>]*\binquiry-status\b[^>]*><\/p>\s*<\/div>\s*<p\b[^>]*\binquiry-fallback-label\b/i.test(formBody)) {
-    fail(scope, "inquiry status must be immediately after the direct-submit button, inside the direct panel and before fallback actions");
+  if (!/<button\b[^>]*\bjs-inquiry-direct\b[^>]*>[\s\S]*?<\/button>\s*<p\b[^>]*\binquiry-status\b[^>]*><\/p>\s*<\/div>/i.test(formBody)) {
+    fail(scope, "inquiry status must be immediately after the direct-submit button inside the direct panel");
   }
   if (!html.includes('status.classList.remove("is-success", "is-error", "is-pending")')) {
-    fail(scope, "fallback status updates must clear direct-submit state styles");
+    fail(scope, "status updates must clear earlier submit state styles");
   }
 
   const fallbackButtons = buttons.filter((button) => hasClass(button, "js-inquiry-send"));
-  if (fallbackButtons.length !== 4 || countClassToken(formBody, "js-inquiry-send") !== 4) {
-    fail(scope, `fallback buttons: expected exactly 4, got ${fallbackButtons.length}`);
+  if (fallbackButtons.length !== 0 || countClassToken(formBody, "js-inquiry-send") !== 0) {
+    fail(scope, `redundant fallback buttons must be removed, got ${fallbackButtons.length}`);
   }
-  for (const button of fallbackButtons) {
-    if (button.attributes.get("type") !== "button") {
-      fail(scope, `fallback ${button.attributes.get("data-channel") ?? "unknown"} must be type=button`);
-    }
+  if (countClassToken(formBody, "inquiry-fallback-label") !== 0 || countClassToken(formBody, "inquiry-actions") !== 0) {
+    fail(scope, "fallback label and action container must be removed from the form");
   }
-  expectExactSet(
-    scope,
-    "fallback channels",
-    fallbackButtons.map((button) => button.attributes.get("data-channel")),
-    FALLBACK_CHANNELS,
-  );
 
   const stylesheetLinks = findTags(html, "link")
     .filter((tag) => String(tag.attributes.get("href") ?? "").includes("styles.min.css"));

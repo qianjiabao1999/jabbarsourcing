@@ -25,24 +25,10 @@
     "utm_term",
     "utm_content"
   ];
-  var WHATSAPP_URL = "https://wa.me/8618658925544";
   var OPTIONAL_LABELS = {
     zh: "可选", en: "optional", es: "opcional", ar: "اختياري", fr: "facultatif",
     pt: "opcional", ru: "необязательно", de: "optional", it: "facoltativo", tr: "isteğe bağlı"
   };
-  var OPTIONAL_DETAILS_LABELS = {
-    zh: "添加订单详情（可选）",
-    en: "Add order details (optional)",
-    es: "Añadir detalles del pedido (opcional)",
-    ar: "إضافة تفاصيل الطلب (اختياري)",
-    fr: "Ajouter les détails de la commande (facultatif)",
-    pt: "Adicionar detalhes do pedido (opcional)",
-    ru: "Добавить детали заказа (необязательно)",
-    de: "Bestelldetails hinzufügen (optional)",
-    it: "Aggiungi dettagli dell’ordine (facoltativo)",
-    tr: "Sipariş ayrıntıları ekleyin (isteğe bağlı)"
-  };
-
   var MESSAGES = {
     zh: {
       privacyError: "直接提交前，请先同意《隐私政策》。",
@@ -54,7 +40,7 @@
       pending: "该询盘正在处理中，请几秒后重试。",
       conflict: "内容已更改，请重新提交。",
       rateLimit: "提交过于频繁，请稍后重试。",
-      genericError: "暂时无法直接提交。请稍后重试，或使用下方其他联系方式。"
+      genericError: "安全提交暂时不可用。请稍后重试，或通过页脚联系方式联系我们。"
     },
     en: {
       privacyError: "Please agree to the Privacy Policy before submitting directly.",
@@ -66,7 +52,7 @@
       pending: "This inquiry is already being processed. Try again in a few seconds.",
       conflict: "The content changed. Please submit again.",
       rateLimit: "Too many attempts. Please try again later.",
-      genericError: "Direct submission is temporarily unavailable. Try again later or use a contact option below."
+      genericError: "Secure submission is temporarily unavailable. Try again later or contact us through the page footer."
     },
     es: {
       privacyError: "Antes de enviarla directamente, acepta la Política de privacidad.",
@@ -78,7 +64,7 @@
       pending: "Esta solicitud ya se está procesando. Inténtalo de nuevo en unos segundos.",
       conflict: "El contenido ha cambiado. Vuelve a enviar la solicitud.",
       rateLimit: "Demasiados intentos. Inténtalo de nuevo más tarde.",
-      genericError: "El envío directo no está disponible temporalmente. Inténtalo más tarde o usa una opción de contacto de abajo."
+      genericError: "El envío seguro no está disponible temporalmente. Inténtalo más tarde o contáctanos desde el pie de página."
     },
     ar: {
       privacyError: "يرجى الموافقة على سياسة الخصوصية قبل إرسال الطلب مباشرةً.",
@@ -90,7 +76,7 @@
       pending: "هذا الطلب قيد المعالجة بالفعل. حاول مجددًا بعد بضع ثوانٍ.",
       conflict: "تغيّر المحتوى. يرجى إرسال الطلب مجددًا.",
       rateLimit: "محاولات كثيرة جدًا. حاول مجددًا لاحقًا.",
-      genericError: "الإرسال المباشر غير متاح مؤقتًا. حاول لاحقًا أو استخدم أحد خيارات التواصل أدناه."
+      genericError: "الإرسال الآمن غير متاح مؤقتًا. حاول لاحقًا أو تواصل معنا عبر تذييل الصفحة."
     },
     fr: {
       privacyError: "Veuillez accepter la Politique de confidentialité avant l’envoi direct.",
@@ -102,7 +88,7 @@
       pending: "Cette demande est déjà en cours de traitement. Réessayez dans quelques secondes.",
       conflict: "Le contenu a changé. Veuillez renvoyer la demande.",
       rateLimit: "Trop de tentatives. Veuillez réessayer plus tard.",
-      genericError: "L’envoi direct est temporairement indisponible. Réessayez plus tard ou utilisez une option de contact ci-dessous."
+      genericError: "L’envoi sécurisé est temporairement indisponible. Réessayez plus tard ou contactez-nous via le pied de page."
     },
     pt: {
       privacyError: "Aceite a Política de Privacidade antes do envio direto.",
@@ -114,7 +100,7 @@
       pending: "Esta solicitação já está sendo processada. Tente novamente em alguns segundos.",
       conflict: "O conteúdo mudou. Envie a solicitação novamente.",
       rateLimit: "Muitas tentativas. Tente novamente mais tarde.",
-      genericError: "O envio direto está temporariamente indisponível. Tente mais tarde ou use uma opção de contato abaixo."
+      genericError: "O envio seguro está temporariamente indisponível. Tente mais tarde ou fale conosco pelo rodapé da página."
     },
     ru: {
       privacyError: "Перед прямой отправкой согласитесь с Политикой конфиденциальности.",
@@ -126,7 +112,7 @@
       pending: "Этот запрос уже обрабатывается. Повторите попытку через несколько секунд.",
       conflict: "Содержимое изменилось. Отправьте запрос еще раз.",
       rateLimit: "Слишком много попыток. Повторите попытку позже.",
-      genericError: "Прямая отправка временно недоступна. Повторите попытку позже или выберите способ связи ниже."
+      genericError: "Безопасная отправка временно недоступна. Повторите попытку позже или свяжитесь с нами через контакты внизу страницы."
     },
     de: {
       privacyError: "Bitte stimmen Sie vor dem direkten Senden der Datenschutzerklärung zu.",
@@ -138,7 +124,7 @@
       pending: "Diese Anfrage wird bereits bearbeitet. Versuchen Sie es in einigen Sekunden erneut.",
       conflict: "Der Inhalt hat sich geändert. Bitte senden Sie die Anfrage erneut.",
       rateLimit: "Zu viele Versuche. Bitte versuchen Sie es später erneut.",
-      genericError: "Direktes Senden ist vorübergehend nicht verfügbar. Versuchen Sie es später erneut oder nutzen Sie eine der untenstehenden Kontaktmöglichkeiten."
+      genericError: "Sicheres Senden ist vorübergehend nicht verfügbar. Versuchen Sie es später erneut oder kontaktieren Sie uns über die Fußzeile."
     },
     it: {
       privacyError: "Prima dell’invio diretto, accetta l’Informativa sulla privacy.",
@@ -150,7 +136,7 @@
       pending: "Questa richiesta è già in elaborazione. Riprova tra qualche secondo.",
       conflict: "Il contenuto è cambiato. Invia di nuovo la richiesta.",
       rateLimit: "Troppi tentativi. Riprova più tardi.",
-      genericError: "L’invio diretto è temporaneamente non disponibile. Riprova più tardi o usa una delle opzioni di contatto qui sotto."
+      genericError: "L’invio sicuro è temporaneamente non disponibile. Riprova più tardi o contattaci dal piè di pagina."
     },
     tr: {
       privacyError: "Doğrudan göndermeden önce Gizlilik Politikası’nı kabul edin.",
@@ -162,7 +148,7 @@
       pending: "Bu talep zaten işleniyor. Birkaç saniye sonra tekrar deneyin.",
       conflict: "İçerik değişti. Lütfen tekrar gönderin.",
       rateLimit: "Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.",
-      genericError: "Doğrudan gönderim geçici olarak kullanılamıyor. Daha sonra tekrar deneyin veya aşağıdaki iletişim seçeneklerinden birini kullanın."
+      genericError: "Güvenli gönderim geçici olarak kullanılamıyor. Daha sonra tekrar deneyin veya sayfa alt bilgisinden bize ulaşın."
     }
   };
 
@@ -273,8 +259,6 @@
     var sourcePath = form.getAttribute("data-inquiry-source") || "";
     var privacyVersion = form.getAttribute("data-privacy-version") || "";
     var directButton = form.querySelector(".js-inquiry-direct");
-    var privacyCheckbox = form.querySelector(".js-inquiry-privacy");
-    var privacyError = form.querySelector(".js-inquiry-privacy-error");
     var status = form.querySelector(".inquiry-status");
     var turnstileElement = form.querySelector(".js-inquiry-turnstile");
     var widgetId = null;
@@ -283,10 +267,9 @@
     var submitting = false;
     var formStarted = false;
     var nativeValidationTracked = false;
-    var fallbackValidationInProgress = false;
     var attribution = sanitizeAttribution(window.jabbarCaptureAttribution());
 
-    if (!directButton || !privacyCheckbox || !turnstileElement || !endpoint || !sourcePath || !privacyVersion) {
+    if (!directButton || !turnstileElement || !endpoint || !sourcePath || !privacyVersion) {
       return;
     }
 
@@ -393,36 +376,6 @@
 
     consumeCalculatorResult();
 
-    function groupOptionalFields() {
-      if (form.querySelector(".inquiry-optional-details")) return;
-      var optionalNames = ["referenceUrl", "category", "quantity", "budget", "market", "company", "note"];
-      var labels = optionalNames.map(function (name) {
-        var control = form.elements.namedItem(name);
-        return control ? control.closest("label.field") : null;
-      }).filter(Boolean);
-      if (!labels.length) return;
-
-      var details = document.createElement("details");
-      details.className = "inquiry-optional-details field-wide";
-      var summary = document.createElement("summary");
-      summary.textContent = OPTIONAL_DETAILS_LABELS[locale] || OPTIONAL_DETAILS_LABELS.en;
-      var fields = document.createElement("div");
-      fields.className = "inquiry-optional-fields";
-      labels[0].parentNode.insertBefore(details, labels[0]);
-      details.appendChild(summary);
-      details.appendChild(fields);
-      labels.forEach(function (label) { fields.appendChild(label); });
-
-      details.open = labels.some(function (label) {
-        var control = label.querySelector("input, select, textarea");
-        return control && String(control.value || "").trim().length > 0;
-      });
-      details.addEventListener("toggle", function () {
-        trackEvent("inquiry_optional_details_toggle", { expanded: details.open ? 1 : 0 });
-      });
-    }
-
-    groupOptionalFields();
     decorateFieldLabels();
 
     function setStatus(message, tone) {
@@ -440,15 +393,8 @@
         var text = document.createElement("span");
         text.className = "inquiry-status-message";
         text.textContent = message;
-        var whatsapp = document.createElement("a");
-        whatsapp.className = "inquiry-status-whatsapp";
-        whatsapp.href = WHATSAPP_URL;
-        whatsapp.target = "_blank";
-        whatsapp.rel = "noopener noreferrer";
-        whatsapp.textContent = "WhatsApp";
         status.appendChild(icon);
         status.appendChild(text);
-        status.appendChild(whatsapp);
       } else {
         status.textContent = message;
       }
@@ -474,20 +420,16 @@
       });
     }
 
-    function setPrivacyError(message) {
-      if (privacyError) privacyError.textContent = message || "";
-      privacyCheckbox.setAttribute("aria-invalid", message ? "true" : "false");
-    }
-
     function setSubmitting(value) {
       submitting = value;
-      directButton.disabled = value;
+      directButton.disabled = value || !turnstileToken;
       directButton.setAttribute("aria-busy", value ? "true" : "false");
       directButton.textContent = value ? messages.sendingLabel : directButtonLabel;
     }
 
     function resetTurnstile() {
       turnstileToken = "";
+      directButton.disabled = true;
       if (widgetId !== null && window.turnstile && typeof window.turnstile.reset === "function") {
         try { window.turnstile.reset(widgetId); } catch (error) {}
       }
@@ -532,7 +474,6 @@
     function completeSubmission(message, submittedContentKey, statusCode, startedAt) {
       if (!submittedContentKey || contentKey() === submittedContentKey) form.reset();
       currentSubmissionId = "";
-      setPrivacyError("");
       resetTurnstile();
       setStatus(message, "success");
       trackEvent("inquiry_submit", {
@@ -563,49 +504,19 @@
       });
     });
 
-    privacyCheckbox.addEventListener("change", function () {
-      markFormStart();
-      if (privacyCheckbox.checked) setPrivacyError("");
-    });
-
-    form.querySelectorAll(".js-inquiry-send").forEach(function (button) {
-      button.addEventListener("click", function () {
-        trackEvent("channel_fallback", {
-          channel: button.getAttribute("data-channel") || "unknown"
-        });
-      });
-    });
-
-    form.addEventListener("click", function (event) {
-      var target = event.target && event.target.closest
-        ? event.target.closest(".js-inquiry-send")
-        : null;
-      if (!target) return;
-      fallbackValidationInProgress = true;
-      window.setTimeout(function () { fallbackValidationInProgress = false; }, 0);
-    }, true);
-
     form.addEventListener("invalid", function () {
-      if (!fallbackValidationInProgress) trackNativeValidationError();
+      trackNativeValidationError();
     }, true);
 
-    directButton.disabled = false;
     trackEvent("inquiry_view", { form_name: "sourcing_inquiry" });
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       if (submitting) return;
-      setPrivacyError("");
       setStatus("", "");
 
       if (typeof form.reportValidity === "function" && !form.reportValidity()) {
         trackNativeValidationError();
-        return;
-      }
-      if (!privacyCheckbox.checked) {
-        setPrivacyError(messages.privacyError);
-        privacyCheckbox.focus();
-        trackSubmitError("privacy_required", 0, "privacy");
         return;
       }
       if (!turnstileToken) {
@@ -698,19 +609,24 @@
             language: turnstileElement.getAttribute("data-language") || "auto",
             size: "flexible",
             theme: "auto",
+            appearance: "interaction-only",
             callback: function (token) {
               turnstileToken = String(token || "");
+              directButton.disabled = !turnstileToken;
             },
             "expired-callback": function () {
               turnstileToken = "";
+              directButton.disabled = true;
               setStatus(messages.verifyError, "error");
             },
             "timeout-callback": function () {
               turnstileToken = "";
+              directButton.disabled = true;
               setStatus(messages.verifyError, "error");
             },
             "error-callback": function () {
               turnstileToken = "";
+              directButton.disabled = true;
               setStatus(messages.genericError, "error");
             }
           });

@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-168";
-const UI_VERSION = "ui-20260718e";
+const CSS_VERSION = "apple-169";
+const UI_VERSION = "ui-20260718f";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -343,7 +343,7 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
     assert.equal(state.header.desktopTeam.backgroundImage, "none", `${scope}: desktop Jabbar Team link still has a background image`);
     assert(isTransparent(state.header.desktopTeam.backgroundColor), `${scope}: desktop Jabbar Team link background ${state.header.desktopTeam.backgroundColor}`);
     for (const side of ["Top", "Right", "Bottom", "Left"]) {
-      assert.equal(state.header.desktopTeam[`border${side}Width`], 0, `${scope}: desktop Jabbar Team link ${side.toLowerCase()} border`);
+      assert.equal(state.header.desktopTeam[`border${side}Width`], 1, `${scope}: desktop Jabbar Team link ${side.toLowerCase()} border`);
     }
     assert.equal(state.header.desktopTeam.boxShadow, "none", `${scope}: desktop Jabbar Team link still has a shadow`);
   }
@@ -427,80 +427,80 @@ function assertHeroCta(state, scope) {
   }
 }
 
-async function assertMobileSocialDisclosure(page, scope) {
-  const groups = await page.locator(".social-platform-group").evaluateAll((items) => items.map((group) => {
-    const cards = Array.from(group.querySelectorAll(":scope > .team-grid > .team-card"));
-    const toggle = group.querySelector(":scope > .social-platform-toggle");
-    const visibleCards = cards.filter((card) => getComputedStyle(card).display !== "none");
-    return {
-      total: cards.length,
-      visible: visibleCards.length,
-      toggle: toggle ? {
-        hidden: toggle.hidden || getComputedStyle(toggle).display === "none",
-        expanded: toggle.getAttribute("aria-expanded"),
-        controls: toggle.getAttribute("aria-controls"),
-        gridId: group.querySelector(":scope > .team-grid")?.id || "",
-        height: toggle.getBoundingClientRect().height
-      } : null
-    };
+async function assertFaqDefaultClosed(page, scope) {
+  const state = await page.evaluate(() => ({
+    promptCount: document.querySelectorAll(".faq-quick-tags-label").length,
+    items: Array.from(document.querySelectorAll(".faq-item"), (item) => item.open),
+    tags: Array.from(document.querySelectorAll(".faq-quick-tag"), (tag) => ({
+      expanded: tag.getAttribute("aria-expanded"),
+      active: tag.classList.contains("is-active")
+    }))
   }));
-
-  for (const [index, group] of groups.entries()) {
-    assert.equal(group.visible, Math.min(4, group.total), `${scope}: social group ${index + 1} collapsed card count`);
-    if (group.total <= 4) {
-      assert.equal(group.toggle, null, `${scope}: social group ${index + 1} has an unnecessary toggle`);
-      continue;
-    }
-    assert(group.toggle, `${scope}: social group ${index + 1} toggle missing`);
-    assert.equal(group.toggle.hidden, false, `${scope}: social group ${index + 1} toggle hidden on mobile`);
-    assert.equal(group.toggle.expanded, "false", `${scope}: social group ${index + 1} initial expanded state`);
-    assert.equal(group.toggle.controls, group.toggle.gridId, `${scope}: social group ${index + 1} aria-controls mismatch`);
-    assert(group.toggle.height >= 44, `${scope}: social group ${index + 1} toggle height ${group.toggle.height}`);
-  }
-
-  const toggle = page.locator(".social-platform-toggle").first();
-  if (!await toggle.count()) return;
-  await toggle.focus();
-  await toggle.press("Enter");
-  assert.equal(await toggle.getAttribute("aria-expanded"), "true", `${scope}: Enter did not expand social accounts`);
-  const expandedVisible = await toggle.locator("xpath=..").locator(":scope > .team-grid > .team-card").evaluateAll((cards) => cards.filter((card) => getComputedStyle(card).display !== "none").length);
-  const expandedTotal = await toggle.locator("xpath=..").locator(":scope > .team-grid > .team-card").count();
-  assert.equal(expandedVisible, expandedTotal, `${scope}: expanded social accounts remain hidden`);
-  await toggle.press("Space");
-  assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${scope}: Space did not collapse social accounts`);
-}
-
-async function assertDesktopSocialDisclosure(page, scope) {
-  const groups = await page.locator(".social-platform-group").evaluateAll((items) => items.map((group) => {
-    const cards = Array.from(group.querySelectorAll(":scope > .team-grid > .team-card"));
-    const toggle = group.querySelector(":scope > .social-platform-toggle");
-    return {
-      total: cards.length,
-      visible: cards.filter((card) => getComputedStyle(card).display !== "none").length,
-      toggleHidden: toggle ? toggle.hidden || getComputedStyle(toggle).display === "none" : null
-    };
-  }));
-  for (const [index, group] of groups.entries()) {
-    assert.equal(group.visible, Math.min(6, group.total), `${scope}: social group ${index + 1} desktop card count`);
-    if (group.total > 6) assert.equal(group.toggleHidden, false, `${scope}: social group ${index + 1} desktop toggle hidden`);
-  }
+  assert.equal(state.promptCount, 1, `${scope}: FAQ topic prompt count`);
+  assert.equal(state.items.length, 7, `${scope}: FAQ item count`);
+  assert(state.items.every((open) => !open), `${scope}: FAQ must start fully closed`);
+  assert.equal(state.tags.length, state.items.length, `${scope}: FAQ tag/item count mismatch`);
+  assert(state.tags.every((tag) => tag.expanded === "false" && !tag.active), `${scope}: FAQ tag starts selected`);
 }
 
 async function assertSocialPlatformFilters(page, scope) {
-  const groupCount = await page.locator(".social-platform-group").count();
+  const initial = await page.locator(".social-platform-group").evaluateAll((groups) => groups.map((group) => {
+    const cards = Array.from(group.querySelectorAll(":scope > .team-grid > .team-card"));
+    return {
+      platform: group.dataset.socialPlatform || "",
+      hidden: group.hidden || getComputedStyle(group).display === "none",
+      totalCards: cards.length,
+      visibleCards: cards.filter((card) => !card.hidden && getComputedStyle(card).display !== "none").length,
+      collapsedCards: cards.filter((card) => card.classList.contains("is-social-card-collapsed")).length,
+      disclosureButtons: group.querySelectorAll(":scope > .social-platform-toggle").length
+    };
+  }));
+  const groupCount = initial.length;
   const filters = page.locator(".social-platform-filter");
-  assert.equal(await filters.count(), groupCount + 1, `${scope}: platform filter count`);
-  assert.equal(await filters.first().getAttribute("aria-pressed"), "true", `${scope}: all-platform filter initial state`);
-  if (groupCount < 2) return;
-  await filters.nth(1).click();
+  const filterState = await filters.evaluateAll((buttons) => buttons.map((button) => ({
+    platform: button.dataset.socialFilter || "",
+    pressed: button.getAttribute("aria-pressed"),
+    active: button.classList.contains("is-active")
+  })));
+  assert.equal(groupCount, 4, `${scope}: social platform group count`);
+  assert.equal(filterState.length, groupCount, `${scope}: platform filters must contain four categories and no all button`);
+  assert(!filterState.some((filter) => filter.platform === "all"), `${scope}: deprecated all-platform filter remains`);
+  assert.deepEqual(filterState.map((filter) => filter.platform).sort(), initial.map((group) => group.platform).sort(), `${scope}: filter/platform keys mismatch`);
+  assert(filterState.every((filter) => filter.pressed === "false" && !filter.active), `${scope}: a platform filter starts selected`);
+  initial.forEach((group, index) => {
+    assert(group.platform, `${scope}: social group ${index + 1} lacks a platform key`);
+    assert.equal(group.hidden, false, `${scope}: social group ${index + 1} starts hidden`);
+    assert(group.totalCards > 0, `${scope}: social group ${index + 1} has no accounts`);
+    assert.equal(group.visibleCards, group.totalCards, `${scope}: social group ${index + 1} does not show every account by default`);
+    assert.equal(group.collapsedCards, 0, `${scope}: social group ${index + 1} retains collapsed account classes`);
+    assert.equal(group.disclosureButtons, 0, `${scope}: social group ${index + 1} retains a view-all disclosure`);
+  });
+
+  const selectedFilter = filters.first();
+  const selectedPlatform = await selectedFilter.getAttribute("data-social-filter");
+  await selectedFilter.click();
   assert.equal(await page.locator(".social-platform-group[hidden]").count(), groupCount - 1, `${scope}: platform filter hidden group count`);
+  assert.equal(await selectedFilter.getAttribute("aria-pressed"), "true", `${scope}: selected platform filter state`);
+  assert.equal(await page.locator(".social-platform-filter.is-active").count(), 1, `${scope}: active platform filter count`);
+  const visiblePlatforms = await page.locator(".social-platform-group:not([hidden])").evaluateAll((groups) => groups.map((group) => group.dataset.socialPlatform));
+  assert.deepEqual(visiblePlatforms, [selectedPlatform], `${scope}: selected platform did not isolate its account group`);
   const filterEvent = await page.evaluate(() => (window.dataLayer || [])
     .map((entry) => Array.from(entry))
     .filter((entry) => entry[0] === "event" && entry[1] === "social_platform_filter")
     .at(-1));
-  assert(filterEvent && filterEvent[2]?.platform && filterEvent[2].platform !== "all", `${scope}: platform filter analytics missing`);
-  await filters.first().click();
-  assert.equal(await page.locator(".social-platform-group[hidden]").count(), 0, `${scope}: all-platform filter did not restore groups`);
+  assert.equal(filterEvent?.[2]?.platform, selectedPlatform, `${scope}: selected platform analytics missing`);
+
+  await selectedFilter.click();
+  assert.equal(await page.locator(".social-platform-group[hidden]").count(), 0, `${scope}: clicking the active category did not restore all groups`);
+  assert.equal(await page.locator(".social-platform-filter.is-active").count(), 0, `${scope}: active category remained highlighted after reset`);
+  const resetPressed = await filters.evaluateAll((buttons) => buttons.map((button) => button.getAttribute("aria-pressed")));
+  assert(resetPressed.every((pressed) => pressed === "false"), `${scope}: category reset left an aria-pressed filter`);
+  const resetEvent = await page.evaluate(() => (window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .filter((entry) => entry[0] === "event" && entry[1] === "social_platform_filter")
+    .at(-1));
+  assert.equal(resetEvent?.[2]?.platform, "all", `${scope}: all-platform reset analytics missing`);
+
   await page.locator(".team-card[href]").first().evaluate((card) => {
     card.addEventListener("click", (event) => event.preventDefault(), { once: true });
   });
@@ -563,54 +563,88 @@ async function auditImages(page, scope) {
 
 async function assertMobileGalleryScroll(page, scope) {
   await page.locator(".sourcing-gallery").scrollIntoViewIfNeeded();
-  const rails = await page.locator(".gallery-rail").evaluateAll(async (elements) => {
-    const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-    const results = [];
-    for (const rail of elements) {
-      const track = rail.querySelector(".gallery-track");
-      const railStyle = getComputedStyle(rail);
+  const railCount = await page.locator(".gallery-rail").count();
+  assert.equal(railCount, 2, `${scope}: gallery rail count`);
+
+  for (let index = 0; index < railCount; index += 1) {
+    const rail = page.locator(".gallery-rail").nth(index);
+    await rail.evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
+    await page.waitForFunction((railIndex) => {
+      const currentRail = document.querySelectorAll(".gallery-rail")[railIndex];
+      return currentRail?.querySelector(".gallery-track")?.classList.contains("is-gallery-mobile-loop-ready");
+    }, index);
+
+    await page.waitForTimeout(100);
+    const autoStart = await rail.evaluate((element) => element.scrollLeft);
+    await page.waitForFunction(({ railIndex, start }) => {
+      const currentRail = document.querySelectorAll(".gallery-rail")[railIndex];
+      return currentRail && currentRail.scrollLeft >= start + 1;
+    }, { railIndex: index, start: autoStart }, { timeout: 2500 });
+    const autoEnd = await rail.evaluate((element) => element.scrollLeft);
+    assert(autoEnd >= autoStart + 1, `${scope}: rail ${index + 1} mobile auto-scroll did not advance (${autoStart} -> ${autoEnd})`);
+
+    const state = await rail.evaluate(async (element) => {
+      const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+      const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+      const track = element.querySelector(".gallery-track");
+      const originals = Array.from(track.querySelectorAll(':scope > .gallery-frame:not([data-gallery-clone="true"])'));
+      const clones = Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone="true"]'));
+      const loopDistance = clones[0] && originals[0] ? clones[0].offsetLeft - originals[0].offsetLeft : 0;
+      const maxScroll = element.scrollWidth - element.clientWidth;
+      const PointerEventCtor = window.PointerEvent || window.Event;
+      element.dispatchEvent(new PointerEventCtor("pointerdown", { bubbles: true, pointerId: 1, pointerType: "touch" }));
+      const manualStart = Math.min(Math.max(160, loopDistance * 0.25), Math.max(160, maxScroll - 400));
+      element.scrollLeft = manualStart;
+      await nextFrame();
+      const rightTarget = Math.min(manualStart + 220, maxScroll - 40);
+      element.scrollLeft = rightTarget;
+      await nextFrame();
+      const movedRight = element.scrollLeft;
+      const leftTarget = Math.max(40, movedRight - 120);
+      element.scrollLeft = leftTarget;
+      await nextFrame();
+      const movedLeft = element.scrollLeft;
+      await delay(140);
+      const pausedPosition = element.scrollLeft;
+      element.dispatchEvent(new PointerEventCtor("pointerup", { bubbles: true, pointerId: 1, pointerType: "touch" }));
+      const railStyle = getComputedStyle(element);
       const trackStyle = getComputedStyle(track);
-      rail.scrollLeft = 0;
-      await nextFrame();
-      rail.scrollLeft = 220;
-      await nextFrame();
-      const moved = rail.scrollLeft;
-      rail.scrollLeft = rail.scrollWidth;
-      await nextFrame();
-      const reachedEnd = rail.scrollLeft;
-      const maxScroll = rail.scrollWidth - rail.clientWidth;
-      results.push({
+      return {
         overflowX: railStyle.overflowX,
-        clientWidth: rail.clientWidth,
-        scrollWidth: rail.scrollWidth,
-        moved,
-        reachedEnd,
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
         maxScroll,
+        loopDistance,
+        manualStart,
+        movedRight,
+        movedLeft,
+        pausedPosition,
         animationName: trackStyle.animationName,
         transform: trackStyle.transform,
-        role: rail.getAttribute("role"),
-        tabIndex: rail.tabIndex,
-        originalCount: track.querySelectorAll(':scope > .gallery-frame:not([data-gallery-clone="true"])').length,
-        cloneCount: track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone="true"]').length,
-        clonesHidden: Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone="true"]')).every((frame) => getComputedStyle(frame).display === "none")
-      });
-      rail.scrollLeft = 0;
-    }
-    return results;
-  });
+        mobileReady: track.classList.contains("is-gallery-mobile-loop-ready"),
+        role: element.getAttribute("role"),
+        tabIndex: element.tabIndex,
+        originalCount: originals.length,
+        cloneCount: clones.length,
+        clonesVisible: clones.every((frame) => getComputedStyle(frame).display !== "none"),
+        clonesHiddenFromA11y: clones.every((frame) => frame.getAttribute("aria-hidden") === "true")
+      };
+    });
 
-  assert.equal(rails.length, 2, `${scope}: gallery rail count`);
-  for (const [index, rail] of rails.entries()) {
-    assert(["auto", "scroll"].includes(rail.overflowX), `${scope}: rail ${index + 1} overflow-x is ${rail.overflowX}`);
-    assert(rail.scrollWidth > rail.clientWidth + 120, `${scope}: rail ${index + 1} is not horizontally scrollable`);
-    assert(rail.moved >= 100, `${scope}: rail ${index + 1} rejected a horizontal scroll`);
-    assert(Math.abs(rail.reachedEnd - rail.maxScroll) <= 2, `${scope}: rail ${index + 1} cannot reach its final image`);
-    assert.equal(rail.animationName, "none", `${scope}: rail ${index + 1} still competes with touch using animation ${rail.animationName}`);
-    assert(["none", "matrix(1, 0, 0, 1, 0, 0)"].includes(rail.transform), `${scope}: rail ${index + 1} track remains transformed (${rail.transform})`);
-    assert.equal(rail.role, "region", `${scope}: rail ${index + 1} region role`);
-    assert.equal(rail.tabIndex, 0, `${scope}: rail ${index + 1} keyboard access`);
-    assert.equal(rail.cloneCount, rail.originalCount, `${scope}: rail ${index + 1} desktop loop clone count`);
-    assert.equal(rail.clonesHidden, true, `${scope}: rail ${index + 1} loop clones must stay hidden on mobile`);
+    assert(["auto", "scroll"].includes(state.overflowX), `${scope}: rail ${index + 1} overflow-x is ${state.overflowX}`);
+    assert(state.scrollWidth > state.clientWidth + 120, `${scope}: rail ${index + 1} is not horizontally scrollable`);
+    assert(state.loopDistance > state.clientWidth, `${scope}: rail ${index + 1} loop distance is invalid (${state.loopDistance})`);
+    assert(state.movedRight >= state.manualStart + 100, `${scope}: rail ${index + 1} rejected a rightward scroll`);
+    assert(state.movedLeft <= state.movedRight - 60, `${scope}: rail ${index + 1} rejected a leftward scroll`);
+    assert(Math.abs(state.pausedPosition - state.movedLeft) <= 1, `${scope}: rail ${index + 1} moved while pointer-paused (${state.movedLeft} -> ${state.pausedPosition})`);
+    assert.equal(state.animationName, "none", `${scope}: rail ${index + 1} still competes with touch using animation ${state.animationName}`);
+    assert(["none", "matrix(1, 0, 0, 1, 0, 0)"].includes(state.transform), `${scope}: rail ${index + 1} track remains transformed (${state.transform})`);
+    assert.equal(state.mobileReady, true, `${scope}: rail ${index + 1} mobile loop was not initialized`);
+    assert.equal(state.role, "region", `${scope}: rail ${index + 1} region role`);
+    assert.equal(state.tabIndex, 0, `${scope}: rail ${index + 1} keyboard access`);
+    assert.equal(state.cloneCount, state.originalCount, `${scope}: rail ${index + 1} loop clone count`);
+    assert.equal(state.clonesVisible, true, `${scope}: rail ${index + 1} loop clones are hidden on mobile`);
+    assert.equal(state.clonesHiddenFromA11y, true, `${scope}: rail ${index + 1} loop clones remain exposed to assistive tech`);
   }
 }
 
@@ -673,6 +707,7 @@ async function assertCompanyProofLayout(page, scope, mobile) {
   await page.locator("#services").scrollIntoViewIfNeeded();
   const state = await page.evaluate(() => {
     const rect = (element) => {
+      if (!element) return null;
       const box = element.getBoundingClientRect();
       return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, width: box.width, height: box.height };
     };
@@ -680,15 +715,28 @@ async function assertCompanyProofLayout(page, scope, mobile) {
     const metrics = document.querySelector("#services .company-metrics");
     const cards = Array.from(document.querySelectorAll("#services .company-metric-card"));
     const labels = Array.from(document.querySelectorAll("#services .company-metric-card span"));
-    const aboutCopy = document.querySelector(".company-about .company-story > p:not(.section-code)");
+    const story = document.querySelector(".company-about .company-story");
+    const identity = story?.querySelector(":scope > .company-identity");
+    const identityLines = identity ? [
+      identity.querySelector(":scope > .company-identity-title"),
+      ...identity.querySelectorAll(":scope > .company-identity-legal > span")
+    ] : [];
     return {
       photo: rect(photo),
       metrics: rect(metrics),
       cards: cards.map((card) => ({ rect: rect(card), textAlign: getComputedStyle(card).textAlign })),
       labelFonts: labels.map((label) => Number.parseFloat(getComputedStyle(label).fontSize)),
       labelAlignments: labels.map((label) => getComputedStyle(label).textAlign),
-      aboutFont: Number.parseFloat(getComputedStyle(aboutCopy).fontSize),
-      aboutAlign: getComputedStyle(aboutCopy).textAlign
+      story: rect(story),
+      identity: rect(identity),
+      identityTextAlign: identity ? getComputedStyle(identity).textAlign : "",
+      identityBlocksOnPage: document.querySelectorAll(".company-identity").length,
+      identityLines: identityLines.map((line) => ({
+        text: line?.textContent.replace(/\s+/g, " ").trim() || "",
+        rect: rect(line),
+        display: line ? getComputedStyle(line).display : "none",
+        fontSize: line ? Number.parseFloat(getComputedStyle(line).fontSize) : 0
+      }))
     };
   });
 
@@ -699,8 +747,20 @@ async function assertCompanyProofLayout(page, scope, mobile) {
   assert(state.cards.every((card) => card.textAlign === "center"), `${scope}: company metric card text is not centered`);
   assert(state.labelAlignments.every((value) => value === "center"), `${scope}: company metric labels are not centered`);
   assert(state.labelFonts.every((value) => value >= 14.5), `${scope}: company metric label is too small (${state.labelFonts.join(", ")})`);
-  assert(state.aboutFont >= 16, `${scope}: company introduction text is too small (${state.aboutFont})`);
-  assert.equal(state.aboutAlign, "center", `${scope}: company introduction copy is not aligned`);
+  assert.equal(state.identityBlocksOnPage, 1, `${scope}: company identity block count`);
+  assert(state.story && state.identity, `${scope}: company identity is not inside the About card`);
+  assert.equal(state.identityLines.length, 3, `${scope}: company identity must contain exactly three structural lines`);
+  state.identityLines.forEach((line, index) => {
+    assert(line.text, `${scope}: company identity line ${index + 1} is empty`);
+    assert(line.rect && line.rect.width > 0 && line.rect.height > 0, `${scope}: company identity line ${index + 1} is not visible`);
+    assert.notEqual(line.display, "none", `${scope}: company identity line ${index + 1} is hidden`);
+    assert(line.fontSize >= 13, `${scope}: company identity line ${index + 1} is too small (${line.fontSize}px)`);
+    assert(line.rect.left >= state.story.left - 1 && line.rect.right <= state.story.right + 1, `${scope}: company identity line ${index + 1} escapes the About card`);
+  });
+  assert.equal(state.identityTextAlign, "center", `${scope}: company identity is not centered`);
+  assert(state.identity.top >= state.story.top && state.identity.bottom <= state.story.bottom + 1, `${scope}: company identity block escapes the About card`);
+  assert(state.identityLines[0].rect.top <= state.identityLines[1].rect.top, `${scope}: company identity title order`);
+  assert(state.identityLines[1].rect.top <= state.identityLines[2].rect.top, `${scope}: company identity legal-line order`);
 
   if (mobile) {
     assert(Math.abs(state.cards[0].rect.top - state.cards[1].rect.top) <= 2, `${scope}: first mobile metric row is misaligned`);
@@ -737,12 +797,12 @@ async function assertFooterJoin(page, scope) {
   });
 
   assert.notEqual(state.gap, null, `${scope}: footer join elements are missing`);
-  assert(Math.abs(state.gap) <= 1, `${scope}: ${state.gap}px blank seam remains before footer`);
-  assert.equal(state.teamPaddingBottom, 0, `${scope}: team bottom padding reintroduced a footer seam`);
+  assert(state.teamPaddingBottom >= 12 && state.teamPaddingBottom <= 40, `${scope}: unexpected footer breathing room ${state.teamPaddingBottom}px`);
+  assert(Math.abs(state.gap - state.teamPaddingBottom) <= 1, `${scope}: footer gap ${state.gap}px does not match team padding ${state.teamPaddingBottom}px`);
   assert.equal(state.socialMarginBottom, 0, `${scope}: social bottom margin reintroduced a footer seam`);
   assert.equal(state.footerMarginTop, 0, `${scope}: footer top margin reintroduced a seam`);
   assert.equal(state.gmail?.text, "qianjiabao1999@gmail.com", `${scope}: footer Gmail text changed`);
-  assert.notEqual(state.gmail.whiteSpace, "nowrap", `${scope}: Gmail cannot wrap`);
+  assert.equal(state.gmail.whiteSpace, "nowrap", `${scope}: Gmail is allowed to split inside the address`);
   assert.notEqual(state.gmail.overflow, "hidden", `${scope}: Gmail remains clipped`);
   assert.notEqual(state.gmail.textOverflow, "ellipsis", `${scope}: Gmail remains ellipsized`);
   assert(state.gmail.scrollWidth <= state.gmail.clientWidth + 1, `${scope}: Gmail still overflows (${state.gmail.scrollWidth}/${state.gmail.clientWidth})`);
@@ -778,11 +838,12 @@ async function homeMatrix(browserType) {
       await assertFooterJoin(page, scope);
       assert.equal(state.counts.faqTags, 7, `${scope}: FAQ tag count`);
       assert.equal(state.counts.faqItems, 7, `${scope}: FAQ item count`);
+      await assertFaqDefaultClosed(page, scope);
       assert.equal(state.counts.countries, 0, `${scope}: removed country strip returned`);
       assert.equal(state.counts.metrics, 5, `${scope}: current five company metrics must remain`);
       assert.equal(state.counts.jointBrandLockups, 1, `${scope}: joint brand lockup count`);
       assert.equal(state.counts.companyIdentityBlocks, 1, `${scope}: company identity block count`);
-      assert(state.counts.socialFilters >= 2, `${scope}: social platform filters missing`);
+      assert.equal(state.counts.socialFilters, 4, `${scope}: social platform filter count`);
       assert.equal(state.counts.progress, 1, `${scope}: progress count`);
       assert(state.rects.social, `${scope}: social section missing`);
       assert(state.rects.socialHeading, `${scope}: social heading missing`);
@@ -796,11 +857,9 @@ async function homeMatrix(browserType) {
       if (viewport.mobile) {
         await assertMobileGalleryScroll(page, scope);
         assert.equal(state.counts.qrCards, 0, `${scope}: QR hover card must not initialize on touch`);
-        await assertMobileSocialDisclosure(page, scope);
         if (item.rtl) await assertMobileRtlProcessLayout(page, scope);
       } else {
         assert.equal(state.counts.qrCards, 1, `${scope}: desktop QR card missing`);
-        await assertDesktopSocialDisclosure(page, scope);
         assertDesktopFooter(state, scope, { contacts: true });
         await assertHeroCtaHover(page, scope);
       }
@@ -1047,6 +1106,8 @@ async function interactionChecks(browserType) {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.waitForTimeout(180);
 
+  await assertFaqDefaultClosed(page, "desktop FAQ interaction");
+  let faqScrollMoves = 0;
   for (let index = 0; index < 7; index += 1) {
     const button = page.locator(".faq-quick-tag").nth(index);
     await button.scrollIntoViewIfNeeded();
@@ -1061,12 +1122,46 @@ async function interactionChecks(browserType) {
       assert.equal(focusStyle.color, "rgb(15, 118, 110)", `FAQ focus outline color ${focusStyle.color}`);
       assert.equal(focusStyle.width, "2px", `FAQ focus outline width ${focusStyle.width}`);
     }
+    const before = await page.evaluate(() => ({ href: location.href, scrollY: window.scrollY }));
     await page.keyboard.press("Enter");
-    await page.waitForTimeout(30);
+    await page.waitForFunction((itemIndex) => document.querySelectorAll(".faq-item")[itemIndex]?.open, index);
+    await page.waitForTimeout(520);
     const open = await page.locator(".faq-item").evaluateAll((items) => items.map((item) => item.open));
     assert.equal(open.filter(Boolean).length, 1, `FAQ tag ${index + 1}: multiple details open`);
     assert.equal(open[index], true, `FAQ tag ${index + 1}: wrong detail opened`);
+    assert.equal(await button.getAttribute("aria-expanded"), "true", `FAQ tag ${index + 1}: aria-expanded state`);
+    assert.equal(await button.evaluate((element) => element.classList.contains("is-active")), true, `FAQ tag ${index + 1}: active state`);
+    const after = await page.evaluate((itemIndex) => {
+      const item = document.querySelectorAll(".faq-item")[itemIndex];
+      const box = item.getBoundingClientRect();
+      const navBottom = document.querySelector(".site-nav")?.getBoundingClientRect().bottom || 0;
+      return {
+        href: location.href,
+        scrollY: window.scrollY,
+        itemTop: box.top,
+        itemBottom: box.bottom,
+        navBottom,
+        focusedTag: document.activeElement?.classList.contains("faq-quick-tag") || false,
+        focusedIndex: Array.from(document.querySelectorAll(".faq-quick-tag")).indexOf(document.activeElement)
+      };
+    }, index);
+    assert.equal(after.href, before.href, `FAQ tag ${index + 1}: click navigated away or changed the URL`);
+    assert(after.itemBottom > after.navBottom && after.itemTop < 900, `FAQ tag ${index + 1}: target item was not scrolled into view`);
+    assert.equal(after.focusedTag, true, `FAQ tag ${index + 1}: focus was moved away from the quick tag`);
+    assert.equal(after.focusedIndex, index, `FAQ tag ${index + 1}: focus moved to a different control`);
+    if (Math.abs(after.scrollY - before.scrollY) > 10) faqScrollMoves += 1;
+
+    if (index === 0) {
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(120);
+      const repeated = await page.locator(".faq-item").evaluateAll((items) => items.map((item) => item.open));
+      assert.equal(repeated.filter(Boolean).length, 1, "FAQ repeated tag click changed the open-item count");
+      assert.equal(repeated[0], true, "FAQ repeated tag click closed its detail");
+      assert.equal(await button.getAttribute("aria-expanded"), "true", "FAQ repeated tag click reset aria-expanded");
+      assert.equal(await button.evaluate((element) => document.activeElement === element), true, "FAQ repeated tag click stole focus");
+    }
   }
+  assert(faqScrollMoves >= 1, "FAQ quick tags never scrolled to their target detail");
   assert.equal(errors.length, 0, `desktop interaction console errors: ${errors.join(" | ")}`);
   await desktop.close();
 
@@ -1083,33 +1178,66 @@ async function interactionChecks(browserType) {
 
   const galleryRail = mobilePage.locator(".gallery-rail").first();
   await galleryRail.scrollIntoViewIfNeeded();
-  await galleryRail.evaluate((rail) => { rail.scrollLeft = 0; });
+  await mobilePage.waitForFunction(() => document.querySelector(".gallery-rail .gallery-track")?.classList.contains("is-gallery-mobile-loop-ready"));
+  const loopDistance = await galleryRail.evaluate((rail) => {
+    const firstOriginal = rail.querySelector('.gallery-frame:not([data-gallery-clone="true"])');
+    const firstClone = rail.querySelector('.gallery-frame[data-gallery-clone="true"]');
+    return firstClone && firstOriginal ? firstClone.offsetLeft - firstOriginal.offsetLeft : 0;
+  });
+  assert(loopDistance > 600, `mobile gallery loop distance is invalid (${loopDistance}px)`);
+  await galleryRail.evaluate((rail, distance) => { rail.scrollLeft = distance * 0.3; }, loopDistance);
   const galleryBox = await galleryRail.boundingBox();
   assert(galleryBox, "mobile gallery rail has no touchable bounding box");
   const touchY = galleryBox.y + Math.min(galleryBox.height / 2, 180);
-  const touchStartX = galleryBox.x + Math.min(galleryBox.width - 28, 340);
-  const touchEndX = galleryBox.x + 48;
   const cdp = await mobile.newCDPSession(mobilePage);
-  await cdp.send("Input.dispatchTouchEvent", {
-    type: "touchStart",
-    touchPoints: [{ x: touchStartX, y: touchY, radiusX: 7, radiusY: 7, force: 1 }]
-  });
-  for (const ratio of [0.2, 0.4, 0.6, 0.8, 1]) {
+  const dispatchTouchSwipe = async (startX, endX) => {
     await cdp.send("Input.dispatchTouchEvent", {
-      type: "touchMove",
-      touchPoints: [{
-        x: touchStartX + ((touchEndX - touchStartX) * ratio),
-        y: touchY,
-        radiusX: 7,
-        radiusY: 7,
-        force: 1
-      }]
+      type: "touchStart",
+      touchPoints: [{ x: startX, y: touchY, radiusX: 7, radiusY: 7, force: 1 }]
     });
-  }
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    for (const ratio of [0.2, 0.4, 0.6, 0.8, 1]) {
+      // Give Chromium realistic gesture timing so native fling momentum does
+      // not masquerade as the gallery's JavaScript auto-scroll.
+      await mobilePage.waitForTimeout(32);
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [{
+          x: startX + ((endX - startX) * ratio),
+          y: touchY,
+          radiusX: 7,
+          radiusY: 7,
+          force: 1
+        }]
+      });
+    }
+    await mobilePage.waitForTimeout(32);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  };
+
+  const rightEdge = galleryBox.x + Math.min(galleryBox.width - 28, 340);
+  const leftEdge = galleryBox.x + 48;
+  const beforeLeftSwipe = await galleryRail.evaluate((rail) => rail.scrollLeft);
+  await dispatchTouchSwipe(rightEdge, leftEdge);
   await mobilePage.waitForTimeout(350);
-  const touchScrollLeft = await galleryRail.evaluate((rail) => rail.scrollLeft);
-  assert(touchScrollLeft >= 120, `mobile gallery ignored a real horizontal touch swipe (${touchScrollLeft}px)`);
+  const afterLeftSwipe = await galleryRail.evaluate((rail) => rail.scrollLeft);
+  assert(afterLeftSwipe >= beforeLeftSwipe + 120, `mobile gallery ignored a real left swipe (${beforeLeftSwipe} -> ${afterLeftSwipe})`);
+  await mobilePage.waitForTimeout(280);
+  const leftPaused = await galleryRail.evaluate((rail) => rail.scrollLeft);
+  assert(Math.abs(leftPaused - afterLeftSwipe) <= 2, `mobile gallery did not pause after touch (${afterLeftSwipe} -> ${leftPaused})`);
+
+  await dispatchTouchSwipe(leftEdge, rightEdge);
+  await mobilePage.waitForTimeout(350);
+  const afterRightSwipe = await galleryRail.evaluate((rail) => rail.scrollLeft);
+  assert(afterRightSwipe <= leftPaused - 120, `mobile gallery ignored a real right swipe (${leftPaused} -> ${afterRightSwipe})`);
+  assert(afterRightSwipe > 80 && afterRightSwipe < loopDistance - 80, `mobile gallery test position is too close to a loop boundary (${afterRightSwipe}/${loopDistance})`);
+  await mobilePage.waitForTimeout(280);
+  const resumeBase = await galleryRail.evaluate((rail) => rail.scrollLeft);
+  assert(Math.abs(resumeBase - afterRightSwipe) <= 2, `mobile gallery did not remain paused after the second touch (${afterRightSwipe} -> ${resumeBase})`);
+  await mobilePage.waitForTimeout(2100);
+  const resumedPosition = await galleryRail.evaluate((rail) => rail.scrollLeft);
+  assert(resumedPosition > resumeBase + 3, `mobile gallery did not resume auto-scroll (${resumeBase} -> ${resumedPosition})`);
+  assert(resumedPosition < resumeBase + 80, `mobile gallery jumped instead of resuming continuously (${resumeBase} -> ${resumedPosition})`);
+  assert(resumedPosition > 80, `mobile gallery jumped back to the first image (${resumedPosition}px)`);
   await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-gallery-native-swipe-390x844.png` });
   assert.equal(await mobilePage.locator(".whatsapp-qr-card").count(), 0, "touch page initialized QR hover card");
   assert.equal(mobileErrors.length, 0, `mobile interaction console errors: ${mobileErrors.join(" | ")}`);
@@ -1337,6 +1465,9 @@ for (const item of HOME_PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes
   await assertFooterJoin(webkitPage, `WebKit ${item.locale}`);
   await assertMobileGalleryScroll(webkitPage, `WebKit ${item.locale}`);
   assert.equal(state.counts.faqTags, 7, `WebKit ${item.locale}: FAQ tags`);
+  await assertFaqDefaultClosed(webkitPage, `WebKit ${item.locale}`);
+  assert.equal(state.counts.socialFilters, 4, `WebKit ${item.locale}: social platform filters`);
+  await assertSocialPlatformFilters(webkitPage, `WebKit ${item.locale}`);
   assert.equal(state.counts.countries, 0, `WebKit ${item.locale}: removed country strip returned`);
   if (item.locale === "zh") {
     await webkitPage.evaluate(() => document.querySelector('a[href="#social-accounts"]')?.click());

@@ -1189,11 +1189,15 @@ try {
   ]);
   const inquiryBridgeState = await bridgePage.evaluate(() => {
     const form = document.querySelector(".js-inquiry-form");
+    const isVisible = (field) => Boolean(field && field.getClientRects().length);
     return {
       product: form?.elements.product?.value || "",
       quantity: form?.elements.quantity?.value || "",
       note: form?.elements.note?.value || "",
-      optionalOpen: Boolean(document.querySelector(".inquiry-optional-details")?.open),
+      productVisible: isVisible(form?.elements.product),
+      quantityVisible: isVisible(form?.elements.quantity),
+      noteVisible: isVisible(form?.elements.note),
+      detailsCount: form?.querySelectorAll("details").length ?? -1,
       stored: sessionStorage.getItem("jabbarCalcResult")
     };
   });
@@ -1202,7 +1206,10 @@ try {
   assert.match(inquiryBridgeState.note, /订单自动统计结果/, "Excel inquiry result title handoff");
   assert.match(inquiryBridgeState.note, /总体积: 9\.5 m³/, "Excel inquiry volume handoff");
   assert.match(inquiryBridgeState.note, /qa-order-analyzer-190-products\.xlsx/, "Excel inquiry source file handoff");
-  assert.equal(inquiryBridgeState.optionalOpen, true, "Excel inquiry optional fields did not open for prefilled result");
+  assert.equal(inquiryBridgeState.productVisible, true, "Excel inquiry prefilled product field is not visible");
+  assert.equal(inquiryBridgeState.quantityVisible, true, "Excel inquiry prefilled quantity field is not visible");
+  assert.equal(inquiryBridgeState.noteVisible, true, "Excel inquiry prefilled note field is not visible");
+  assert.equal(inquiryBridgeState.detailsCount, 0, "Excel inquiry form still contains collapsible details");
   assert.equal(inquiryBridgeState.stored, null, "Excel inquiry handoff was not consumed");
   assert.deepEqual(bridgeErrors, [], `Excel inquiry bridge console errors: ${bridgeErrors.join(" | ")}`);
   await bridgePage.close();

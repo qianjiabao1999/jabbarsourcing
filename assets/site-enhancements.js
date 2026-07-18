@@ -6,82 +6,72 @@
     zh: {
       scan: "手机扫码直聊", reply: "在线 · 24 小时内回复",
       shipments: "最近发运", cbmTitle: "集装箱装载示意", quoteWithResult: "用此结果获取报价",
-      showAllAccounts: "查看全部账号", showFewerAccounts: "收起账号",
-      calculatorModes: "选择计算方式", quickMode: "快速计算", excelMode: "Excel 订单分析",
-      allPlatforms: "全部平台", socialFilter: "按平台筛选账号",
-      faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发"]
+      calculatorModes: "选择计算方式", quickMode: "快速计算", excelMode: "Excel 订单分析", calculatorOptional: "产品与补充信息（可选）",
+      socialFilter: "按平台筛选账号",
+      faqPrompt: "选择问题查看答案", faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发"]
     },
     en: {
       scan: "Scan to chat", reply: "Online · replies within 24h",
       shipments: "Recent shipments", cbmTitle: "Container loading illustration", quoteWithResult: "Get a quote with this result",
-      showAllAccounts: "View all accounts", showFewerAccounts: "Show fewer accounts",
-      calculatorModes: "Choose calculation mode", quickMode: "Quick calculation", excelMode: "Excel order analysis",
-      allPlatforms: "All platforms", socialFilter: "Filter accounts by platform",
-      faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping"]
+      calculatorModes: "Choose calculation mode", quickMode: "Quick calculation", excelMode: "Excel order analysis", calculatorOptional: "Product and extra details (optional)",
+      socialFilter: "Filter accounts by platform",
+      faqPrompt: "Choose a topic to view its answer", faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping"]
     },
     es: {
       scan: "Escanea para chatear", reply: "En línea · respuesta en 24 h",
       shipments: "Envíos recientes", cbmTitle: "Ilustración de carga del contenedor", quoteWithResult: "Solicitar cotización con este resultado",
-      showAllAccounts: "Ver todas las cuentas", showFewerAccounts: "Mostrar menos cuentas",
-      calculatorModes: "Elegir modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análisis de Excel",
-      allPlatforms: "Todas las plataformas", socialFilter: "Filtrar cuentas por plataforma",
-      faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo"]
+      calculatorModes: "Elegir modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análisis de Excel", calculatorOptional: "Producto y detalles extra (opcional)",
+      socialFilter: "Filtrar cuentas por plataforma",
+      faqPrompt: "Elige un tema para ver la respuesta", faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo"]
     },
     ar: {
       scan: "امسح للدردشة", reply: "متصل · نرد خلال 24 ساعة",
       shipments: "الشحنات الأخيرة", cbmTitle: "رسم توضيحي لتحميل الحاوية", quoteWithResult: "اطلب عرض سعر بهذه النتيجة",
-      showAllAccounts: "عرض كل الحسابات", showFewerAccounts: "عرض حسابات أقل",
-      calculatorModes: "اختر طريقة الحساب", quickMode: "حساب سريع", excelMode: "تحليل طلبات Excel",
-      allPlatforms: "جميع المنصات", socialFilter: "تصفية الحسابات حسب المنصة",
-      faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر"]
+      calculatorModes: "اختر طريقة الحساب", quickMode: "حساب سريع", excelMode: "تحليل طلبات Excel", calculatorOptional: "المنتج وتفاصيل إضافية (اختياري)",
+      socialFilter: "تصفية الحسابات حسب المنصة",
+      faqPrompt: "اختر سؤالاً لعرض الإجابة", faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر"]
     },
     fr: {
       scan: "Scannez pour discuter", reply: "En ligne · réponse sous 24 h",
       shipments: "Expéditions récentes", cbmTitle: "Illustration du chargement du conteneur", quoteWithResult: "Demander un devis avec ce résultat",
-      showAllAccounts: "Voir tous les comptes", showFewerAccounts: "Afficher moins de comptes",
-      calculatorModes: "Choisir le mode de calcul", quickMode: "Calcul rapide", excelMode: "Analyse Excel",
-      allPlatforms: "Toutes les plateformes", socialFilter: "Filtrer les comptes par plateforme",
-      faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe"]
+      calculatorModes: "Choisir le mode de calcul", quickMode: "Calcul rapide", excelMode: "Analyse Excel", calculatorOptional: "Produit et précisions (facultatif)",
+      socialFilter: "Filtrer les comptes par plateforme",
+      faqPrompt: "Choisissez un sujet pour voir la réponse", faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe"]
     },
     pt: {
       scan: "Escaneie para conversar", reply: "Online · resposta em até 24 h",
       shipments: "Envios recentes", cbmTitle: "Ilustração do carregamento do contêiner", quoteWithResult: "Pedir cotação com este resultado",
-      showAllAccounts: "Ver todas as contas", showFewerAccounts: "Mostrar menos contas",
-      calculatorModes: "Escolher modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análise de Excel",
-      allPlatforms: "Todas as plataformas", socialFilter: "Filtrar contas por plataforma",
-      faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping"]
+      calculatorModes: "Escolher modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análise de Excel", calculatorOptional: "Produto e detalhes extras (opcional)",
+      socialFilter: "Filtrar contas por plataforma",
+      faqPrompt: "Escolha um tema para ver a resposta", faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping"]
     },
     ru: {
       scan: "Сканируйте для чата", reply: "Онлайн · ответим в течение 24 ч",
       shipments: "Последние отправки", cbmTitle: "Схема загрузки контейнера", quoteWithResult: "Запросить расчёт с этим результатом",
-      showAllAccounts: "Показать все аккаунты", showFewerAccounts: "Свернуть список",
-      calculatorModes: "Выбор режима расчета", quickMode: "Быстрый расчет", excelMode: "Анализ Excel",
-      allPlatforms: "Все платформы", socialFilter: "Фильтр аккаунтов по платформе",
-      faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг"]
+      calculatorModes: "Выбор режима расчета", quickMode: "Быстрый расчет", excelMode: "Анализ Excel", calculatorOptional: "Товар и дополнительные данные (необязательно)",
+      socialFilter: "Фильтр аккаунтов по платформе",
+      faqPrompt: "Выберите тему, чтобы увидеть ответ", faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг"]
     },
     de: {
       scan: "Zum Chatten scannen", reply: "Online · Antwort innerhalb 24 Std.",
       shipments: "Letzte Sendungen", cbmTitle: "Darstellung der Containerbeladung", quoteWithResult: "Mit diesem Ergebnis Angebot anfragen",
-      showAllAccounts: "Alle Konten anzeigen", showFewerAccounts: "Weniger Konten anzeigen",
-      calculatorModes: "Berechnungsart wählen", quickMode: "Schnellberechnung", excelMode: "Excel-Analyse",
-      allPlatforms: "Alle Plattformen", socialFilter: "Konten nach Plattform filtern",
-      faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping"]
+      calculatorModes: "Berechnungsart wählen", quickMode: "Schnellberechnung", excelMode: "Excel-Analyse", calculatorOptional: "Produkt und Zusatzangaben (optional)",
+      socialFilter: "Konten nach Plattform filtern",
+      faqPrompt: "Thema auswählen und Antwort anzeigen", faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping"]
     },
     it: {
       scan: "Scansiona per chattare", reply: "Online · risposta entro 24 ore",
       shipments: "Spedizioni recenti", cbmTitle: "Illustrazione del carico del container", quoteWithResult: "Richiedi un preventivo con questo risultato",
-      showAllAccounts: "Vedi tutti gli account", showFewerAccounts: "Mostra meno account",
-      calculatorModes: "Scegli modalità di calcolo", quickMode: "Calcolo rapido", excelMode: "Analisi Excel",
-      allPlatforms: "Tutte le piattaforme", socialFilter: "Filtra account per piattaforma",
-      faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping"]
+      calculatorModes: "Scegli modalità di calcolo", quickMode: "Calcolo rapido", excelMode: "Analisi Excel", calculatorOptional: "Prodotto e dettagli extra (facoltativi)",
+      socialFilter: "Filtra account per piattaforma",
+      faqPrompt: "Scegli un argomento per vedere la risposta", faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping"]
     },
     tr: {
       scan: "Sohbet için tarayın", reply: "Çevrimiçi · 24 saat içinde yanıt",
       shipments: "Son gönderiler", cbmTitle: "Konteyner yükleme görseli", quoteWithResult: "Bu sonuçla teklif iste",
-      showAllAccounts: "Tüm hesapları göster", showFewerAccounts: "Daha az hesap göster",
-      calculatorModes: "Hesaplama yöntemini seçin", quickMode: "Hızlı hesaplama", excelMode: "Excel analizi",
-      allPlatforms: "Tüm platformlar", socialFilter: "Platforma göre hesapları filtrele",
-      faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış"]
+      calculatorModes: "Hesaplama yöntemini seçin", quickMode: "Hızlı hesaplama", excelMode: "Excel analizi", calculatorOptional: "Ürün ve ek ayrıntılar (isteğe bağlı)",
+      socialFilter: "Platforma göre hesapları filtrele",
+      faqPrompt: "Yanıtı görmek için bir konu seçin", faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış"]
     }
   };
   var copy = labels[lang] || labels.en;
@@ -293,6 +283,34 @@
     var manualLabel = panel && panel.querySelector(".calculator-manual-label");
     var form = panel && panel.querySelector("#cbm-calculator");
     if (!panel || !analyzer || !manualLabel || !form || panel.querySelector(".calculator-mode-tabs")) return;
+
+    var fieldGrid = form.querySelector(".calculator-form-grid");
+    var optionalFields = ["product", "weight", "note"].map(function (name) {
+      var control = form.elements.namedItem(name);
+      var field = control && control.closest(".calculator-field");
+      if (field) field.classList.add("calculator-field-" + name);
+      return field;
+    }).filter(Boolean);
+    ["length", "width", "height", "unit", "qty"].forEach(function (name) {
+      var control = form.elements.namedItem(name);
+      var field = control && control.closest(".calculator-field");
+      if (!field || !fieldGrid) return;
+      field.classList.add("calculator-field-" + name);
+      fieldGrid.appendChild(field);
+    });
+    if (fieldGrid && optionalFields.length) {
+      var optionalDetails = createElement("details", "calculator-optional-details");
+      var optionalSummary = createElement("summary", "calculator-optional-summary", copy.calculatorOptional);
+      var optionalFieldGroup = createElement("div", "calculator-optional-fields");
+      optionalDetails.appendChild(optionalSummary);
+      optionalDetails.appendChild(optionalFieldGroup);
+      optionalFields.forEach(function (field) { optionalFieldGroup.appendChild(field); });
+      fieldGrid.insertAdjacentElement("afterend", optionalDetails);
+      optionalDetails.open = optionalFields.some(function (field) {
+        var control = field.querySelector("input, textarea, select");
+        return control && String(control.value || "").trim().length > 0;
+      });
+    }
 
     var tabs = createElement("div", "calculator-mode-tabs");
     tabs.setAttribute("role", "tablist");
@@ -914,15 +932,97 @@
         track.appendChild(clone);
       });
 
+      var rail = track.closest(".gallery-rail");
       var resizeFrame = 0;
+      var mobileFrame = 0;
+      var mobileResumeTimer = 0;
+      var mobileLastTimestamp = 0;
+      var mobileLoopDistance = 0;
+      var mobilePaused = false;
+      var mobileInView = true;
+
+      function stopMobileLoop() {
+        if (mobileFrame) window.cancelAnimationFrame(mobileFrame);
+        mobileFrame = 0;
+        mobileLastTimestamp = 0;
+      }
+
+      function normalizeMobilePosition() {
+        if (!rail || !mobileLoopDistance) return;
+        if (rail.scrollLeft >= mobileLoopDistance) {
+          rail.scrollLeft = rail.scrollLeft % mobileLoopDistance;
+        }
+      }
+
+      function runMobileLoop(timestamp) {
+        mobileFrame = 0;
+        if (desktopQuery.matches || reducedMotion || !mobileInView || !rail || !mobileLoopDistance) {
+          mobileLastTimestamp = 0;
+          return;
+        }
+
+        if (!mobileLastTimestamp) mobileLastTimestamp = timestamp;
+        var elapsed = Math.min(64, Math.max(0, timestamp - mobileLastTimestamp));
+        mobileLastTimestamp = timestamp;
+        if (!mobilePaused && !document.hidden) {
+          rail.scrollLeft += elapsed * 0.055;
+          normalizeMobilePosition();
+        }
+        mobileFrame = window.requestAnimationFrame(runMobileLoop);
+      }
+
+      function startMobileLoop() {
+        if (desktopQuery.matches || reducedMotion || !mobileInView || !rail || !mobileLoopDistance || mobileFrame) return;
+        mobileLastTimestamp = 0;
+        mobileFrame = window.requestAnimationFrame(runMobileLoop);
+      }
+
+      function pauseMobileLoop() {
+        mobilePaused = true;
+        if (mobileResumeTimer) window.clearTimeout(mobileResumeTimer);
+      }
+
+      function resumeMobileLoopSoon() {
+        if (mobileResumeTimer) window.clearTimeout(mobileResumeTimer);
+        mobileResumeTimer = window.setTimeout(function () {
+          normalizeMobilePosition();
+          mobilePaused = false;
+          startMobileLoop();
+        }, 2200);
+      }
+
+      if (rail) {
+        rail.addEventListener("pointerdown", pauseMobileLoop, { passive: true });
+        rail.addEventListener("pointerup", resumeMobileLoopSoon, { passive: true });
+        rail.addEventListener("pointercancel", resumeMobileLoopSoon, { passive: true });
+        rail.addEventListener("wheel", function () {
+          pauseMobileLoop();
+          resumeMobileLoopSoon();
+        }, { passive: true });
+        rail.addEventListener("focusin", pauseMobileLoop);
+        rail.addEventListener("focusout", resumeMobileLoopSoon);
+      }
+
+      if ("IntersectionObserver" in window && rail) {
+        var mobileVisibilityObserver = new IntersectionObserver(function (entries) {
+          mobileInView = entries.some(function (entry) { return entry.isIntersecting; });
+          if (mobileInView) startMobileLoop();
+          else stopMobileLoop();
+        }, { rootMargin: "120px 0px" });
+        mobileVisibilityObserver.observe(rail);
+      }
+
       function syncLoop() {
         if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
         resizeFrame = window.requestAnimationFrame(function () {
           resizeFrame = 0;
           track.classList.remove("is-gallery-loop-ready");
+          track.classList.remove("is-gallery-mobile-loop-ready");
           track.style.removeProperty("--gallery-loop-distance");
           track.style.removeProperty("--gallery-loop-duration");
-          if (!desktopQuery.matches || reducedMotion) return;
+          mobileLoopDistance = 0;
+          stopMobileLoop();
+          if (reducedMotion) return;
 
           var firstOriginal = originals[0];
           var firstClone = track.querySelector('[data-gallery-clone="true"]');
@@ -932,7 +1032,13 @@
 
           track.style.setProperty("--gallery-loop-distance", (-distance).toFixed(2) + "px");
           track.style.setProperty("--gallery-loop-duration", Math.max(28, distance / 72).toFixed(2) + "s");
-          track.classList.add("is-gallery-loop-ready");
+          if (desktopQuery.matches) {
+            track.classList.add("is-gallery-loop-ready");
+          } else {
+            mobileLoopDistance = distance;
+            track.classList.add("is-gallery-mobile-loop-ready");
+            startMobileLoop();
+          }
         });
       }
 
@@ -984,81 +1090,99 @@
     if (!faq || faq.querySelector(".faq-quick-tags")) return;
     var items = Array.prototype.slice.call(faq.querySelectorAll(".faq-list > .faq-item"));
     if (items.length !== copy.faq.length) return;
+    items.forEach(function (item) { item.open = false; });
 
     var tags = createElement("div", "faq-quick-tags");
     tags.setAttribute("role", "group");
     tags.setAttribute("aria-label", faq.querySelector("h2") ? faq.querySelector("h2").textContent : "FAQ");
+    var prompt = createElement("p", "faq-quick-tags-label", copy.faqPrompt);
     items.forEach(function (item, index) {
       var id = "faq-item-" + (index + 1);
       item.id = id;
       var button = createElement("button", "faq-quick-tag", copy.faq[index]);
       button.type = "button";
       button.setAttribute("aria-controls", id);
-      button.setAttribute("aria-expanded", String(item.open));
+      button.setAttribute("aria-expanded", "false");
       tags.appendChild(button);
 
       item.addEventListener("toggle", function () {
         button.setAttribute("aria-expanded", String(item.open));
+        button.classList.toggle("is-active", item.open);
       });
       button.addEventListener("click", function () {
         items.forEach(function (other) { other.open = other === item; });
+        window.requestAnimationFrame(function () {
+          item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
+        });
         var summary = item.querySelector("summary");
         summary.classList.remove("faq-summary-flash");
         void summary.offsetWidth;
         summary.classList.add("faq-summary-flash");
         window.setTimeout(function () { summary.classList.remove("faq-summary-flash"); }, 620);
-        item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
-        window.setTimeout(function () {
-          try { summary.focus({ preventScroll: true }); } catch (error) { summary.focus(); }
-        }, reducedMotion ? 0 : 360);
       });
     });
 
     var heading = faq.querySelector(".section-heading");
-    if (heading) heading.insertAdjacentElement("afterend", tags);
-    else faq.insertBefore(tags, faq.firstChild);
+    if (heading) {
+      heading.insertAdjacentElement("afterend", prompt);
+      prompt.insertAdjacentElement("afterend", tags);
+    } else {
+      faq.insertBefore(tags, faq.firstChild);
+      faq.insertBefore(prompt, tags);
+    }
   }
 
   function initSocialAccountDisclosure() {
     var social = document.querySelector(".social-platform-groups");
     if (!social) return;
 
-    var mobileQuery = window.matchMedia("(max-width: 767px)");
     var groups = Array.prototype.slice.call(social.querySelectorAll(".social-platform-group"));
 
     groups.forEach(function (group) {
       group.dataset.socialPlatform = socialPlatformKey(group);
     });
 
+    groups.forEach(function (group) {
+      group.hidden = false;
+      group.classList.remove("has-social-overflow", "is-social-expanded");
+      Array.prototype.forEach.call(group.querySelectorAll(".team-card"), function (card) {
+        card.hidden = false;
+        card.classList.remove("is-social-card-collapsed");
+      });
+      Array.prototype.forEach.call(group.querySelectorAll(".social-platform-toggle"), function (toggle) {
+        toggle.remove();
+      });
+    });
+
     if (groups.length > 1 && !social.querySelector(".social-platform-filters")) {
       var filters = createElement("div", "social-platform-filters");
       filters.setAttribute("role", "group");
       filters.setAttribute("aria-label", copy.socialFilter);
-      var filterItems = [{ key: "all", label: copy.allPlatforms }].concat(groups.map(function (group) {
+      var filterItems = groups.map(function (group) {
         var title = group.querySelector(".social-platform-title");
         return { key: group.dataset.socialPlatform, label: title ? title.textContent.trim() : group.dataset.socialPlatform };
-      }));
+      });
 
-      filterItems.forEach(function (item, index) {
-        var button = createElement("button", "social-platform-filter" + (index === 0 ? " is-active" : ""), item.label);
+      filterItems.forEach(function (item) {
+        var button = createElement("button", "social-platform-filter", item.label);
         button.type = "button";
         button.dataset.socialFilter = item.key;
-        button.setAttribute("aria-pressed", String(index === 0));
+        button.setAttribute("aria-pressed", "false");
         button.addEventListener("click", function () {
-          var selected = button.dataset.socialFilter;
+          var selected = button.getAttribute("aria-pressed") === "true" ? "" : button.dataset.socialFilter;
           Array.prototype.forEach.call(filters.querySelectorAll(".social-platform-filter"), function (candidate) {
-            var active = candidate === button;
+            var active = Boolean(selected) && candidate === button;
             candidate.classList.toggle("is-active", active);
             candidate.setAttribute("aria-pressed", String(active));
           });
           groups.forEach(function (group) {
-            group.hidden = selected !== "all" && group.dataset.socialPlatform !== selected;
+            group.hidden = Boolean(selected) && group.dataset.socialPlatform !== selected;
           });
-          social.classList.toggle("is-social-filtered", selected !== "all");
+          social.classList.toggle("is-social-filtered", Boolean(selected));
           window.jabbarTrack("social_platform_filter", withAttribution({
             locale: lang,
             source_path: safeLandingPath(window.location.pathname),
-            platform: selected
+            platform: selected || "all"
           }, pageAttribution));
         });
         filters.appendChild(button);
@@ -1068,59 +1192,6 @@
       if (heading) heading.insertAdjacentElement("afterend", filters);
       else social.prepend(filters);
     }
-
-    groups.forEach(function (group, groupIndex) {
-      var grid = group.querySelector(".team-grid");
-      if (!grid) return;
-      var cards = Array.prototype.filter.call(grid.children, function (child) {
-        return child.classList.contains("team-card");
-      });
-      if (cards.length <= 4 || group.querySelector(".social-platform-toggle")) return;
-
-      group.classList.add("has-social-overflow");
-      if (!grid.id) {
-        var title = group.querySelector(".social-platform-title[id]");
-        var idBase = title ? title.id.replace(/-title$/, "") : "social-platform-" + (groupIndex + 1);
-        grid.id = idBase + "-accounts";
-      }
-
-      var expanded = false;
-      var toggle = createElement("button", "social-platform-toggle", copy.showAllAccounts);
-      toggle.type = "button";
-      toggle.setAttribute("aria-controls", grid.id);
-      toggle.setAttribute("aria-expanded", "false");
-      group.appendChild(toggle);
-
-      function sync() {
-        var mobile = mobileQuery.matches;
-        var visibleLimit = mobile ? 4 : 6;
-        var collapsible = cards.length > visibleLimit;
-        var collapsed = collapsible && !expanded;
-        cards.forEach(function (card, cardIndex) {
-          var hidden = collapsed && cardIndex >= visibleLimit;
-          card.hidden = hidden;
-          card.classList.toggle("is-social-card-collapsed", hidden);
-        });
-        group.classList.toggle("is-social-expanded", collapsible && expanded);
-        toggle.hidden = !collapsible;
-        toggle.setAttribute("aria-expanded", String(collapsible && expanded));
-        toggle.textContent = expanded ? copy.showFewerAccounts : copy.showAllAccounts;
-      }
-
-      toggle.addEventListener("click", function () {
-        expanded = !expanded;
-        sync();
-        window.jabbarTrack(expanded ? "social_accounts_expand" : "social_accounts_collapse", withAttribution({
-          locale: lang,
-          source_path: safeLandingPath(window.location.pathname),
-          platform: group.dataset.socialPlatform,
-          account_count: cards.length
-        }, pageAttribution));
-      });
-      if (typeof mobileQuery.addEventListener === "function") mobileQuery.addEventListener("change", sync);
-      else if (typeof mobileQuery.addListener === "function") mobileQuery.addListener(sync);
-      sync();
-    });
   }
 
   initAnalyticsEvents();

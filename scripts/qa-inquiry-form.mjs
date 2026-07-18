@@ -59,6 +59,15 @@ const PAGES = [
   { locale: "it", path: "/it/inquiry/" },
   { locale: "tr", path: "/tr/inquiry/" }
 ];
+const ORDER_DETAIL_FIELDS = [
+  "referenceUrl",
+  "category",
+  "quantity",
+  "budget",
+  "market",
+  "company",
+  "note"
+];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -85,24 +94,20 @@ await context.route("**/turnstile/v0/api.js*", async (route) => {
         var sequence = 0;
         window.__turnstileResetCount = 0;
         window.__turnstileIssueCount = 0;
+        window.__issueTurnstileToken = function () {
+          sequence += 1;
+          window.__turnstileIssueCount += 1;
+          window.__turnstileOptions.callback('mock-turnstile-token-' + sequence);
+        };
         window.turnstile = {
           render: function (element, options) {
             window.__turnstileOptions = options;
-            element.innerHTML = '<div data-testid="mock-turnstile" style="display:grid;place-items:center;width:100%;min-height:65px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#334155">Security check ready</div>';
-            window.setTimeout(function () {
-              sequence += 1;
-              window.__turnstileIssueCount += 1;
-              options.callback('mock-turnstile-token-' + sequence);
-            }, 0);
+            element.innerHTML = '<div data-testid="mock-turnstile" hidden>Security check ready</div>';
             return 'mock-widget';
           },
           reset: function () {
             window.__turnstileResetCount += 1;
-            window.setTimeout(function () {
-              sequence += 1;
-              window.__turnstileIssueCount += 1;
-              window.__turnstileOptions.callback('mock-turnstile-token-' + sequence);
-            }, 0);
+            window.setTimeout(window.__issueTurnstileToken, 0);
           }
         };
       })();
@@ -145,14 +150,26 @@ async function openInquiry(path) {
   await page.goto(`${BASE_URL}${path}`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => {
     const button = document.querySelector(".js-inquiry-direct");
-    return Boolean(button && !button.disabled && window.__turnstileOptions && window.__turnstileIssueCount > 0);
+    return Boolean(button && button.disabled && window.__turnstileOptions && window.__turnstileIssueCount === 0);
+  });
+  const turnstileContract = await page.evaluate(() => ({
+    appearance: window.__turnstileOptions?.appearance,
+    containerAppearance: document.querySelector(".js-inquiry-turnstile")?.getAttribute("data-appearance"),
+    initiallyDisabled: document.querySelector(".js-inquiry-direct")?.disabled === true,
+  }));
+  assert(turnstileContract.appearance === "interaction-only", `${path} Turnstile render must use interaction-only appearance`);
+  assert(turnstileContract.containerAppearance === "interaction-only", `${path} Turnstile container must declare interaction-only appearance`);
+  assert(turnstileContract.initiallyDisabled, `${path} submit must remain disabled before a Turnstile token`);
+  await page.evaluate(() => window.__issueTurnstileToken());
+  await page.waitForFunction(() => {
+    const button = document.querySelector(".js-inquiry-direct");
+    return Boolean(button && !button.disabled && window.__turnstileIssueCount > 0);
   });
 }
 
 async function fillRequired(product, contact) {
   await page.locator('[name="product"]').fill(product);
   await page.locator('[name="contact"]').fill(contact);
-  await page.locator(".js-inquiry-privacy").check();
 }
 
 async function clickDirect() {
@@ -230,7 +247,12 @@ assert(
   (await page.locator('[name="note"]').inputValue()) === "QA calculator result: 12.4 CBM, one 20GP container",
   "Calculator message must prefill note"
 );
-assert(await page.locator(".inquiry-optional-details").getAttribute("open") !== null, "Calculator handoff must reveal its prefilled optional details");
+assert(await page.locator("details.inquiry-optional-details").count() === 0, "Calculator handoff must not create an order-details disclosure");
+const freshDetailVisibility = await page.evaluate((fieldNames) => fieldNames.every((name) => {
+  const field = document.querySelector(`[name="${name}"]`);
+  return Boolean(field && field.getClientRects().length > 0);
+}), ORDER_DETAIL_FIELDS);
+assert(freshDetailVisibility, "Calculator handoff must keep every order-detail field expanded and visible");
 assert(
   (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
   "Consumed calculator handoff must be removed"
@@ -248,9 +270,12 @@ await openInquiry("/inquiry/");
 assert((await page.locator('[name="product"]').inputValue()) === "", "Calculator handoff older than two hours must be ignored");
 assert((await page.locator('[name="quantity"]').inputValue()) === "", "Stale calculator quantity must be ignored");
 assert((await page.locator('[name="note"]').inputValue()) === "", "Stale calculator note must be ignored");
-assert(await page.locator(".inquiry-optional-details").getAttribute("open") === null, "Empty optional details must start collapsed");
-assert(await page.locator('[name="product"]').evaluate((field) => !field.closest(".inquiry-optional-details")), "Required product field must stay outside the optional disclosure");
-assert(await page.locator('[name="contact"]').evaluate((field) => !field.closest(".inquiry-optional-details")), "Required contact field must stay outside the optional disclosure");
+assert(await page.locator(".js-inquiry-form details").count() === 0, "Inquiry form must not contain a details disclosure");
+const emptyDetailVisibility = await page.evaluate((fieldNames) => fieldNames.every((name) => {
+  const field = document.querySelector(`[name="${name}"]`);
+  return Boolean(field && field.getClientRects().length > 0 && !field.closest("details"));
+}), ORDER_DETAIL_FIELDS);
+assert(emptyDetailVisibility, "Empty order-detail fields must still remain expanded and visible");
 assert(
   (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
   "Stale calculator handoff must be removed"
@@ -287,25 +312,20 @@ await page.evaluate(() => {
   };
 });
 
-const fallbackSnapshot = await page.locator(".js-inquiry-send").evaluateAll((buttons) =>
-  buttons.map((button) => ({ channel: button.dataset.channel, type: button.type }))
-);
-assert(fallbackSnapshot.length === 4, "Expected four fallback buttons");
-assert(fallbackSnapshot.every((item) => item.type === "button"), "Fallback controls must remain type=button");
-await page.locator('.js-inquiry-send[data-channel="wechat"]').dispatchEvent("click");
-const fallbackChannelEvents = await analyticsEvents("channel_fallback");
-assert(fallbackChannelEvents.length === 1, "Fallback click must emit channel_fallback once even before required fields are complete");
-assert(fallbackChannelEvents[0].channel === "wechat", "Fallback click must preserve its channel");
-assert((await analyticsEvents("inquiry_channel_click")).length === 0, "Fallback click must not emit the superseded inquiry_channel_click event");
-assert((await analyticsEvents("inquiry_submit")).length === 0, "Fallback click must not emit inquiry_submit");
-await page.waitForTimeout(10);
-assert((await analyticsEvents("inquiry_submit_error")).length === 0, "Fallback validation must not impersonate a direct-submit error");
-
-await page.locator(".inquiry-optional-details > summary").click();
-assert(await page.locator(".inquiry-optional-details").getAttribute("open") !== null, "Optional details summary must reveal the fields");
-await page.waitForFunction(() => (window.dataLayer || []).some((entry) => entry[0] === "event" && entry[1] === "inquiry_optional_details_toggle"));
-const optionalToggleEvents = await analyticsEvents("inquiry_optional_details_toggle");
-assert(optionalToggleEvents.length === 1 && optionalToggleEvents[0].expanded === 1, "Opening optional details must emit one controlled analytics event");
+const singleActionContract = await page.evaluate(() => ({
+  privacyCheckboxes: document.querySelectorAll(".js-inquiry-privacy, .inquiry-privacy input[type=checkbox]").length,
+  privacyNotices: document.querySelectorAll(".inquiry-privacy-notice").length,
+  privacyLinks: document.querySelectorAll('.inquiry-privacy-notice a[href="/privacy-policy.html#website-inquiries"]').length,
+  fallbackButtons: document.querySelectorAll(".js-inquiry-send").length,
+  fallbackLabels: document.querySelectorAll(".inquiry-fallback-label").length,
+  detailDisclosures: document.querySelectorAll("details.inquiry-optional-details").length,
+}));
+assert(singleActionContract.privacyCheckboxes === 0, "Privacy checkbox must be absent");
+assert(singleActionContract.privacyNotices === 1 && singleActionContract.privacyLinks === 1, "One linked privacy submit notice must remain");
+assert(singleActionContract.fallbackButtons === 0 && singleActionContract.fallbackLabels === 0, "All redundant fallback actions must be absent");
+assert(singleActionContract.detailDisclosures === 0, "Order details must not be placed in a disclosure");
+assert((await analyticsEvents("channel_fallback")).length === 0, "Removed fallback controls must not emit channel_fallback");
+assert((await analyticsEvents("inquiry_optional_details_toggle")).length === 0, "Always-expanded order details must not emit disclosure-toggle analytics");
 
 await fillRequired("QA invalid reference", "qa-invalid-reference@example.com");
 await page.locator('[name="referenceUrl"]').fill("ftp://example.com/product");
@@ -350,23 +370,16 @@ assert(apiPayloads[0].attribution.utm_campaign === "summer_wholesale", "Payload 
 assert(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(apiPayloads[0].submissionId), "submissionId must be UUIDv4");
 assert(apiPayloads[0].privacyAcknowledged === true, "Privacy acknowledgement must be boolean true");
 assert((await page.locator('[name="product"]').inputValue()) === "", "Success must clear product");
-assert(!(await page.locator(".js-inquiry-privacy").isChecked()), "Success must clear privacy acknowledgement");
 assert((await page.locator(".js-inquiry-direct").textContent())?.trim() === directButtonLabel, "Submission completion must restore the original button label");
-assert(!(await page.locator(".js-inquiry-direct").isDisabled()), "Submission completion must re-enable the direct-submit button");
+await page.waitForFunction(() => !document.querySelector(".js-inquiry-direct")?.disabled);
+assert(!(await page.locator(".js-inquiry-direct").isDisabled()), "A refreshed Turnstile token must re-enable the direct-submit button");
 const submitStartEvents = await analyticsEvents("inquiry_submit_start");
 assert(submitStartEvents.length === 1, "Happy path must emit inquiry_submit_start exactly once");
 assert(submitStartEvents[0].duration_ms === 0, "Submit-start duration must begin at zero");
 assert((await analyticsEvents("inquiry_submit_success")).length === 0, "Existing inquiry_submit must remain the sole success event");
 assert((await page.locator(".inquiry-status").textContent()).includes("24"), "Success feedback must promise a reply within 24 hours");
 assert(await page.locator(".inquiry-status .inquiry-status-icon").getAttribute("aria-hidden") === "true", "Success check must not duplicate the live-region announcement");
-const successWhatsapp = await page.locator(".inquiry-status .inquiry-status-whatsapp").evaluate((link) => ({
-  href: link.getAttribute("href"),
-  target: link.getAttribute("target"),
-  rel: link.getAttribute("rel")
-}));
-assert(successWhatsapp.href === "https://wa.me/8618658925544", "Success feedback must include the WhatsApp shortcut");
-assert(successWhatsapp.target === "_blank", "Success WhatsApp shortcut must open separately");
-assert(successWhatsapp.rel === "noopener noreferrer", "Success WhatsApp shortcut must isolate the new page");
+assert(await page.locator(".inquiry-status .inquiry-status-whatsapp").count() === 0, "Success feedback must not restore a redundant fallback action");
 await page.waitForFunction(() => (window.__inquiryScrollCalls || []).length >= 2);
 const successScrollCalls = await page.evaluate(() => window.__inquiryScrollCalls);
 assert(
@@ -374,17 +387,6 @@ assert(
   "Non-reduced motion must reveal nonempty status with nearest smooth scrolling"
 );
 assert(await page.locator(".inquiry-status").evaluate((status) => document.activeElement === status), "Success feedback must receive focus without extra scrolling");
-
-await page.locator('[name="product"]').fill("QA fallback after direct success");
-await page.locator('[name="contact"]').fill("qa-fallback@example.com");
-await page.locator('.js-inquiry-send[data-channel="wechat"]').dispatchEvent("click");
-await page.waitForFunction(() => {
-  const status = document.querySelector(".inquiry-status");
-  return Boolean(status?.textContent.trim())
-    && !status.classList.contains("is-success")
-    && !status.classList.contains("is-error")
-    && !status.classList.contains("is-pending");
-});
 
 let inquiryEvents = await analyticsEvents("inquiry_submit");
 assert(inquiryEvents.length === 1, "201 success must emit inquiry_submit exactly once");
@@ -408,7 +410,9 @@ assert(retryErrors.at(-1)?.stage === "response", "502 error analytics must use t
 assert(Number.isInteger(retryErrors.at(-1)?.duration_ms) && retryErrors.at(-1).duration_ms >= 0 && retryErrors.at(-1).duration_ms <= 60000, "502 error duration_ms must remain within 0..60000");
 assert(await page.locator(".inquiry-status").evaluate((status) => status.childElementCount === 0), "Non-success feedback must remain plain text");
 assert(await page.locator(".inquiry-status").evaluate((status) => document.activeElement === status), "Error feedback must receive focus without extra scrolling");
-await page.waitForFunction(() => window.__turnstileResetCount > 0 && window.__turnstileIssueCount > 1);
+await page.waitForFunction(() => window.__turnstileResetCount > 0
+  && window.__turnstileIssueCount > 1
+  && !document.querySelector(".js-inquiry-direct")?.disabled);
 assert((await page.locator('[name="product"]').inputValue()) === "QA retry product", "502 must preserve business fields");
 const firstRetryId = apiPayloads[beforeRetry].submissionId;
 await clickDirect();
@@ -429,6 +433,7 @@ await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.textContent.includes("5s"));
 assert((await analyticsEvents("inquiry_submit")).length === beforePendingEvents, "409 pending response must not emit inquiry_submit");
 const pendingId = apiPayloads[beforePending].submissionId;
+await page.waitForFunction(() => !document.querySelector(".js-inquiry-direct")?.disabled);
 await clickDirect();
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-success"));
 assert(apiPayloads[beforePending + 1].submissionId === pendingId, "Pending retry must preserve submissionId");
@@ -457,21 +462,7 @@ inquiryEvents = await analyticsEvents("inquiry_submit");
 assert(inquiryEvents.length === beforeInFlightEvents + 1, "In-flight success must emit inquiry_submit exactly once");
 assertInquiryEvent(inquiryEvents.at(-1), 201, "In-flight 201 success");
 
-await page.locator('[name="product"]').fill("QA privacy gate");
-await page.locator('[name="contact"]').fill("qa-privacy@example.com");
-await page.locator(".js-inquiry-privacy").uncheck();
-const beforePrivacyGate = apiPayloads.length;
-const beforePrivacyEvents = inquiryEvents.length;
-const beforePrivacyErrors = (await analyticsEvents("inquiry_submit_error")).length;
-await clickDirect();
-await page.waitForFunction(() => Boolean(document.querySelector(".js-inquiry-privacy-error")?.textContent.trim()));
-assert(apiPayloads.length === beforePrivacyGate, "Unchecked privacy gate must not call the API");
-assert((await analyticsEvents("inquiry_submit")).length === beforePrivacyEvents, "Privacy validation failure must not emit inquiry_submit");
-const privacyErrors = await analyticsEvents("inquiry_submit_error");
-assert(privacyErrors.length === beforePrivacyErrors + 1, "Privacy validation failure must emit inquiry_submit_error once");
-assert(privacyErrors.at(-1)?.error_code === "privacy_required" && privacyErrors.at(-1)?.stage === "privacy", "Privacy failure analytics must use controlled fields");
-
-await page.locator(".js-inquiry-privacy").check();
+await page.waitForFunction(() => !document.querySelector(".js-inquiry-direct")?.disabled);
 await page.emulateMedia({ reducedMotion: "reduce" });
 const scrollCallsBeforeReducedMotion = await page.evaluate(() => window.__inquiryScrollCalls.length);
 await page.evaluate(() => window.__turnstileOptions["expired-callback"]());
@@ -481,14 +472,19 @@ await page.waitForFunction(
 );
 const reducedMotionScroll = await page.evaluate(() => window.__inquiryScrollCalls.at(-1));
 assert(reducedMotionScroll?.block === "nearest" && reducedMotionScroll?.behavior === "auto", "Reduced motion must reveal status without smooth scrolling");
+assert(await page.locator(".js-inquiry-direct").isDisabled(), "Expired Turnstile token must disable direct submit");
+const beforeTokenExpiryApi = apiPayloads.length;
+const beforeTokenExpiryEvents = inquiryEvents.length;
 const beforeTurnstileErrors = (await analyticsEvents("inquiry_submit_error")).length;
-await clickDirect();
+await page.evaluate(() => document.querySelector(".js-inquiry-form")?.requestSubmit());
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
-assert(apiPayloads.length === beforePrivacyGate, "Expired Turnstile token must not call the API");
-assert((await analyticsEvents("inquiry_submit")).length === beforePrivacyEvents, "Expired Turnstile token must not emit inquiry_submit");
+assert(apiPayloads.length === beforeTokenExpiryApi, "Expired Turnstile token must not call the API");
+assert((await analyticsEvents("inquiry_submit")).length === beforeTokenExpiryEvents, "Expired Turnstile token must not emit inquiry_submit");
 const turnstileErrors = await analyticsEvents("inquiry_submit_error");
 assert(turnstileErrors.length === beforeTurnstileErrors + 1, "Missing Turnstile token must emit inquiry_submit_error once");
 assert(turnstileErrors.at(-1)?.error_code === "turnstile_missing" && turnstileErrors.at(-1)?.stage === "turnstile", "Turnstile failure analytics must use controlled fields");
+await page.evaluate(() => window.__issueTurnstileToken());
+await page.waitForFunction(() => !document.querySelector(".js-inquiry-direct")?.disabled);
 
 // The deliberate 502 and 409 response cases above produce Chromium network
 // console entries. Start a clean console audit for normal page rendering.
@@ -496,12 +492,13 @@ consoleErrors.length = 0;
 
 for (const viewport of [
   { width: 1280, height: 900, name: "desktop" },
-  { width: 390, height: 844, name: "mobile" }
+  { width: 390, height: 844, name: "mobile" },
+  { width: 320, height: 720, name: "small-mobile" }
 ]) {
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
   for (const item of PAGES) {
     await openInquiry(item.path);
-    if (viewport.name === "mobile") {
+    if (viewport.name !== "desktop") {
       await page.locator(".site-nav-mobile-menu").evaluate((menu) => {
         menu.open = true;
       });
@@ -510,22 +507,37 @@ for (const viewport of [
       path: `${OUTPUT_DIR}/${item.locale}-${viewport.name}.png`,
       fullPage: true
     });
-    const metrics = await page.evaluate(() => {
+    const metrics = await page.evaluate((orderDetailFields) => {
       const direct = document.querySelector(".js-inquiry-direct")?.getBoundingClientRect();
-      const panel = document.querySelector(".inquiry-direct-panel")?.getBoundingClientRect();
+      const panelElement = document.querySelector(".inquiry-direct-panel");
+      const panel = panelElement?.getBoundingClientRect();
+      const panelStyle = panelElement ? getComputedStyle(panelElement) : null;
+      const panelContentWidth = panel && panelStyle
+        ? panel.width - parseFloat(panelStyle.paddingLeft) - parseFloat(panelStyle.paddingRight)
+        : 0;
       const status = document.querySelector(".inquiry-status");
       const mobileNavigation = document.querySelector(".site-nav-mobile-panel")?.getBoundingClientRect();
-      const fallback = Array.from(document.querySelectorAll(".js-inquiry-send"));
+      const turnstile = document.querySelector(".js-inquiry-turnstile")?.getBoundingClientRect();
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         directWidth: direct?.width || 0,
         panelWidth: panel?.width || 0,
+        panelContentWidth,
         statusInsideDirectPanel: status?.parentElement?.classList.contains("inquiry-direct-panel") || false,
         statusAfterDirectButton: status?.previousElementSibling?.classList.contains("js-inquiry-direct") || false,
         statusRole: status?.getAttribute("role") || "",
-        fallbackCount: fallback.length,
-        optionalDetailsCount: document.querySelectorAll(".inquiry-optional-details").length,
-        optionalSummaryHeight: document.querySelector(".inquiry-optional-details summary")?.getBoundingClientRect().height || 0,
+        fallbackCount: document.querySelectorAll(".js-inquiry-send, .inquiry-fallback-label").length,
+        privacyCheckboxCount: document.querySelectorAll(".js-inquiry-privacy, .inquiry-privacy input[type=checkbox]").length,
+        privacyNoticeCount: document.querySelectorAll(".inquiry-privacy-notice").length,
+        privacyLinkCount: document.querySelectorAll('.inquiry-privacy-notice a[href="/privacy-policy.html#website-inquiries"]').length,
+        detailsCount: document.querySelectorAll(".js-inquiry-form details, .js-inquiry-form .inquiry-optional-details").length,
+        visibleOrderDetailCount: orderDetailFields.filter((name) => {
+          const field = document.querySelector(`[name="${name}"]`);
+          return Boolean(field && field.getClientRects().length > 0 && !field.closest("details"));
+        }).length,
+        turnstileHeight: turnstile?.height || 0,
+        turnstileAppearance: window.__turnstileOptions?.appearance || "",
+        submitEnabledAfterToken: document.querySelector(".js-inquiry-direct")?.disabled === false,
         returnHomeCount: document.querySelectorAll(".site-nav-return-home").length,
         returnHomeHref: document.querySelector(".site-nav-return-home")?.getAttribute("href") || "",
         duplicateMobileHomeCount: document.querySelectorAll(".site-nav-mobile-home").length,
@@ -536,19 +548,25 @@ for (const viewport of [
         mobileNavigationLeft: mobileNavigation?.left ?? 0,
         mobileNavigationRight: mobileNavigation?.right ?? 0
       };
-    });
+    }, ORDER_DETAIL_FIELDS);
     assert(metrics.overflow <= 1, `${item.locale} ${viewport.name} has horizontal overflow: ${metrics.overflow}px`);
     assert(metrics.directWidth > 0 && metrics.panelWidth > 0, `${item.locale} ${viewport.name} direct-submit layout is missing`);
+    assert(Math.abs(metrics.directWidth - metrics.panelContentWidth) <= 2, `${item.locale} ${viewport.name} direct submit is not full-width`);
     assert(metrics.statusInsideDirectPanel && metrics.statusAfterDirectButton, `${item.locale} ${viewport.name} status placement regressed`);
     assert(metrics.statusRole === "status", `${item.locale} ${viewport.name} status semantics regressed`);
-    assert(metrics.fallbackCount === 4, `${item.locale} ${viewport.name} lost a fallback channel`);
-    assert(metrics.optionalDetailsCount === 1, `${item.locale} ${viewport.name} optional-details disclosure count`);
-    assert(metrics.optionalSummaryHeight >= 44, `${item.locale} ${viewport.name} optional-details target is too short`);
+    assert(metrics.fallbackCount === 0, `${item.locale} ${viewport.name} still has redundant fallback UI`);
+    assert(metrics.privacyCheckboxCount === 0, `${item.locale} ${viewport.name} still has a privacy checkbox`);
+    assert(metrics.privacyNoticeCount === 1 && metrics.privacyLinkCount === 1, `${item.locale} ${viewport.name} privacy submit notice regressed`);
+    assert(metrics.detailsCount === 0, `${item.locale} ${viewport.name} still collapses order details`);
+    assert(metrics.visibleOrderDetailCount === ORDER_DETAIL_FIELDS.length, `${item.locale} ${viewport.name} does not show every order-detail field`);
+    assert(metrics.turnstileHeight <= 1, `${item.locale} ${viewport.name} interaction-only Turnstile reserves ${metrics.turnstileHeight}px`);
+    assert(metrics.turnstileAppearance === "interaction-only", `${item.locale} ${viewport.name} Turnstile appearance regressed`);
+    assert(metrics.submitEnabledAfterToken, `${item.locale} ${viewport.name} token callback did not enable submit`);
     assert(metrics.returnHomeCount === 1 && metrics.returnHomeHref === "../", `${item.locale} ${viewport.name} top Return Home control regressed`);
     assert(metrics.duplicateMobileHomeCount === 0, `${item.locale} ${viewport.name} duplicate Return Home remains in mobile menu`);
     assert(metrics.mobileTeamCount === 1 && metrics.mobileTeamHref === "../#social-accounts", `${item.locale} ${viewport.name} team-member mobile link is missing`);
     assert(metrics.brokenImages === 0, `${item.locale} ${viewport.name} has ${metrics.brokenImages} broken loaded images`);
-    if (viewport.name === "mobile") {
+    if (viewport.name !== "desktop") {
       assert(
         metrics.mobileNavigationLeft >= -1 && metrics.mobileNavigationRight <= viewport.width + 1,
         `${item.locale} mobile navigation is outside the viewport: ${metrics.mobileNavigationLeft}..${metrics.mobileNavigationRight}`
