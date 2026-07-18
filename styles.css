@@ -8498,7 +8498,7 @@ html[lang="ar"] .section-code {
   .site-nav-tool-pill,
   .site-nav-quote {
     padding-inline: 8px !important;
-    font-size: 11px !important;
+    font-size: 11.5px !important;
   }
 }
 
@@ -9430,7 +9430,7 @@ html[lang="ar"] .section-code {
   }
 }
 
-@media (min-width: 961px) and (max-width: 1280px) {
+@media (min-width: 961px) and (max-width: 1279px) {
   .site-nav {
     column-gap: 6px !important;
     padding-inline: 12px !important;
@@ -9726,7 +9726,7 @@ html[lang="ar"] .section-code {
   .site-nav-tool-pill {
     gap: 4px !important;
     padding-inline: 6px !important;
-    font-size: 11px !important;
+    font-size: 11.5px !important;
   }
 
   .site-nav-tool-pill::before {
@@ -11375,5 +11375,96 @@ main > #team.team {
   .faq-quick-tag,
   .social-platform-filter {
     transition: none !important;
+  }
+}
+
+/* 2026-07-19 localized company data, centered desktop navigation, and footer rhythm. */
+#social-accounts.social-platform-groups {
+  box-sizing: border-box;
+  padding-bottom: var(--social-footer-breath, clamp(30px, 3.2vw, 48px)) !important;
+}
+
+main > #team.team {
+  --social-footer-breath: clamp(30px, 3.2vw, 48px);
+  box-shadow: inset 0 calc(0px - var(--social-footer-breath)) 0 #eef6fb !important;
+}
+
+@media (max-width: 767px) {
+  #social-accounts.social-platform-groups {
+    padding-bottom: 30px !important;
+  }
+
+  main > #team.team {
+    --social-footer-breath: 30px;
+  }
+}
+
+@media (min-width: 961px) and (max-width: 1279px) {
+  header.site-nav {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto !important;
+  }
+
+  header.site-nav .site-nav-links {
+    display: none !important;
+    position: static !important;
+    transform: none !important;
+  }
+
+  header.site-nav .site-nav-mobile-menu {
+    display: block !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  header.site-nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    padding-inline: max(14px, calc((100vw - 1800px) / 2)) !important;
+  }
+
+  header.site-nav .site-nav-brand {
+    margin-right: auto !important;
+  }
+
+  header.site-nav .site-nav-links {
+    display: flex !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    z-index: 2 !important;
+    margin: 0 !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  [dir="rtl"] header.site-nav .site-nav-brand {
+    margin-right: 0 !important;
+    margin-left: auto !important;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1600px) {
+  header.site-nav .site-nav-links {
+    min-height: 42px !important;
+    padding: 3px !important;
+    gap: 2px !important;
+    font-size: 11px !important;
+  }
+
+  header.site-nav .site-nav-links > a,
+  header.site-nav .site-nav-links > a.site-nav-team {
+    min-height: 34px !important;
+    padding-inline: 6px !important;
+    font-size: 11px !important;
+  }
+
+  header.site-nav .site-nav-tool-pill,
+  header.site-nav .site-nav-quote,
+  header.site-nav .site-nav-language > summary {
+    min-height: 38px !important;
+    padding-inline: 8px !important;
+    font-size: 11.5px !important;
   }
 }

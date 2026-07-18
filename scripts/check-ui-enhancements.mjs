@@ -6,21 +6,21 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-170";
-const UI_VERSION = "ui-20260718g";
+const CSS_VERSION = "apple-171";
+const UI_VERSION = "ui-20260719a";
 const ORDER_VERSION = "order-20260718d";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
-  zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 关于我们", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
-  en: ["Jabbar · Team", "Jabbar · Gallery", "Jabbar · Services", "Jabbar · Process", "Jabbar · About Us", "Jabbar · Reviews", "Jabbar · FAQ", "Jabbar · Social"],
-  es: ["Jabbar · Equipo", "Jabbar · Galería", "Jabbar · Servicios", "Jabbar · Proceso", "Jabbar · Sobre nosotros", "Jabbar · Reseñas", "Jabbar · Preguntas frecuentes", "Jabbar · Redes sociales"],
-  ar: ["Jabbar · الفريق", "Jabbar · المعرض", "Jabbar · الخدمات", "Jabbar · خطوات العمل", "Jabbar · من نحن", "Jabbar · آراء العملاء", "Jabbar · الأسئلة الشائعة", "Jabbar · التواصل الاجتماعي"],
-  fr: ["Jabbar · Équipe", "Jabbar · Galerie", "Jabbar · Services", "Jabbar · Processus", "Jabbar · À propos", "Jabbar · Avis clients", "Jabbar · FAQ", "Jabbar · Réseaux sociaux"],
-  pt: ["Jabbar · Equipe", "Jabbar · Galeria", "Jabbar · Serviços", "Jabbar · Processo", "Jabbar · Sobre nós", "Jabbar · Avaliações", "Jabbar · Perguntas frequentes", "Jabbar · Redes sociais"],
-  ru: ["Jabbar · Команда", "Jabbar · Галерея", "Jabbar · Услуги", "Jabbar · Процесс", "Jabbar · О нас", "Jabbar · Отзывы", "Jabbar · Частые вопросы", "Jabbar · Соцсети"],
-  de: ["Jabbar · Team", "Jabbar · Galerie", "Jabbar · Leistungen", "Jabbar · Ablauf", "Jabbar · Über uns", "Jabbar · Bewertungen", "Jabbar · FAQ", "Jabbar · Soziale Medien"],
-  it: ["Jabbar · Team", "Jabbar · Galleria", "Jabbar · Servizi", "Jabbar · Processo", "Jabbar · Chi siamo", "Jabbar · Recensioni", "Jabbar · Domande frequenti", "Jabbar · Social"],
-  tr: ["Jabbar · Ekip", "Jabbar · Galeri", "Jabbar · Hizmetler", "Jabbar · Süreç", "Jabbar · Hakkımızda", "Jabbar · Yorumlar", "Jabbar · SSS", "Jabbar · Sosyal medya"]
+  zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
+  en: ["Jabbar · Team", "Jabbar · Gallery", "Jabbar · Services", "Jabbar · Process", "Jabbar · Reviews", "Jabbar · FAQ", "Jabbar · Social"],
+  es: ["Jabbar · Equipo", "Jabbar · Galería", "Jabbar · Servicios", "Jabbar · Proceso", "Jabbar · Reseñas", "Jabbar · Preguntas frecuentes", "Jabbar · Redes sociales"],
+  ar: ["Jabbar · الفريق", "Jabbar · المعرض", "Jabbar · الخدمات", "Jabbar · خطوات العمل", "Jabbar · آراء العملاء", "Jabbar · الأسئلة الشائعة", "Jabbar · التواصل الاجتماعي"],
+  fr: ["Jabbar · Équipe", "Jabbar · Galerie", "Jabbar · Services", "Jabbar · Processus", "Jabbar · Avis clients", "Jabbar · FAQ", "Jabbar · Réseaux sociaux"],
+  pt: ["Jabbar · Equipe", "Jabbar · Galeria", "Jabbar · Serviços", "Jabbar · Processo", "Jabbar · Avaliações", "Jabbar · Perguntas frequentes", "Jabbar · Redes sociais"],
+  ru: ["Jabbar · Команда", "Jabbar · Галерея", "Jabbar · Услуги", "Jabbar · Процесс", "Jabbar · Отзывы", "Jabbar · Частые вопросы", "Jabbar · Соцсети"],
+  de: ["Jabbar · Team", "Jabbar · Galerie", "Jabbar · Leistungen", "Jabbar · Ablauf", "Jabbar · Bewertungen", "Jabbar · FAQ", "Jabbar · Soziale Medien"],
+  it: ["Jabbar · Team", "Jabbar · Galleria", "Jabbar · Servizi", "Jabbar · Processo", "Jabbar · Recensioni", "Jabbar · Domande frequenti", "Jabbar · Social"],
+  tr: ["Jabbar · Ekip", "Jabbar · Galeri", "Jabbar · Hizmetler", "Jabbar · Süreç", "Jabbar · Yorumlar", "Jabbar · SSS", "Jabbar · Sosyal medya"]
 };
 const CALCULATOR_SECTION_CODES = {
   zh: "Jabbar · 体积工具",
@@ -35,11 +35,18 @@ const CALCULATOR_SECTION_CODES = {
   tr: "Jabbar · Hacim aracı"
 };
 const STAMP_TOKENS = ["QC PASSED ✓", "REPLY < 24H", "TRIAL $1,000"];
-const COMPANY_IDENTITY_LINES = [
-  "Jabbar × 好多宝(Haoduobao)",
-  "Zhejiang Haoduobao Brand Management Co., Ltd.",
-  "浙江好多宝品牌管理有限公司"
-];
+const COMPANY_SHIPMENT_VALUES = {
+  zh: "500,000,000",
+  en: "500,000,000",
+  es: "500.000.000",
+  ar: "٥٠٠٬٠٠٠٬٠٠٠",
+  fr: "500\u202f000\u202f000",
+  pt: "500.000.000",
+  ru: "500\u00a0000\u00a0000",
+  de: "500.000.000",
+  it: "500.000.000",
+  tr: "500.000.000"
+};
 const SOCIAL_PLATFORM_CLASS_ORDER = [
   "social-platform-group-tiktok",
   "social-platform-group-instagram",
@@ -79,13 +86,18 @@ function countClass(source, className) {
     .filter((tag) => classListFromAttributes(tag).includes(className)).length;
 }
 
-function decodeText(source) {
+function decodeEntities(source) {
   return source
-    .replace(/<[^>]+>/g, " ")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&")
     .replace(/&nbsp;/g, " ")
+    .replace(/&#(\d+);/g, (_, codePoint) => String.fromCodePoint(Number(codePoint)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, codePoint) => String.fromCodePoint(Number.parseInt(codePoint, 16)));
+}
+
+function decodeText(source) {
+  return decodeEntities(source.replace(/<[^>]+>/g, " "))
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -180,21 +192,25 @@ async function exists(file) {
 
 for (const { locale, file } of HOME_PAGES) {
   const html = await load(file);
+  const titles = Array.from(html.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi));
+  assert.equal(titles.length, 1, `${file}: homepage title count`);
+  assert.equal(decodeText(titles[0][1]), "Jabbar Sourcing", `${file}: homepage title`);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.doesNotMatch(html, /ai-sourcing-assistant\.js|JABBAR_AI_ASSISTANT_ENDPOINT/, `${file}: hidden AI bootstrap must not load by default`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
   assert.equal(countClass(html, "hero-brand-partnership"), 1, `${file}: joint brand lockup count`);
   assert.equal(countClass(html, "site-logo-lockup-company"), 1, `${file}: Haoduobao logo frame count`);
   assert.equal(count(html, /haoduobao-logo\.webp\?v=company-20260718a/g), 1, `${file}: Haoduobao logo asset count`);
-  assert.equal(countClass(html, "company-identity"), 1, `${file}: company identity block count`);
-  assert.equal(countClass(html, "company-about"), 1, `${file}: About card count`);
-  const aboutCard = firstBalancedRegionForClass(html, "section", "company-about");
-  const companyIdentity = firstBalancedRegionForClass(aboutCard, "div", "company-identity");
-  assert(companyIdentity, `${file}: company identity must be inside the About card`);
-  assert.equal(decodeText(companyIdentity), COMPANY_IDENTITY_LINES.join(" "), `${file}: company identity must contain exactly the approved three lines`);
-  assert.equal(count(companyIdentity, /<strong\b/gi), 1, `${file}: company identity title count`);
-  assert.equal(count(companyIdentity, /<span\b/gi), 2, `${file}: company identity legal line count`);
-  assert.doesNotMatch(companyIdentity, /<(?:a|p)\b/i, `${file}: company identity must not add links or extra paragraphs`);
+  assert.equal(countClass(html, "company-identity"), 0, `${file}: removed company identity block returned`);
+  assert.equal(countClass(html, "company-about"), 0, `${file}: removed About card returned`);
+  const mainContent = html.match(/<main\b[^>]*>[\s\S]*?<\/main>/i)?.[0] || "";
+  assert(mainContent, `${file}: homepage main content missing`);
+  assert.doesNotMatch(mainContent, /Jabbar\s*×\s*好多宝\s*\(Haoduobao\)/, `${file}: removed joint-company About title returned in the homepage body`);
+  assert.doesNotMatch(
+    decodeText(mainContent),
+    /Jabbar × 好多宝\(Haoduobao\).*Zhejiang Haoduobao Brand Management Co\., Ltd\..*浙江好多宝品牌管理有限公司/,
+    `${file}: removed three-line company About copy returned in the homepage body`,
+  );
   const galleryRails = tagsWithClass(html, "div", "gallery-rail");
   assert.equal(galleryRails.length, 2, `${file}: gallery rail count`);
   assert(galleryRails.every((match) => attribute(match[0], "role") === "region"), `${file}: gallery rails need region semantics`);
@@ -241,9 +257,24 @@ for (const { locale, file } of HOME_PAGES) {
   assert.equal(staticShipmentItems.length, 1, `${file}: static shipment fallback item count`);
   assert(staticShipmentItems.every((match) => classListFromAttributes(match[1]).includes("num-mono")), `${file}: static shipment fallback must explicitly use num-mono`);
   assert.match(html, /data-shipments-source="\/shipments\.json\?v=shipments-20260713a"/, `${file}: shipment data source`);
+  const metricCards = regionsForClass(html, "article", "company-metric-card");
+  assert.equal(metricCards.length, 5, `${file}: company metric card count`);
   const metricNumbers = tagsWithClass(html, "bdi", "company-metric-number")
     .filter((match) => classListFromAttributes(match[1]).includes("num-mono"));
   assert.equal(metricNumbers.length, 5, `${file}: monospaced company metric count`);
+  const firstMetricNumber = regionsForClass(metricCards[0], "bdi", "company-metric-number");
+  assert.equal(firstMetricNumber.length, 1, `${file}: founding-year number count`);
+  assert.equal(decodeText(firstMetricNumber[0]), "2008", `${file}: founding year`);
+  const fifthStrongContent = metricCards[4].match(/<strong\b[^>]*>([\s\S]*?)<\/strong>/i)?.[1] || "";
+  assert(fifthStrongContent, `${file}: annual shipment value strong missing`);
+  assert.equal(count(fifthStrongContent, /<bdi\b/gi), 1, `${file}: annual shipment value must contain one bdi`);
+  const fifthMetricNumber = regionsForClass(fifthStrongContent, "bdi", "company-metric-number");
+  assert.equal(fifthMetricNumber.length, 1, `${file}: annual shipment metric number count`);
+  const fifthMetricTag = fifthMetricNumber[0].match(/^<bdi\b[^>]*>/i)?.[0] || "";
+  assert.equal(attribute(fifthMetricTag, "data-counter-value"), "500000000", `${file}: annual shipment counter value`);
+  assert.equal(attribute(fifthMetricTag, "data-counter-grouped"), "true", `${file}: annual shipment grouping flag`);
+  assert.equal(decodeEntities(fifthMetricNumber[0].replace(/<[^>]+>/g, "")).trim(), COMPANY_SHIPMENT_VALUES[locale], `${file}: localized annual shipment format`);
+  assert.equal(fifthStrongContent.replace(fifthMetricNumber[0], "").trim(), "", `${file}: annual shipment value must not contain a currency or unit`);
   const reviewMetas = regionsForClass(html, "div", "testimonial-order-meta");
   assert.equal(reviewMetas.length, 3, `${file}: testimonial metadata count`);
   assert(reviewMetas.every((region) => countClass(region, "num-mono") === 1), `${file}: review amount must be the only monospaced metadata value`);
@@ -345,6 +376,7 @@ for (const { file } of INQUIRY_PAGES) {
 assert.equal(NAV_PAGES.length, 30, "site navigation page count");
 for (const { file } of NAV_PAGES) {
   const html = await load(file);
+  assert.deepEqual(textsForClass(html, "a", "site-nav-brand"), ["Jabbar Sourcing"], `${file}: header brand name`);
   const toolLinks = tagsWithClass(html, "a", "site-nav-tool-pill");
   assert.equal(toolLinks.length, 1, `${file}: site-nav-tool-pill count`);
   assert(attribute(toolLinks[0][0], "href"), `${file}: site-nav-tool-pill href missing`);
@@ -386,7 +418,11 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
 
 {
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
-  const EXPECTED_LANGUAGE_MATRIX_LASTMOD = "2026-07-18";
+  const EXPECTED_LANGUAGE_MATRIX_LASTMOD = {
+    home: "2026-07-19",
+    calculator: "2026-07-18",
+    inquiry: "2026-07-18"
+  };
   const EXPECTED_LEGAL_LASTMOD = {
     [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-18",
     [`${PUBLIC_ORIGIN}/support.html`]: "2026-07-12"
@@ -449,7 +485,7 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
         .map((tag) => [attribute(tag, "hreflang"), attribute(tag, "href")])
         .sort(([left], [right]) => left.localeCompare(right));
       assert(entry, `sitemap.xml: missing ${name} URL ${url}`);
-      assert.equal(entry.lastmod, EXPECTED_LANGUAGE_MATRIX_LASTMOD, `sitemap.xml: stale ${file} lastmod`);
+      assert.equal(entry.lastmod, EXPECTED_LANGUAGE_MATRIX_LASTMOD[name], `sitemap.xml: stale ${file} lastmod`);
       assert.equal(entry.alternates.length, expectedAlternates.length, `sitemap.xml: ${file} alternate count`);
       assert.deepEqual(
         [...entry.alternates].sort(([left], [right]) => left.localeCompare(right)),
@@ -585,7 +621,7 @@ for (const token of [
 for (const token of [
   ".calculator-inquiry-cta", ".inquiry-status-icon",
   "#cbmFill.is-over", "#cbmRibs", ".field-label-marker", ".calculator-result-status",
-  ".calculator-secondary-button:disabled", ".hero-brand-partnership", ".company-identity",
+  ".calculator-secondary-button:disabled", ".hero-brand-partnership",
   ".calculator-mode-tabs", ".calculator-optional-details", ".calculator-optional-summary",
   ".calculator-optional-fields", ".social-platform-filters"
 ]) {
@@ -626,6 +662,34 @@ assert.doesNotMatch(css, /\.site-logo-lockup-company img\s*\{/, "styles.css: Hao
 assert.match(cssRuleBody(css, ".social-platform-group[hidden]"), /display:\s*none\s*!important\s*;/, "styles.css: hidden social categories must not be overridden by the grid display rule");
 const homeFooterJoinRules = Array.from(css.matchAll(/main\s*>\s*#team\.team\s*\{([^}]*)\}/g), (match) => match[1]);
 assert(homeFooterJoinRules.some((body) => /padding-bottom:\s*0\s*!important\s*;/.test(body)), "styles.css: homepage footer seam padding returned");
+const companyDataReleaseMarker = "/* 2026-07-19 localized company data, centered desktop navigation, and footer rhythm. */";
+const companyDataReleaseIndex = css.indexOf(companyDataReleaseMarker);
+assert(companyDataReleaseIndex >= 0, "styles.css: localized company-data release block missing");
+const companyDataReleaseCss = css.slice(companyDataReleaseIndex);
+assert.match(
+  companyDataReleaseCss,
+  /#social-accounts\.social-platform-groups\s*\{[^}]*padding-bottom:\s*var\(--social-footer-breath,\s*clamp\(30px,\s*3\.2vw,\s*48px\)\)\s*!important\s*;/,
+  "styles.css: final release block must restore desktop social-to-footer spacing",
+);
+assert.match(
+  companyDataReleaseCss,
+  /@media \(max-width:\s*767px\)\s*\{[\s\S]*?#social-accounts\.social-platform-groups\s*\{[^}]*padding-bottom:\s*30px\s*!important\s*;/,
+  "styles.css: final release block must restore mobile social-to-footer spacing",
+);
+assert.match(
+  companyDataReleaseCss,
+  /main\s*>\s*#team\.team\s*\{[^}]*--social-footer-breath:\s*clamp\(30px,\s*3\.2vw,\s*48px\)\s*;[^}]*box-shadow:\s*inset\s+0\s+calc\(0px\s*-\s*var\(--social-footer-breath\)\)\s+0\s+#eef6fb\s*!important\s*;/,
+  "styles.css: footer breathing area must use the same non-white depth as its padding",
+);
+assert.match(companyDataReleaseCss, /@media \(min-width:\s*961px\) and \(max-width:\s*1279px\)/, "styles.css: medium-width navigation boundary regressed");
+assert.match(companyDataReleaseCss, /@media \(min-width:\s*1280px\)/, "styles.css: final desktop navigation media query missing");
+const centeredDesktopNavRules = Array.from(
+  companyDataReleaseCss.matchAll(/header\.site-nav \.site-nav-links\s*\{([^}]*)\}/g),
+  (match) => match[1],
+);
+const centeredDesktopNavRule = centeredDesktopNavRules.find((body) => /position:\s*absolute\s*!important\s*;/.test(body)) || "";
+assert.match(centeredDesktopNavRule, /left:\s*50%\s*!important\s*;/, "styles.css: desktop navigation must start from the horizontal midpoint");
+assert.match(centeredDesktopNavRule, /transform:\s*translate\(-50%,\s*-50%\)\s*!important\s*;/, "styles.css: desktop navigation midpoint translation missing");
 const rtlMobileProcessRule = css.match(/\[dir="rtl"\]\s+\.process-step\s*\{([^}]*)\}/m)?.[1] || "";
 assert.match(rtlMobileProcessRule, /padding-inline-start:\s*78px\s*;/, "styles.css: RTL mobile process cards must reserve space beside the leading number");
 assert.match(rtlMobileProcessRule, /padding-inline-end:\s*22px\s*;/, "styles.css: RTL mobile process card trailing padding regressed");

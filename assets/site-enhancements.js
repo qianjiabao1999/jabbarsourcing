@@ -851,11 +851,11 @@
     var original = strong.textContent.trim();
     var numberElement = strong.querySelector(".company-metric-number") || strong.querySelector("bdi");
     var token = "";
+    var explicitTarget = numberElement ? numberElement.getAttribute("data-counter-value") || "" : "";
 
     if (numberElement) {
-      var bdiMatch = numberElement.textContent.match(/\d(?:[\d,.]*\d)?/);
-      if (!bdiMatch) return null;
-      token = bdiMatch[0];
+      token = numberElement.textContent.trim();
+      if (!/^\d+$/.test(explicitTarget) && !/[0-9٠-٩۰-۹]/.test(token)) return null;
     } else {
       var walker = document.createTreeWalker(strong, NodeFilter.SHOW_TEXT);
       var node;
@@ -876,7 +876,11 @@
       parent.removeChild(node);
     }
 
-    var target = Number(token.replace(/[^0-9]/g, ""));
+    var normalizedDigits = token.replace(/[٠-٩۰-۹]/g, function (digit) {
+      var code = digit.charCodeAt(0);
+      return String(code >= 0x0660 && code <= 0x0669 ? code - 0x0660 : code - 0x06f0);
+    }).replace(/[^0-9]/g, "");
+    var target = Number(explicitTarget || normalizedDigits);
     if (!target) return null;
     numberElement.classList.add("company-metric-number", "num-mono");
     strong.removeAttribute("aria-label");
@@ -886,7 +890,13 @@
     strong.appendChild(visual);
     strong.appendChild(createElement("span", "sr-only", original));
     numberElement.textContent = "0";
-    return { element: numberElement, original: token, target: target, grouped: /[,.]/.test(token) };
+    return {
+      element: numberElement,
+      original: token,
+      target: target,
+      grouped: explicitTarget ? numberElement.getAttribute("data-counter-grouped") === "true" : /[,.٬\s\u00a0\u202f]/.test(token),
+      locale: numberElement.getAttribute("data-counter-locale") || document.documentElement.lang || "en"
+    };
   }
 
   function animateCounter(counter) {
@@ -895,7 +905,7 @@
       var elapsed = Math.min(1, (now - start) / 1200);
       var eased = 1 - Math.pow(1 - elapsed, 3);
       var value = Math.round(counter.target * eased);
-      counter.element.textContent = value.toLocaleString(document.documentElement.lang || "en", { useGrouping: counter.grouped });
+      counter.element.textContent = value.toLocaleString(counter.locale, { useGrouping: counter.grouped });
       if (elapsed < 1) window.requestAnimationFrame(step);
       else counter.element.textContent = counter.original;
     }
@@ -1088,7 +1098,7 @@
     }
 
     if (sharedObserver) {
-      [".sourcing-gallery", ".company-intro", ".work-process", ".company-about", ".testimonials", ".faq-section", ".social-platform-groups"].forEach(function (selector) {
+      [".sourcing-gallery", ".company-intro", ".work-process", ".testimonials", ".faq-section", ".social-platform-groups"].forEach(function (selector) {
         document.querySelectorAll(selector).forEach(function (section) {
           sharedObserver.observe(section);
         });

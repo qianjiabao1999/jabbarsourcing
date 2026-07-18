@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-170";
-const UI_VERSION = "ui-20260718g";
+const CSS_VERSION = "apple-171";
+const UI_VERSION = "ui-20260719a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -22,16 +22,28 @@ const HEADER_PAGES = [
 ];
 const IMAGE_AUDIT_LOCALES = new Set(["zh", "en", "es", "ru", "ar"]);
 const HOME_SECTION_CODES = {
-  zh: ["团队", "图库", "服务", "流程", "关于我们", "客户评价", "常见问题", "社交账号"],
-  en: ["Team", "Gallery", "Services", "Process", "About Us", "Reviews", "FAQ", "Social"],
-  es: ["Equipo", "Galería", "Servicios", "Proceso", "Sobre nosotros", "Reseñas", "Preguntas frecuentes", "Redes sociales"],
-  ar: ["الفريق", "المعرض", "الخدمات", "خطوات العمل", "من نحن", "آراء العملاء", "الأسئلة الشائعة", "التواصل الاجتماعي"],
-  fr: ["Équipe", "Galerie", "Services", "Processus", "À propos", "Avis clients", "FAQ", "Réseaux sociaux"],
-  pt: ["Equipe", "Galeria", "Serviços", "Processo", "Sobre nós", "Avaliações", "Perguntas frequentes", "Redes sociais"],
-  ru: ["Команда", "Галерея", "Услуги", "Процесс", "О нас", "Отзывы", "Частые вопросы", "Соцсети"],
-  de: ["Team", "Galerie", "Leistungen", "Ablauf", "Über uns", "Bewertungen", "FAQ", "Soziale Medien"],
-  it: ["Team", "Galleria", "Servizi", "Processo", "Chi siamo", "Recensioni", "Domande frequenti", "Social"],
-  tr: ["Ekip", "Galeri", "Hizmetler", "Süreç", "Hakkımızda", "Yorumlar", "SSS", "Sosyal medya"]
+  zh: ["团队", "图库", "服务", "流程", "客户评价", "常见问题", "社交账号"],
+  en: ["Team", "Gallery", "Services", "Process", "Reviews", "FAQ", "Social"],
+  es: ["Equipo", "Galería", "Servicios", "Proceso", "Reseñas", "Preguntas frecuentes", "Redes sociales"],
+  ar: ["الفريق", "المعرض", "الخدمات", "خطوات العمل", "آراء العملاء", "الأسئلة الشائعة", "التواصل الاجتماعي"],
+  fr: ["Équipe", "Galerie", "Services", "Processus", "Avis clients", "FAQ", "Réseaux sociaux"],
+  pt: ["Equipe", "Galeria", "Serviços", "Processo", "Avaliações", "Perguntas frequentes", "Redes sociais"],
+  ru: ["Команда", "Галерея", "Услуги", "Процесс", "Отзывы", "Частые вопросы", "Соцсети"],
+  de: ["Team", "Galerie", "Leistungen", "Ablauf", "Bewertungen", "FAQ", "Soziale Medien"],
+  it: ["Team", "Galleria", "Servizi", "Processo", "Recensioni", "Domande frequenti", "Social"],
+  tr: ["Ekip", "Galeri", "Hizmetler", "Süreç", "Yorumlar", "SSS", "Sosyal medya"]
+};
+const METRIC_EXPECTED = {
+  zh: { first: "2008年", last: "500,000,000" },
+  en: { first: "2008", last: "500,000,000" },
+  es: { first: "2008", last: "500.000.000" },
+  ar: { first: "2008", last: "٥٠٠٬٠٠٠٬٠٠٠" },
+  fr: { first: "2008", last: "500\u202F000\u202F000" },
+  pt: { first: "2008", last: "500.000.000" },
+  ru: { first: "2008", last: "500\u00A0000\u00A0000" },
+  de: { first: "2008", last: "500.000.000" },
+  it: { first: "2008", last: "500.000.000" },
+  tr: { first: "2008", last: "500.000.000" }
 };
 const CALCULATOR_SECTION_CODES = {
   zh: "Jabbar · 体积工具",
@@ -137,6 +149,7 @@ async function pageState(page) {
     const cap = document.querySelector("#cbmCap");
     const fill = document.querySelector("#cbmFill");
     return {
+      title: document.title,
       width: window.innerWidth,
       documentWidth: document.documentElement.scrollWidth,
       direction: document.documentElement.dir || getComputedStyle(document.documentElement).direction,
@@ -167,6 +180,7 @@ async function pageState(page) {
         reviewNumbers: document.querySelectorAll(".testimonial-order-meta .num-mono").length,
         dimensionLines: document.querySelectorAll(".cbm-dimension-line").length,
         jointBrandLockups: document.querySelectorAll(".hero-brand-partnership").length,
+        companyAboutBlocks: document.querySelectorAll(".company-about").length,
         companyIdentityBlocks: document.querySelectorAll(".company-identity").length,
         socialFilters: document.querySelectorAll(".social-platform-filter").length,
         calculatorModeTabs: document.querySelectorAll(".calculator-mode-tab").length
@@ -239,8 +253,11 @@ async function pageState(page) {
       },
       rects: {
         header: rect(".site-nav"),
+        brand: rect(".site-nav-brand"),
+        navLinks: rect(".site-nav-links"),
         toolPill: rect(".site-nav-tool-pill"),
         quoteLink: rect(".site-nav-quote"),
+        language: rect(".site-nav-language"),
         desktopTeamLink: rect(".site-nav-links .site-nav-team"),
         legacyToggle: rect(".jabbar-ai-toggle"),
         conversionBar: rect(".mobile-conversion-bar"),
@@ -327,6 +344,13 @@ function isTransparent(value) {
   return value === "transparent" || /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/i.test(value);
 }
 
+function rectanglesOverlap(first, second) {
+  if (!first || !second || first.display === "none" || second.display === "none") return false;
+  const horizontalOverlap = Math.min(first.right, second.right) - Math.max(first.left, second.left);
+  const verticalOverlap = Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top);
+  return horizontalOverlap > 0.5 && verticalOverlap > 0.5;
+}
+
 function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   assert.equal(state.counts.toolPills, 1, `${scope}: tool pill count`);
   assert.equal(state.counts.quoteLinks, 1, `${scope}: quote link count`);
@@ -346,6 +370,18 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   assert.notEqual(state.header.toolBefore.backgroundImage, "none", `${scope}: tool pill container ribs/background missing`);
 
   if (desktop) {
+    assertVisibleRect(state.rects.navLinks, `${scope}: desktop navigation links`);
+    const navCenter = state.rects.navLinks.left + state.rects.navLinks.width / 2;
+    assert(Math.abs(navCenter - state.width / 2) <= 1, `${scope}: desktop navigation center delta ${navCenter - state.width / 2}`);
+    for (const [name, rect] of [
+      ["brand", state.rects.brand],
+      ["tool pill", state.rects.toolPill],
+      ["quote link", state.rects.quoteLink],
+      ["language switcher", state.rects.language]
+    ]) {
+      assertVisibleRect(rect, `${scope}: desktop ${name}`);
+      assert(!rectanglesOverlap(state.rects.navLinks, rect), `${scope}: desktop navigation overlaps ${name}`);
+    }
     assert.equal(state.counts.desktopTeamLinks, 1, `${scope}: desktop Jabbar Team link count`);
     assertVisibleRect(state.rects.desktopTeamLink, `${scope}: desktop Jabbar Team link`);
     assert.equal(state.header.desktopTeam.backgroundImage, "none", `${scope}: desktop Jabbar Team link still has a background image`);
@@ -354,6 +390,9 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
       assert.equal(state.header.desktopTeam[`border${side}Width`], 1, `${scope}: desktop Jabbar Team link ${side.toLowerCase()} border`);
     }
     assert.equal(state.header.desktopTeam.boxShadow, "none", `${scope}: desktop Jabbar Team link still has a shadow`);
+  } else {
+    assert(state.rects.navLinks, `${scope}: mobile navigation links are missing from the DOM`);
+    assert.equal(state.rects.navLinks.display, "none", `${scope}: desktop navigation links remain visible on mobile`);
   }
 }
 
@@ -796,31 +835,18 @@ async function assertCompanyProofLayout(page, scope, mobile) {
     const metrics = document.querySelector("#services .company-metrics");
     const cards = Array.from(document.querySelectorAll("#services .company-metric-card"));
     const labels = Array.from(document.querySelectorAll("#services .company-metric-card span"));
-    const story = document.querySelector(".company-about .company-story");
-    const identity = story?.querySelector(":scope > .company-identity");
-    const identityLines = identity ? [
-      identity.querySelector(":scope > .company-identity-title"),
-      ...identity.querySelectorAll(":scope > .company-identity-legal > span")
-    ] : [];
     return {
       photo: rect(photo),
       metrics: rect(metrics),
       cards: cards.map((card) => ({ rect: rect(card), textAlign: getComputedStyle(card).textAlign })),
       labelFonts: labels.map((label) => Number.parseFloat(getComputedStyle(label).fontSize)),
       labelAlignments: labels.map((label) => getComputedStyle(label).textAlign),
-      story: rect(story),
-      identity: rect(identity),
-      identityTextAlign: identity ? getComputedStyle(identity).textAlign : "",
-      identityBlocksOnPage: document.querySelectorAll(".company-identity").length,
-      identityLines: identityLines.map((line) => ({
-        text: line?.textContent.replace(/\s+/g, " ").trim() || "",
-        rect: rect(line),
-        display: line ? getComputedStyle(line).display : "none",
-        fontSize: line ? Number.parseFloat(getComputedStyle(line).fontSize) : 0
-      }))
+      aboutBlocksOnPage: document.querySelectorAll(".company-about").length,
+      identityBlocksOnPage: document.querySelectorAll(".company-identity").length
     };
   });
 
+  assert(state.photo && state.metrics, `${scope}: company proof photo or metrics missing`);
   assert(Math.abs(state.photo.left - state.metrics.left) <= 2, `${scope}: company photo and metrics left edges differ`);
   assert(Math.abs(state.photo.width - state.metrics.width) <= 2, `${scope}: company photo and metrics widths differ`);
   assert(state.photo.bottom < state.metrics.top, `${scope}: company photo does not sit above metrics`);
@@ -828,20 +854,8 @@ async function assertCompanyProofLayout(page, scope, mobile) {
   assert(state.cards.every((card) => card.textAlign === "center"), `${scope}: company metric card text is not centered`);
   assert(state.labelAlignments.every((value) => value === "center"), `${scope}: company metric labels are not centered`);
   assert(state.labelFonts.every((value) => value >= 14.5), `${scope}: company metric label is too small (${state.labelFonts.join(", ")})`);
-  assert.equal(state.identityBlocksOnPage, 1, `${scope}: company identity block count`);
-  assert(state.story && state.identity, `${scope}: company identity is not inside the About card`);
-  assert.equal(state.identityLines.length, 3, `${scope}: company identity must contain exactly three structural lines`);
-  state.identityLines.forEach((line, index) => {
-    assert(line.text, `${scope}: company identity line ${index + 1} is empty`);
-    assert(line.rect && line.rect.width > 0 && line.rect.height > 0, `${scope}: company identity line ${index + 1} is not visible`);
-    assert.notEqual(line.display, "none", `${scope}: company identity line ${index + 1} is hidden`);
-    assert(line.fontSize >= 13, `${scope}: company identity line ${index + 1} is too small (${line.fontSize}px)`);
-    assert(line.rect.left >= state.story.left - 1 && line.rect.right <= state.story.right + 1, `${scope}: company identity line ${index + 1} escapes the About card`);
-  });
-  assert.equal(state.identityTextAlign, "center", `${scope}: company identity is not centered`);
-  assert(state.identity.top >= state.story.top && state.identity.bottom <= state.story.bottom + 1, `${scope}: company identity block escapes the About card`);
-  assert(state.identityLines[0].rect.top <= state.identityLines[1].rect.top, `${scope}: company identity title order`);
-  assert(state.identityLines[1].rect.top <= state.identityLines[2].rect.top, `${scope}: company identity legal-line order`);
+  assert.equal(state.aboutBlocksOnPage, 0, `${scope}: removed company About card returned`);
+  assert.equal(state.identityBlocksOnPage, 0, `${scope}: removed company identity block returned`);
 
   if (mobile) {
     assert(Math.abs(state.cards[0].rect.top - state.cards[1].rect.top) <= 2, `${scope}: first mobile metric row is misaligned`);
@@ -861,9 +875,17 @@ async function assertFooterJoin(page, scope) {
     const socialRect = social?.getBoundingClientRect();
     const footerRect = footer?.getBoundingClientRect();
     const gmailStyle = gmail ? getComputedStyle(gmail) : null;
+    const visibleSocialGroups = social ? Array.from(social.querySelectorAll(".social-platform-group"))
+      .filter((group) => {
+        const style = getComputedStyle(group);
+        return !group.hidden && style.display !== "none" && style.visibility !== "hidden" && group.getClientRects().length > 0;
+      }) : [];
+    const lastSocialGroupBottom = visibleSocialGroups.reduce((bottom, group) => Math.max(bottom, group.getBoundingClientRect().bottom), -Infinity);
     return {
       gap: socialRect && footerRect ? footerRect.top - socialRect.bottom : null,
+      socialBreathingSpace: socialRect && Number.isFinite(lastSocialGroupBottom) ? socialRect.bottom - lastSocialGroupBottom : null,
       teamPaddingBottom: team ? Number.parseFloat(getComputedStyle(team).paddingBottom) : null,
+      teamBoxShadow: team ? getComputedStyle(team).boxShadow : "",
       socialMarginBottom: social ? Number.parseFloat(getComputedStyle(social).marginBottom) : null,
       footerMarginTop: footer ? Number.parseFloat(getComputedStyle(footer).marginTop) : null,
       gmail: gmail ? {
@@ -882,11 +904,35 @@ async function assertFooterJoin(page, scope) {
   assert(Math.abs(state.gap) <= 1, `${scope}: visible footer seam is ${state.gap}px`);
   assert.equal(state.socialMarginBottom, 0, `${scope}: social bottom margin reintroduced a footer seam`);
   assert.equal(state.footerMarginTop, 0, `${scope}: footer top margin reintroduced a seam`);
+  assert.notEqual(state.socialBreathingSpace, null, `${scope}: visible social platform group is missing`);
+  assert(state.socialBreathingSpace >= 28 && state.socialBreathingSpace <= 52, `${scope}: social footer breathing space is ${state.socialBreathingSpace}px`);
+  assert.match(state.teamBoxShadow, /rgb\(238,\s*246,\s*251\)/, `${scope}: footer join lacks the non-white team inset (${state.teamBoxShadow})`);
   assert.equal(state.gmail?.text, "qianjiabao1999@gmail.com", `${scope}: footer Gmail text changed`);
   assert.equal(state.gmail.whiteSpace, "nowrap", `${scope}: Gmail is allowed to split inside the address`);
   assert.notEqual(state.gmail.overflow, "hidden", `${scope}: Gmail remains clipped`);
   assert.notEqual(state.gmail.textOverflow, "ellipsis", `${scope}: Gmail remains ellipsized`);
   assert(state.gmail.scrollWidth <= state.gmail.clientWidth + 1, `${scope}: Gmail still overflows (${state.gmail.scrollWidth}/${state.gmail.clientWidth})`);
+}
+
+async function assertLocalizedMetricAnimation(page, scope, locale) {
+  const expected = METRIC_EXPECTED[locale];
+  assert(expected, `${scope}: localized metric expectation is missing`);
+  await page.locator(".company-metrics").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelector(".company-intro")?.classList.contains("is-visible"));
+  await page.waitForFunction(({ first, last }) => {
+    const values = Array.from(document.querySelectorAll(".company-metric-card strong .company-metric-visual"), (element) => element.textContent.trim());
+    return values.length === 5 && values[0] === first && values[4] === last;
+  }, expected, { timeout: 3000 });
+  const copy = await page.evaluate(() => ({
+    visual: Array.from(document.querySelectorAll(".company-metric-card strong .company-metric-visual"), (element) => element.textContent.trim()),
+    accessible: Array.from(document.querySelectorAll(".company-metric-card strong .sr-only"), (element) => element.textContent.trim()),
+    ariaLabels: document.querySelectorAll(".company-metric-card strong[aria-label]").length
+  }));
+  assert.equal(copy.visual.length, 5, `${scope}: animated metric visual count`);
+  assert.equal(copy.accessible.length, 5, `${scope}: animated metric accessible count`);
+  assert.deepEqual([copy.visual[0], copy.visual[4]], [expected.first, expected.last], `${scope}: localized metric visual copy`);
+  assert.deepEqual([copy.accessible[0], copy.accessible[4]], [expected.first, expected.last], `${scope}: localized metric accessible copy`);
+  assert.equal(copy.ariaLabels, 0, `${scope}: company metrics still rely on aria-label`);
 }
 
 async function homeMatrix(browserType) {
@@ -908,6 +954,7 @@ async function homeMatrix(browserType) {
       const scope = `${item.locale} home ${viewport.width}x${viewport.height}`;
       const state = await pageState(page);
       assertShared(state, scope);
+      assert.equal(state.title, "Jabbar Sourcing", `${scope}: homepage title`);
       assertHeaderNavigation(state, scope, { desktop: !viewport.mobile });
       assertNoFloatingControls(state, scope);
       assertMobileMenuTrimmed(state, scope);
@@ -924,7 +971,8 @@ async function homeMatrix(browserType) {
       assert.equal(state.counts.countries, 0, `${scope}: removed country strip returned`);
       assert.equal(state.counts.metrics, 5, `${scope}: current five company metrics must remain`);
       assert.equal(state.counts.jointBrandLockups, 1, `${scope}: joint brand lockup count`);
-      assert.equal(state.counts.companyIdentityBlocks, 1, `${scope}: company identity block count`);
+      assert.equal(state.counts.companyAboutBlocks, 0, `${scope}: removed company About card returned`);
+      assert.equal(state.counts.companyIdentityBlocks, 0, `${scope}: removed company identity block returned`);
       assert.equal(state.counts.socialFilters, 4, `${scope}: social platform filter count`);
       assert.equal(state.counts.progress, 1, `${scope}: progress count`);
       assert(state.rects.social, `${scope}: social section missing`);
@@ -936,6 +984,7 @@ async function homeMatrix(browserType) {
       const headingCenter = state.rects.socialHeading.left + state.rects.socialHeading.width / 2;
       assert(Math.abs(socialCenter - headingCenter) <= 1, `${scope}: social heading center delta ${headingCenter - socialCenter}`);
       await assertSocialPlatformFilters(page, scope);
+      if (!viewport.mobile) await assertLocalizedMetricAnimation(page, scope, item.locale);
       if (viewport.mobile) {
         await assertMobileGalleryScroll(page, scope);
         assert.equal(state.counts.qrCards, 0, `${scope}: QR hover card must not initialize on touch`);
@@ -1173,12 +1222,13 @@ async function interactionChecks(browserType) {
   const bottomScale = await page.locator(".site-scroll-progress-fill").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).a);
   assert(bottomScale >= 0.999, `progress at bottom is ${bottomScale}`);
 
-  await page.locator(".company-intro").scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => document.querySelector(".company-intro")?.classList.contains("is-visible"));
+  await page.locator(".company-metrics").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => Array.from(document.querySelectorAll(".company-metric-card strong"))
+    .every((element) => element.getBoundingClientRect().top < window.innerHeight && element.getBoundingClientRect().bottom > 0));
   await page.waitForTimeout(1300);
   const metricVisuals = await page.locator(".company-metric-card strong .company-metric-visual").allTextContents();
   const metricAccessible = await page.locator(".company-metric-card strong .sr-only").allTextContents();
-  const expectedMetrics = ["2021年", "300+", "50,000㎡", "全球 100+ 国家和地区", "5亿元人民币"];
+  const expectedMetrics = ["2008年", "300+", "50,000㎡", "全球 100+ 国家和地区", "500,000,000"];
   assert.deepEqual(metricVisuals.map((item) => item.trim()), expectedMetrics, "company metric visuals changed or did not finish counting");
   assert.deepEqual(metricAccessible.map((item) => item.trim()), expectedMetrics, "company metric accessible copy changed during animation");
   assert.equal(await page.locator(".company-metric-card strong[aria-label]").count(), 0, "company metrics still rely on aria-label");
@@ -1387,7 +1437,7 @@ async function accessibilityFallbackChecks(browserType) {
   const stampOpacities = await page.locator(".stamp").evaluateAll((items) => items.map((item) => Number.parseFloat(getComputedStyle(item).opacity)));
   assert(stampOpacities.every((opacity) => opacity >= 0.99), `reduced motion stamp opacity ${stampOpacities.join(", ")}`);
   const metrics = await page.locator(".company-metric-card strong").allTextContents();
-  assert.deepEqual(metrics.map((item) => item.trim()), ["2021年", "300+", "50,000㎡", "全球 100+ 国家和地区", "5亿元人民币"], "reduced motion changed metric copy");
+  assert.deepEqual(metrics.map((item) => item.trim()), ["2008年", "300+", "50,000㎡", "全球 100+ 国家和地区", "500,000,000"], "reduced motion changed metric copy");
   await reduced.close();
 
   const noJs = await browserType.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });
@@ -1404,7 +1454,7 @@ async function accessibilityFallbackChecks(browserType) {
       return style.display === "none" || style.visibility === "hidden" || Number.parseFloat(style.opacity) < 0.99;
     }));
   assert.deepEqual(hidden, [], `no-JS content hidden: ${hidden.join(", ")}`);
-  assert.equal(await noJsPage.locator(".section-code").count(), 8, "no-JS section codes missing");
+  assert.equal(await noJsPage.locator(".section-code").count(), 7, "no-JS section codes missing");
   assert.equal(await noJsPage.locator(".stamp").count(), 3, "no-JS stamps missing");
   const noJsStampOpacities = await noJsPage.locator(".stamp").evaluateAll((items) => items.map((item) => Number.parseFloat(getComputedStyle(item).opacity)));
   assert(noJsStampOpacities.every((opacity) => opacity >= 0.99), `no-JS stamps hidden: ${noJsStampOpacities.join(", ")}`);
