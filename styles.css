@@ -9995,7 +9995,7 @@ html[lang="ar"] .section-code {
   aspect-ratio: 1 / 1;
 }
 
-.site-logo-lockup-company img {
+.hero-brand-partnership .site-logo-lockup img {
   background: #fff;
   object-fit: contain;
   object-position: center;
@@ -10218,6 +10218,10 @@ html[lang="ar"] .section-code {
 
 .social-platform-groups.is-social-filtered .social-platform-group:not([hidden]) {
   grid-column: 1 / -1;
+}
+
+.social-platform-group[hidden] {
+  display: none !important;
 }
 
 @media (min-width: 768px) {
@@ -11270,8 +11274,6 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
   font-weight: 900 !important;
 }
 
-.social-platform-filter:hover,
-.social-platform-filter:focus-visible,
 .social-platform-filter.is-active {
   color: #fff !important;
   border-color: rgba(15, 118, 110, 0.4) !important;
@@ -11280,8 +11282,17 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
   box-shadow: 0 10px 24px rgba(15, 107, 168, 0.18) !important;
 }
 
-#team.team {
-  padding-bottom: 12px !important;
+.social-platform-filter:not(.is-active):hover,
+.social-platform-filter:not(.is-active):focus-visible {
+  color: #075f73 !important;
+  border-color: rgba(15, 118, 110, 0.32) !important;
+  background-color: #e6f6f4 !important;
+  background-image: linear-gradient(145deg, #f8fffe, #e2f4f2) !important;
+  box-shadow: inset 0 1px 0 #fff, 0 8px 20px rgba(15, 76, 129, 0.1) !important;
+}
+
+main > #team.team {
+  padding-bottom: 0 !important;
 }
 
 @media (max-width: 767px) {

@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-169";
-const UI_VERSION = "ui-20260718f";
+const CSS_VERSION = "apple-170";
+const UI_VERSION = "ui-20260718g";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -446,9 +446,12 @@ async function assertFaqDefaultClosed(page, scope) {
 async function assertSocialPlatformFilters(page, scope) {
   const initial = await page.locator(".social-platform-group").evaluateAll((groups) => groups.map((group) => {
     const cards = Array.from(group.querySelectorAll(":scope > .team-grid > .team-card"));
+    const groupStyle = getComputedStyle(group);
     return {
       platform: group.dataset.socialPlatform || "",
-      hidden: group.hidden || getComputedStyle(group).display === "none",
+      hidden: group.hidden,
+      display: groupStyle.display,
+      rendered: group.getClientRects().length > 0,
       totalCards: cards.length,
       visibleCards: cards.filter((card) => !card.hidden && getComputedStyle(card).display !== "none").length,
       collapsedCards: cards.filter((card) => card.classList.contains("is-social-card-collapsed")).length,
@@ -457,6 +460,9 @@ async function assertSocialPlatformFilters(page, scope) {
   }));
   const groupCount = initial.length;
   const filters = page.locator(".social-platform-filter");
+  const renderedPlatforms = () => page.locator(".social-platform-group").evaluateAll((groups) => groups
+    .filter((group) => getComputedStyle(group).display !== "none" && group.getClientRects().length > 0)
+    .map((group) => group.dataset.socialPlatform));
   const filterState = await filters.evaluateAll((buttons) => buttons.map((button) => ({
     platform: button.dataset.socialFilter || "",
     pressed: button.getAttribute("aria-pressed"),
@@ -466,17 +472,24 @@ async function assertSocialPlatformFilters(page, scope) {
   assert.equal(filterState.length, groupCount, `${scope}: platform filters must contain four categories and no all button`);
   assert(!filterState.some((filter) => filter.platform === "all"), `${scope}: deprecated all-platform filter remains`);
   assert.deepEqual(filterState.map((filter) => filter.platform).sort(), initial.map((group) => group.platform).sort(), `${scope}: filter/platform keys mismatch`);
-  assert(filterState.every((filter) => filter.pressed === "false" && !filter.active), `${scope}: a platform filter starts selected`);
+  assert.equal(filterState[0]?.platform, "tiktok", `${scope}: TikTok is not the first social category`);
+  assert.equal(filterState[0]?.pressed, "true", `${scope}: TikTok is not selected by default`);
+  assert.equal(filterState[0]?.active, true, `${scope}: TikTok default button lacks the active style`);
+  assert(filterState.slice(1).every((filter) => filter.pressed === "false" && !filter.active), `${scope}: a non-TikTok filter starts selected`);
   initial.forEach((group, index) => {
     assert(group.platform, `${scope}: social group ${index + 1} lacks a platform key`);
-    assert.equal(group.hidden, false, `${scope}: social group ${index + 1} starts hidden`);
+    assert.equal(group.hidden, group.platform !== "tiktok", `${scope}: social group ${index + 1} default visibility`);
+    assert.equal(group.display === "none", group.platform !== "tiktok", `${scope}: social group ${index + 1} hidden display state`);
+    assert.equal(group.rendered, group.platform === "tiktok", `${scope}: social group ${index + 1} rendered state`);
     assert(group.totalCards > 0, `${scope}: social group ${index + 1} has no accounts`);
-    assert.equal(group.visibleCards, group.totalCards, `${scope}: social group ${index + 1} does not show every account by default`);
+    assert.equal(group.visibleCards, group.totalCards, `${scope}: social group ${index + 1} retains per-account hiding`);
     assert.equal(group.collapsedCards, 0, `${scope}: social group ${index + 1} retains collapsed account classes`);
     assert.equal(group.disclosureButtons, 0, `${scope}: social group ${index + 1} retains a view-all disclosure`);
   });
+  assert.equal(await page.locator(".social-platform-group:not([hidden])").count(), 1, `${scope}: default social view is not isolated to TikTok`);
+  assert.deepEqual(await renderedPlatforms(), ["tiktok"], `${scope}: non-TikTok accounts render in the default view`);
 
-  const selectedFilter = filters.first();
+  const selectedFilter = filters.nth(1);
   const selectedPlatform = await selectedFilter.getAttribute("data-social-filter");
   await selectedFilter.click();
   assert.equal(await page.locator(".social-platform-group[hidden]").count(), groupCount - 1, `${scope}: platform filter hidden group count`);
@@ -484,6 +497,7 @@ async function assertSocialPlatformFilters(page, scope) {
   assert.equal(await page.locator(".social-platform-filter.is-active").count(), 1, `${scope}: active platform filter count`);
   const visiblePlatforms = await page.locator(".social-platform-group:not([hidden])").evaluateAll((groups) => groups.map((group) => group.dataset.socialPlatform));
   assert.deepEqual(visiblePlatforms, [selectedPlatform], `${scope}: selected platform did not isolate its account group`);
+  assert.deepEqual(await renderedPlatforms(), [selectedPlatform], `${scope}: hidden platform still renders after selection`);
   const filterEvent = await page.evaluate(() => (window.dataLayer || [])
     .map((entry) => Array.from(entry))
     .filter((entry) => entry[0] === "event" && entry[1] === "social_platform_filter")
@@ -491,25 +505,84 @@ async function assertSocialPlatformFilters(page, scope) {
   assert.equal(filterEvent?.[2]?.platform, selectedPlatform, `${scope}: selected platform analytics missing`);
 
   await selectedFilter.click();
-  assert.equal(await page.locator(".social-platform-group[hidden]").count(), 0, `${scope}: clicking the active category did not restore all groups`);
-  assert.equal(await page.locator(".social-platform-filter.is-active").count(), 0, `${scope}: active category remained highlighted after reset`);
-  const resetPressed = await filters.evaluateAll((buttons) => buttons.map((button) => button.getAttribute("aria-pressed")));
-  assert(resetPressed.every((pressed) => pressed === "false"), `${scope}: category reset left an aria-pressed filter`);
-  const resetEvent = await page.evaluate(() => (window.dataLayer || [])
+  assert.equal(await page.locator(".social-platform-group[hidden]").count(), groupCount - 1, `${scope}: repeated category click restored all groups`);
+  assert.equal(await selectedFilter.getAttribute("aria-pressed"), "true", `${scope}: repeated category click cleared the selected button`);
+  assert.equal(await page.locator(".social-platform-filter.is-active").count(), 1, `${scope}: repeated category click changed active filter count`);
+  const repeatedPlatforms = await page.locator(".social-platform-group:not([hidden])").evaluateAll((groups) => groups.map((group) => group.dataset.socialPlatform));
+  assert.deepEqual(repeatedPlatforms, [selectedPlatform], `${scope}: repeated category click changed the visible platform`);
+  assert.deepEqual(await renderedPlatforms(), [selectedPlatform], `${scope}: repeated category click rendered another platform`);
+  const repeatedEvent = await page.evaluate(() => (window.dataLayer || [])
     .map((entry) => Array.from(entry))
     .filter((entry) => entry[0] === "event" && entry[1] === "social_platform_filter")
     .at(-1));
-  assert.equal(resetEvent?.[2]?.platform, "all", `${scope}: all-platform reset analytics missing`);
+  assert.equal(repeatedEvent?.[2]?.platform, selectedPlatform, `${scope}: repeated category analytics changed platform`);
 
-  await page.locator(".team-card[href]").first().evaluate((card) => {
+  const defaultFilter = filters.first();
+  await defaultFilter.click();
+  assert.equal(await defaultFilter.getAttribute("aria-pressed"), "true", `${scope}: TikTok could not be restored`);
+  const restoredPlatforms = await page.locator(".social-platform-group:not([hidden])").evaluateAll((groups) => groups.map((group) => group.dataset.socialPlatform));
+  assert.deepEqual(restoredPlatforms, ["tiktok"], `${scope}: TikTok restore did not isolate TikTok accounts`);
+  assert.deepEqual(await renderedPlatforms(), ["tiktok"], `${scope}: TikTok restore left another platform rendered`);
+
+  await page.locator(".social-platform-group:not([hidden]) .team-card[href]").first().evaluate((card) => {
     card.addEventListener("click", (event) => event.preventDefault(), { once: true });
   });
-  await page.locator(".team-card[href]").first().click();
+  await page.locator(".social-platform-group:not([hidden]) .team-card[href]").first().click();
   const profileEvent = await page.evaluate(() => (window.dataLayer || [])
     .map((entry) => Array.from(entry))
     .filter((entry) => entry[0] === "event" && entry[1] === "social_profile_click")
     .at(-1));
   assert(profileEvent && profileEvent[2]?.platform && profileEvent[2]?.position === 1, `${scope}: social profile click analytics missing`);
+}
+
+async function assertJointBrandParity(page, scope) {
+  const state = await page.locator(".hero-brand-partnership .site-logo-lockup").evaluateAll((frames) => frames.map((frame) => {
+    const frameStyle = getComputedStyle(frame);
+    const image = frame.querySelector("img");
+    const imageStyle = image ? getComputedStyle(image) : null;
+    const frameRect = frame.getBoundingClientRect();
+    const imageRect = image?.getBoundingClientRect();
+    return {
+      frame: {
+        width: frameRect.width,
+        height: frameRect.height,
+        padding: frameStyle.padding,
+        borderRadius: frameStyle.borderRadius,
+        borderWidth: frameStyle.borderWidth,
+        backgroundColor: frameStyle.backgroundColor,
+        backgroundImage: frameStyle.backgroundImage,
+        boxShadow: frameStyle.boxShadow
+      },
+      image: image && imageStyle && imageRect ? {
+        width: imageRect.width,
+        height: imageRect.height,
+        naturalWidth: image.naturalWidth,
+        naturalHeight: image.naturalHeight,
+        backgroundColor: imageStyle.backgroundColor,
+        borderRadius: imageStyle.borderRadius,
+        objectFit: imageStyle.objectFit,
+        objectPosition: imageStyle.objectPosition
+      } : null
+    };
+  }));
+
+  assert.equal(state.length, 2, `${scope}: joint brand frame count`);
+  const [jabbar, company] = state;
+  assert(jabbar.image && company.image, `${scope}: joint brand image missing`);
+  assert(Math.abs(jabbar.frame.width - company.frame.width) <= 0.5, `${scope}: joint brand frame width mismatch`);
+  assert(Math.abs(jabbar.frame.height - company.frame.height) <= 0.5, `${scope}: joint brand frame height mismatch`);
+  for (const property of ["padding", "borderRadius", "borderWidth", "backgroundColor", "backgroundImage", "boxShadow"]) {
+    assert.equal(jabbar.frame[property], company.frame[property], `${scope}: joint brand frame ${property} mismatch`);
+  }
+  assert(Math.abs(jabbar.image.width - company.image.width) <= 0.5, `${scope}: joint brand inner width mismatch`);
+  assert(Math.abs(jabbar.image.height - company.image.height) <= 0.5, `${scope}: joint brand inner height mismatch`);
+  assert.equal(jabbar.image.backgroundColor, company.image.backgroundColor, `${scope}: joint brand inner surface mismatch`);
+  assert.equal(jabbar.image.borderRadius, company.image.borderRadius, `${scope}: joint brand inner radius mismatch`);
+  assert.equal(jabbar.image.objectFit, "contain", `${scope}: Jabbar logo can be cropped`);
+  assert.equal(company.image.objectFit, "contain", `${scope}: Haoduobao logo can be cropped`);
+  assert.equal(jabbar.image.objectPosition, company.image.objectPosition, `${scope}: joint brand image alignment mismatch`);
+  assert(jabbar.image.naturalWidth > 0 && jabbar.image.naturalHeight > 0, `${scope}: Jabbar logo failed to load`);
+  assert(company.image.naturalWidth > 0 && company.image.naturalHeight > 0, `${scope}: Haoduobao logo failed to load`);
 }
 
 async function assertMobileRtlProcessLayout(page, scope) {
@@ -797,8 +870,8 @@ async function assertFooterJoin(page, scope) {
   });
 
   assert.notEqual(state.gap, null, `${scope}: footer join elements are missing`);
-  assert(state.teamPaddingBottom >= 12 && state.teamPaddingBottom <= 40, `${scope}: unexpected footer breathing room ${state.teamPaddingBottom}px`);
-  assert(Math.abs(state.gap - state.teamPaddingBottom) <= 1, `${scope}: footer gap ${state.gap}px does not match team padding ${state.teamPaddingBottom}px`);
+  assert.equal(state.teamPaddingBottom, 0, `${scope}: footer seam padding returned`);
+  assert(Math.abs(state.gap) <= 1, `${scope}: visible footer seam is ${state.gap}px`);
   assert.equal(state.socialMarginBottom, 0, `${scope}: social bottom margin reintroduced a footer seam`);
   assert.equal(state.footerMarginTop, 0, `${scope}: footer top margin reintroduced a seam`);
   assert.equal(state.gmail?.text, "qianjiabao1999@gmail.com", `${scope}: footer Gmail text changed`);
@@ -835,6 +908,7 @@ async function homeMatrix(browserType) {
       assertHeroCta(state, scope);
       if (!viewport.mobile) await assertDesktopGalleryMarquee(page, scope);
       await assertCompanyProofLayout(page, scope, viewport.mobile);
+      await assertJointBrandParity(page, scope);
       await assertFooterJoin(page, scope);
       assert.equal(state.counts.faqTags, 7, `${scope}: FAQ tag count`);
       assert.equal(state.counts.faqItems, 7, `${scope}: FAQ item count`);
@@ -1498,6 +1572,7 @@ for (const item of HOME_PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes
   assertHomeVisualSignature(state, `WebKit ${item.locale}`, item.locale);
   assertHeroCta(state, `WebKit ${item.locale}`);
   await assertCompanyProofLayout(webkitPage, `WebKit ${item.locale}`, true);
+  await assertJointBrandParity(webkitPage, `WebKit ${item.locale}`);
   await assertFooterJoin(webkitPage, `WebKit ${item.locale}`);
   await assertMobileGalleryScroll(webkitPage, `WebKit ${item.locale}`);
   assert.equal(state.counts.faqTags, 7, `WebKit ${item.locale}: FAQ tags`);

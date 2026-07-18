@@ -6,8 +6,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-169";
-const UI_VERSION = "ui-20260718f";
+const CSS_VERSION = "apple-170";
+const UI_VERSION = "ui-20260718g";
 const ORDER_VERSION = "order-20260718d";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
@@ -500,7 +500,7 @@ for (const token of [
   "initGalleryMarquee", "galleryLoopInitialized", "galleryOriginalCount",
   "data-gallery-clone", "--gallery-loop-distance", "--gallery-loop-duration",
   "calculator-optional-details", "calculator-optional-summary", "calculator-optional-fields",
-  "runMobileLoop", "pauseMobileLoop", "resumeMobileLoopSoon", "is-gallery-mobile-loop-ready"
+  "runMobileLoop", "mobileAutoPosition", "pauseMobileLoop", "pauseMobileLoopForKeyboard", "resumeMobileLoopForKeyboard", "resumeMobileLoopSoon", "is-gallery-mobile-loop-ready"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing round 8 behavior ${token}`);
 }
@@ -521,12 +521,18 @@ const galleryJavascript = sourceBetween(javascript, "  function initGalleryMarqu
 assert.match(galleryJavascript, /clone\.dataset\.galleryClone = "true"/, "site-enhancements.js: gallery clone marker missing");
 assert.match(galleryJavascript, /clone\.setAttribute\("aria-hidden", "true"\)/, "site-enhancements.js: gallery clones must be hidden from assistive technology");
 assert.match(galleryJavascript, /function runMobileLoop\(timestamp\)/, "site-enhancements.js: mobile gallery animation loop missing");
-assert.match(galleryJavascript, /rail\.scrollLeft \+= elapsed \* [0-9.]+/, "site-enhancements.js: mobile gallery must advance continuously");
+assert.match(galleryJavascript, /var elapsed = Math\.min\(250, Math\.max\(0, timestamp - mobileLastTimestamp\)\)/, "site-enhancements.js: low-frame-rate mobile gallery compensation missing");
+assert.match(galleryJavascript, /Math\.abs\(rail\.scrollLeft - mobileAutoPosition\) > 2/, "site-enhancements.js: external gallery scrolling must be adopted before autoplay continues");
+assert.match(galleryJavascript, /normalizeMobilePosition\(mobileAutoPosition \+ elapsed \* [0-9.]+\)/, "site-enhancements.js: mobile gallery must advance with a subpixel accumulator");
+assert.match(galleryJavascript, /if \(rail\) mobileAutoPosition = rail\.scrollLeft/, "site-enhancements.js: manual gallery interaction must sync the auto-scroll accumulator");
 assert.match(galleryJavascript, /mobileFrame = window\.requestAnimationFrame\(runMobileLoop\)/, "site-enhancements.js: mobile gallery rAF scheduling missing");
 assert.match(galleryJavascript, /rail\.addEventListener\("pointerdown", pauseMobileLoop/, "site-enhancements.js: pointer interaction must pause mobile gallery");
 assert.match(galleryJavascript, /rail\.addEventListener\("pointerup", resumeMobileLoopSoon/, "site-enhancements.js: pointer interaction must resume mobile gallery");
 assert.match(galleryJavascript, /rail\.addEventListener\("pointercancel", resumeMobileLoopSoon/, "site-enhancements.js: cancelled pointer interaction must resume mobile gallery");
 assert.match(galleryJavascript, /rail\.addEventListener\("wheel", function \(\) \{\s*pauseMobileLoop\(\);\s*resumeMobileLoopSoon\(\);/s, "site-enhancements.js: manual wheel scrolling must pause and resume mobile gallery");
+assert.match(galleryJavascript, /lastGalleryInputWasPointer/, "site-enhancements.js: gallery input modality tracking missing");
+assert.match(galleryJavascript, /if \(!lastGalleryInputWasPointer\) pauseMobileLoop\(\)/, "site-enhancements.js: touch focus must not pause the mobile gallery indefinitely");
+assert.match(galleryJavascript, /if \(!lastGalleryInputWasPointer\) resumeMobileLoopSoon\(\)/, "site-enhancements.js: touch focusout must not restart the gallery pause timer");
 
 const faqJavascript = sourceBetween(javascript, "  function initFaqTags()", "  function initSocialAccountDisclosure()", "site-enhancements.js FAQ");
 assert.match(faqJavascript, /items\.forEach\(function \(item\) \{ item\.open = false; \}\);/, "site-enhancements.js: FAQ items must be closed initially");
@@ -537,13 +543,14 @@ assert.doesNotMatch(faqJavascript, /\.focus\s*\(/, "site-enhancements.js: FAQ qu
 assert.doesNotMatch(faqJavascript, /window\.open\s*\(|(?:window\.)?location(?:\.href)?\s*=|setAttribute\(["'](?:href|target)["']/, "site-enhancements.js: FAQ quick tags must not navigate or open a new page");
 
 const socialJavascript = sourceBetween(javascript, "  function initSocialAccountDisclosure()", "  initAnalyticsEvents();", "site-enhancements.js social filters");
-assert.match(socialJavascript, /group\.hidden = false/, "site-enhancements.js: social groups must start visible");
 assert.match(socialJavascript, /card\.hidden = false/, "site-enhancements.js: social accounts must start visible");
 assert.match(socialJavascript, /var filterItems = groups\.map\(/, "site-enhancements.js: category filters must map one-to-one from social groups");
 assert.match(socialJavascript, /filterItems\.forEach\([\s\S]*createElement\("button", "social-platform-filter", item\.label\)/, "site-enhancements.js: social category filter buttons missing");
 assert.doesNotMatch(socialJavascript, /filterItems\.(?:push|unshift|splice)\s*\(/, "site-enhancements.js: all-platform filter must not be injected");
 assert.doesNotMatch(socialJavascript, /createElement\("button", "social-platform-toggle"/, "site-enhancements.js: social account toggle must not be created");
-assert.match(socialJavascript, /group\.hidden = Boolean\(selected\) && group\.dataset\.socialPlatform !== selected/, "site-enhancements.js: social category filter behavior missing");
+assert.match(socialJavascript, /group\.hidden = group\.dataset\.socialPlatform !== selected/, "site-enhancements.js: social category filter must isolate one platform");
+assert.match(socialJavascript, /selectPlatform\(filterItems\[0\]\.key, false\)/, "site-enhancements.js: TikTok-first default selection missing");
+assert.doesNotMatch(socialJavascript, /selected \|\| "all"|\? "" : button\.dataset\.socialFilter/, "site-enhancements.js: deprecated all-platform reset remains");
 
 const inquiryJavascript = await load("assets/inquiry-form.js");
 const aiJavascript = await load("assets/ai-sourcing-assistant.js");
@@ -611,9 +618,14 @@ assert.match(partnershipRule, /--partnership-logo-size:\s*clamp\(124px,\s*13vw,\
 const partnershipLogoRule = cssRuleBody(css, ".hero-brand-partnership .site-logo-lockup");
 assert.match(partnershipLogoRule, /width:\s*var\(--partnership-logo-size\)\s*;/, "styles.css: joint logo frames must share one width token");
 assert.match(partnershipLogoRule, /aspect-ratio:\s*1\s*\/\s*1\s*;/, "styles.css: joint logo frames must remain equal squares");
-const companyLogoImageRule = cssRuleBody(css, ".site-logo-lockup-company img");
-assert.match(companyLogoImageRule, /object-fit:\s*contain\s*;/, "styles.css: Haoduobao logo must remain fully visible");
-assert.match(companyLogoImageRule, /object-position:\s*center\s*;/, "styles.css: Haoduobao logo must remain centered");
+const partnershipImageRule = cssRuleBody(css, ".hero-brand-partnership .site-logo-lockup img");
+assert.match(partnershipImageRule, /background:\s*#fff\s*;/, "styles.css: joint logos must share one inner card surface");
+assert.match(partnershipImageRule, /object-fit:\s*contain\s*;/, "styles.css: both joint logos must remain fully visible");
+assert.match(partnershipImageRule, /object-position:\s*center\s*;/, "styles.css: both joint logos must remain centered");
+assert.doesNotMatch(css, /\.site-logo-lockup-company img\s*\{/, "styles.css: Haoduobao-only inner frame styling returned");
+assert.match(cssRuleBody(css, ".social-platform-group[hidden]"), /display:\s*none\s*!important\s*;/, "styles.css: hidden social categories must not be overridden by the grid display rule");
+const homeFooterJoinRules = Array.from(css.matchAll(/main\s*>\s*#team\.team\s*\{([^}]*)\}/g), (match) => match[1]);
+assert(homeFooterJoinRules.some((body) => /padding-bottom:\s*0\s*!important\s*;/.test(body)), "styles.css: homepage footer seam padding returned");
 const rtlMobileProcessRule = css.match(/\[dir="rtl"\]\s+\.process-step\s*\{([^}]*)\}/m)?.[1] || "";
 assert.match(rtlMobileProcessRule, /padding-inline-start:\s*78px\s*;/, "styles.css: RTL mobile process cards must reserve space beside the leading number");
 assert.match(rtlMobileProcessRule, /padding-inline-end:\s*22px\s*;/, "styles.css: RTL mobile process card trailing padding regressed");

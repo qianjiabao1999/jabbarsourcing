@@ -908,6 +908,14 @@
 
     var desktopQuery = window.matchMedia("(min-width: 768px)");
     var tracks = Array.prototype.slice.call(gallery.querySelectorAll(".gallery-track"));
+    var lastGalleryInputWasPointer = false;
+
+    gallery.addEventListener("pointerdown", function () {
+      lastGalleryInputWasPointer = true;
+    }, { capture: true, passive: true });
+    document.addEventListener("keydown", function () {
+      lastGalleryInputWasPointer = false;
+    }, true);
 
     tracks.forEach(function (track) {
       if (track.dataset.galleryLoopInitialized === "1") return;
@@ -938,6 +946,7 @@
       var mobileResumeTimer = 0;
       var mobileLastTimestamp = 0;
       var mobileLoopDistance = 0;
+      var mobileAutoPosition = 0;
       var mobilePaused = false;
       var mobileInView = true;
 
@@ -947,11 +956,10 @@
         mobileLastTimestamp = 0;
       }
 
-      function normalizeMobilePosition() {
+      function normalizeMobilePosition(position) {
         if (!rail || !mobileLoopDistance) return;
-        if (rail.scrollLeft >= mobileLoopDistance) {
-          rail.scrollLeft = rail.scrollLeft % mobileLoopDistance;
-        }
+        mobileAutoPosition = position >= mobileLoopDistance ? position % mobileLoopDistance : Math.max(0, position);
+        rail.scrollLeft = mobileAutoPosition;
       }
 
       function runMobileLoop(timestamp) {
@@ -962,11 +970,11 @@
         }
 
         if (!mobileLastTimestamp) mobileLastTimestamp = timestamp;
-        var elapsed = Math.min(64, Math.max(0, timestamp - mobileLastTimestamp));
+        var elapsed = Math.min(250, Math.max(0, timestamp - mobileLastTimestamp));
         mobileLastTimestamp = timestamp;
         if (!mobilePaused && !document.hidden) {
-          rail.scrollLeft += elapsed * 0.055;
-          normalizeMobilePosition();
+          if (Math.abs(rail.scrollLeft - mobileAutoPosition) > 2) mobileAutoPosition = rail.scrollLeft;
+          normalizeMobilePosition(mobileAutoPosition + elapsed * 0.055);
         }
         mobileFrame = window.requestAnimationFrame(runMobileLoop);
       }
@@ -979,13 +987,22 @@
 
       function pauseMobileLoop() {
         mobilePaused = true;
+        if (rail) mobileAutoPosition = rail.scrollLeft;
         if (mobileResumeTimer) window.clearTimeout(mobileResumeTimer);
+      }
+
+      function pauseMobileLoopForKeyboard() {
+        if (!lastGalleryInputWasPointer) pauseMobileLoop();
+      }
+
+      function resumeMobileLoopForKeyboard() {
+        if (!lastGalleryInputWasPointer) resumeMobileLoopSoon();
       }
 
       function resumeMobileLoopSoon() {
         if (mobileResumeTimer) window.clearTimeout(mobileResumeTimer);
         mobileResumeTimer = window.setTimeout(function () {
-          normalizeMobilePosition();
+          normalizeMobilePosition(rail ? rail.scrollLeft : mobileAutoPosition);
           mobilePaused = false;
           startMobileLoop();
         }, 2200);
@@ -999,8 +1016,8 @@
           pauseMobileLoop();
           resumeMobileLoopSoon();
         }, { passive: true });
-        rail.addEventListener("focusin", pauseMobileLoop);
-        rail.addEventListener("focusout", resumeMobileLoopSoon);
+        rail.addEventListener("focusin", pauseMobileLoopForKeyboard);
+        rail.addEventListener("focusout", resumeMobileLoopForKeyboard);
       }
 
       if ("IntersectionObserver" in window && rail) {
@@ -1036,6 +1053,7 @@
             track.classList.add("is-gallery-loop-ready");
           } else {
             mobileLoopDistance = distance;
+            mobileAutoPosition = rail ? rail.scrollLeft : 0;
             track.classList.add("is-gallery-mobile-loop-ready");
             startMobileLoop();
           }
@@ -1154,36 +1172,49 @@
       });
     });
 
-    if (groups.length > 1 && !social.querySelector(".social-platform-filters")) {
+    var existingFilters = social.querySelector(".social-platform-filters");
+    if (existingFilters) existingFilters.remove();
+
+    if (groups.length > 1) {
       var filters = createElement("div", "social-platform-filters");
       filters.setAttribute("role", "group");
       filters.setAttribute("aria-label", copy.socialFilter);
       var filterItems = groups.map(function (group) {
         var title = group.querySelector(".social-platform-title");
-        return { key: group.dataset.socialPlatform, label: title ? title.textContent.trim() : group.dataset.socialPlatform };
+        group.id = group.id || "social-platform-" + group.dataset.socialPlatform;
+        return {
+          key: group.dataset.socialPlatform,
+          label: title ? title.textContent.trim() : group.dataset.socialPlatform,
+          panelId: group.id
+        };
       });
+
+      function selectPlatform(selected, trackSelection) {
+        Array.prototype.forEach.call(filters.querySelectorAll(".social-platform-filter"), function (candidate) {
+          var active = candidate.dataset.socialFilter === selected;
+          candidate.classList.toggle("is-active", active);
+          candidate.setAttribute("aria-pressed", String(active));
+        });
+        groups.forEach(function (group) {
+          group.hidden = group.dataset.socialPlatform !== selected;
+        });
+        social.classList.add("is-social-filtered");
+        if (!trackSelection) return;
+        window.jabbarTrack("social_platform_filter", withAttribution({
+          locale: lang,
+          source_path: safeLandingPath(window.location.pathname),
+          platform: selected
+        }, pageAttribution));
+      }
 
       filterItems.forEach(function (item) {
         var button = createElement("button", "social-platform-filter", item.label);
         button.type = "button";
         button.dataset.socialFilter = item.key;
         button.setAttribute("aria-pressed", "false");
+        button.setAttribute("aria-controls", item.panelId);
         button.addEventListener("click", function () {
-          var selected = button.getAttribute("aria-pressed") === "true" ? "" : button.dataset.socialFilter;
-          Array.prototype.forEach.call(filters.querySelectorAll(".social-platform-filter"), function (candidate) {
-            var active = Boolean(selected) && candidate === button;
-            candidate.classList.toggle("is-active", active);
-            candidate.setAttribute("aria-pressed", String(active));
-          });
-          groups.forEach(function (group) {
-            group.hidden = Boolean(selected) && group.dataset.socialPlatform !== selected;
-          });
-          social.classList.toggle("is-social-filtered", Boolean(selected));
-          window.jabbarTrack("social_platform_filter", withAttribution({
-            locale: lang,
-            source_path: safeLandingPath(window.location.pathname),
-            platform: selected || "all"
-          }, pageAttribution));
+          selectPlatform(button.dataset.socialFilter, true);
         });
         filters.appendChild(button);
       });
@@ -1191,6 +1222,8 @@
       var heading = social.querySelector(".social-accounts-heading") || social.querySelector(".section-heading");
       if (heading) heading.insertAdjacentElement("afterend", filters);
       else social.prepend(filters);
+
+      selectPlatform(filterItems[0].key, false);
     }
   }
 
