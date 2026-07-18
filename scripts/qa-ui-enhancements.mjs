@@ -69,8 +69,16 @@ async function mockValidShipments(context) {
 
 function collectErrors(page) {
   const errors = [];
-  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
-  page.on("pageerror", (error) => errors.push(error.message));
+  const isTurnstileNoise = (value) => String(value || "").includes("challenges.cloudflare.com");
+  page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    if (isTurnstileNoise(message.location()?.url)) return;
+    errors.push(message.text());
+  });
+  page.on("pageerror", (error) => {
+    if (isTurnstileNoise(`${error.message}\n${error.stack || ""}`)) return;
+    errors.push(error.message);
+  });
   return errors;
 }
 
