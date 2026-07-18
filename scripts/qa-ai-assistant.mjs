@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_AI_OUTPUT_DIR || "/tmp/jabbar-ai-assistant-qa";
-const UI_VERSION = "ui-20260718e";
+const UI_VERSION = "ui-20260718f";
 const LOCALES = ["", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const PAGES = LOCALES.flatMap((locale) => {
   const root = locale ? `/${locale}/` : "/";
