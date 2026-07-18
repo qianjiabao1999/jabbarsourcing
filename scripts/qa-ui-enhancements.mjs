@@ -1190,7 +1190,9 @@ async function interactionChecks(browserType) {
   assert(galleryBox, "mobile gallery rail has no touchable bounding box");
   const touchY = galleryBox.y + Math.min(galleryBox.height / 2, 180);
   const cdp = await mobile.newCDPSession(mobilePage);
-  const dispatchTouchSwipe = async (startX, endX) => {
+  const readGalleryPosition = () => galleryRail.evaluate((rail) => rail.scrollLeft);
+  const loopPhase = (position) => ((position % loopDistance) + loopDistance) % loopDistance;
+  const dispatchTouchSwipe = async (startX, endX, label) => {
     await cdp.send("Input.dispatchTouchEvent", {
       type: "touchStart",
       touchPoints: [{ x: startX, y: touchY, radiusX: 7, radiusY: 7, force: 1 }]
@@ -1211,33 +1213,63 @@ async function interactionChecks(browserType) {
       });
     }
     await mobilePage.waitForTimeout(32);
+    const heldStart = await readGalleryPosition();
+    await mobilePage.waitForTimeout(220);
+    const heldEnd = await readGalleryPosition();
+    assert(Math.abs(heldEnd - heldStart) <= 2, `${label}: gallery auto-scroll moved while touch remained down (${heldStart} -> ${heldEnd})`);
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    return { heldStart, heldEnd, releasedAt: Date.now() };
+  };
+  const waitForNativeScrollSettle = async (label, releasedAt) => {
+    const samples = [await readGalleryPosition()];
+    let previous = samples[0];
+    let stableSamples = 0;
+    while (Date.now() - releasedAt < 1650) {
+      await mobilePage.waitForTimeout(120);
+      const current = await readGalleryPosition();
+      samples.push(current);
+      if (Math.abs(current - previous) <= 2) stableSamples += 1;
+      else stableSamples = 0;
+      previous = current;
+      if (stableSamples >= 3) {
+        return { position: current, elapsed: Date.now() - releasedAt, samples };
+      }
+    }
+    assert.fail(`${label}: native touch momentum did not settle inside the 2200ms pause window (${samples.map((value) => Math.round(value)).join(" -> ")})`);
   };
 
   const rightEdge = galleryBox.x + Math.min(galleryBox.width - 28, 340);
   const leftEdge = galleryBox.x + 48;
-  const beforeLeftSwipe = await galleryRail.evaluate((rail) => rail.scrollLeft);
-  await dispatchTouchSwipe(rightEdge, leftEdge);
-  await mobilePage.waitForTimeout(350);
-  const afterLeftSwipe = await galleryRail.evaluate((rail) => rail.scrollLeft);
-  assert(afterLeftSwipe >= beforeLeftSwipe + 120, `mobile gallery ignored a real left swipe (${beforeLeftSwipe} -> ${afterLeftSwipe})`);
-  await mobilePage.waitForTimeout(280);
-  const leftPaused = await galleryRail.evaluate((rail) => rail.scrollLeft);
-  assert(Math.abs(leftPaused - afterLeftSwipe) <= 2, `mobile gallery did not pause after touch (${afterLeftSwipe} -> ${leftPaused})`);
+  const beforeLeftSwipe = await readGalleryPosition();
+  const leftGesture = await dispatchTouchSwipe(rightEdge, leftEdge, "mobile gallery left swipe");
+  assert(leftGesture.heldEnd >= beforeLeftSwipe + 120, `mobile gallery ignored a real left swipe (${beforeLeftSwipe} -> ${leftGesture.heldEnd})`);
+  const leftSettled = await waitForNativeScrollSettle("mobile gallery left swipe", leftGesture.releasedAt);
+  assert(leftSettled.position >= beforeLeftSwipe + 120, `mobile gallery discarded the user's left-swipe position (${beforeLeftSwipe} -> ${leftSettled.position})`);
+  const leftSettledPhase = loopPhase(leftSettled.position);
+  assert(leftSettledPhase > 80 && leftSettledPhase < loopDistance - 80, `mobile gallery left swipe landed on a loop boundary (${leftSettled.position}/${loopDistance})`);
 
-  await dispatchTouchSwipe(leftEdge, rightEdge);
-  await mobilePage.waitForTimeout(350);
-  const afterRightSwipe = await galleryRail.evaluate((rail) => rail.scrollLeft);
-  assert(afterRightSwipe <= leftPaused - 120, `mobile gallery ignored a real right swipe (${leftPaused} -> ${afterRightSwipe})`);
-  assert(afterRightSwipe > 80 && afterRightSwipe < loopDistance - 80, `mobile gallery test position is too close to a loop boundary (${afterRightSwipe}/${loopDistance})`);
-  await mobilePage.waitForTimeout(280);
-  const resumeBase = await galleryRail.evaluate((rail) => rail.scrollLeft);
-  assert(Math.abs(resumeBase - afterRightSwipe) <= 2, `mobile gallery did not remain paused after the second touch (${afterRightSwipe} -> ${resumeBase})`);
-  await mobilePage.waitForTimeout(2100);
-  const resumedPosition = await galleryRail.evaluate((rail) => rail.scrollLeft);
-  assert(resumedPosition > resumeBase + 3, `mobile gallery did not resume auto-scroll (${resumeBase} -> ${resumedPosition})`);
-  assert(resumedPosition < resumeBase + 80, `mobile gallery jumped instead of resuming continuously (${resumeBase} -> ${resumedPosition})`);
-  assert(resumedPosition > 80, `mobile gallery jumped back to the first image (${resumedPosition}px)`);
+  const beforeRightSwipe = leftSettled.position;
+  const rightGesture = await dispatchTouchSwipe(leftEdge, rightEdge, "mobile gallery right swipe");
+  assert(rightGesture.heldEnd <= beforeRightSwipe - 120, `mobile gallery ignored a real right swipe (${beforeRightSwipe} -> ${rightGesture.heldEnd})`);
+  const rightSettled = await waitForNativeScrollSettle("mobile gallery right swipe", rightGesture.releasedAt);
+  assert(rightSettled.position <= beforeRightSwipe - 120, `mobile gallery discarded the user's right-swipe position (${beforeRightSwipe} -> ${rightSettled.position})`);
+  const settledPhase = loopPhase(rightSettled.position);
+  assert(settledPhase > 80 && settledPhase < loopDistance - 80, `mobile gallery right swipe landed on a loop boundary (${rightSettled.position}/${loopDistance})`);
+
+  const pauseProbeDelay = 1900 - (Date.now() - rightGesture.releasedAt);
+  assert(pauseProbeDelay > 0, `mobile gallery native momentum consumed the full pause window (${rightSettled.elapsed}ms)`);
+  await mobilePage.waitForTimeout(pauseProbeDelay);
+  const pauseProbePosition = await readGalleryPosition();
+  assert(Math.abs(pauseProbePosition - rightSettled.position) <= 2, `mobile gallery resumed before the 2200ms pause elapsed (${rightSettled.position} -> ${pauseProbePosition})`);
+
+  const resumeProbeDelay = 2600 - (Date.now() - rightGesture.releasedAt);
+  if (resumeProbeDelay > 0) await mobilePage.waitForTimeout(resumeProbeDelay);
+  const resumedPosition = await readGalleryPosition();
+  const resumedPhase = loopPhase(resumedPosition);
+  const resumedAdvance = (resumedPhase - loopPhase(pauseProbePosition) + loopDistance) % loopDistance;
+  assert(resumedAdvance >= 8, `mobile gallery did not resume auto-scroll after 2200ms (${pauseProbePosition} -> ${resumedPosition})`);
+  assert(resumedAdvance < 80, `mobile gallery reset or jumped instead of resuming continuously (${pauseProbePosition} -> ${resumedPosition}; phase advance ${resumedAdvance})`);
+  assert(resumedPhase > 80, `mobile gallery jumped back to the first image (${resumedPosition}px; phase ${resumedPhase}px)`);
   await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-gallery-native-swipe-390x844.png` });
   assert.equal(await mobilePage.locator(".whatsapp-qr-card").count(), 0, "touch page initialized QR hover card");
   assert.equal(mobileErrors.length, 0, `mobile interaction console errors: ${mobileErrors.join(" | ")}`);
