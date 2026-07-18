@@ -6,10 +6,22 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-171";
-const UI_VERSION = "ui-20260719a";
-const ORDER_VERSION = "order-20260718d";
+const CSS_VERSION = "apple-172";
+const UI_VERSION = "ui-20260719b";
+const ORDER_VERSION = "order-20260719a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
+const SOCIAL_ACCOUNT_NAV_LABELS = {
+  zh: "社媒账号",
+  en: "Social Accounts",
+  es: "Redes sociales",
+  ar: "حسابات التواصل الاجتماعي",
+  fr: "Réseaux sociaux",
+  pt: "Redes sociais",
+  ru: "Аккаунты в соцсетях",
+  de: "Social-Media-Konten",
+  it: "Account social",
+  tr: "Sosyal Medya Hesapları"
+};
 const SECTION_CODES = {
   zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
   en: ["Jabbar · Team", "Jabbar · Gallery", "Jabbar · Services", "Jabbar · Process", "Jabbar · Reviews", "Jabbar · FAQ", "Jabbar · Social"],
@@ -47,19 +59,37 @@ const COMPANY_SHIPMENT_VALUES = {
   it: "500.000.000",
   tr: "500.000.000"
 };
+const KENYA_LABELS = {
+  zh: "肯尼亚",
+  en: "Kenya",
+  es: "Kenia",
+  ar: "كينيا",
+  fr: "Kenya",
+  pt: "Quênia",
+  ru: "Кения",
+  de: "Kenia",
+  it: "Kenya",
+  tr: "Kenya"
+};
 const SOCIAL_PLATFORM_CLASS_ORDER = [
   "social-platform-group-tiktok",
   "social-platform-group-instagram",
   "social-platform-group-douyin",
   "social-platform-group-xhs"
 ];
+const COMPANY_MAP_ADDRESS = "浙江省金华市义乌市苏溪镇苏福路219号3号楼浙江好多宝品牌管理有限公司";
+const COMPANY_ENGLISH_LEGAL_NAME = "Zhejiang Haoduobao Brand Management Co., Ltd.";
 const CITY_FIELDS = LOCALES.map((locale) => `city_${locale}`).sort();
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const HOME_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale) }));
 const CALCULATOR_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "calculator/") }));
 const INQUIRY_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "inquiry/") }));
 const NAV_PAGES = [...HOME_PAGES, ...CALCULATOR_PAGES, ...INQUIRY_PAGES];
-const COMPANY_FOOTER_PAGES = [...NAV_PAGES, { file: "privacy-policy.html" }, { file: "support.html" }];
+const COMPANY_FOOTER_PAGES = [
+  ...NAV_PAGES,
+  { locale: "zh", file: "privacy-policy.html" },
+  { locale: "en", file: "support.html" }
+];
 const TELEGRAM_PAGES = [...HOME_PAGES, ...INQUIRY_PAGES, { file: "privacy-policy.html" }, { file: "support.html" }];
 const EXTRA_PAGES = ["404.html", "privacy-policy.html", "support.html"];
 const FALLBACK_EVENT_PAGES = [
@@ -67,6 +97,11 @@ const FALLBACK_EVENT_PAGES = [
   ...INQUIRY_PAGES.map(({ file }) => file),
   ...EXTRA_PAGES
 ];
+
+const testimonialProofAsset = await readFile(resolve(ROOT, "assets/testimonial-boyner.webp"));
+assert(testimonialProofAsset.byteLength > 10_000, "testimonial boyner proof image is unexpectedly empty");
+assert.equal(testimonialProofAsset.subarray(0, 4).toString("ascii"), "RIFF", "testimonial boyner proof image RIFF signature");
+assert.equal(testimonialProofAsset.subarray(8, 12).toString("ascii"), "WEBP", "testimonial boyner proof image WebP signature");
 
 function count(source, pattern) {
   return (source.match(pattern) || []).length;
@@ -196,7 +231,7 @@ for (const { locale, file } of HOME_PAGES) {
   assert.equal(titles.length, 1, `${file}: homepage title count`);
   assert.equal(decodeText(titles[0][1]), "Jabbar Sourcing", `${file}: homepage title`);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
-  assert.doesNotMatch(html, /ai-sourcing-assistant\.js|JABBAR_AI_ASSISTANT_ENDPOINT/, `${file}: hidden AI bootstrap must not load by default`);
+  assert.doesNotMatch(html, /ai-sourcing-assistant\.js|JABBAR_AI_ASSISTANT_ENDPOINT/, `${file}: removed AI bootstrap must not return`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
   assert.equal(countClass(html, "hero-brand-partnership"), 1, `${file}: joint brand lockup count`);
   assert.equal(countClass(html, "site-logo-lockup-company"), 1, `${file}: Haoduobao logo frame count`);
@@ -274,10 +309,33 @@ for (const { locale, file } of HOME_PAGES) {
   assert.equal(attribute(fifthMetricTag, "data-counter-value"), "500000000", `${file}: annual shipment counter value`);
   assert.equal(attribute(fifthMetricTag, "data-counter-grouped"), "true", `${file}: annual shipment grouping flag`);
   assert.equal(decodeEntities(fifthMetricNumber[0].replace(/<[^>]+>/g, "")).trim(), COMPANY_SHIPMENT_VALUES[locale], `${file}: localized annual shipment format`);
-  assert.equal(fifthStrongContent.replace(fifthMetricNumber[0], "").trim(), "", `${file}: annual shipment value must not contain a currency or unit`);
+  const shipmentCurrency = regionsForClass(fifthStrongContent, "span", "company-metric-currency");
+  if (locale === "zh") {
+    assert.equal(shipmentCurrency.length, 0, `${file}: Chinese annual shipment value must use the localized renminbi suffix`);
+    assert.equal(decodeText(fifthStrongContent), `${COMPANY_SHIPMENT_VALUES[locale]} 人民币元`, `${file}: Chinese annual shipment currency label`);
+  } else {
+    assert.equal(shipmentCurrency.length, 1, `${file}: annual shipment CNY marker count`);
+    assert.equal(decodeText(shipmentCurrency[0]), "CNY", `${file}: annual shipment currency marker`);
+    assert.equal(attribute(shipmentCurrency[0].match(/^<span\b[^>]*>/i)?.[0] || "", "dir"), "ltr", `${file}: annual shipment currency direction`);
+    assert.equal(decodeText(fifthStrongContent), `CNY ${COMPANY_SHIPMENT_VALUES[locale]}`.replace(/\s+/g, " "), `${file}: annual shipment currency and localized value`);
+  }
   const reviewMetas = regionsForClass(html, "div", "testimonial-order-meta");
   assert.equal(reviewMetas.length, 3, `${file}: testimonial metadata count`);
-  assert(reviewMetas.every((region) => countClass(region, "num-mono") === 1), `${file}: review amount must be the only monospaced metadata value`);
+  assert.deepEqual(reviewMetas.map((region) => countClass(region, "num-mono")), [1, 0, 1], `${file}: testimonial amount/proof monospaced pattern`);
+  const proofCards = regionsForClass(html, "article", "testimonial-card--proof");
+  assert.equal(proofCards.length, 1, `${file}: Boyner proof card count`);
+  const proofCard = proofCards[0];
+  assert.equal(countClass(proofCard, "num-mono"), 0, `${file}: Boyner proof card must not contain a monospaced amount`);
+  assert.match(decodeText(proofCard), /boyner/i, `${file}: Boyner proof card identity`);
+  assert(decodeText(proofCard).includes(KENYA_LABELS[locale]), `${file}: localized Kenya label`);
+  assert.match(proofCard, /<span\b[^>]*class="testimonial-flag"[^>]*[^>]*>🇰🇪<\/span>/i, `${file}: Kenya flag`);
+  const proofImages = tagsWithClass(proofCard, "img", "testimonial-proof-image");
+  assert.equal(proofImages.length, 1, `${file}: Boyner proof image count`);
+  const proofImageTag = proofImages[0][0];
+  assert.equal(attribute(proofImageTag, "src"), "/assets/testimonial-boyner.webp", `${file}: Boyner proof image source`);
+  assert.equal(attribute(proofImageTag, "width"), "1200", `${file}: Boyner proof image width`);
+  assert.equal(attribute(proofImageTag, "height"), "1600", `${file}: Boyner proof image height`);
+  assert.match(attribute(proofImageTag, "alt"), /boyner/i, `${file}: Boyner proof image alternative text`);
   const footerPhoneTag = html.match(/<a\b[^>]*href="tel:\+8618658925544"[^>]*>/i)?.[0] || "";
   assert(hasClass(footerPhoneTag, "num-mono"), `${file}: footer phone is not monospaced`);
   assert.doesNotMatch(html, /(?:href|src)="[^"]*\/ja\//, `${file}: Japanese route must not return`);
@@ -287,7 +345,7 @@ for (const { locale, file } of HOME_PAGES) {
 for (const { locale, file } of CALCULATOR_PAGES) {
   const html = await load(file);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
-  assert.doesNotMatch(html, /ai-sourcing-assistant\.js|JABBAR_AI_ASSISTANT_ENDPOINT/, `${file}: hidden AI bootstrap must not load by default`);
+  assert.doesNotMatch(html, /ai-sourcing-assistant\.js|JABBAR_AI_ASSISTANT_ENDPOINT/, `${file}: removed AI bootstrap must not return`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
   assert.match(html, new RegExp(`calculator-order-loader\\.js\\?v=${ORDER_VERSION}`), `${file}: missing deferred Excel order loader`);
   assert.doesNotMatch(html, /<script[^>]+src="\/assets\/calculator-order-analyzer\.js/i, `${file}: Excel order analyzer must not load directly`);
@@ -345,13 +403,38 @@ for (const { locale, file } of CALCULATOR_PAGES) {
 }
 
 assert.equal(COMPANY_FOOTER_PAGES.length, 32, "company footer page count");
-for (const { file } of COMPANY_FOOTER_PAGES) {
+for (const { locale, file } of COMPANY_FOOTER_PAGES) {
   const html = await load(file);
   assert.equal(countClass(html, "site-footer-company"), 1, `${file}: legal company footer count`);
   assert.match(html, /Zhejiang Haoduobao Brand Management Co\., Ltd\./, `${file}: footer English legal name missing`);
   assert.match(html, /浙江好多宝品牌管理有限公司/, `${file}: footer Chinese legal name missing`);
   assert.match(html, /href="https:\/\/www\.haoduobao123\.com\/"/, `${file}: footer company ordering website missing`);
+  const desktopLocationTexts = textsForClass(html, "span", "site-footer-location-text");
+  const mobileLocationTexts = textsForClass(html, "span", "site-footer-location-address");
+  assert.equal(desktopLocationTexts.length, 1, `${file}: desktop location text count`);
+  assert.equal(mobileLocationTexts.length, 1, `${file}: mobile location text count`);
+  assert.deepEqual(mobileLocationTexts, desktopLocationTexts, `${file}: desktop/mobile location text mismatch`);
+  if (locale === "zh") {
+    assert.equal(desktopLocationTexts[0], `📍 公司位置：${COMPANY_MAP_ADDRESS}`, `${file}: Chinese visible company address`);
+  } else {
+    assert(desktopLocationTexts[0].endsWith(`, ${COMPANY_ENGLISH_LEGAL_NAME}`), `${file}: localized visible address company suffix`);
+  }
+  const footerMapLinks = tagsWithClass(html, "a", "site-footer-location-link");
+  assert.equal(footerMapLinks.length, 1, `${file}: mobile map link count`);
+  const geoMapUrl = attribute(footerMapLinks[0][0], "href");
+  const appleMapUrl = decodeEntities(attribute(footerMapLinks[0][0], "data-apple-map-url"));
+  assert.match(geoMapUrl, /^geo:0,0\?q=/, `${file}: Android map chooser URL`);
+  assert.match(appleMapUrl, /^https:\/\/maps\.apple\.com\/\?daddr=/, `${file}: Apple Maps fallback URL`);
+  assert.equal(new URL(geoMapUrl).searchParams.get("q"), COMPANY_MAP_ADDRESS, `${file}: decoded geo query address`);
+  assert.equal(new URL(appleMapUrl).searchParams.get("daddr"), COMPANY_MAP_ADDRESS, `${file}: decoded Apple Maps address`);
 }
+
+const supportHtml = await load("support.html");
+assert.deepEqual(
+  textsForClass(supportHtml, "span", "site-footer-location-question"),
+  ["Open directions to our company in a map app?"],
+  "support.html: mobile map prompt language",
+);
 
 assert.equal(NAV_PAGES.length, 30, "organization schema page count");
 for (const { file } of NAV_PAGES) {
@@ -361,7 +444,7 @@ for (const { file } of NAV_PAGES) {
   assert.match(html, /"Jabbar Sourcing Team"[\s\S]*"浙江好多宝品牌管理有限公司"/, `${file}: Organization alternate names missing`);
 }
 
-for (const { file } of INQUIRY_PAGES) {
+for (const { locale, file } of INQUIRY_PAGES) {
   const html = await load(file);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing QR enhancement`);
@@ -370,27 +453,40 @@ for (const { file } of INQUIRY_PAGES) {
   assert.equal(returnLinks.length, 1, `${file}: top return-home link count`);
   assert.equal(attribute(returnLinks[0][0], "href"), "../", `${file}: top return-home target`);
   assert.equal(countClass(html, "site-nav-mobile-home"), 0, `${file}: duplicate return-home item remains in mobile menu`);
-  assert.equal(countClass(html, "site-nav-mobile-team"), 1, `${file}: mobile team-member link missing`);
+  assert.deepEqual(
+    textsForClass(html, "a", "site-nav-mobile-team"),
+    [SOCIAL_ACCOUNT_NAV_LABELS[locale]],
+    `${file}: mobile social-account label`,
+  );
 }
 
 assert.equal(NAV_PAGES.length, 30, "site navigation page count");
-for (const { file } of NAV_PAGES) {
+let existingSocialAccountNavLinkCount = 0;
+for (const { locale, file } of NAV_PAGES) {
   const html = await load(file);
   assert.deepEqual(textsForClass(html, "a", "site-nav-brand"), ["Jabbar Sourcing"], `${file}: header brand name`);
+  const desktopSocialAccountLabels = textsForClass(html, "a", "site-nav-team");
+  assert.deepEqual(desktopSocialAccountLabels, [SOCIAL_ACCOUNT_NAV_LABELS[locale]], `${file}: desktop social-account label`);
   const toolLinks = tagsWithClass(html, "a", "site-nav-tool-pill");
   assert.equal(toolLinks.length, 1, `${file}: site-nav-tool-pill count`);
   assert(attribute(toolLinks[0][0], "href"), `${file}: site-nav-tool-pill href missing`);
   const mobilePanels = regionsForClass(html, "nav", "site-nav-mobile-panel");
   assert.equal(mobilePanels.length, 1, `${file}: mobile navigation panel count`);
   assert.doesNotMatch(mobilePanels[0], /href="(?:\.\/|[^\"]*calculator\/?)"/, `${file}: calculator link remains in mobile navigation`);
-  const expectedMobileTeamLinks = INQUIRY_PAGES.some((page) => page.file === file) ? 1 : 0;
-  assert.equal(countClass(mobilePanels[0], "site-nav-mobile-team"), expectedMobileTeamLinks, `${file}: mobile team-member link count`);
+  const mobileSocialAccountLabels = textsForClass(mobilePanels[0], "a", "site-nav-mobile-team");
+  const expectedMobileSocialAccountLabels = INQUIRY_PAGES.some((page) => page.file === file)
+    ? [SOCIAL_ACCOUNT_NAV_LABELS[locale]]
+    : [];
+  assert.deepEqual(mobileSocialAccountLabels, expectedMobileSocialAccountLabels, `${file}: mobile social-account label`);
+  existingSocialAccountNavLinkCount += desktopSocialAccountLabels.length + mobileSocialAccountLabels.length;
 }
+assert.equal(existingSocialAccountNavLinkCount, 40, "existing desktop/mobile social-account navigation link count");
 
 for (const file of EXTRA_PAGES) {
   const html = await load(file);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing QR enhancement`);
+  assert.equal(countClass(html, "site-nav-team") + countClass(html, "site-nav-mobile-team"), 0, `${file}: unexpected social-account navigation entry`);
 }
 
 assert.equal(TELEGRAM_PAGES.length, 22, "Telegram page count");
@@ -536,7 +632,7 @@ for (const token of [
   "initGalleryMarquee", "galleryLoopInitialized", "galleryOriginalCount",
   "data-gallery-clone", "--gallery-loop-distance", "--gallery-loop-duration",
   "calculator-optional-details", "calculator-optional-summary", "calculator-optional-fields",
-  "runMobileLoop", "mobileAutoPosition", "pauseMobileLoop", "pauseMobileLoopForKeyboard", "resumeMobileLoopForKeyboard", "resumeMobileLoopSoon", "is-gallery-mobile-loop-ready"
+  "runMobileLoop", "mobileAutoPosition", "mobileLoopPhase", "mobilePointerActive", "pauseMobileLoop", "pauseMobileLoopForKeyboard", "resumeMobileLoopForKeyboard", "resumeMobileLoopSoon", "adoptManualMobilePosition", "is-gallery-mobile-loop-ready"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing round 8 behavior ${token}`);
 }
@@ -555,20 +651,35 @@ assert.match(calculatorModeJavascript, /fieldGrid\.insertAdjacentElement\("after
 
 const galleryJavascript = sourceBetween(javascript, "  function initGalleryMarquee()", "  function initHomepageMotion()", "site-enhancements.js gallery");
 assert.match(galleryJavascript, /clone\.dataset\.galleryClone = "true"/, "site-enhancements.js: gallery clone marker missing");
+assert.match(galleryJavascript, /clone\.dataset\.galleryCloneSide = side/, "site-enhancements.js: gallery clone side marker missing");
+assert.match(galleryJavascript, /beforeClones\.appendChild\(cloneGalleryFrame\(frame, "before"\)\)/, "site-enhancements.js: leading gallery clone set missing");
+assert.match(galleryJavascript, /afterClones\.appendChild\(cloneGalleryFrame\(frame, "after"\)\)/, "site-enhancements.js: trailing gallery clone set missing");
+assert.match(galleryJavascript, /track\.insertBefore\(beforeClones, originals\[0\]\)/, "site-enhancements.js: leading clone set must precede originals");
+assert.match(galleryJavascript, /track\.appendChild\(afterClones\)/, "site-enhancements.js: trailing clone set must follow originals");
 assert.match(galleryJavascript, /clone\.setAttribute\("aria-hidden", "true"\)/, "site-enhancements.js: gallery clones must be hidden from assistive technology");
 assert.match(galleryJavascript, /function runMobileLoop\(timestamp\)/, "site-enhancements.js: mobile gallery animation loop missing");
 assert.match(galleryJavascript, /var elapsed = Math\.min\(250, Math\.max\(0, timestamp - mobileLastTimestamp\)\)/, "site-enhancements.js: low-frame-rate mobile gallery compensation missing");
 assert.match(galleryJavascript, /Math\.abs\(rail\.scrollLeft - mobileAutoPosition\) > 2/, "site-enhancements.js: external gallery scrolling must be adopted before autoplay continues");
 assert.match(galleryJavascript, /normalizeMobilePosition\(mobileAutoPosition \+ elapsed \* [0-9.]+\)/, "site-enhancements.js: mobile gallery must advance with a subpixel accumulator");
+assert.match(galleryJavascript, /mobileLoopDistance \+ mobileLoopPhase\(position, mobileLoopDistance\)/, "site-enhancements.js: mobile gallery must normalize into the safe middle set");
 assert.match(galleryJavascript, /if \(rail\) mobileAutoPosition = rail\.scrollLeft/, "site-enhancements.js: manual gallery interaction must sync the auto-scroll accumulator");
 assert.match(galleryJavascript, /mobileFrame = window\.requestAnimationFrame\(runMobileLoop\)/, "site-enhancements.js: mobile gallery rAF scheduling missing");
-assert.match(galleryJavascript, /rail\.addEventListener\("pointerdown", pauseMobileLoop/, "site-enhancements.js: pointer interaction must pause mobile gallery");
-assert.match(galleryJavascript, /rail\.addEventListener\("pointerup", resumeMobileLoopSoon/, "site-enhancements.js: pointer interaction must resume mobile gallery");
-assert.match(galleryJavascript, /rail\.addEventListener\("pointercancel", resumeMobileLoopSoon/, "site-enhancements.js: cancelled pointer interaction must resume mobile gallery");
+assert.match(galleryJavascript, /rail\.addEventListener\("pointerdown", beginMobilePointerInteraction/, "site-enhancements.js: pointer interaction must pause mobile gallery");
+assert.match(galleryJavascript, /rail\.addEventListener\("pointerup", endMobilePointerInteraction/, "site-enhancements.js: pointer interaction must resume mobile gallery");
+assert.match(galleryJavascript, /rail\.addEventListener\("pointercancel", endMobilePointerInteraction/, "site-enhancements.js: cancelled pointer interaction must resume mobile gallery");
+assert.match(galleryJavascript, /rail\.addEventListener\("scroll", adoptManualMobilePosition/, "site-enhancements.js: inertial scrolling must delay mobile gallery resume");
+assert.match(galleryJavascript, /if \(!mobilePointerActive && !mobileKeyboardActive\) resumeMobileLoopSoon\(\)/, "site-enhancements.js: gallery resume must wait for active input to finish");
+assert.match(galleryJavascript, /\}, 2200\)/, "site-enhancements.js: mobile gallery resume delay changed");
 assert.match(galleryJavascript, /rail\.addEventListener\("wheel", function \(\) \{\s*pauseMobileLoop\(\);\s*resumeMobileLoopSoon\(\);/s, "site-enhancements.js: manual wheel scrolling must pause and resume mobile gallery");
 assert.match(galleryJavascript, /lastGalleryInputWasPointer/, "site-enhancements.js: gallery input modality tracking missing");
-assert.match(galleryJavascript, /if \(!lastGalleryInputWasPointer\) pauseMobileLoop\(\)/, "site-enhancements.js: touch focus must not pause the mobile gallery indefinitely");
-assert.match(galleryJavascript, /if \(!lastGalleryInputWasPointer\) resumeMobileLoopSoon\(\)/, "site-enhancements.js: touch focusout must not restart the gallery pause timer");
+assert.match(galleryJavascript, /if \(!lastGalleryInputWasPointer\) \{\s*mobileKeyboardActive = true;\s*pauseMobileLoop\(\);/s, "site-enhancements.js: touch focus must not pause the mobile gallery indefinitely");
+assert.match(galleryJavascript, /if \(!lastGalleryInputWasPointer\) \{\s*mobileKeyboardActive = false;\s*resumeMobileLoopSoon\(\);/s, "site-enhancements.js: touch focusout must not restart the gallery pause timer");
+assert.match(galleryJavascript, /var preservedMobilePhaseRatio = 0;/, "site-enhancements.js: cross-breakpoint mobile gallery phase state missing");
+assert.match(galleryJavascript, /if \(previousDistance && rail\) \{\s*preservedMobilePhaseRatio = mobileLoopPhase\(rail\.scrollLeft, previousDistance\) \/ previousDistance;\s*\}/s, "site-enhancements.js: gallery resize must preserve the current mobile loop phase");
+assert.match(galleryJavascript, /var previousPhaseRatio = preservedMobilePhaseRatio;/, "site-enhancements.js: gallery resize must reuse the preserved phase across desktop breakpoints");
+assert.match(galleryJavascript, /mobileAutoPosition = distance \+ previousPhaseRatio \* distance/, "site-enhancements.js: gallery resize must restore the current loop phase");
+assert.match(galleryJavascript, /firstAfterClone\.offsetLeft - firstOriginal\.offsetLeft/, "site-enhancements.js: gallery loop distance must use the trailing clone set");
+assert.match(galleryJavascript, /firstOriginal\.offsetLeft - firstBeforeClone\.offsetLeft/, "site-enhancements.js: gallery leading clone distance validation missing");
 
 const faqJavascript = sourceBetween(javascript, "  function initFaqTags()", "  function initSocialAccountDisclosure()", "site-enhancements.js FAQ");
 assert.match(faqJavascript, /items\.forEach\(function \(item\) \{ item\.open = false; \}\);/, "site-enhancements.js: FAQ items must be closed initially");
@@ -589,14 +700,20 @@ assert.match(socialJavascript, /selectPlatform\(filterItems\[0\]\.key, false\)/,
 assert.doesNotMatch(socialJavascript, /selected \|\| "all"|\? "" : button\.dataset\.socialFilter/, "site-enhancements.js: deprecated all-platform reset remains");
 
 const inquiryJavascript = await load("assets/inquiry-form.js");
-const aiJavascript = await load("assets/ai-sourcing-assistant.js");
 const socialAvatarUpdater = await load("scripts/update-social-avatars.mjs");
 const socialAvatarManifest = await load("assets/social-avatars-manifest.json");
 assert(inquiryJavascript.includes('"inquiry_submit"'), "inquiry-form.js: successful direct inquiry event missing");
 assert(!inquiryJavascript.includes("inquiry_optional_details_toggle"), "inquiry-form.js: removed optional-details analytics returned");
 assert(!inquiryJavascript.includes("inquiry-optional-details"), "inquiry-form.js: removed optional field disclosure returned");
-assert(aiJavascript.includes('"ai_first_message"'), "ai-sourcing-assistant.js: first successful AI message event missing");
-assert(!aiJavascript.includes("mobile-conversion-bar"), "ai-sourcing-assistant.js: removed conversion bar integration remains");
+for (const removedAiFile of [
+  "assets/ai-sourcing-assistant.js",
+  "scripts/qa-ai-assistant.mjs",
+  "cloudflare/ai-sourcing-assistant/README.md",
+  "cloudflare/ai-sourcing-assistant/worker.js",
+  "cloudflare/ai-sourcing-assistant/wrangler.jsonc"
+]) {
+  assert.equal(await exists(removedAiFile), false, `${removedAiFile}: removed AI feature file returned`);
+}
 for (const removedSocial of ["S99_Tv9at_I", "Yk8-Ra0NoRg", "douyin-89144212942", "douyin-dg661661"]) {
   assert(!socialAvatarUpdater.includes(removedSocial), `update-social-avatars.mjs: removed social account remains (${removedSocial})`);
   assert(!socialAvatarManifest.includes(removedSocial), `social-avatars-manifest.json: removed social account remains (${removedSocial})`);
@@ -732,6 +849,18 @@ assert.match(orderAnalyzer, /fillText\(this\.copy\.toolLabel, startX, 92\)/, "ca
 assert.match(orderAnalyzer, /fillText\(this\.copy\.toolLabel, startX, 155\)/, "calculator-order-analyzer.js: paged export header is not localized");
 assert.match(orderAnalyzer, /var MAX_FILE_BYTES = 50 \* 1024 \* 1024;/, "calculator-order-analyzer.js: file limit must be 50 MB");
 assert.match(orderAnalyzer, /var WORKER_TIMEOUT_MS = 60000;/, "calculator-order-analyzer.js: Worker timeout must be 60 seconds");
+for (const token of [
+  "CONTAINER_CAPACITY_CBM", "CONTAINER_EPSILON_CBM", "MAX_CONTAINER_BARS",
+  "loads", "loadIndexes", "visibleContainerLoads", "drawContainerLoadBars",
+  "data-container-load", "data-container-index"
+]) {
+  assert(orderAnalyzer.includes(token), `calculator-order-analyzer.js: missing full-container-first allocation token ${token}`);
+}
+assert.match(orderAnalyzer, /Math\.ceil\(\(value - CONTAINER_EPSILON_CBM\) \/ CONTAINER_CAPACITY_CBM\)/, "calculator-order-analyzer.js: container count must tolerate floating-point noise at exact-capacity boundaries");
+assert.match(orderAnalyzer, /remaining >= CONTAINER_CAPACITY_CBM - CONTAINER_EPSILON_CBM[\s\S]*\? 100/, "calculator-order-analyzer.js: full containers must receive 100% before the remainder");
+assert.doesNotMatch(orderAnalyzer, /value\s*\/\s*\(count\s*\*\s*(?:68|CONTAINER_CAPACITY_CBM)\)\s*\*\s*100/, "calculator-order-analyzer.js: multi-container load must not be averaged across all containers");
+assert.match(orderAnalyzer, /Analyzer\.prototype\.renderContainer[\s\S]*var loads = this\.visibleContainerLoads\(estimate, MAX_CONTAINER_BARS\)/, "calculator-order-analyzer.js: page SVG must use the shared per-container loads");
+assert.equal(count(orderAnalyzer, /drawContainerLoadBars\(/g), 2, "calculator-order-analyzer.js: both PNG report paths must share per-container bars");
 for (const token of ["xlsx.full.min.js?v=0.20.3", "MAX_ROWS", "unitWeight", "unitVolume", "amount"])
   assert(orderWorker.includes(token), `calculator-order-worker.js: missing ${token}`);
 assert.match(orderWorker, /var MAX_ROWS = 10000;/, "calculator-order-worker.js: row limit must be 10,000");

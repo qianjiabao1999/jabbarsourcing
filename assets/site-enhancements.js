@@ -936,9 +936,10 @@
 
       track.dataset.galleryLoopInitialized = "1";
       track.dataset.galleryOriginalCount = String(originals.length);
-      originals.forEach(function (frame) {
+      function cloneGalleryFrame(frame, side) {
         var clone = frame.cloneNode(true);
         clone.dataset.galleryClone = "true";
+        clone.dataset.galleryCloneSide = side;
         clone.setAttribute("aria-hidden", "true");
         clone.setAttribute("inert", "");
         Array.prototype.forEach.call(clone.querySelectorAll("img"), function (image) {
@@ -947,8 +948,17 @@
           image.decoding = "async";
           image.setAttribute("fetchpriority", "low");
         });
-        track.appendChild(clone);
+        return clone;
+      }
+
+      var beforeClones = document.createDocumentFragment();
+      var afterClones = document.createDocumentFragment();
+      originals.forEach(function (frame) {
+        beforeClones.appendChild(cloneGalleryFrame(frame, "before"));
+        afterClones.appendChild(cloneGalleryFrame(frame, "after"));
       });
+      track.insertBefore(beforeClones, originals[0]);
+      track.appendChild(afterClones);
 
       var rail = track.closest(".gallery-rail");
       var resizeFrame = 0;
@@ -959,6 +969,20 @@
       var mobileAutoPosition = 0;
       var mobilePaused = false;
       var mobileInView = true;
+      var mobilePointerActive = false;
+      var mobileKeyboardActive = false;
+      var preservedMobilePhaseRatio = 0;
+
+      function mobileLoopPhase(position, distance) {
+        if (!distance) return 0;
+        return ((position - distance) % distance + distance) % distance;
+      }
+
+      function clearMobileResumeTimer() {
+        if (!mobileResumeTimer) return;
+        window.clearTimeout(mobileResumeTimer);
+        mobileResumeTimer = 0;
+      }
 
       function stopMobileLoop() {
         if (mobileFrame) window.cancelAnimationFrame(mobileFrame);
@@ -968,7 +992,7 @@
 
       function normalizeMobilePosition(position) {
         if (!rail || !mobileLoopDistance) return;
-        mobileAutoPosition = position >= mobileLoopDistance ? position % mobileLoopDistance : Math.max(0, position);
+        mobileAutoPosition = mobileLoopDistance + mobileLoopPhase(position, mobileLoopDistance);
         rail.scrollLeft = mobileAutoPosition;
       }
 
@@ -996,32 +1020,62 @@
       }
 
       function pauseMobileLoop() {
+        if (desktopQuery.matches || reducedMotion) return;
         mobilePaused = true;
         if (rail) mobileAutoPosition = rail.scrollLeft;
-        if (mobileResumeTimer) window.clearTimeout(mobileResumeTimer);
+        clearMobileResumeTimer();
+      }
+
+      function beginMobilePointerInteraction() {
+        if (desktopQuery.matches || reducedMotion) return;
+        mobilePointerActive = true;
+        mobileKeyboardActive = false;
+        pauseMobileLoop();
+      }
+
+      function endMobilePointerInteraction() {
+        if (desktopQuery.matches || reducedMotion) return;
+        mobilePointerActive = false;
+        if (rail) mobileAutoPosition = rail.scrollLeft;
+        resumeMobileLoopSoon();
       }
 
       function pauseMobileLoopForKeyboard() {
-        if (!lastGalleryInputWasPointer) pauseMobileLoop();
+        if (!lastGalleryInputWasPointer) {
+          mobileKeyboardActive = true;
+          pauseMobileLoop();
+        }
       }
 
       function resumeMobileLoopForKeyboard() {
-        if (!lastGalleryInputWasPointer) resumeMobileLoopSoon();
+        if (!lastGalleryInputWasPointer) {
+          mobileKeyboardActive = false;
+          resumeMobileLoopSoon();
+        }
       }
 
       function resumeMobileLoopSoon() {
-        if (mobileResumeTimer) window.clearTimeout(mobileResumeTimer);
+        clearMobileResumeTimer();
         mobileResumeTimer = window.setTimeout(function () {
+          mobileResumeTimer = 0;
+          if (desktopQuery.matches || reducedMotion || mobilePointerActive || mobileKeyboardActive || !rail) return;
           normalizeMobilePosition(rail ? rail.scrollLeft : mobileAutoPosition);
           mobilePaused = false;
           startMobileLoop();
         }, 2200);
       }
 
+      function adoptManualMobilePosition() {
+        if (desktopQuery.matches || reducedMotion || !rail || !mobilePaused) return;
+        mobileAutoPosition = rail.scrollLeft;
+        if (!mobilePointerActive && !mobileKeyboardActive) resumeMobileLoopSoon();
+      }
+
       if (rail) {
-        rail.addEventListener("pointerdown", pauseMobileLoop, { passive: true });
-        rail.addEventListener("pointerup", resumeMobileLoopSoon, { passive: true });
-        rail.addEventListener("pointercancel", resumeMobileLoopSoon, { passive: true });
+        rail.addEventListener("pointerdown", beginMobilePointerInteraction, { passive: true });
+        rail.addEventListener("pointerup", endMobilePointerInteraction, { passive: true });
+        rail.addEventListener("pointercancel", endMobilePointerInteraction, { passive: true });
+        rail.addEventListener("scroll", adoptManualMobilePosition, { passive: true });
         rail.addEventListener("wheel", function () {
           pauseMobileLoop();
           resumeMobileLoopSoon();
@@ -1041,6 +1095,11 @@
 
       function syncLoop() {
         if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
+        var previousDistance = mobileLoopDistance;
+        if (previousDistance && rail) {
+          preservedMobilePhaseRatio = mobileLoopPhase(rail.scrollLeft, previousDistance) / previousDistance;
+        }
+        var previousPhaseRatio = preservedMobilePhaseRatio;
         resizeFrame = window.requestAnimationFrame(function () {
           resizeFrame = 0;
           track.classList.remove("is-gallery-loop-ready");
@@ -1049,23 +1108,39 @@
           track.style.removeProperty("--gallery-loop-duration");
           mobileLoopDistance = 0;
           stopMobileLoop();
-          if (reducedMotion) return;
+          clearMobileResumeTimer();
+          if (reducedMotion) {
+            mobilePaused = false;
+            mobilePointerActive = false;
+            mobileKeyboardActive = false;
+            if (rail) rail.scrollLeft = 0;
+            return;
+          }
 
           var firstOriginal = originals[0];
-          var firstClone = track.querySelector('[data-gallery-clone="true"]');
-          if (!firstOriginal || !firstClone) return;
-          var distance = firstClone.offsetLeft - firstOriginal.offsetLeft;
+          var firstBeforeClone = track.querySelector('[data-gallery-clone-side="before"]');
+          var firstAfterClone = track.querySelector('[data-gallery-clone-side="after"]');
+          if (!firstOriginal || !firstBeforeClone || !firstAfterClone) return;
+          var distance = firstAfterClone.offsetLeft - firstOriginal.offsetLeft;
+          var beforeDistance = firstOriginal.offsetLeft - firstBeforeClone.offsetLeft;
           if (!Number.isFinite(distance) || distance <= 0) return;
+          if (!Number.isFinite(beforeDistance) || Math.abs(beforeDistance - distance) > 1) return;
 
           track.style.setProperty("--gallery-loop-distance", (-distance).toFixed(2) + "px");
           track.style.setProperty("--gallery-loop-duration", Math.max(28, distance / 72).toFixed(2) + "s");
           if (desktopQuery.matches) {
+            mobilePaused = false;
+            mobilePointerActive = false;
+            mobileKeyboardActive = false;
+            if (rail) rail.scrollLeft = 0;
             track.classList.add("is-gallery-loop-ready");
           } else {
             mobileLoopDistance = distance;
-            mobileAutoPosition = rail ? rail.scrollLeft : 0;
+            mobileAutoPosition = distance + previousPhaseRatio * distance;
+            normalizeMobilePosition(mobileAutoPosition);
             track.classList.add("is-gallery-mobile-loop-ready");
             startMobileLoop();
+            if (mobilePaused && !mobilePointerActive && !mobileKeyboardActive) resumeMobileLoopSoon();
           }
         });
       }
@@ -1237,6 +1312,19 @@
     }
   }
 
+  function initFooterMapNavigation() {
+    var links = Array.prototype.slice.call(document.querySelectorAll(".site-footer-location-link[data-apple-map-url]"));
+    if (!links.length) return;
+    var userAgent = navigator.userAgent || "";
+    var isAppleTouchDevice = /iPhone|iPad|iPod/i.test(userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (!isAppleTouchDevice) return;
+    links.forEach(function (link) {
+      var appleMapUrl = link.getAttribute("data-apple-map-url");
+      if (appleMapUrl) link.setAttribute("href", appleMapUrl);
+    });
+  }
+
   initAnalyticsEvents();
   initCalculatorModes();
   initCalculatorInquiryBridge();
@@ -1248,5 +1336,6 @@
   initHomepageMotion();
   initFaqTags();
   initSocialAccountDisclosure();
+  initFooterMapNavigation();
   initWhatsappQr();
 })();

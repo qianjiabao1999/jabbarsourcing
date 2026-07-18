@@ -2,10 +2,13 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260718d";
+  var VERSION = "order-20260719a";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   var MAX_FILES = 10;
   var WORKER_TIMEOUT_MS = 60000;
+  var CONTAINER_CAPACITY_CBM = 68;
+  var CONTAINER_EPSILON_CBM = 1e-7;
+  var MAX_CONTAINER_BARS = 100;
   var WORKER_URL = "/assets/calculator-order-worker.js?v=" + VERSION;
   var CORE_URL = "/assets/calculator-order-worker.js?v=" + VERSION;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
@@ -1582,33 +1585,70 @@
 
   Analyzer.prototype.containerEstimate = function (volume, pending) {
     var t = this.copy;
-    if (volume == null) return { label: t.fortyHq, capacity: 68, percent: 0, pending: false };
-    var value = Math.max(0, Number(volume));
-    var result;
-    if (value <= 8) result = { label: t.lcl, capacity: 68, percent: value / 68 * 100 };
-    else if (value <= 68) result = { label: t.fortyHq, capacity: 68, percent: value / 68 * 100 };
-    else {
-      var count = Math.ceil(value / 68);
-      result = { label: replaceVars(t.containerCount, { n: count }), capacity: count * 68, percent: value / (count * 68) * 100, count: count };
+    if (volume == null) return { label: t.fortyHq, capacity: CONTAINER_CAPACITY_CBM, percent: 0, count: 1, loads: [0], loadIndexes: [0], pending: false };
+    var numericVolume = Number(volume);
+    var value = Number.isFinite(numericVolume) ? Math.max(0, numericVolume) : 0;
+    var count = Math.max(1, Math.ceil((value - CONTAINER_EPSILON_CBM) / CONTAINER_CAPACITY_CBM));
+    var renderedCount = Math.min(count, MAX_CONTAINER_BARS);
+    var loads = [];
+    var loadIndexes = [];
+    for (var index = 0; index < renderedCount; index += 1) {
+      var containerIndex = count > MAX_CONTAINER_BARS && index === renderedCount - 1 ? count - 1 : index;
+      var remaining = value - containerIndex * CONTAINER_CAPACITY_CBM;
+      var load = remaining >= CONTAINER_CAPACITY_CBM - CONTAINER_EPSILON_CBM
+        ? 100
+        : remaining <= CONTAINER_EPSILON_CBM ? 0 : remaining / CONTAINER_CAPACITY_CBM * 100;
+      loads.push(Math.max(0, Math.min(100, load)));
+      loadIndexes.push(containerIndex);
     }
+    var result;
+    if (value <= 8) result = { label: t.lcl, capacity: CONTAINER_CAPACITY_CBM };
+    else if (count === 1) result = { label: t.fortyHq, capacity: CONTAINER_CAPACITY_CBM };
+    else result = { label: replaceVars(t.containerCount, { n: count }), capacity: count * CONTAINER_CAPACITY_CBM };
+    result.count = count;
+    result.loads = loads;
+    result.loadIndexes = loadIndexes;
+    result.loadsTruncated = count > MAX_CONTAINER_BARS;
+    result.percent = loads[loads.length - 1] || 0;
     result.pending = Boolean(pending);
     result.volume = value;
     return result;
   };
 
+  Analyzer.prototype.visibleContainerLoads = function (estimate, limit) {
+    var loads = estimate && Array.isArray(estimate.loads) && estimate.loads.length ? estimate.loads : [0];
+    var indexes = estimate && Array.isArray(estimate.loadIndexes) && estimate.loadIndexes.length === loads.length
+      ? estimate.loadIndexes : loads.map(function (_, index) { return index; });
+    var maximum = Math.max(1, Math.floor(Number(limit) || loads.length));
+    var selected = loads.map(function (load, index) { return { percent: load, index: indexes[index] }; });
+    if (selected.length > maximum) selected = selected.slice(0, maximum - 1).concat(selected.slice(-1));
+    return selected;
+  };
+
   Analyzer.prototype.renderContainer = function (estimate) {
-    var safePct = Math.max(0, Math.min(100, estimate.percent || 0));
-    var fillWidth = Math.round(300 * safePct / 100);
+    var loads = this.visibleContainerLoads(estimate, MAX_CONTAINER_BARS);
+    var rowHeight = 48;
+    var contentHeight = Math.max(190, 92 + loads.length * rowHeight);
+    var rows = loads.map(function (entry, rowIndex) {
+      var y = 52 + rowIndex * rowHeight;
+      var safePct = Math.max(0, Math.min(100, entry.percent || 0));
+      var fillWidth = Math.round(270 * safePct / 100);
+      return [
+        '<g data-container-load="' + safePct + '" data-container-index="' + entry.index + '">',
+        '<text x="28" y="' + (y + 23) + '" font-size="13" font-family="ui-monospace,Consolas,monospace" fill="#475569">#' + (entry.index + 1) + '</text>',
+        '<rect x="64" y="' + y + '" width="284" height="34" rx="5" fill="#f8fafc" stroke="#475569" stroke-width="3"/>',
+        '<rect x="71" y="' + (y + 7) + '" width="' + fillWidth + '" height="20" rx="2" fill="#5DCAA5"/>',
+        '<text x="206" y="' + (y + 24) + '" text-anchor="middle" font-size="16" font-weight="900" fill="#04342C">' + Math.round(safePct) + '%</text>',
+        '</g>'
+      ].join("");
+    }).join("");
     this.containerVisual.innerHTML = [
-      '<svg viewBox="0 0 420 190" role="img" aria-label="' + this.copy.containerTitle.replace(/"/g, "&quot;") + '">',
+      '<svg viewBox="0 0 420 ' + contentHeight + '" role="img" aria-label="' + this.copy.containerTitle.replace(/"/g, "&quot;") + ': ' + loads.map(function (entry) { return Math.round(entry.percent) + "%"; }).join(", ") + '">',
       '<text x="28" y="30" font-size="15" font-weight="800" fill="#0f172a">' + this.copy.containerTitle + '</text>',
       '<text x="392" y="30" text-anchor="end" font-size="14" font-family="ui-monospace,Consolas,monospace" fill="#475569">' + (estimate.volume == null ? "—" : this.formatNumber(estimate.volume, 3) + " m³") + '</text>',
-      '<rect x="28" y="55" width="320" height="84" rx="7" fill="#f8fafc" stroke="#475569" stroke-width="4"/>',
-      '<rect x="38" y="65" width="' + fillWidth + '" height="64" rx="3" fill="#5DCAA5"/>',
-      '<line x1="348" y1="66" x2="382" y2="66" stroke="#475569" stroke-width="4"/><line x1="348" y1="128" x2="382" y2="128" stroke="#475569" stroke-width="4"/>',
-      '<text x="188" y="105" text-anchor="middle" font-size="24" font-weight="900" fill="#04342C">' + Math.round(estimate.percent || 0) + '%</text>',
-      '<text x="28" y="166" font-size="16" font-weight="850" fill="#0f172a">' + estimate.label + '</text>',
-      estimate.pending ? '<text x="392" y="166" text-anchor="end" font-size="11" fill="#b45309">' + this.copy.provisional + '</text>' : "",
+      rows,
+      '<text x="28" y="' + (contentHeight - 18) + '" font-size="16" font-weight="850" fill="#0f172a">' + estimate.label + '</text>',
+      estimate.pending ? '<text x="392" y="' + (contentHeight - 18) + '" text-anchor="end" font-size="11" fill="#b45309">' + this.copy.provisional + '</text>' : "",
       "</svg>"
     ].join("");
   };
@@ -1773,17 +1813,37 @@
     ctx.fillText(trimmed, this.rtl ? x + width - 22 : x + 22, y + 70);
   };
 
+  Analyzer.prototype.drawContainerLoadBars = function (ctx, x, y, width, height, estimate) {
+    var maximum = Math.max(1, Math.floor(height / 24));
+    var entries = this.visibleContainerLoads(estimate, maximum);
+    var gap = entries.length > 1 ? 5 : 0;
+    var barHeight = (height - gap * (entries.length - 1)) / entries.length;
+    entries.forEach(function (entry, rowIndex) {
+      var rowY = y + rowIndex * (barHeight + gap);
+      var labelWidth = Math.min(52, width * 0.16);
+      var boxX = x + labelWidth;
+      var boxWidth = width - labelWidth;
+      var safePct = Math.max(0, Math.min(100, entry.percent || 0));
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#475569";
+      ctx.font = '800 ' + Math.max(11, Math.min(16, barHeight * 0.42)) + 'px ui-monospace,"SF Mono",Consolas,monospace';
+      ctx.fillText("#" + (entry.index + 1), x, rowY + barHeight * 0.68);
+      this.roundRect(ctx, boxX, rowY, boxWidth, barHeight, Math.min(7, barHeight / 4), "#ffffff", "#475569");
+      ctx.fillStyle = "#5dcaa5";
+      ctx.fillRect(boxX + 5, rowY + 5, Math.max(0, boxWidth - 10) * safePct / 100, Math.max(0, barHeight - 10));
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#04342c";
+      ctx.font = '900 ' + Math.max(11, Math.min(20, barHeight * 0.48)) + 'px ui-monospace,"SF Mono",Consolas,monospace';
+      ctx.fillText(Math.round(safePct) + "%", boxX + boxWidth / 2, rowY + barHeight * 0.69);
+    }, this);
+  };
+
   Analyzer.prototype.drawContainer = function (ctx, x, y, width, estimate) {
     this.roundRect(ctx, x, y, width, 184, 22, "#f8fbff", "#d7e6f3");
     ctx.textAlign = this.rtl ? "right" : "left";
     ctx.fillStyle = "#0f172a"; ctx.font = '800 21px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
     ctx.fillText(this.copy.containerTitle, this.rtl ? x + width - 24 : x + 24, y + 38);
-    var boxX = x + 24, boxY = y + 62, boxWidth = width - 48, boxHeight = 68;
-    this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 7, "#ffffff", "#475569");
-    var fill = Math.max(0, Math.min(1, (estimate.percent || 0) / 100));
-    ctx.fillStyle = "#5dcaa5"; ctx.fillRect(boxX + 7, boxY + 7, (boxWidth - 14) * fill, boxHeight - 14);
-    ctx.textAlign = "center"; ctx.fillStyle = "#04342c"; ctx.font = '900 26px ui-monospace,"SF Mono",Consolas,monospace';
-    ctx.fillText(Math.round(estimate.percent || 0) + "%", x + width / 2, boxY + 43);
+    this.drawContainerLoadBars(ctx, x + 24, y + 56, width - 48, 82, estimate);
     ctx.textAlign = this.rtl ? "right" : "left"; ctx.fillStyle = "#0f172a"; ctx.font = '800 20px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
     ctx.fillText(estimate.label, this.rtl ? x + width - 24 : x + 24, y + 162);
   };
@@ -1974,19 +2034,7 @@
     var estimate = this.containerEstimate(metrics.volume, this.payload.result.pending.volumeUnit);
     var containerY = 680;
     this.roundRect(ctx, margin, containerY, width - margin * 2, 220, 28, "#f8fbff", "#d5e5f0");
-    var boxX = margin + 310;
-    var boxWidth = width - margin * 2 - 620;
-    var boxY = containerY + 70;
-    ctx.fillStyle = "#475569";
-    ctx.fillRect(boxX, boxY, boxWidth, 88);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(boxX + 7, boxY + 7, boxWidth - 14, 74);
-    ctx.fillStyle = "#5dcaa5";
-    ctx.fillRect(boxX + 7, boxY + 7, (boxWidth - 14) * Math.max(0, Math.min(1, (estimate.percent || 0) / 100)), 74);
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#04342c";
-    ctx.font = '950 44px ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace';
-    ctx.fillText(Math.round(estimate.percent || 0) + "%", width / 2, boxY + 58);
+    this.drawContainerLoadBars(ctx, margin + 310, containerY + 70, width - margin * 2 - 620, 88, estimate);
     ctx.fillStyle = "#0f172a";
     ctx.font = '900 34px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
     ctx.fillText(this.copy.containerTitle + " · " + estimate.label + " · " + (metrics.volume == null ? "—" : this.formatNumber(metrics.volume, 3) + " / " + this.formatNumber(estimate.capacity, 0) + " m³"), width / 2, containerY + 46);

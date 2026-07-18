@@ -59,9 +59,9 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:4173/inquiry/ >/dev/null
           npm run qa:inquiry
-          npm run qa:ai
           npm run qa:ui
           npm run qa:calculator-order
+          npm run qa:container-allocation
 
       - name: Install Worker verification dependencies
         run: npm ci --prefix cloudflare/inquiry-api

@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-171";
-const UI_VERSION = "ui-20260719a";
+const CSS_VERSION = "apple-172";
+const UI_VERSION = "ui-20260719b";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -34,16 +34,28 @@ const HOME_SECTION_CODES = {
   tr: ["Ekip", "Galeri", "Hizmetler", "Süreç", "Yorumlar", "SSS", "Sosyal medya"]
 };
 const METRIC_EXPECTED = {
-  zh: { first: "2008年", last: "500,000,000" },
-  en: { first: "2008", last: "500,000,000" },
-  es: { first: "2008", last: "500.000.000" },
-  ar: { first: "2008", last: "٥٠٠٬٠٠٠٬٠٠٠" },
-  fr: { first: "2008", last: "500\u202F000\u202F000" },
-  pt: { first: "2008", last: "500.000.000" },
-  ru: { first: "2008", last: "500\u00A0000\u00A0000" },
-  de: { first: "2008", last: "500.000.000" },
-  it: { first: "2008", last: "500.000.000" },
-  tr: { first: "2008", last: "500.000.000" }
+  zh: { first: "2008年", last: "500,000,000 人民币元" },
+  en: { first: "2008", last: "CNY 500,000,000" },
+  es: { first: "2008", last: "CNY 500.000.000" },
+  ar: { first: "2008", last: "CNY ٥٠٠٬٠٠٠٬٠٠٠" },
+  fr: { first: "2008", last: "CNY 500\u202F000\u202F000" },
+  pt: { first: "2008", last: "CNY 500.000.000" },
+  ru: { first: "2008", last: "CNY 500\u00A0000\u00A0000" },
+  de: { first: "2008", last: "CNY 500.000.000" },
+  it: { first: "2008", last: "CNY 500.000.000" },
+  tr: { first: "2008", last: "CNY 500.000.000" }
+};
+const KENYA_LABELS = {
+  zh: "肯尼亚",
+  en: "Kenya",
+  es: "Kenia",
+  ar: "كينيا",
+  fr: "Kenya",
+  pt: "Quênia",
+  ru: "Кения",
+  de: "Kenia",
+  it: "Kenya",
+  tr: "Kenya"
 };
 const CALCULATOR_SECTION_CODES = {
   zh: "Jabbar · 体积工具",
@@ -155,8 +167,9 @@ async function pageState(page) {
       direction: document.documentElement.dir || getComputedStyle(document.documentElement).direction,
       cssVersion: document.querySelector('link[href*="styles.min.css"]')?.getAttribute("href") || "",
       uiVersion: document.querySelector('script[src*="site-enhancements.js"]')?.getAttribute("src") || "",
-      aiVersion: document.querySelector('script[src*="ai-sourcing-assistant.js"]')?.getAttribute("src") || "",
       counts: {
+        removedAiScripts: document.querySelectorAll('script[src*="ai-sourcing-assistant.js"]').length,
+        removedAiLaunchers: document.querySelectorAll(".jabbar-ai-toggle").length,
         faqTags: document.querySelectorAll(".faq-quick-tag").length,
         faqItems: document.querySelectorAll(".faq-item").length,
         countries: document.querySelectorAll(".service-country-item").length,
@@ -205,7 +218,18 @@ async function pageState(page) {
         main: styleSnapshot(".site-footer-main"),
         mainRect: rect(".site-footer-main"),
         brandRect: rect(".site-footer-brand"),
-        locationHref: document.querySelector(".site-footer-location-link")?.href || "",
+        location: (() => {
+          const link = document.querySelector(".site-footer-location-link");
+          const text = document.querySelector(".site-footer-location-text");
+          return {
+            href: link?.getAttribute("href") || "",
+            appleMapUrl: link?.getAttribute("data-apple-map-url") || "",
+            link: styleSnapshot(".site-footer-location-link"),
+            linkRect: rect(".site-footer-location-link"),
+            text: styleSnapshot(".site-footer-location-text"),
+            textRect: rect(".site-footer-location-text")
+          };
+        })(),
         brandChildren: Array.from(document.querySelectorAll(".site-footer-brand > *"), (element) => ({
           rect: elementRect(element),
           textAlign: getComputedStyle(element).textAlign
@@ -259,7 +283,6 @@ async function pageState(page) {
         quoteLink: rect(".site-nav-quote"),
         language: rect(".site-nav-language"),
         desktopTeamLink: rect(".site-nav-links .site-nav-team"),
-        legacyToggle: rect(".jabbar-ai-toggle"),
         conversionBar: rect(".mobile-conversion-bar"),
         social: rect("#social-accounts"),
         socialHeading: rect("#social-accounts .section-heading")
@@ -295,7 +318,7 @@ function assertHomeVisualSignature(state, scope, locale) {
   assert.equal(state.shipment.unavailable, true, `${scope}: placeholder shipments were not rejected`);
   assert.equal(state.shipment.display, "none", `${scope}: placeholder shipment ticker is visible`);
   assert.equal(state.counts.metricNumbers, 5, `${scope}: monospaced company metric count`);
-  assert.equal(state.counts.reviewNumbers, 3, `${scope}: monospaced review amount count`);
+  assert.equal(state.counts.reviewNumbers, 2, `${scope}: monospaced review amount count`);
   assert(isMonoFamily(state.fonts.numeric), `${scope}: numeric font is not monospaced: ${state.fonts.numeric}`);
   assert(isMonoFamily(state.fonts.review), `${scope}: review amount is not monospaced: ${state.fonts.review}`);
   assert(isMonoFamily(state.fonts.phone), `${scope}: footer phone is not monospaced: ${state.fonts.phone}`);
@@ -405,15 +428,34 @@ function assertNoFloatingControls(state, scope) {
   assert.equal(state.counts.floatingContacts, 0, `${scope}: floating contact controls remain`);
   assert.equal(state.counts.conversionBars, 0, `${scope}: mobile conversion bar remains`);
   assert.equal(state.rects.conversionBar, null, `${scope}: mobile conversion bar is rendered`);
-  assert.equal(state.aiVersion, "", `${scope}: hidden AI bootstrap still loads by default`);
-  if (state.rects.legacyToggle) {
-    assert.equal(state.rects.legacyToggle.display, "none", `${scope}: legacy AI launcher visible`);
-  }
+  assert.equal(state.counts.removedAiScripts, 0, `${scope}: removed AI script returned`);
+  assert.equal(state.counts.removedAiLaunchers, 0, `${scope}: removed AI launcher returned`);
 }
 
 function assertMobileMenuTrimmed(state, scope, { teamLinks = 0 } = {}) {
   assert.equal(state.mobileMenu.calculatorLinks, 0, `${scope}: calculator link remains in mobile menu`);
   assert.equal(state.mobileMenu.teamLinks, teamLinks, `${scope}: mobile team-member link count`);
+}
+
+function assertFooterLocationContract(state, scope, { mobile }) {
+  const location = state.footer.location;
+  assert.match(location.href, /^geo:0,0\?q=/, `${scope}: footer location must use the system geo URI`);
+  const geoAddress = decodeURIComponent(location.href.slice(location.href.indexOf("?q=") + 3));
+  assert(geoAddress.includes("苏福路219号3号楼"), `${scope}: geo URI is missing the full address`);
+  const appleMapUrl = new URL(location.appleMapUrl);
+  assert.equal(appleMapUrl.origin, "https://maps.apple.com", `${scope}: invalid Apple Maps fallback origin`);
+  assert(appleMapUrl.searchParams.get("daddr")?.includes("苏福路219号3号楼"), `${scope}: Apple Maps fallback is missing the full address`);
+  assert.equal(appleMapUrl.searchParams.get("dirflg"), "d", `${scope}: Apple Maps fallback must request driving directions`);
+
+  if (mobile) {
+    assert.equal(location.text.display, "none", `${scope}: static footer location text remains visible on mobile`);
+    assert.notEqual(location.link.display, "none", `${scope}: footer map action is hidden on mobile`);
+    assertVisibleRect(location.linkRect, `${scope}: mobile footer map action`);
+  } else {
+    assert.notEqual(location.text.display, "none", `${scope}: static footer location text is hidden on desktop`);
+    assertVisibleRect(location.textRect, `${scope}: desktop footer location text`);
+    assert.equal(location.link.display, "none", `${scope}: footer map action remains visible on desktop`);
+  }
 }
 
 function assertDesktopFooter(state, scope, { contacts = false } = {}) {
@@ -430,14 +472,7 @@ function assertDesktopFooter(state, scope, { contacts = false } = {}) {
     assert.equal(child.textAlign, "center", `${scope}: footer brand child ${index + 1} text alignment`);
   }
 
-  const locationUrl = new URL(state.footer.locationHref);
-  assert.equal(locationUrl.origin, "https://uri.amap.com", `${scope}: footer location is not using AMap URI API`);
-  assert.equal(locationUrl.pathname, "/search", `${scope}: invalid AMap search path`);
-  assert(locationUrl.searchParams.get("keyword")?.includes("苏福路219号3号楼"), `${scope}: AMap keyword missing full address`);
-  assert.equal(locationUrl.searchParams.get("city"), "义乌", `${scope}: AMap city parameter`);
-  assert.equal(locationUrl.searchParams.get("view"), "map", `${scope}: AMap view parameter`);
-  assert.equal(locationUrl.searchParams.get("src"), "jabbarsourcing.com", `${scope}: AMap source parameter`);
-  assert.equal(locationUrl.searchParams.get("callnative"), "1", `${scope}: AMap native-app parameter`);
+  assertFooterLocationContract(state, scope, { mobile: false });
 
   if (!contacts) {
     assert.equal(state.counts.footerContactPills, 0, `${scope}: unexpected footer contact pills`);
@@ -491,6 +526,30 @@ async function assertFaqDefaultClosed(page, scope) {
 }
 
 async function assertSocialPlatformFilters(page, scope) {
+  const assertVisibleCardAlignment = async (label) => {
+    const cards = await page.locator(".social-platform-group:not([hidden]) .team-card").evaluateAll((elements) => elements.map((card) => {
+      const center = (element) => {
+        if (!element) return null;
+        const rect = element.getBoundingClientRect();
+        return rect.left + rect.width / 2;
+      };
+      return {
+        cardCenter: center(card),
+        mediaCenter: center(card.querySelector(".team-card-media")),
+        nameCenter: center(card.querySelector(".team-card-body > strong, .team-title-line")),
+        handleCenter: center(card.querySelector(".team-handle")),
+        buttonCenter: center(card.querySelector(".team-link"))
+      };
+    }));
+    assert(cards.length > 0, `${scope}: ${label} has no visible social cards`);
+    cards.forEach((card, index) => {
+      for (const key of ["mediaCenter", "nameCenter", "handleCenter", "buttonCenter"]) {
+        assert(card[key] !== null, `${scope}: ${label} card ${index + 1} missing ${key}`);
+        assert(Math.abs(card[key] - card.cardCenter) <= 1.5, `${scope}: ${label} card ${index + 1} ${key} is not centered`);
+      }
+    });
+  };
+
   const initial = await page.locator(".social-platform-group").evaluateAll((groups) => groups.map((group) => {
     const cards = Array.from(group.querySelectorAll(":scope > .team-grid > .team-card"));
     const groupStyle = getComputedStyle(group);
@@ -535,6 +594,7 @@ async function assertSocialPlatformFilters(page, scope) {
   });
   assert.equal(await page.locator(".social-platform-group:not([hidden])").count(), 1, `${scope}: default social view is not isolated to TikTok`);
   assert.deepEqual(await renderedPlatforms(), ["tiktok"], `${scope}: non-TikTok accounts render in the default view`);
+  await assertVisibleCardAlignment("TikTok default view");
 
   const selectedFilter = filters.nth(1);
   const selectedPlatform = await selectedFilter.getAttribute("data-social-filter");
@@ -545,6 +605,7 @@ async function assertSocialPlatformFilters(page, scope) {
   const visiblePlatforms = await page.locator(".social-platform-group:not([hidden])").evaluateAll((groups) => groups.map((group) => group.dataset.socialPlatform));
   assert.deepEqual(visiblePlatforms, [selectedPlatform], `${scope}: selected platform did not isolate its account group`);
   assert.deepEqual(await renderedPlatforms(), [selectedPlatform], `${scope}: hidden platform still renders after selection`);
+  await assertVisibleCardAlignment(`${selectedPlatform} selected view`);
   const filterEvent = await page.evaluate(() => (window.dataLayer || [])
     .map((entry) => Array.from(entry))
     .filter((entry) => entry[0] === "event" && entry[1] === "social_platform_filter")
@@ -696,10 +757,26 @@ async function assertMobileGalleryScroll(page, scope) {
 
     await page.waitForTimeout(100);
     const autoStart = await rail.evaluate((element) => element.scrollLeft);
-    await page.waitForFunction(({ railIndex, start }) => {
-      const currentRail = document.querySelectorAll(".gallery-rail")[railIndex];
-      return currentRail && currentRail.scrollLeft >= start + 1;
-    }, { railIndex: index, start: autoStart }, { timeout: 2500 });
+    try {
+      await page.waitForFunction(({ railIndex, start }) => {
+        const currentRail = document.querySelectorAll(".gallery-rail")[railIndex];
+        return currentRail && currentRail.scrollLeft >= start + 1;
+      }, { railIndex: index, start: autoStart }, { timeout: 5000 });
+    } catch (error) {
+      const stalled = await rail.evaluate((element) => ({
+        position: element.scrollLeft,
+        activeElement: document.activeElement?.className || document.activeElement?.tagName || "",
+        top: element.getBoundingClientRect().top,
+        bottom: element.getBoundingClientRect().bottom,
+        visibility: document.visibilityState
+      }));
+      throw new assert.AssertionError({
+        message: `${scope}: rail ${index + 1} mobile auto-scroll stalled (${autoStart} -> ${stalled.position}; ${JSON.stringify(stalled)})`,
+        actual: stalled.position,
+        expected: `>= ${autoStart + 1}`,
+        operator: ">="
+      });
+    }
     const autoEnd = await rail.evaluate((element) => element.scrollLeft);
     assert(autoEnd >= autoStart + 1, `${scope}: rail ${index + 1} mobile auto-scroll did not advance (${autoStart} -> ${autoEnd})`);
 
@@ -708,12 +785,19 @@ async function assertMobileGalleryScroll(page, scope) {
       const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
       const track = element.querySelector(".gallery-track");
       const originals = Array.from(track.querySelectorAll(':scope > .gallery-frame:not([data-gallery-clone="true"])'));
-      const clones = Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone="true"]'));
-      const loopDistance = clones[0] && originals[0] ? clones[0].offsetLeft - originals[0].offsetLeft : 0;
+      const beforeClones = Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone-side="before"]'));
+      const afterClones = Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone-side="after"]'));
+      const clones = beforeClones.concat(afterClones);
+      const loopDistance = afterClones[0] && originals[0] ? afterClones[0].offsetLeft - originals[0].offsetLeft : 0;
+      const leadingDistance = beforeClones[0] && originals[0] ? originals[0].offsetLeft - beforeClones[0].offsetLeft : 0;
       const maxScroll = element.scrollWidth - element.clientWidth;
+      const autoplayBoundaryStart = loopDistance * 2 - 3;
+      element.scrollLeft = autoplayBoundaryStart;
+      await delay(180);
+      const autoplayBoundaryEnd = element.scrollLeft;
       const PointerEventCtor = window.PointerEvent || window.Event;
       element.dispatchEvent(new PointerEventCtor("pointerdown", { bubbles: true, pointerId: 1, pointerType: "touch" }));
-      const manualStart = Math.min(Math.max(160, loopDistance * 0.25), Math.max(160, maxScroll - 400));
+      const manualStart = Math.min(loopDistance * 1.25, Math.max(loopDistance + 160, maxScroll - 400));
       element.scrollLeft = manualStart;
       await nextFrame();
       const rightTarget = Math.min(manualStart + 220, maxScroll - 40);
@@ -735,6 +819,9 @@ async function assertMobileGalleryScroll(page, scope) {
         scrollWidth: element.scrollWidth,
         maxScroll,
         loopDistance,
+        leadingDistance,
+        autoplayBoundaryStart,
+        autoplayBoundaryEnd,
         manualStart,
         movedRight,
         movedLeft,
@@ -746,23 +833,34 @@ async function assertMobileGalleryScroll(page, scope) {
         tabIndex: element.tabIndex,
         originalCount: originals.length,
         cloneCount: clones.length,
+        beforeCloneCount: beforeClones.length,
+        afterCloneCount: afterClones.length,
         clonesVisible: clones.every((frame) => getComputedStyle(frame).display !== "none"),
-        clonesHiddenFromA11y: clones.every((frame) => frame.getAttribute("aria-hidden") === "true")
+        clonesHiddenFromA11y: clones.every((frame) => frame.getAttribute("aria-hidden") === "true"),
+        cloneSequencesMatch: [beforeClones, afterClones].every((set) => set.every((frame, frameIndex) =>
+          frame.querySelector("img")?.getAttribute("src") === originals[frameIndex]?.querySelector("img")?.getAttribute("src")))
       };
     });
 
     assert(["auto", "scroll"].includes(state.overflowX), `${scope}: rail ${index + 1} overflow-x is ${state.overflowX}`);
     assert(state.scrollWidth > state.clientWidth + 120, `${scope}: rail ${index + 1} is not horizontally scrollable`);
     assert(state.loopDistance > state.clientWidth, `${scope}: rail ${index + 1} loop distance is invalid (${state.loopDistance})`);
+    assert(Math.abs(state.leadingDistance - state.loopDistance) <= 1, `${scope}: rail ${index + 1} leading clone distance mismatch (${state.leadingDistance}/${state.loopDistance})`);
+    assert(autoStart >= state.loopDistance - 2 && autoStart < state.loopDistance * 2, `${scope}: rail ${index + 1} did not initialize inside the safe middle set (${autoStart}/${state.loopDistance})`);
+    assert(state.autoplayBoundaryEnd >= state.loopDistance && state.autoplayBoundaryEnd < state.loopDistance + 100, `${scope}: rail ${index + 1} autoplay wrapped outside the safe middle set (${state.autoplayBoundaryStart} -> ${state.autoplayBoundaryEnd}/${state.loopDistance})`);
     assert(state.movedRight >= state.manualStart + 100, `${scope}: rail ${index + 1} rejected a rightward scroll`);
     assert(state.movedLeft <= state.movedRight - 60, `${scope}: rail ${index + 1} rejected a leftward scroll`);
+    assert(state.movedLeft >= state.loopDistance, `${scope}: rail ${index + 1} manual test escaped the safe middle set (${state.movedLeft}/${state.loopDistance})`);
     assert(Math.abs(state.pausedPosition - state.movedLeft) <= 1, `${scope}: rail ${index + 1} moved while pointer-paused (${state.movedLeft} -> ${state.pausedPosition})`);
     assert.equal(state.animationName, "none", `${scope}: rail ${index + 1} still competes with touch using animation ${state.animationName}`);
     assert(["none", "matrix(1, 0, 0, 1, 0, 0)"].includes(state.transform), `${scope}: rail ${index + 1} track remains transformed (${state.transform})`);
     assert.equal(state.mobileReady, true, `${scope}: rail ${index + 1} mobile loop was not initialized`);
     assert.equal(state.role, "region", `${scope}: rail ${index + 1} region role`);
     assert.equal(state.tabIndex, 0, `${scope}: rail ${index + 1} keyboard access`);
-    assert.equal(state.cloneCount, state.originalCount, `${scope}: rail ${index + 1} loop clone count`);
+    assert.equal(state.cloneCount, state.originalCount * 2, `${scope}: rail ${index + 1} loop clone count`);
+    assert.equal(state.beforeCloneCount, state.originalCount, `${scope}: rail ${index + 1} leading clone count`);
+    assert.equal(state.afterCloneCount, state.originalCount, `${scope}: rail ${index + 1} trailing clone count`);
+    assert.equal(state.cloneSequencesMatch, true, `${scope}: rail ${index + 1} clone sequence differs from originals`);
     assert.equal(state.clonesVisible, true, `${scope}: rail ${index + 1} loop clones are hidden on mobile`);
     assert.equal(state.clonesHiddenFromA11y, true, `${scope}: rail ${index + 1} loop clones remain exposed to assistive tech`);
   }
@@ -777,7 +875,9 @@ async function assertDesktopGalleryMarquee(page, scope) {
 
   const geometry = await page.locator(".sourcing-gallery .gallery-track").evaluateAll((tracks) => tracks.map((track) => {
     const originals = Array.from(track.querySelectorAll(':scope > .gallery-frame:not([data-gallery-clone="true"])'));
-    const clones = Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone="true"]'));
+    const beforeClones = Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone-side="before"]'));
+    const afterClones = Array.from(track.querySelectorAll(':scope > .gallery-frame[data-gallery-clone-side="after"]'));
+    const clones = beforeClones.concat(afterClones);
     const style = getComputedStyle(track);
     const animation = track.getAnimations()[0];
     if (animation) {
@@ -787,8 +887,13 @@ async function assertDesktopGalleryMarquee(page, scope) {
     return {
       originalCount: originals.length,
       cloneCount: clones.length,
+      beforeCloneCount: beforeClones.length,
+      afterCloneCount: afterClones.length,
       clonesHiddenFromA11y: clones.every((frame) => frame.getAttribute("aria-hidden") === "true"),
-      measuredDistance: clones[0] && originals[0] ? clones[0].offsetLeft - originals[0].offsetLeft : 0,
+      measuredDistance: afterClones[0] && originals[0] ? afterClones[0].offsetLeft - originals[0].offsetLeft : 0,
+      leadingDistance: beforeClones[0] && originals[0] ? originals[0].offsetLeft - beforeClones[0].offsetLeft : 0,
+      cloneSequencesMatch: [beforeClones, afterClones].every((set) => set.every((frame, frameIndex) =>
+        frame.querySelector("img")?.getAttribute("src") === originals[frameIndex]?.querySelector("img")?.getAttribute("src"))),
       configuredDistance: Math.abs(Number.parseFloat(style.getPropertyValue("--gallery-loop-distance"))),
       duration: Number.parseFloat(style.animationDuration) * 1000,
       animationName: style.animationName,
@@ -809,8 +914,12 @@ async function assertDesktopGalleryMarquee(page, scope) {
   assert.equal(geometry.length, 2, `${scope}: desktop gallery track count`);
   geometry.forEach((track, index) => {
     assert(track.originalCount >= 2, `${scope}: track ${index + 1} needs multiple originals`);
-    assert.equal(track.cloneCount, track.originalCount, `${scope}: track ${index + 1} clone count`);
+    assert.equal(track.cloneCount, track.originalCount * 2, `${scope}: track ${index + 1} clone count`);
+    assert.equal(track.beforeCloneCount, track.originalCount, `${scope}: track ${index + 1} leading clone count`);
+    assert.equal(track.afterCloneCount, track.originalCount, `${scope}: track ${index + 1} trailing clone count`);
+    assert.equal(track.cloneSequencesMatch, true, `${scope}: track ${index + 1} clone sequence differs from originals`);
     assert.equal(track.clonesHiddenFromA11y, true, `${scope}: track ${index + 1} clones remain exposed to assistive tech`);
+    assert(Math.abs(track.leadingDistance - track.measuredDistance) <= 1, `${scope}: track ${index + 1} leading/trailing loop distances differ`);
     assert(Math.abs(track.measuredDistance - track.configuredDistance) <= 1, `${scope}: track ${index + 1} loop distance mismatch`);
     assert(track.duration >= 28000, `${scope}: track ${index + 1} loop duration is too abrupt (${track.duration}ms)`);
     assert.equal(track.animationName, "galleryMarquee", `${scope}: track ${index + 1} animation name`);
@@ -866,6 +975,45 @@ async function assertCompanyProofLayout(page, scope, mobile) {
   }
 }
 
+async function assertTestimonialProof(page, scope, locale) {
+  const proof = page.locator(".testimonial-card--proof");
+  assert.equal(await proof.count(), 1, `${scope}: Boyner proof card count`);
+  await proof.scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => {
+    const image = document.querySelector(".testimonial-card--proof .testimonial-proof-image");
+    return image?.complete && image.naturalWidth > 0 && image.naturalHeight > 0;
+  });
+  const state = await proof.evaluate((card) => {
+    const normalizeText = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const image = card.querySelector(".testimonial-proof-image");
+    return {
+      text: normalizeText(card.textContent),
+      flag: normalizeText(card.querySelector(".testimonial-flag")?.textContent),
+      monoCount: card.querySelectorAll(".num-mono").length,
+      imageCount: card.querySelectorAll(".testimonial-proof-image").length,
+      image: image ? {
+        pathname: new URL(image.src, document.baseURI).pathname,
+        width: image.getAttribute("width"),
+        height: image.getAttribute("height"),
+        alt: image.alt,
+        naturalWidth: image.naturalWidth,
+        naturalHeight: image.naturalHeight
+      } : null
+    };
+  });
+  assert.equal(state.monoCount, 0, `${scope}: Boyner proof card must not contain a monospaced amount`);
+  assert.match(state.text, /boyner/i, `${scope}: Boyner proof card identity`);
+  assert(state.text.includes(KENYA_LABELS[locale]), `${scope}: localized Kenya label`);
+  assert.equal(state.flag, "🇰🇪", `${scope}: Kenya flag`);
+  assert.equal(state.imageCount, 1, `${scope}: Boyner proof image count`);
+  assert(state.image, `${scope}: Boyner proof image missing`);
+  assert.equal(state.image.pathname, "/assets/testimonial-boyner.webp", `${scope}: Boyner proof image source`);
+  assert.equal(state.image.width, "1200", `${scope}: Boyner proof image width`);
+  assert.equal(state.image.height, "1600", `${scope}: Boyner proof image height`);
+  assert.match(state.image.alt, /boyner/i, `${scope}: Boyner proof image alternative text`);
+  assert(state.image.naturalWidth > 0 && state.image.naturalHeight > 0, `${scope}: Boyner proof image failed to load`);
+}
+
 async function assertFooterJoin(page, scope) {
   const state = await page.evaluate(() => {
     const social = document.querySelector("#social-accounts.social-platform-groups");
@@ -885,7 +1033,7 @@ async function assertFooterJoin(page, scope) {
       gap: socialRect && footerRect ? footerRect.top - socialRect.bottom : null,
       socialBreathingSpace: socialRect && Number.isFinite(lastSocialGroupBottom) ? socialRect.bottom - lastSocialGroupBottom : null,
       teamPaddingBottom: team ? Number.parseFloat(getComputedStyle(team).paddingBottom) : null,
-      teamBoxShadow: team ? getComputedStyle(team).boxShadow : "",
+      teamBackgroundColor: team ? getComputedStyle(team).backgroundColor : "",
       socialMarginBottom: social ? Number.parseFloat(getComputedStyle(social).marginBottom) : null,
       footerMarginTop: footer ? Number.parseFloat(getComputedStyle(footer).marginTop) : null,
       gmail: gmail ? {
@@ -906,7 +1054,7 @@ async function assertFooterJoin(page, scope) {
   assert.equal(state.footerMarginTop, 0, `${scope}: footer top margin reintroduced a seam`);
   assert.notEqual(state.socialBreathingSpace, null, `${scope}: visible social platform group is missing`);
   assert(state.socialBreathingSpace >= 28 && state.socialBreathingSpace <= 52, `${scope}: social footer breathing space is ${state.socialBreathingSpace}px`);
-  assert.match(state.teamBoxShadow, /rgb\(238,\s*246,\s*251\)/, `${scope}: footer join lacks the non-white team inset (${state.teamBoxShadow})`);
+  assert.match(state.teamBackgroundColor, /rgb\(238,\s*246,\s*251\)/, `${scope}: footer join lacks the non-white team surface (${state.teamBackgroundColor})`);
   assert.equal(state.gmail?.text, "qianjiabao1999@gmail.com", `${scope}: footer Gmail text changed`);
   assert.equal(state.gmail.whiteSpace, "nowrap", `${scope}: Gmail is allowed to split inside the address`);
   assert.notEqual(state.gmail.overflow, "hidden", `${scope}: Gmail remains clipped`);
@@ -963,6 +1111,7 @@ async function homeMatrix(browserType) {
       assertHeroCta(state, scope);
       if (!viewport.mobile) await assertDesktopGalleryMarquee(page, scope);
       await assertCompanyProofLayout(page, scope, viewport.mobile);
+      await assertTestimonialProof(page, scope, item.locale);
       await assertJointBrandParity(page, scope);
       await assertFooterJoin(page, scope);
       assert.equal(state.counts.faqTags, 7, `${scope}: FAQ tag count`);
@@ -986,6 +1135,7 @@ async function homeMatrix(browserType) {
       await assertSocialPlatformFilters(page, scope);
       if (!viewport.mobile) await assertLocalizedMetricAnimation(page, scope, item.locale);
       if (viewport.mobile) {
+        assertFooterLocationContract(state, scope, { mobile: true });
         await assertMobileGalleryScroll(page, scope);
         assert.equal(state.counts.qrCards, 0, `${scope}: QR hover card must not initialize on touch`);
         if (item.rtl) await assertMobileRtlProcessLayout(page, scope);
@@ -1018,7 +1168,6 @@ async function calculatorMatrix(browserType) {
     assertMobileMenuTrimmed(state, scope);
     assertCalculatorVisualSignature(state, scope, item.locale);
     assertDesktopFooter(state, scope);
-    assert.equal(state.aiVersion, "", `${scope}: hidden AI bootstrap still loads by default`);
     assert.equal(state.counts.calculatorModeTabs, 2, `${scope}: calculator mode tab count`);
     assert.equal(state.counts.cbm, 1, `${scope}: CBM visual count`);
     assert.equal(state.counts.progress, 1, `${scope}: progress count`);
@@ -1228,7 +1377,7 @@ async function interactionChecks(browserType) {
   await page.waitForTimeout(1300);
   const metricVisuals = await page.locator(".company-metric-card strong .company-metric-visual").allTextContents();
   const metricAccessible = await page.locator(".company-metric-card strong .sr-only").allTextContents();
-  const expectedMetrics = ["2008年", "300+", "50,000㎡", "全球 100+ 国家和地区", "500,000,000"];
+  const expectedMetrics = ["2008年", "300+", "50,000㎡", "全球 100+ 国家和地区", "500,000,000 人民币元"];
   assert.deepEqual(metricVisuals.map((item) => item.trim()), expectedMetrics, "company metric visuals changed or did not finish counting");
   assert.deepEqual(metricAccessible.map((item) => item.trim()), expectedMetrics, "company metric accessible copy changed during animation");
   assert.equal(await page.locator(".company-metric-card strong[aria-label]").count(), 0, "company metrics still rely on aria-label");
@@ -1311,24 +1460,35 @@ async function interactionChecks(browserType) {
   const galleryRail = mobilePage.locator(".gallery-rail").first();
   await galleryRail.scrollIntoViewIfNeeded();
   await mobilePage.waitForFunction(() => document.querySelector(".gallery-rail .gallery-track")?.classList.contains("is-gallery-mobile-loop-ready"));
-  const loopDistance = await galleryRail.evaluate((rail) => {
+  const galleryGeometry = await galleryRail.evaluate((rail) => {
     const firstOriginal = rail.querySelector('.gallery-frame:not([data-gallery-clone="true"])');
-    const firstClone = rail.querySelector('.gallery-frame[data-gallery-clone="true"]');
-    return firstClone && firstOriginal ? firstClone.offsetLeft - firstOriginal.offsetLeft : 0;
+    const firstBeforeClone = rail.querySelector('.gallery-frame[data-gallery-clone-side="before"]');
+    const firstAfterClone = rail.querySelector('.gallery-frame[data-gallery-clone-side="after"]');
+    return {
+      distance: firstAfterClone && firstOriginal ? firstAfterClone.offsetLeft - firstOriginal.offsetLeft : 0,
+      leadingDistance: firstBeforeClone && firstOriginal ? firstOriginal.offsetLeft - firstBeforeClone.offsetLeft : 0,
+      position: rail.scrollLeft
+    };
   });
+  const loopDistance = galleryGeometry.distance;
   assert(loopDistance > 600, `mobile gallery loop distance is invalid (${loopDistance}px)`);
-  await galleryRail.evaluate((rail, distance) => { rail.scrollLeft = distance * 0.3; }, loopDistance);
+  assert(Math.abs(galleryGeometry.leadingDistance - loopDistance) <= 1, `mobile gallery leading/trailing loop distance mismatch (${galleryGeometry.leadingDistance}/${loopDistance})`);
+  assert(galleryGeometry.position >= loopDistance - 2 && galleryGeometry.position < loopDistance * 2, `mobile gallery did not initialize inside the safe middle set (${galleryGeometry.position}/${loopDistance})`);
   const galleryBox = await galleryRail.boundingBox();
   assert(galleryBox, "mobile gallery rail has no touchable bounding box");
   const touchY = galleryBox.y + Math.min(galleryBox.height / 2, 180);
   const cdp = await mobile.newCDPSession(mobilePage);
   const readGalleryPosition = () => galleryRail.evaluate((rail) => rail.scrollLeft);
-  const loopPhase = (position) => ((position % loopDistance) + loopDistance) % loopDistance;
-  const dispatchTouchSwipe = async (startX, endX, label) => {
+  const loopPhase = (position) => ((position - loopDistance) % loopDistance + loopDistance) % loopDistance;
+  const dispatchTouchSwipe = async (startX, endX, label, startPosition) => {
     await cdp.send("Input.dispatchTouchEvent", {
       type: "touchStart",
       touchPoints: [{ x: startX, y: touchY, radiusX: 7, radiusY: 7, force: 1 }]
     });
+    if (Number.isFinite(startPosition)) {
+      await galleryRail.evaluate((rail, position) => { rail.scrollLeft = position; }, startPosition);
+      await mobilePage.waitForTimeout(32);
+    }
     for (const ratio of [0.2, 0.4, 0.6, 0.8, 1]) {
       // Give Chromium realistic gesture timing so native fling momentum does
       // not masquerade as the gallery's JavaScript auto-scroll.
@@ -1364,7 +1524,7 @@ async function interactionChecks(browserType) {
       else stableSamples = 0;
       previous = current;
       if (stableSamples >= 3) {
-        return { position: current, elapsed: Date.now() - releasedAt, samples };
+        return { position: current, elapsed: Date.now() - releasedAt, settledAt: Date.now(), samples };
       }
     }
     assert.fail(`${label}: native touch momentum did not settle inside the 2200ms pause window (${samples.map((value) => Math.round(value)).join(" -> ")})`);
@@ -1372,40 +1532,85 @@ async function interactionChecks(browserType) {
 
   const rightEdge = galleryBox.x + Math.min(galleryBox.width - 28, 340);
   const leftEdge = galleryBox.x + 48;
-  const beforeLeftSwipe = await readGalleryPosition();
-  const leftGesture = await dispatchTouchSwipe(rightEdge, leftEdge, "mobile gallery left swipe");
-  assert(leftGesture.heldEnd >= beforeLeftSwipe + 120, `mobile gallery ignored a real left swipe (${beforeLeftSwipe} -> ${leftGesture.heldEnd})`);
-  const leftSettled = await waitForNativeScrollSettle("mobile gallery left swipe", leftGesture.releasedAt);
-  assert(leftSettled.position >= beforeLeftSwipe + 120, `mobile gallery discarded the user's left-swipe position (${beforeLeftSwipe} -> ${leftSettled.position})`);
-  const leftSettledPhase = loopPhase(leftSettled.position);
-  assert(leftSettledPhase > 80 && leftSettledPhase < loopDistance - 80, `mobile gallery left swipe landed on a loop boundary (${leftSettled.position}/${loopDistance})`);
+  const assertPausedThenResumed = async (label, gesture, settled) => {
+    assert(settled.elapsed <= 1400, `${label}: native momentum consumed too much of the pause window (${settled.elapsed}ms)`);
+    await mobilePage.waitForTimeout(700);
+    const pauseProbePosition = await readGalleryPosition();
+    assert(Math.abs(pauseProbePosition - settled.position) <= 2, `${label}: autoplay resumed before 2200ms after inertial scrolling ended (${settled.position} -> ${pauseProbePosition})`);
 
-  const beforeRightSwipe = leftSettled.position;
-  const rightGesture = await dispatchTouchSwipe(leftEdge, rightEdge, "mobile gallery right swipe");
-  assert(rightGesture.heldEnd <= beforeRightSwipe - 120, `mobile gallery ignored a real right swipe (${beforeRightSwipe} -> ${rightGesture.heldEnd})`);
-  const rightSettled = await waitForNativeScrollSettle("mobile gallery right swipe", rightGesture.releasedAt);
-  assert(rightSettled.position <= beforeRightSwipe - 120, `mobile gallery discarded the user's right-swipe position (${beforeRightSwipe} -> ${rightSettled.position})`);
-  const settledPhase = loopPhase(rightSettled.position);
-  assert(settledPhase > 80 && settledPhase < loopDistance - 80, `mobile gallery right swipe landed on a loop boundary (${rightSettled.position}/${loopDistance})`);
+    const resumeProbeDelay = 2500 - (Date.now() - settled.settledAt);
+    if (resumeProbeDelay > 0) await mobilePage.waitForTimeout(resumeProbeDelay);
+    const resumedPosition = await readGalleryPosition();
+    const resumedPhase = loopPhase(resumedPosition);
+    const pausedPhase = loopPhase(pauseProbePosition);
+    const resumedAdvance = (resumedPhase - pausedPhase + loopDistance) % loopDistance;
+    assert(resumedPosition >= loopDistance && resumedPosition < loopDistance * 2, `${label}: resume escaped the safe middle set (${resumedPosition}/${loopDistance})`);
+    assert(resumedAdvance >= 8, `${label}: autoplay did not resume after the 2200ms inertial pause (${pauseProbePosition} -> ${resumedPosition})`);
+    assert(resumedAdvance < 120, `${label}: resume reset or jumped instead of continuing its phase (${pauseProbePosition} -> ${resumedPosition}; phase advance ${resumedAdvance}; released ${Date.now() - gesture.releasedAt}ms ago)`);
+    return resumedPosition;
+  };
 
-  // Probe shortly after native momentum settles. A fixed probe close to the
-  // 2200ms timer is flaky on loaded CI runners because waitForTimeout may
-  // resume late, after autoplay has legitimately restarted.
-  assert(rightSettled.elapsed <= 1400, `mobile gallery native momentum consumed too much of the pause window (${rightSettled.elapsed}ms)`);
-  await mobilePage.waitForTimeout(180);
-  const pauseProbePosition = await readGalleryPosition();
-  assert(Math.abs(pauseProbePosition - rightSettled.position) <= 2, `mobile gallery resumed before the 2200ms pause elapsed (${rightSettled.position} -> ${pauseProbePosition})`);
+  const forwardStart = loopDistance * 2 - 180;
+  const forwardGesture = await dispatchTouchSwipe(rightEdge, leftEdge, "mobile gallery forward-boundary swipe", forwardStart);
+  assert(forwardGesture.heldEnd > loopDistance * 2 + 20, `mobile gallery could not swipe into the trailing buffer (${forwardStart} -> ${forwardGesture.heldEnd}/${loopDistance})`);
+  const forwardSettled = await waitForNativeScrollSettle("mobile gallery forward-boundary swipe", forwardGesture.releasedAt);
+  assert(forwardSettled.position > loopDistance * 2, `mobile gallery discarded the trailing-buffer position (${forwardGesture.heldEnd} -> ${forwardSettled.position}/${loopDistance})`);
+  await assertPausedThenResumed("mobile gallery forward-boundary swipe", forwardGesture, forwardSettled);
 
-  const resumeProbeDelay = 2800 - (Date.now() - rightGesture.releasedAt);
-  if (resumeProbeDelay > 0) await mobilePage.waitForTimeout(resumeProbeDelay);
-  const resumedPosition = await readGalleryPosition();
-  const resumeElapsed = Date.now() - rightGesture.releasedAt;
-  const resumedPhase = loopPhase(resumedPosition);
-  const resumedAdvance = (resumedPhase - loopPhase(pauseProbePosition) + loopDistance) % loopDistance;
-  const maximumContinuousAdvance = Math.max(80, ((Math.max(0, resumeElapsed - 2200) * 0.055) + 32));
-  assert(resumedAdvance >= 8, `mobile gallery did not resume auto-scroll after 2200ms (${pauseProbePosition} -> ${resumedPosition})`);
-  assert(resumedAdvance < maximumContinuousAdvance, `mobile gallery reset or jumped instead of resuming continuously (${pauseProbePosition} -> ${resumedPosition}; phase advance ${resumedAdvance}; ${resumeElapsed}ms elapsed)`);
-  assert(resumedPhase > 80, `mobile gallery jumped back to the first image (${resumedPosition}px; phase ${resumedPhase}px)`);
+  const backwardStart = loopDistance + 180;
+  const backwardGesture = await dispatchTouchSwipe(leftEdge, rightEdge, "mobile gallery backward-boundary swipe", backwardStart);
+  assert(backwardGesture.heldEnd < loopDistance - 20, `mobile gallery could not swipe into the leading buffer (${backwardStart} -> ${backwardGesture.heldEnd}/${loopDistance})`);
+  const backwardSettled = await waitForNativeScrollSettle("mobile gallery backward-boundary swipe", backwardGesture.releasedAt);
+  assert(backwardSettled.position < loopDistance, `mobile gallery discarded the leading-buffer position (${backwardGesture.heldEnd} -> ${backwardSettled.position}/${loopDistance})`);
+  await assertPausedThenResumed("mobile gallery backward-boundary swipe", backwardGesture, backwardSettled);
+
+  const resizePhaseRatio = 0.63;
+  await galleryRail.evaluate((rail, position) => {
+    const PointerEventCtor = window.PointerEvent || window.Event;
+    rail.dispatchEvent(new PointerEventCtor("pointerdown", { bubbles: true, pointerId: 7, pointerType: "touch" }));
+    rail.scrollLeft = position;
+    rail.dispatchEvent(new PointerEventCtor("pointerup", { bubbles: true, pointerId: 7, pointerType: "touch" }));
+  }, loopDistance * (1 + resizePhaseRatio));
+  const readResizedGallery = async (width) => {
+    await mobilePage.setViewportSize({ width, height: 844 });
+    await mobilePage.waitForTimeout(120);
+    return galleryRail.evaluate((rail) => {
+      const firstOriginal = rail.querySelector('.gallery-frame:not([data-gallery-clone="true"])');
+      const firstAfterClone = rail.querySelector('.gallery-frame[data-gallery-clone-side="after"]');
+      const distance = firstAfterClone.offsetLeft - firstOriginal.offsetLeft;
+      const phase = ((rail.scrollLeft - distance) % distance + distance) % distance;
+      return { distance, position: rail.scrollLeft, phaseRatio: phase / distance };
+    });
+  };
+  const widenedGallery = await readResizedGallery(430);
+  assert(widenedGallery.position >= widenedGallery.distance && widenedGallery.position < widenedGallery.distance * 2, `mobile gallery resize escaped the safe middle set (${JSON.stringify(widenedGallery)})`);
+  assert(Math.abs(widenedGallery.phaseRatio - resizePhaseRatio) <= 0.01, `mobile gallery resize lost its phase (${resizePhaseRatio} -> ${widenedGallery.phaseRatio})`);
+  const restoredGallery = await readResizedGallery(390);
+  assert(restoredGallery.position >= restoredGallery.distance && restoredGallery.position < restoredGallery.distance * 2, `mobile gallery restore escaped the safe middle set (${JSON.stringify(restoredGallery)})`);
+  assert(Math.abs(restoredGallery.phaseRatio - resizePhaseRatio) <= 0.01, `mobile gallery restore lost its phase (${resizePhaseRatio} -> ${restoredGallery.phaseRatio})`);
+
+  await mobilePage.setViewportSize({ width: 844, height: 390 });
+  await mobilePage.waitForTimeout(150);
+  const desktopBreakpointGallery = await galleryRail.evaluate((rail) => {
+    const track = rail.querySelector(".gallery-track");
+    const style = getComputedStyle(track);
+    return {
+      position: rail.scrollLeft,
+      desktopReady: track.classList.contains("is-gallery-loop-ready"),
+      mobileReady: track.classList.contains("is-gallery-mobile-loop-ready"),
+      animationName: style.animationName,
+      animationPlayState: style.animationPlayState
+    };
+  });
+  assert.equal(desktopBreakpointGallery.desktopReady, true, `gallery did not enter desktop loop at 844px (${JSON.stringify(desktopBreakpointGallery)})`);
+  assert.equal(desktopBreakpointGallery.mobileReady, false, `gallery retained its mobile loop class at 844px (${JSON.stringify(desktopBreakpointGallery)})`);
+  assert(Math.abs(desktopBreakpointGallery.position) <= 1, `desktop gallery rail was not reset for marquee animation (${desktopBreakpointGallery.position}px)`);
+  assert.equal(desktopBreakpointGallery.animationName, "galleryMarquee", `desktop breakpoint gallery animation changed (${desktopBreakpointGallery.animationName})`);
+  assert.equal(desktopBreakpointGallery.animationPlayState, "running", `desktop breakpoint gallery animation did not run (${desktopBreakpointGallery.animationPlayState})`);
+
+  const restoredAfterDesktopBreakpoint = await readResizedGallery(390);
+  assert(restoredAfterDesktopBreakpoint.position >= restoredAfterDesktopBreakpoint.distance && restoredAfterDesktopBreakpoint.position < restoredAfterDesktopBreakpoint.distance * 2, `mobile gallery cross-breakpoint restore escaped the safe middle set (${JSON.stringify(restoredAfterDesktopBreakpoint)})`);
+  assert(Math.abs(restoredAfterDesktopBreakpoint.phaseRatio - resizePhaseRatio) <= 0.01, `mobile gallery cross-breakpoint restore lost its phase (${resizePhaseRatio} -> ${restoredAfterDesktopBreakpoint.phaseRatio})`);
   await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-gallery-native-swipe-390x844.png` });
   assert.equal(await mobilePage.locator(".whatsapp-qr-card").count(), 0, "touch page initialized QR hover card");
   assert.equal(mobileErrors.length, 0, `mobile interaction console errors: ${mobileErrors.join(" | ")}`);
@@ -1437,7 +1642,7 @@ async function accessibilityFallbackChecks(browserType) {
   const stampOpacities = await page.locator(".stamp").evaluateAll((items) => items.map((item) => Number.parseFloat(getComputedStyle(item).opacity)));
   assert(stampOpacities.every((opacity) => opacity >= 0.99), `reduced motion stamp opacity ${stampOpacities.join(", ")}`);
   const metrics = await page.locator(".company-metric-card strong").allTextContents();
-  assert.deepEqual(metrics.map((item) => item.trim()), ["2008年", "300+", "50,000㎡", "全球 100+ 国家和地区", "500,000,000"], "reduced motion changed metric copy");
+  assert.deepEqual(metrics.map((item) => item.trim()), ["2008年", "300+", "50,000㎡", "全球 100+ 国家和地区", "500,000,000 人民币元"], "reduced motion changed metric copy");
   await reduced.close();
 
   const noJs = await browserType.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });
