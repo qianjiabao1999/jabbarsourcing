@@ -89,6 +89,7 @@ jobs:
             --include='/404.html' \
             --include='/CNAME' \
             --include='/favicon.ico' \
+            --include='/1731ed149abf68908090297af19fab14.txt' \
             --include='/google80221688f5a3319b.html' \
             --include='/index.html' \
             --include='/privacy-policy.html' \
@@ -168,6 +169,7 @@ jobs:
             404.html
             CNAME
             favicon.ico
+            1731ed149abf68908090297af19fab14.txt
             google80221688f5a3319b.html
             index.html
             privacy-policy.html
@@ -182,6 +184,7 @@ jobs:
           for file in "${required_root_files[@]}"; do
             test -f "_site/$file"
           done
+          test "$(tr -d '\r\n' < _site/1731ed149abf68908090297af19fab14.txt)" = "367e44f3f2c27050ecd7708edbfb429fb687b26c"
 
           locales=(ar de en es fr it pt ru tr)
           for locale in "${locales[@]}"; do
