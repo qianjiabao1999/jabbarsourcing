@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-172";
-const UI_VERSION = "ui-20260719b";
+const CSS_VERSION = "apple-174";
+const UI_VERSION = "ui-20260719d";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -81,6 +81,14 @@ await mkdir(OUTPUT_DIR, { recursive: true });
 async function blockAnalytics(context) {
   await context.route("**://www.googletagmanager.com/**", (route) => route.fulfill({ status: 204, body: "" }));
   await context.route("**://www.clarity.ms/**", (route) => route.fulfill({ status: 204, body: "" }));
+  // Interaction analytics are part of this UI suite. Grant the same explicit
+  // preference a returning user would have stored, while keeping third-party
+  // requests locally stubbed. Consent-default behavior has its own QA check.
+  await context.addInitScript((storageKey) => {
+    try {
+      window.localStorage.setItem(storageKey, "granted");
+    } catch (error) {}
+  }, "jabbar.analyticsConsent.v1");
 }
 
 async function mockValidShipments(context) {
@@ -122,8 +130,7 @@ async function pageState(page) {
       };
     };
     const rect = (selector) => elementRect(document.querySelector(selector));
-    const styleSnapshot = (selector, pseudo = null) => {
-      const element = document.querySelector(selector);
+    const styleSnapshotElement = (element, pseudo = null) => {
       if (!element) return null;
       const style = getComputedStyle(element, pseudo);
       const numeric = (value) => Number.parseFloat(value) || 0;
@@ -150,12 +157,15 @@ async function pageState(page) {
         justifyItems: style.justifyItems
       };
     };
+    const styleSnapshot = (selector, pseudo = null) => styleSnapshotElement(document.querySelector(selector), pseudo);
     const fontFamily = (selector) => {
       const element = document.querySelector(selector);
       return element ? getComputedStyle(element).fontFamily : "";
     };
     const toolPill = document.querySelector(".site-nav-tool-pill");
-    const quoteLink = document.querySelector(".site-nav-quote");
+    const quoteLink = window.innerWidth >= 1280
+      ? document.querySelector(".site-nav-quote-desktop, .site-nav-return-home")
+      : document.querySelector(".site-nav-quote-action, .site-nav-return-home");
     const calculatorPage = document.querySelector(".calculator-page");
     const blueprint = calculatorPage ? getComputedStyle(calculatorPage) : null;
     const cap = document.querySelector("#cbmCap");
@@ -206,7 +216,7 @@ async function pageState(page) {
         quoteText: normalizeText(quoteLink?.textContent),
         tool: styleSnapshot(".site-nav-tool-pill"),
         toolBefore: styleSnapshot(".site-nav-tool-pill", "::before"),
-        quote: styleSnapshot(".site-nav-quote"),
+        quote: styleSnapshotElement(quoteLink),
         desktopTeam: styleSnapshot(".site-nav-links .site-nav-team")
       },
       mobileMenu: {
@@ -280,7 +290,7 @@ async function pageState(page) {
         brand: rect(".site-nav-brand"),
         navLinks: rect(".site-nav-links"),
         toolPill: rect(".site-nav-tool-pill"),
-        quoteLink: rect(".site-nav-quote"),
+        quoteLink: quoteLink ? { ...elementRect(quoteLink), ...styleSnapshotElement(quoteLink) } : null,
         language: rect(".site-nav-language"),
         desktopTeamLink: rect(".site-nav-links .site-nav-team"),
         conversionBar: rect(".mobile-conversion-bar"),
@@ -376,15 +386,19 @@ function rectanglesOverlap(first, second) {
 
 function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   assert.equal(state.counts.toolPills, 1, `${scope}: tool pill count`);
-  assert.equal(state.counts.quoteLinks, 1, `${scope}: quote link count`);
-  assert(state.header.toolBeforeQuote, `${scope}: tool pill must precede quote link in the DOM`);
+  assert([1, 2].includes(state.counts.quoteLinks), `${scope}: quote link count ${state.counts.quoteLinks}`);
+  if (!desktop || state.counts.quoteLinks === 1) {
+    assert(state.header.toolBeforeQuote, `${scope}: tool pill must precede the responsive quote link in the DOM`);
+  }
   assert(state.header.toolText, `${scope}: tool pill has no localized label`);
   assert(state.header.quoteText, `${scope}: quote link has no localized label`);
   assertVisibleRect(state.rects.toolPill, `${scope}: tool pill`);
   assertVisibleRect(state.rects.quoteLink, `${scope}: quote link`);
   assert(state.rects.toolPill.left >= -1 && state.rects.toolPill.right <= state.width + 1, `${scope}: tool pill is outside the viewport`);
   assert(state.rects.quoteLink.left >= -1 && state.rects.quoteLink.right <= state.width + 1, `${scope}: quote link is outside the viewport`);
-  assert(Number(state.header.tool.order) < Number(state.header.quote.order), `${scope}: tool pill visual order ${state.header.tool.order} is not before quote ${state.header.quote.order}`);
+  if (!desktop || state.counts.quoteLinks === 1) {
+    assert(Number(state.header.tool.order) < Number(state.header.quote.order), `${scope}: tool pill visual order ${state.header.tool.order} is not before quote ${state.header.quote.order}`);
+  }
   assert(state.header.toolBefore, `${scope}: tool pill container visual missing`);
   assert(!["none", "normal", ""].includes(state.header.toolBefore.content), `${scope}: tool pill ::before has no content box`);
   assert(state.header.toolBefore.width >= 18, `${scope}: tool pill container width ${state.header.toolBefore.width}`);
@@ -399,11 +413,15 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
     for (const [name, rect] of [
       ["brand", state.rects.brand],
       ["tool pill", state.rects.toolPill],
-      ["quote link", state.rects.quoteLink],
       ["language switcher", state.rects.language]
     ]) {
       assertVisibleRect(rect, `${scope}: desktop ${name}`);
       assert(!rectanglesOverlap(state.rects.navLinks, rect), `${scope}: desktop navigation overlaps ${name}`);
+    }
+    if (state.counts.quoteLinks === 2) {
+      assert(rectanglesOverlap(state.rects.navLinks, state.rects.quoteLink), `${scope}: centered quote is outside the desktop navigation group`);
+    } else {
+      assert(!rectanglesOverlap(state.rects.navLinks, state.rects.quoteLink), `${scope}: return-home action overlaps desktop navigation`);
     }
     assert.equal(state.counts.desktopTeamLinks, 1, `${scope}: desktop Jabbar Team link count`);
     assertVisibleRect(state.rects.desktopTeamLink, `${scope}: desktop Jabbar Team link`);
@@ -432,7 +450,7 @@ function assertNoFloatingControls(state, scope) {
   assert.equal(state.counts.removedAiLaunchers, 0, `${scope}: removed AI launcher returned`);
 }
 
-function assertMobileMenuTrimmed(state, scope, { teamLinks = 0 } = {}) {
+function assertMobileMenuTrimmed(state, scope, { teamLinks = 1 } = {}) {
   assert.equal(state.mobileMenu.calculatorLinks, 0, `${scope}: calculator link remains in mobile menu`);
   assert.equal(state.mobileMenu.teamLinks, teamLinks, `${scope}: mobile team-member link count`);
 }
@@ -512,7 +530,11 @@ function assertHeroCta(state, scope) {
 async function assertFaqDefaultClosed(page, scope) {
   const state = await page.evaluate(() => ({
     promptCount: document.querySelectorAll(".faq-quick-tags-label").length,
-    items: Array.from(document.querySelectorAll(".faq-item"), (item) => item.open),
+    items: Array.from(document.querySelectorAll(".faq-item"), (item) => ({
+      open: item.open,
+      hidden: item.hidden,
+      rendered: item.getClientRects().length > 0
+    })),
     tags: Array.from(document.querySelectorAll(".faq-quick-tag"), (tag) => ({
       expanded: tag.getAttribute("aria-expanded"),
       active: tag.classList.contains("is-active")
@@ -520,7 +542,7 @@ async function assertFaqDefaultClosed(page, scope) {
   }));
   assert.equal(state.promptCount, 1, `${scope}: FAQ topic prompt count`);
   assert.equal(state.items.length, 7, `${scope}: FAQ item count`);
-  assert(state.items.every((open) => !open), `${scope}: FAQ must start fully closed`);
+  assert(state.items.every((item) => !item.open && item.hidden && !item.rendered), `${scope}: FAQ answers must start closed and filtered`);
   assert.equal(state.tags.length, state.items.length, `${scope}: FAQ tag/item count mismatch`);
   assert(state.tags.every((tag) => tag.expanded === "false" && !tag.active), `${scope}: FAQ tag starts selected`);
 }
@@ -1007,9 +1029,9 @@ async function assertTestimonialProof(page, scope, locale) {
   assert.equal(state.flag, "🇰🇪", `${scope}: Kenya flag`);
   assert.equal(state.imageCount, 1, `${scope}: Boyner proof image count`);
   assert(state.image, `${scope}: Boyner proof image missing`);
-  assert.equal(state.image.pathname, "/assets/testimonial-boyner.webp", `${scope}: Boyner proof image source`);
-  assert.equal(state.image.width, "1200", `${scope}: Boyner proof image width`);
-  assert.equal(state.image.height, "1600", `${scope}: Boyner proof image height`);
+  assert.match(state.image.pathname, /^\/assets\/testimonial-boyner-(?:480|720)\.webp$|^\/assets\/testimonial-boyner\.webp$/, `${scope}: responsive Boyner proof image source`);
+  assert.equal(state.image.width, "720", `${scope}: Boyner proof image width`);
+  assert.equal(state.image.height, "960", `${scope}: Boyner proof image height`);
   assert.match(state.image.alt, /boyner/i, `${scope}: Boyner proof image alternative text`);
   assert(state.image.naturalWidth > 0 && state.image.naturalHeight > 0, `${scope}: Boyner proof image failed to load`);
 }
@@ -1179,26 +1201,50 @@ async function calculatorMatrix(browserType) {
   await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
   for (const value of ["length", "width", "height"]) await page.locator(`#${value}`).fill("100");
   const cases = [
-    { qty: 5, pct: "7%", cap: "40英尺高柜 · 5.0 / 68 立方米", fill: "rgb(93, 202, 165)", over: false, width: "20" },
-    { qty: 40, pct: "59%", cap: "40英尺高柜 · 40.0 / 68 立方米", fill: "rgb(93, 202, 165)", over: false, width: "162" },
-    { qty: 70, pct: "103%", cap: "40英尺高柜 · 70.0 / 68 立方米 ×2", fill: "rgb(239, 159, 39)", over: true, width: "276" },
-    { qty: 90, pct: "132%", cap: "40英尺高柜 · 90.0 / 68 立方米 ×2", fill: "rgb(239, 159, 39)", over: true, width: "276" }
+    {
+      qty: 5,
+      containers: [{ pct: "7%", cap: "40英尺高柜 1/1 · 5.0 / 68 立方米", fill: "rgb(93, 202, 165)", full: false, width: "20" }]
+    },
+    {
+      qty: 40,
+      containers: [{ pct: "59%", cap: "40英尺高柜 1/1 · 40.0 / 68 立方米", fill: "rgb(93, 202, 165)", full: false, width: "162" }]
+    },
+    {
+      qty: 70,
+      containers: [
+        { pct: "100%", cap: "40英尺高柜 1/2 · 68.0 / 68 立方米", fill: "rgb(239, 159, 39)", full: true, width: "276" },
+        { pct: "3%", cap: "40英尺高柜 2/2 · 2.0 / 68 立方米", fill: "rgb(93, 202, 165)", full: false, width: "8" }
+      ]
+    },
+    {
+      qty: 90,
+      containers: [
+        { pct: "100%", cap: "40英尺高柜 1/2 · 68.0 / 68 立方米", fill: "rgb(239, 159, 39)", full: true, width: "276" },
+        { pct: "32%", cap: "40英尺高柜 2/2 · 22.0 / 68 立方米", fill: "rgb(93, 202, 165)", full: false, width: "89" }
+      ]
+    }
   ];
   for (const testCase of cases) {
     await page.locator("#qty").fill(String(testCase.qty));
     await page.locator("#qty").dispatchEvent("input");
-    await page.waitForFunction((expected) => document.querySelector("#cbmCap")?.textContent === expected, testCase.cap);
+    await page.waitForFunction((expected) => document.querySelector("#cbmCap")?.textContent === expected, testCase.containers[0].cap);
     assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"), "ready", `${testCase.qty} CBM result state`);
     assert.equal(await page.locator("[data-result-detail][hidden]").count(), 0, `${testCase.qty} CBM result details remain hidden`);
     assert.equal(await page.locator("[data-result-status]").isHidden(), true, `${testCase.qty} CBM empty-state status remains visible`);
     assert.equal(await page.locator("[data-copy-result]").isDisabled(), false, `${testCase.qty} CBM copy result remains disabled`);
-    assert.equal(await page.locator("#cbmPct").textContent(), testCase.pct, `${testCase.qty} CBM percentage`);
-    assert.equal(await page.locator("#cbmCap").textContent(), testCase.cap, `${testCase.qty} CBM capacity`);
-    assert.equal(await page.locator("#cbmFill").evaluate((element) => getComputedStyle(element).fill), testCase.fill, `${testCase.qty} CBM fill color`);
-    assert.equal(await page.locator("#cbmFill").evaluate((element) => element.classList.contains("is-over")), testCase.over, `${testCase.qty} CBM overload class`);
-    assert.equal(await page.locator("#cbmFill").getAttribute("width"), testCase.width, `${testCase.qty} CBM fill width`);
-    const accessibleTitle = await page.locator("#cbmVizTitle").textContent();
-    assert(accessibleTitle.includes(testCase.pct) && accessibleTitle.includes(testCase.cap), `${testCase.qty} CBM accessible title is stale: ${accessibleTitle}`);
+    const visuals = page.locator(".cbm-container-visual");
+    assert.equal(await visuals.count(), testCase.containers.length, `${testCase.qty} CBM rendered container count`);
+    for (let index = 0; index < testCase.containers.length; index += 1) {
+      const expected = testCase.containers[index];
+      const card = visuals.nth(index);
+      assert.equal(await card.locator(".cbm-container-percentage").textContent(), expected.pct, `${testCase.qty} CBM container ${index + 1} percentage`);
+      assert.equal(await card.locator(".cbm-container-capacity").textContent(), expected.cap, `${testCase.qty} CBM container ${index + 1} capacity`);
+      assert.equal(await card.locator(".cbm-container-fill").evaluate((element) => getComputedStyle(element).fill), expected.fill, `${testCase.qty} CBM container ${index + 1} fill color`);
+      assert.equal(await card.locator(".cbm-container-fill").evaluate((element) => element.classList.contains("is-full")), expected.full, `${testCase.qty} CBM container ${index + 1} full class`);
+      assert.equal(await card.locator(".cbm-container-fill").getAttribute("width"), expected.width, `${testCase.qty} CBM container ${index + 1} fill width`);
+      const accessibleTitle = await card.locator("title").textContent();
+      assert(accessibleTitle.includes(expected.pct) && accessibleTitle.includes(expected.cap), `${testCase.qty} CBM container ${index + 1} accessible title is stale: ${accessibleTitle}`);
+    }
   }
   await page.locator(".calculator-results").screenshot({ path: `${OUTPUT_DIR}/calculator-visual-1280x900.png` });
   await page.screenshot({ path: `${OUTPUT_DIR}/calculator-blueprint-1280x900.png`, fullPage: true });
@@ -1281,7 +1327,7 @@ async function mobileHeaderMatrix(browserType) {
     assertShared(state, scope);
     assertHeaderNavigation(state, scope);
     assertNoFloatingControls(state, scope);
-    assertMobileMenuTrimmed(state, scope, { teamLinks: item.type === "inquiry" ? 1 : 0 });
+    assertMobileMenuTrimmed(state, scope, { teamLinks: 1 });
     assert.equal(errors.length, 0, `${scope}: console errors ${errors.splice(0).join(" | ")}`);
   }
   await context.close();
@@ -1408,8 +1454,11 @@ async function interactionChecks(browserType) {
     await page.waitForFunction((itemIndex) => document.querySelectorAll(".faq-item")[itemIndex]?.open, index);
     await page.waitForTimeout(520);
     const open = await page.locator(".faq-item").evaluateAll((items) => items.map((item) => item.open));
+    const visible = await page.locator(".faq-item").evaluateAll((items) => items.map((item) => !item.hidden && item.getClientRects().length > 0));
     assert.equal(open.filter(Boolean).length, 1, `FAQ tag ${index + 1}: multiple details open`);
     assert.equal(open[index], true, `FAQ tag ${index + 1}: wrong detail opened`);
+    assert.equal(visible.filter(Boolean).length, 1, `FAQ tag ${index + 1}: multiple FAQ items are visible`);
+    assert.equal(visible[index], true, `FAQ tag ${index + 1}: wrong FAQ item is visible`);
     assert.equal(await button.getAttribute("aria-expanded"), "true", `FAQ tag ${index + 1}: aria-expanded state`);
     assert.equal(await button.evaluate((element) => element.classList.contains("is-active")), true, `FAQ tag ${index + 1}: active state`);
     const after = await page.evaluate((itemIndex) => {
@@ -1452,10 +1501,39 @@ async function interactionChecks(browserType) {
   const mobileErrors = collectErrors(mobilePage);
   await mobilePage.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
   assert.equal(await mobilePage.locator(".contact-speed-dial, .mobile-conversion-bar").count(), 0, "removed floating controls still exist on mobile");
-  await mobilePage.locator(".site-nav-mobile-menu > summary").click();
-  assert.equal(await mobilePage.locator('.site-nav-mobile-panel a[href*="calculator"], .site-nav-mobile-panel a[href="./"], .site-nav-mobile-panel a[href*="#social-accounts"]').count(), 0, "removed calculator/team links remain in mobile menu");
+  const languageMenu = mobilePage.locator(".site-nav-language");
+  const languageSummary = languageMenu.locator(":scope > summary");
+  const mobileMenu = mobilePage.locator(".site-nav-mobile-menu");
+  const mobileSummary = mobileMenu.locator(":scope > summary");
+
+  await mobileSummary.click();
+  assert.equal(await mobileMenu.getAttribute("open") !== null, true, "mobile navigation did not open");
+  assert.equal(await mobileSummary.getAttribute("aria-expanded"), "true", "mobile navigation summary state did not open");
+  await languageSummary.focus();
+  await mobilePage.keyboard.press("Enter");
+  assert.equal(await languageMenu.getAttribute("open") !== null, true, "language navigation did not open from the keyboard");
+  assert.equal(await mobileMenu.getAttribute("open") !== null, false, "opening the language navigation did not close the mobile navigation");
+  assert.equal(await languageSummary.getAttribute("aria-expanded"), "true", "language navigation summary state did not open");
+  assert.equal(await mobileSummary.getAttribute("aria-expanded"), "false", "mobile navigation summary state did not close");
+  await mobileSummary.focus();
+  await mobilePage.keyboard.press("Enter");
+  assert.equal(await mobileMenu.getAttribute("open") !== null, true, "mobile navigation did not reopen from the keyboard");
+  assert.equal(await languageMenu.getAttribute("open") !== null, false, "opening the mobile navigation did not close the language navigation");
+  await mobilePage.keyboard.press("Escape");
+  assert.equal(await mobileMenu.getAttribute("open") !== null, false, "Escape did not close the mobile navigation");
+  assert.equal(await mobileSummary.getAttribute("aria-expanded"), "false", "Escape did not update the mobile navigation summary state");
+  assert.equal(await mobileSummary.evaluate((summary) => document.activeElement === summary), true, "Escape did not restore focus to the mobile navigation summary");
+
+  await languageSummary.click();
+  await mobilePage.evaluate(() => document.body.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  assert.equal(await languageMenu.getAttribute("open") !== null, false, "outside click did not close the language navigation");
+
+  await mobileSummary.click();
+  assert.equal(await mobilePage.locator('.site-nav-mobile-panel a[href*="calculator"], .site-nav-mobile-panel a[href="./"]').count(), 0, "removed calculator/home links remain in mobile menu");
+  assert.equal(await mobilePage.locator('.site-nav-mobile-panel a[href*="#social-accounts"]').count(), 1, "social-account link is missing from the mobile menu");
   await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-menu-trimmed-390x844.png` });
-  await mobilePage.locator(".site-nav-mobile-menu").evaluate((menu) => { menu.open = false; });
+  await mobileMenu.locator('.site-nav-mobile-panel a[href="#contact"]').click();
+  assert.equal(await mobileMenu.getAttribute("open") !== null, false, "mobile navigation link did not close the menu");
 
   const galleryRail = mobilePage.locator(".gallery-rail").first();
   await galleryRail.scrollIntoViewIfNeeded();
@@ -1666,6 +1744,13 @@ async function accessibilityFallbackChecks(browserType) {
   assert.equal(await noJsPage.locator(".company-metric-number.num-mono").count(), 5, "no-JS metric numbers missing");
   assert.equal(await noJsPage.locator(".shipment-ticker-list").count(), 1, "no-JS shipment fallback count");
   assert.equal(await noJsPage.locator(".shipment-ticker").evaluate((element) => getComputedStyle(element).display), "none", "no-JS shipment placeholder is visible");
+  const noJsFaqItems = await noJsPage.locator(".faq-item").evaluateAll((items) => items.map((item) => ({
+    hidden: item.hidden,
+    display: getComputedStyle(item).display,
+    rendered: item.getClientRects().length > 0
+  })));
+  assert.equal(noJsFaqItems.length, 7, "no-JS FAQ item count");
+  assert(noJsFaqItems.every((item) => !item.hidden && item.display !== "none" && item.rendered), `no-JS FAQ content hidden: ${JSON.stringify(noJsFaqItems)}`);
   assert.equal(await noJsPage.locator(".social-platform-toggle").count(), 0, "no-JS page injected a social disclosure control");
   const noJsHiddenAccounts = await noJsPage.locator(".social-platform-group .team-card").evaluateAll((cards) => cards.filter((card) => {
     const style = getComputedStyle(card);

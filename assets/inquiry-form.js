@@ -186,7 +186,7 @@
     var path = normalizeAttributionValue(value, 160);
     path = path.replace(/\/index\.html$/, "/");
     if (/^\/(?:(?:en|es|ar|fr|pt|ru|de|it|tr)\/)?(?:inquiry\/|calculator\/)?$/.test(path)) return path;
-    if (["/privacy-policy.html", "/support.html", "/404.html"].indexOf(path) !== -1) return path;
+    if (["/privacy-policy.html", "/website-privacy-policy.html", "/support.html", "/404.html"].indexOf(path) !== -1) return path;
     return "/other";
   }
 

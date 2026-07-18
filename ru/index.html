@@ -48,7 +48,8 @@
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-5" />
 
-    <link rel="stylesheet" href="../styles.min.css?v=apple-172" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-174" />
+    <script src="/assets/analytics-consent.js?v=consent-20260719a" defer></script>
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -61,7 +62,7 @@
     "浙江好多宝品牌管理有限公司"
   ],
   "url": "https://www.jabbarsourcing.com/ru/",
-  "logo": "https://www.jabbarsourcing.com/assets/jabbar-sourcing-mark-transparent.png?v=nav-20260718",
+  "logo": "https://www.jabbarsourcing.com/assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719",
   "image": "https://www.jabbarsourcing.com/assets/og-cover-whatsapp.jpg",
   "description": "Jabbar Sourcing помогает закупать товары в Иу и Китае: подбор поставщиков, инспекция качества, склад, международная логистика, 30 000+ товаров и бесплатный расчёт.",
   "address": {
@@ -106,10 +107,10 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Берёте ли вы комиссию или сервисный сбор?",
+              "name": "Как указываются ваши сборы?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Мы не взимаем комиссию с покупателя. В каждом предложении отдельно указаны товар, инспекция, склад, упаковка и логистика; Jabbar Sourcing зарабатывает на сервисе цепочки поставок или партнёрской марже поставщика, без скрытых доплат после подтверждения."
+                "text": "Мы не добавляем отдельную комиссию для покупателя. В каждом предложении четко указаны расходы на товар, инспекцию, склад, упаковку и логистику. Вознаграждение Jabbar Sourcing может быть указано как отдельный и прозрачный сбор за услуги цепочки поставок либо включено в предложение как партнерская маржа поставщика. После подтверждения предложения скрытые доплаты не добавляются."
       }
     },
     {
@@ -163,21 +164,6 @@
   ]
 }
     </script>
-    <!-- Analytics placeholders: replace IDs before launch -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6X14RZHNZ"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag("js", new Date());
-      gtag("config", "G-C6X14RZHNZ");
-    </script>
-    <script>
-      (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "xgsjhmd527");
-    </script>
     <script>
       window.jabbarTrack = function (eventName, params) {
         if (typeof window.gtag === "function") window.gtag("event", eventName, params || {});
@@ -197,18 +183,19 @@
   <body>
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="./" aria-label="Jabbar Sourcing home">
-        <img src="../assets/jabbar-sourcing-mark-transparent.png?v=nav-20260718" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" />
+        <img src="../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" />
         <span>Jabbar Sourcing</span>
       </a>
       <nav class="site-nav-links" aria-label="Основная навигация">
         <a href="#services">Услуги</a>
         <a href="#how-it-works">Как мы работаем</a>
         <a href="#reviews">Отзывы</a>
+        <a class="site-nav-quote site-nav-quote-desktop" href="inquiry/">Бесплатный расчёт</a>
         <a href="#contact">Контакты</a>
         <a class="site-nav-team" href="#social-accounts">Аккаунты в соцсетях</a>
       </nav>
       <a class="site-nav-tool-pill" href="calculator/">Объём</a>
-      <a class="site-nav-quote" href="inquiry/">Бесплатный расчёт</a>
+      <a class="site-nav-quote site-nav-quote-action" href="inquiry/">Бесплатный расчёт</a>
       <details class="language-switch language-menu site-nav-language">
           <summary>Русский</summary>
           <nav class="language-options" aria-label="Выбор языка">
@@ -231,6 +218,7 @@
           <a href="#how-it-works">Как мы работаем</a>
           <a href="#reviews">Отзывы</a>
           <a href="#contact">Контакты</a>
+          <a class="site-nav-mobile-team" href="#social-accounts">Аккаунты в соцсетях</a>
         </nav>
       </details>
     </header>
@@ -241,7 +229,7 @@
           <header class="team-heading container-wide">
             <div class="hero-visual-lockup hero-brand-partnership" dir="ltr" role="img" aria-label="Совместный бренд Jabbar Sourcing Team и Haoduobao">
               <div class="site-logo-lockup site-logo-lockup-brand">
-                <img loading="eager" src="../assets/jabbar-sourcing-mark-transparent.png?v=nav-20260718" alt="" width="512" height="512" decoding="async" fetchpriority="high" />
+                <img loading="eager" src="../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" width="512" height="512" decoding="async" fetchpriority="high" />
               </div>
               <span class="brand-partnership-mark" aria-hidden="true">×</span>
               <div class="site-logo-lockup site-logo-lockup-company">
@@ -418,7 +406,7 @@
               </article>
               <article class="testimonial-card testimonial-card--proof" role="listitem" aria-label="Подтверждённый визит клиента boyner">
                 <div class="testimonial-country"><span class="testimonial-flag" aria-hidden="true">🇰🇪</span><span>Кения</span></div>
-                <img class="testimonial-proof-image" src="/assets/testimonial-boyner.webp" width="1200" height="1600" loading="lazy" decoding="async" alt="Клиент из Кении boyner посещает закупочный центр Haoduobao в Иу">
+                <img class="testimonial-proof-image" src="/assets/testimonial-boyner-720.webp" srcset="/assets/testimonial-boyner-480.webp 480w, /assets/testimonial-boyner-720.webp 720w, /assets/testimonial-boyner.webp 1200w" sizes="(max-width: 767px) calc(100vw - 64px), 32vw" width="720" height="960" loading="lazy" decoding="async" alt="Клиент из Кении boyner посещает закупочный центр Haoduobao в Иу">
                 <div class="testimonial-order-meta" aria-label="Страна клиента: Кения; Подтверждённый визит клиента">
                   <span>Страна клиента: Кения</span>
                   <span>Подтверждённый визит клиента</span>
@@ -451,8 +439,8 @@
             </div>
             <div class="faq-list">
               <details class="faq-item">
-                <summary>Берёте ли вы комиссию или сервисный сбор?</summary>
-                <p>Мы не взимаем комиссию с покупателя. В каждом предложении отдельно указаны товар, инспекция, склад, упаковка и логистика; Jabbar Sourcing зарабатывает на сервисе цепочки поставок или партнёрской марже поставщика, без скрытых доплат после подтверждения.</p>
+                    <summary>Как указываются ваши сборы?</summary>
+                    <p>Мы не добавляем отдельную комиссию для покупателя. В каждом предложении четко указаны расходы на товар, инспекцию, склад, упаковку и логистику. Вознаграждение Jabbar Sourcing может быть указано как отдельный и прозрачный сбор за услуги цепочки поставок либо включено в предложение как партнерская маржа поставщика. После подтверждения предложения скрытые доплаты не добавляются.</p>
               </details>
               <details class="faq-item">
                 <summary>Есть ли минимальная сумма заказа?</summary>
@@ -1047,7 +1035,7 @@
               <p class="site-footer-copy">Copyright © 2026 Zhejiang Haoduobao Brand Management Co., Ltd. Все права защищены.</p>
             </div>
             <div class="site-footer-links">
-              <a href="mailto:qianjiabao1999@gmail.com">qianjiabao1999@gmail.com</a>
+              <!--email_off--><a href="mailto:qianjiabao1999@gmail.com">qianjiabao1999@gmail.com</a><!--/email_off-->
               <a class="num-mono" href="tel:+8618658925544">+8618658925544</a>
             </div>
           </div>
@@ -1057,10 +1045,10 @@
                 <img loading="lazy" class="brand-icon brand-icon-whatsapp" src="../assets/whatsapp-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
                 <span class="contact-text"><span class="contact-name">WhatsApp</span><span class="contact-value">+8618658925544</span></span>
               </a>
-              <a class="contact-link contact-gmail js-app-open" href="mailto:qianjiabao1999@gmail.com" data-app-link="mailto:qianjiabao1999@gmail.com" data-web-link="mailto:qianjiabao1999@gmail.com" data-copy-text="qianjiabao1999@gmail.com" target="_blank" rel="noopener noreferrer" aria-label="Gmail qianjiabao1999@gmail.com">
+              <!--email_off--><a class="contact-link contact-gmail js-app-open" href="mailto:qianjiabao1999@gmail.com" data-app-link="mailto:qianjiabao1999@gmail.com" data-web-link="mailto:qianjiabao1999@gmail.com" data-copy-text="qianjiabao1999@gmail.com" target="_blank" rel="noopener noreferrer" aria-label="Gmail qianjiabao1999@gmail.com">
                 <img loading="lazy" class="brand-icon brand-icon-gmail" src="../assets/gmail-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
                 <span class="contact-text"><span class="contact-name">Gmail</span><span class="contact-value">qianjiabao1999@gmail.com</span></span>
-              </a>
+              </a><!--/email_off-->
               <a class="contact-link contact-telegram js-app-open" href="https://t.me/Jabbar_in_Yiwu" data-app-link="tg://resolve?domain=Jabbar_in_Yiwu" data-web-link="https://t.me/Jabbar_in_Yiwu" data-copy-text="@Jabbar_in_Yiwu" target="_blank" rel="noopener noreferrer" aria-label="Telegram @Jabbar_in_Yiwu">
                 <img loading="lazy" class="brand-icon brand-icon-telegram" src="../assets/telegram-ios-icon.svg?v=official-1" alt="" aria-hidden="true" width="64" height="64" />
                 <span class="contact-text"><span class="contact-name">Telegram</span><span class="contact-value">@Jabbar_in_Yiwu</span></span>
@@ -1245,6 +1233,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260719b" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260719d" defer></script>
   </body>
 </html>

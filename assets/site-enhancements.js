@@ -122,7 +122,7 @@
     var path = normalizeAttributionValue(value, 160);
     path = path.replace(/\/index\.html$/, "/");
     if (/^\/(?:(?:en|es|ar|fr|pt|ru|de|it|tr)\/)?(?:inquiry\/|calculator\/)?$/.test(path)) return path;
-    if (["/privacy-policy.html", "/support.html", "/404.html"].indexOf(path) !== -1) return path;
+    if (["/privacy-policy.html", "/website-privacy-policy.html", "/support.html", "/404.html"].indexOf(path) !== -1) return path;
     return "/other";
   }
 
@@ -686,6 +686,10 @@
     var results = document.querySelector(".calculator-results");
     if (!results) return;
 
+    var containerCapacity = 68;
+    var containerEpsilon = 0.000001;
+    var maxVisibleContainers = 12;
+
     var visual = results.querySelector(".cbm-visual");
     if (!visual) {
       visual = createElement("div", "cbm-visual");
@@ -709,29 +713,59 @@
       else results.insertBefore(visual, results.firstChild);
     }
 
-    var title = visual.querySelector("#cbmVizTitle");
-    if (title) title.textContent = copy.cbmTitle;
-
     window.renderCbmVisual = function (totalCbm) {
       totalCbm = Math.max(0, Number(totalCbm) || 0);
-      var pick = lang === "zh" ? ["40英尺高柜", 68] : ["40HQ", 68];
+      var pick = lang === "zh" ? ["40英尺高柜", containerCapacity] : ["40HQ", containerCapacity];
       var volumeUnit = lang === "zh" ? "立方米" : "CBM";
-      var over = totalCbm > 68;
-      var pct = Math.min(totalCbm / pick[1], 1);
-      var width = Math.round(276 * pct);
-      var fill = visual.querySelector("#cbmFill");
-      fill.setAttribute("width", width);
-      fill.classList.toggle("is-over", over);
-      var ribs = visual.querySelector("#cbmRibs");
-      ribs.innerHTML = "";
-      for (var x = 46; x < 12 + width; x += 34) {
-        ribs.insertAdjacentHTML("beforeend", '<line x1="' + x + '" y1="48" x2="' + x + '" y2="120"/>');
+      var count = totalCbm > 0
+        ? Math.max(1, Math.ceil((totalCbm - containerEpsilon) / containerCapacity))
+        : 1;
+      var loads = [];
+      for (var index = 0; index < count; index += 1) {
+        var remaining = Math.max(0, totalCbm - index * containerCapacity);
+        loads.push(Math.min(containerCapacity, remaining));
       }
-      var percentageText = Math.round(totalCbm / pick[1] * 100) + "%";
-      var capacityText = pick[0] + " · " + totalCbm.toFixed(1) + " / " + pick[1] + " " + volumeUnit + (over ? " ×" + Math.ceil(totalCbm / 68) : "");
-      visual.querySelector("#cbmPct").textContent = percentageText;
-      visual.querySelector("#cbmCap").textContent = capacityText;
-      if (title) title.textContent = copy.cbmTitle + ": " + percentageText + " · " + capacityText;
+
+      visual.replaceChildren();
+      visual.setAttribute("data-container-count", count);
+      loads.slice(0, maxVisibleContainers).forEach(function (load, index) {
+        var percentage = Math.min(100, Math.max(0, load / containerCapacity * 100));
+        var percentageText = Math.round(percentage) + "%";
+        var capacityText = pick[0] + " " + (index + 1) + "/" + count + " · " + load.toFixed(1) + " / " + pick[1] + " " + volumeUnit;
+        var titleId = index === 0 ? "cbmVizTitle" : "cbmVizTitle" + (index + 1);
+        var fillId = index === 0 ? ' id="cbmFill"' : "";
+        var ribsId = index === 0 ? ' id="cbmRibs"' : "";
+        var pctId = index === 0 ? ' id="cbmPct"' : "";
+        var capId = index === 0 ? ' id="cbmCap"' : "";
+        var width = Math.round(276 * percentage / 100);
+        var ribs = "";
+        for (var x = 46; x < 12 + width; x += 34) {
+          ribs += '<line x1="' + x + '" y1="48" x2="' + x + '" y2="120"/>';
+        }
+        var svg = createElement("div", "cbm-container-visual");
+        svg.innerHTML = [
+          '<svg viewBox="0 0 320 150" role="img" aria-labelledby="' + titleId + '" data-container-index="' + index + '" data-container-load="' + percentage + '">',
+          '<title id="' + titleId + '">' + copy.cbmTitle + ": " + percentageText + " · " + capacityText + "</title>",
+          '<text' + capId + ' class="num-mono cbm-container-capacity" x="150" y="18" text-anchor="middle" font-size="13" fill="#475569" direction="ltr">' + capacityText + "</text>",
+          '<line class="cbm-dimension-line" x1="8" y1="31" x2="292" y2="31"/>',
+          '<line class="cbm-dimension-line" x1="8" y1="24" x2="8" y2="38"/>',
+          '<line class="cbm-dimension-line" x1="292" y1="24" x2="292" y2="38"/>',
+          '<rect x="8" y="44" width="284" height="80" rx="4" fill="none" stroke="#475569" stroke-width="3"/>',
+          '<line x1="292" y1="52" x2="308" y2="52" stroke="#475569" stroke-width="3"/>',
+          '<line x1="292" y1="116" x2="308" y2="116" stroke="#475569" stroke-width="3"/>',
+          '<rect' + fillId + ' class="cbm-container-fill' + (percentage >= 99.999 ? " is-full" : "") + '" x="12" y="48" width="' + width + '" height="72"/>',
+          '<g' + ribsId + ' class="cbm-container-ribs" stroke-width="1">' + ribs + "</g>",
+          '<text' + pctId + ' class="num-mono cbm-container-percentage" x="150" y="92" text-anchor="middle" font-size="18" font-weight="600">' + percentageText + "</text>",
+          "</svg>"
+        ].join("");
+        visual.appendChild(svg);
+      });
+
+      if (count > maxVisibleContainers) {
+        var overflow = createElement("p", "cbm-visual-overflow");
+        overflow.textContent = "+" + (count - maxVisibleContainers);
+        visual.appendChild(overflow);
+      }
     };
     window.renderCbmVisual(0);
     var form = document.getElementById("cbm-calculator");
@@ -1193,7 +1227,11 @@
     if (!faq || faq.querySelector(".faq-quick-tags")) return;
     var items = Array.prototype.slice.call(faq.querySelectorAll(".faq-list > .faq-item"));
     if (items.length !== copy.faq.length) return;
-    items.forEach(function (item) { item.open = false; });
+    faq.classList.add("is-faq-focused");
+    items.forEach(function (item) {
+      item.open = false;
+      item.hidden = true;
+    });
 
     var tags = createElement("div", "faq-quick-tags");
     tags.setAttribute("role", "group");
@@ -1213,7 +1251,11 @@
         button.classList.toggle("is-active", item.open);
       });
       button.addEventListener("click", function () {
-        items.forEach(function (other) { other.open = other === item; });
+        items.forEach(function (other) {
+          var selected = other === item;
+          other.hidden = !selected;
+          other.open = selected;
+        });
         window.requestAnimationFrame(function () {
           item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
         });
@@ -1235,6 +1277,70 @@
     }
   }
 
+  function initNavigationDisclosures() {
+    var languageMenu = document.querySelector(".site-nav-language");
+    var mobileMenu = document.querySelector(".site-nav-mobile-menu");
+    var menus = [languageMenu, mobileMenu].filter(Boolean);
+    if (!menus.length) return;
+
+    function menuSummary(menu) {
+      var summary = menu && menu.firstElementChild;
+      return summary && summary.tagName === "SUMMARY" ? summary : null;
+    }
+
+    function setMenuOpen(menu, open, restoreFocus) {
+      if (!menu) return;
+      var summary = menuSummary(menu);
+      menu.open = Boolean(open);
+      if (summary) summary.setAttribute("aria-expanded", String(Boolean(open)));
+      if (!open && restoreFocus && summary) summary.focus();
+    }
+
+    function closeMenusExcept(current) {
+      menus.forEach(function (menu) {
+        if (menu !== current && menu.open) setMenuOpen(menu, false, false);
+      });
+    }
+
+    menus.forEach(function (menu) {
+      var summary = menuSummary(menu);
+      if (summary) {
+        summary.setAttribute("aria-expanded", String(menu.open));
+        summary.addEventListener("click", function (event) {
+          event.preventDefault();
+          if (!menu.open) closeMenusExcept(menu);
+          setMenuOpen(menu, !menu.open, false);
+        });
+      }
+      menu.addEventListener("toggle", function () {
+        if (summary) summary.setAttribute("aria-expanded", String(menu.open));
+        if (menu.open) closeMenusExcept(menu);
+      });
+    });
+
+    if (mobileMenu) {
+      mobileMenu.addEventListener("click", function (event) {
+        var link = event.target.closest(".site-nav-mobile-panel a[href]");
+        if (link && mobileMenu.contains(link)) setMenuOpen(mobileMenu, false, false);
+      });
+    }
+
+    document.addEventListener("click", function (event) {
+      if (menus.some(function (menu) { return menu.contains(event.target); })) return;
+      menus.forEach(function (menu) {
+        if (menu.open) setMenuOpen(menu, false, false);
+      });
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape") return;
+      var openMenu = menus.find(function (menu) { return menu.open; });
+      if (!openMenu) return;
+      event.preventDefault();
+      setMenuOpen(openMenu, false, true);
+    });
+  }
+
   function initSocialAccountDisclosure() {
     var social = document.querySelector(".social-platform-groups");
     if (!social) return;
@@ -1245,8 +1351,8 @@
       group.dataset.socialPlatform = socialPlatformKey(group);
     });
 
-    groups.forEach(function (group) {
-      group.hidden = false;
+    groups.forEach(function (group, index) {
+      group.hidden = groups.length > 1 && index !== 0;
       group.classList.remove("has-social-overflow", "is-social-expanded");
       Array.prototype.forEach.call(group.querySelectorAll(".team-card"), function (card) {
         card.hidden = false;
@@ -1334,6 +1440,7 @@
   initScrollProgress();
   initGalleryMarquee();
   initHomepageMotion();
+  initNavigationDisclosures();
   initFaqTags();
   initSocialAccountDisclosure();
   initFooterMapNavigation();

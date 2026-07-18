@@ -6,8 +6,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-172";
-const UI_VERSION = "ui-20260719b";
+const CSS_VERSION = "apple-174";
+const UI_VERSION = "ui-20260719d";
 const ORDER_VERSION = "order-20260719a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
@@ -88,10 +88,11 @@ const NAV_PAGES = [...HOME_PAGES, ...CALCULATOR_PAGES, ...INQUIRY_PAGES];
 const COMPANY_FOOTER_PAGES = [
   ...NAV_PAGES,
   { locale: "zh", file: "privacy-policy.html" },
+  { locale: "zh", file: "website-privacy-policy.html" },
   { locale: "en", file: "support.html" }
 ];
-const TELEGRAM_PAGES = [...HOME_PAGES, ...INQUIRY_PAGES, { file: "privacy-policy.html" }, { file: "support.html" }];
-const EXTRA_PAGES = ["404.html", "privacy-policy.html", "support.html"];
+const TELEGRAM_PAGES = [...HOME_PAGES, ...INQUIRY_PAGES, { file: "privacy-policy.html" }, { file: "website-privacy-policy.html" }, { file: "support.html" }];
+const EXTRA_PAGES = ["404.html", "privacy-policy.html", "website-privacy-policy.html", "support.html"];
 const FALLBACK_EVENT_PAGES = [
   ...HOME_PAGES.map(({ file }) => file),
   ...INQUIRY_PAGES.map(({ file }) => file),
@@ -102,6 +103,12 @@ const testimonialProofAsset = await readFile(resolve(ROOT, "assets/testimonial-b
 assert(testimonialProofAsset.byteLength > 10_000, "testimonial boyner proof image is unexpectedly empty");
 assert.equal(testimonialProofAsset.subarray(0, 4).toString("ascii"), "RIFF", "testimonial boyner proof image RIFF signature");
 assert.equal(testimonialProofAsset.subarray(8, 12).toString("ascii"), "WEBP", "testimonial boyner proof image WebP signature");
+for (const file of ["assets/testimonial-boyner-480.webp", "assets/testimonial-boyner-720.webp"]) {
+  const asset = await readFile(resolve(ROOT, file));
+  assert(asset.byteLength > 10_000, `${file}: responsive proof asset is unexpectedly empty`);
+  assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
+  assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
+}
 
 function count(source, pattern) {
   return (source.match(pattern) || []).length;
@@ -274,7 +281,9 @@ for (const { locale, file } of HOME_PAGES) {
   assert.equal(count(html, /mobile-conversion-bar|has-mobile-conversion-bar/g), 0, `${file}: removed mobile conversion bar remains`);
   const faqItems = tagsWithClass(html, "details", "faq-item");
   assert.equal(faqItems.length, 7, `${file}: FAQ item count`);
+  assert.equal(countClass(html, "is-faq-focused"), 0, `${file}: JavaScript-only FAQ focus scope leaked into HTML`);
   assert(faqItems.every((match) => !hasAttribute(match[0], "open")), `${file}: every FAQ item must start closed`);
+  assert(faqItems.every((match) => !hasAttribute(match[0], "hidden")), `${file}: FAQ content must remain available without JavaScript`);
   assert.deepEqual(textsForClass(html, "p", "section-code"), SECTION_CODES[locale], `${file}: localized section code order`);
   assert.equal(countClass(html, "section-rule"), SECTION_CODES[locale].length, `${file}: section rule count`);
   assert.equal(countClass(html, "stamp-row"), 1, `${file}: stamp row count`);
@@ -332,9 +341,10 @@ for (const { locale, file } of HOME_PAGES) {
   const proofImages = tagsWithClass(proofCard, "img", "testimonial-proof-image");
   assert.equal(proofImages.length, 1, `${file}: Boyner proof image count`);
   const proofImageTag = proofImages[0][0];
-  assert.equal(attribute(proofImageTag, "src"), "/assets/testimonial-boyner.webp", `${file}: Boyner proof image source`);
-  assert.equal(attribute(proofImageTag, "width"), "1200", `${file}: Boyner proof image width`);
-  assert.equal(attribute(proofImageTag, "height"), "1600", `${file}: Boyner proof image height`);
+  assert.equal(attribute(proofImageTag, "src"), "/assets/testimonial-boyner-720.webp", `${file}: Boyner proof image source`);
+  assert.match(attribute(proofImageTag, "srcset") || "", /testimonial-boyner-480\.webp 480w.*testimonial-boyner-720\.webp 720w.*testimonial-boyner\.webp 1200w/, `${file}: responsive Boyner proof sources`);
+  assert.equal(attribute(proofImageTag, "width"), "720", `${file}: Boyner proof image width`);
+  assert.equal(attribute(proofImageTag, "height"), "960", `${file}: Boyner proof image height`);
   assert.match(attribute(proofImageTag, "alt"), /boyner/i, `${file}: Boyner proof image alternative text`);
   const footerPhoneTag = html.match(/<a\b[^>]*href="tel:\+8618658925544"[^>]*>/i)?.[0] || "";
   assert(hasClass(footerPhoneTag, "num-mono"), `${file}: footer phone is not monospaced`);
@@ -402,7 +412,7 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   if (locale === "ar") assert.match(html, /<html[^>]+lang="ar"[^>]+dir="rtl"/, `${file}: Arabic RTL root missing`);
 }
 
-assert.equal(COMPANY_FOOTER_PAGES.length, 32, "company footer page count");
+assert.equal(COMPANY_FOOTER_PAGES.length, 33, "company footer page count");
 for (const { locale, file } of COMPANY_FOOTER_PAGES) {
   const html = await load(file);
   assert.equal(countClass(html, "site-footer-company"), 1, `${file}: legal company footer count`);
@@ -474,13 +484,18 @@ for (const { locale, file } of NAV_PAGES) {
   assert.equal(mobilePanels.length, 1, `${file}: mobile navigation panel count`);
   assert.doesNotMatch(mobilePanels[0], /href="(?:\.\/|[^\"]*calculator\/?)"/, `${file}: calculator link remains in mobile navigation`);
   const mobileSocialAccountLabels = textsForClass(mobilePanels[0], "a", "site-nav-mobile-team");
-  const expectedMobileSocialAccountLabels = INQUIRY_PAGES.some((page) => page.file === file)
-    ? [SOCIAL_ACCOUNT_NAV_LABELS[locale]]
-    : [];
-  assert.deepEqual(mobileSocialAccountLabels, expectedMobileSocialAccountLabels, `${file}: mobile social-account label`);
+  assert.deepEqual(mobileSocialAccountLabels, [SOCIAL_ACCOUNT_NAV_LABELS[locale]], `${file}: mobile social-account label`);
+  if (!INQUIRY_PAGES.some((page) => page.file === file)) {
+    const desktopQuote = tagsWithClass(html, "a", "site-nav-quote-desktop");
+    const actionQuote = tagsWithClass(html, "a", "site-nav-quote-action");
+    assert.equal(desktopQuote.length, 1, `${file}: centered desktop quote count`);
+    assert.equal(actionQuote.length, 1, `${file}: responsive quote action count`);
+    assert.equal(attribute(desktopQuote[0][0], "href"), attribute(actionQuote[0][0], "href"), `${file}: quote destinations differ`);
+    assert.equal(decodeText(desktopQuote[0][0]), decodeText(actionQuote[0][0]), `${file}: quote labels differ`);
+  }
   existingSocialAccountNavLinkCount += desktopSocialAccountLabels.length + mobileSocialAccountLabels.length;
 }
-assert.equal(existingSocialAccountNavLinkCount, 40, "existing desktop/mobile social-account navigation link count");
+assert.equal(existingSocialAccountNavLinkCount, 60, "desktop/mobile social-account navigation link count");
 
 for (const file of EXTRA_PAGES) {
   const html = await load(file);
@@ -489,7 +504,7 @@ for (const file of EXTRA_PAGES) {
   assert.equal(countClass(html, "site-nav-team") + countClass(html, "site-nav-mobile-team"), 0, `${file}: unexpected social-account navigation entry`);
 }
 
-assert.equal(TELEGRAM_PAGES.length, 22, "Telegram page count");
+assert.equal(TELEGRAM_PAGES.length, 23, "Telegram page count");
 for (const { file } of TELEGRAM_PAGES) {
   const html = await load(file);
   assert.match(html, /href="https:\/\/t\.me\/Jabbar_in_Yiwu"/, `${file}: new Telegram URL missing`);
@@ -498,7 +513,7 @@ for (const { file } of TELEGRAM_PAGES) {
   assert.doesNotMatch(html, /Jabbar199901/, `${file}: old Telegram username remains`);
 }
 
-assert.equal(FALLBACK_EVENT_PAGES.length, 23, "fallback analytics page count");
+assert.equal(FALLBACK_EVENT_PAGES.length, 24, "fallback analytics page count");
 const inquiryFallbackFiles = new Set(INQUIRY_PAGES.map(({ file }) => file));
 for (const file of FALLBACK_EVENT_PAGES) {
   const html = await load(file);
@@ -520,11 +535,13 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
     inquiry: "2026-07-18"
   };
   const EXPECTED_LEGAL_LASTMOD = {
-    [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-18",
+    [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-19",
+    [`${PUBLIC_ORIGIN}/website-privacy-policy.html`]: "2026-07-19",
     [`${PUBLIC_ORIGIN}/support.html`]: "2026-07-12"
   };
   const LEGAL_PAGE_URLS = [
     `${PUBLIC_ORIGIN}/privacy-policy.html`,
+    `${PUBLIC_ORIGIN}/website-privacy-policy.html`,
     `${PUBLIC_ORIGIN}/support.html`
   ];
   const publicUrlForFile = (file) => {
@@ -557,7 +574,7 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
     ...LEGAL_PAGE_URLS
   ].sort();
 
-  assert.equal(sitemapEntries.length, 32, "sitemap.xml: public URL count");
+  assert.equal(sitemapEntries.length, 33, "sitemap.xml: public URL count");
   assert.equal(entriesByUrl.size, sitemapEntries.length, "sitemap.xml: duplicate URL");
   assert.deepEqual([...entriesByUrl.keys()].sort(), expectedPublicUrls, "sitemap.xml: public URL set");
   assert.doesNotMatch(sitemap, /\/ja\/|hreflang="ja"/, "sitemap.xml: Japanese route or hreflang must not return");
@@ -681,16 +698,27 @@ assert.match(galleryJavascript, /mobileAutoPosition = distance \+ previousPhaseR
 assert.match(galleryJavascript, /firstAfterClone\.offsetLeft - firstOriginal\.offsetLeft/, "site-enhancements.js: gallery loop distance must use the trailing clone set");
 assert.match(galleryJavascript, /firstOriginal\.offsetLeft - firstBeforeClone\.offsetLeft/, "site-enhancements.js: gallery leading clone distance validation missing");
 
-const faqJavascript = sourceBetween(javascript, "  function initFaqTags()", "  function initSocialAccountDisclosure()", "site-enhancements.js FAQ");
-assert.match(faqJavascript, /items\.forEach\(function \(item\) \{ item\.open = false; \}\);/, "site-enhancements.js: FAQ items must be closed initially");
-assert.match(faqJavascript, /items\.forEach\(function \(other\) \{ other\.open = other === item; \}\);/, "site-enhancements.js: a quick tag must keep only its matching FAQ item open");
+const faqJavascript = sourceBetween(javascript, "  function initFaqTags()", "  function initNavigationDisclosures()", "site-enhancements.js FAQ");
+assert.match(faqJavascript, /faq\.classList\.add\("is-faq-focused"\)/, "site-enhancements.js: focused FAQ enhancement scope missing");
+assert.match(faqJavascript, /item\.open = false;\s*item\.hidden = true;/, "site-enhancements.js: FAQ items must be closed and filtered initially");
+assert.match(faqJavascript, /other\.hidden = !selected;\s*other\.open = selected;/, "site-enhancements.js: a quick tag must show and open only its matching FAQ item");
 assert.doesNotMatch(faqJavascript, /shouldOpen|!item\.open/, "site-enhancements.js: repeated quick-tag clicks must not close the answer");
 assert.match(faqJavascript, /item\.scrollIntoView\(\{[^}]*block: "center"[^}]*\}\)/, "site-enhancements.js: FAQ quick tag must scroll its answer into view");
 assert.doesNotMatch(faqJavascript, /\.focus\s*\(/, "site-enhancements.js: FAQ quick tags must not steal focus");
 assert.doesNotMatch(faqJavascript, /window\.open\s*\(|(?:window\.)?location(?:\.href)?\s*=|setAttribute\(["'](?:href|target)["']/, "site-enhancements.js: FAQ quick tags must not navigate or open a new page");
 
+const navigationJavascript = sourceBetween(javascript, "  function initNavigationDisclosures()", "  function initSocialAccountDisclosure()", "site-enhancements.js navigation disclosures");
+assert.match(navigationJavascript, /var menus = \[languageMenu, mobileMenu\]\.filter\(Boolean\)/, "site-enhancements.js: language and mobile menus must share one disclosure controller");
+assert.match(navigationJavascript, /if \(!menu\.open\) closeMenusExcept\(menu\)/, "site-enhancements.js: opening one navigation menu must close the other first");
+assert.match(navigationJavascript, /event\.preventDefault\(\);[\s\S]*setMenuOpen\(menu, !menu\.open, false\)/, "site-enhancements.js: disclosure summary state must update synchronously");
+assert.match(navigationJavascript, /site-nav-mobile-panel a\[href\]/, "site-enhancements.js: mobile navigation links must close their menu");
+assert.match(navigationJavascript, /if \(event\.key !== "Escape"\) return;/, "site-enhancements.js: navigation disclosures must close on Escape");
+assert.match(navigationJavascript, /setMenuOpen\(openMenu, false, true\)/, "site-enhancements.js: Escape must restore focus to the disclosure summary");
+assert.match(navigationJavascript, /if \(menus\.some\(function \(menu\) \{ return menu\.contains\(event\.target\); \}\)\) return;/, "site-enhancements.js: navigation disclosures must close on outside click");
+
 const socialJavascript = sourceBetween(javascript, "  function initSocialAccountDisclosure()", "  initAnalyticsEvents();", "site-enhancements.js social filters");
 assert.match(socialJavascript, /card\.hidden = false/, "site-enhancements.js: social accounts must start visible");
+assert.match(socialJavascript, /group\.hidden = groups\.length > 1 && index !== 0/, "site-enhancements.js: non-TikTok groups must be hidden before filters render");
 assert.match(socialJavascript, /var filterItems = groups\.map\(/, "site-enhancements.js: category filters must map one-to-one from social groups");
 assert.match(socialJavascript, /filterItems\.forEach\([\s\S]*createElement\("button", "social-platform-filter", item\.label\)/, "site-enhancements.js: social category filter buttons missing");
 assert.doesNotMatch(socialJavascript, /filterItems\.(?:push|unshift|splice)\s*\(/, "site-enhancements.js: all-platform filter must not be injected");
@@ -737,7 +765,7 @@ for (const token of [
 }
 for (const token of [
   ".calculator-inquiry-cta", ".inquiry-status-icon",
-  "#cbmFill.is-over", "#cbmRibs", ".field-label-marker", ".calculator-result-status",
+  ".cbm-container-fill.is-full", ".cbm-container-ribs", ".field-label-marker", ".calculator-result-status",
   ".calculator-secondary-button:disabled", ".hero-brand-partnership",
   ".calculator-mode-tabs", ".calculator-optional-details", ".calculator-optional-summary",
   ".calculator-optional-fields", ".social-platform-filters"
@@ -745,6 +773,7 @@ for (const token of [
   assert(css.includes(token), `styles.css: missing round 8 style ${token}`);
 }
 assert.doesNotMatch(css, /\.legal-content ul\s*\{[^}]*padding-left\s*:/s, "styles.css: legal list must use logical padding");
+assert.match(css, /\.site-nav-links \.site-nav-quote-desktop[\s\S]*?order:\s*0\s*!important/, "styles.css: desktop quote must keep its middle navigation position");
 for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "has-mobile-conversion-bar", ".ui-section-reveal"]) {
   assert(!css.includes(removedToken), `styles.css: removed floating control styles remain (${removedToken})`);
 }

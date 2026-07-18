@@ -143,7 +143,7 @@ function createEnv(options: MockOptions = {}): {
     ALLOWED_HOSTNAMES: "www.jabbarsourcing.com,jabbarsourcing.com",
     INQUIRY_RECIPIENT: RECIPIENT,
     INQUIRY_FROM: SENDER,
-    PRIVACY_VERSION: "2026-07-18",
+    PRIVACY_VERSION: "2026-07-19",
   } satisfies Env;
 
   return {
@@ -170,7 +170,7 @@ function validPayload(overrides: Record<string, unknown> = {}): Record<string, u
     locale: "en",
     sourcePath: "/en/inquiry/",
     privacyAcknowledged: true,
-    privacyVersion: "2026-07-18",
+    privacyVersion: "2026-07-19",
     submissionId: "8f86cdd2-fcb8-4b39-9cc1-04ef23780243",
     turnstileToken: "test-turnstile-token",
     attribution: {
@@ -326,6 +326,21 @@ describe("inquiry Worker security regressions", () => {
     );
   });
 
+  it("accepts the website privacy page as a safe attribution landing path", async () => {
+    const context = createEnv();
+    const payload = validPayload();
+    payload.attribution = {
+      ...(payload.attribution as Record<string, unknown>),
+      landing_path: "/website-privacy-policy.html",
+    };
+
+    const response = await handleRequest(inquiryRequest(payload), context.env);
+
+    expect(response.status).toBe(201);
+    expect(context.turnstileCalls).toHaveLength(1);
+    expect(context.email.attempts).toBe(1);
+  });
+
   it("derives different Siteverify retry UUIDs across submission IDs", async () => {
     const context = createEnv();
     const firstPayload = validPayload();
@@ -478,6 +493,19 @@ describe("inquiry Worker security regressions", () => {
     expect(context.email.sent).toHaveLength(1);
     expect(context.email.sent[0]?.text).toContain("Product reference URL: Not provided");
     expect(context.email.sent[0]?.text).toContain("Landing page: /en/inquiry/");
+  });
+
+  it("keeps the 7/18 cached page compatible while the 7/19 page rollout propagates", async () => {
+    const context = createEnv();
+    const response = await handleRequest(
+      inquiryRequest(validPayload({ privacyVersion: "2026-07-18" })),
+      context.env,
+    );
+
+    expect(response.status).toBe(201);
+    expect(context.email.sent).toHaveLength(1);
+    expect(context.email.sent[0]?.text).toContain("Privacy notice version: 2026-07-18");
+    expect(context.email.sent[0]?.text).toContain("Product reference URL: https://www.alibaba.com/product-detail/example-123.html");
   });
 
   it.each(["referenceUrl", "attribution"])(

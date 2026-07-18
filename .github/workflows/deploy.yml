@@ -60,6 +60,7 @@ jobs:
           curl --fail --silent http://127.0.0.1:4173/inquiry/ >/dev/null
           npm run qa:inquiry
           npm run qa:ui
+          npm run qa:analytics-consent
           npm run qa:calculator-order
           npm run qa:container-allocation
 
@@ -93,6 +94,7 @@ jobs:
             --include='/google80221688f5a3319b.html' \
             --include='/index.html' \
             --include='/privacy-policy.html' \
+            --include='/website-privacy-policy.html' \
             --include='/robots.txt' \
             --include='/script.js' \
             --include='/shipments.json' \
@@ -173,6 +175,7 @@ jobs:
             google80221688f5a3319b.html
             index.html
             privacy-policy.html
+            website-privacy-policy.html
             robots.txt
             script.js
             shipments.json
@@ -202,7 +205,7 @@ jobs:
           test -f _site/assets/calculator-order-analyzer.js
           test -f _site/assets/calculator-order-worker.js
           test -f _site/assets/vendor/xlsx.full.min.js
-          test "$(find _site -type f -name '*.html' | wc -l)" -eq 34
+          test "$(find _site -type f -name '*.html' | wc -l)" -eq 35
 
           test ! -e _site/assets/social-source
           test ! -e _site/styles.css

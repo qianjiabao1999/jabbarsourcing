@@ -8511,6 +8511,9 @@ html[lang="ar"] .section-code {
 }
 
 .cbm-visual {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 8px;
   margin: 2px 0 8px;
   padding: 12px 10px 8px;
   border: 1px solid rgba(15, 107, 168, 0.12);
@@ -8523,6 +8526,20 @@ html[lang="ar"] .section-code {
   max-width: 420px;
   display: block;
   margin: 0 auto;
+}
+
+.cbm-container-visual {
+  min-width: 0;
+  border-radius: 14px;
+  background: rgba(239, 248, 255, 0.5);
+}
+
+.cbm-visual-overflow {
+  align-self: center;
+  margin: 0;
+  text-align: center;
+  color: var(--ink-muted-strong);
+  font-weight: 800;
 }
 
 /* Browser-local Excel order analysis */
@@ -9057,20 +9074,20 @@ html[lang="ar"] .section-code {
   }
 }
 
-#cbmFill {
+.cbm-container-fill {
   fill: var(--cbm-fill);
   transition: width 0.4s ease;
 }
 
-#cbmFill.is-over {
+.cbm-container-fill.is-full {
   fill: var(--brand-orange);
 }
 
-#cbmRibs {
+.cbm-container-ribs {
   stroke: var(--brand-teal);
 }
 
-#cbmPct {
+.cbm-container-percentage {
   fill: var(--cbm-ink);
 }
 
@@ -9243,7 +9260,7 @@ html[lang="ar"] .section-code {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #cbmFill,
+  .cbm-container-fill,
   .faq-summary-flash,
   .whatsapp-qr-card {
     animation: none !important;
@@ -11785,5 +11802,148 @@ main > #team.team {
 @media (prefers-reduced-motion: reduce) {
   #social-accounts .team-card {
     transition: none !important;
+  }
+}
+
+/* 2026-07-19 interaction clarity: focused FAQ, mutually exclusive menus, and quieter depth. */
+.faq-section.is-faq-focused .faq-list {
+  width: min(100%, 1040px);
+  margin-inline: auto;
+}
+
+.faq-section.is-faq-focused .faq-item[hidden] {
+  display: none !important;
+}
+
+.faq-section.is-faq-focused .faq-item:not([hidden]) {
+  border-color: rgba(15, 107, 168, 0.2) !important;
+  background-color: #f8fbfd !important;
+  background-image: linear-gradient(145deg, #ffffff, #eef7fa) !important;
+  box-shadow: 0 8px 20px rgba(20, 67, 103, 0.06) !important;
+}
+
+.faq-quick-tag,
+.social-platform-filter {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 4px 12px rgba(20, 67, 103, 0.045) !important;
+}
+
+.faq-quick-tag:hover,
+.faq-quick-tag:focus-visible,
+.faq-quick-tag[aria-expanded="true"],
+.social-platform-filter.is-active,
+.social-platform-filter:not(.is-active):hover,
+.social-platform-filter:not(.is-active):focus-visible {
+  box-shadow: 0 5px 14px rgba(15, 107, 168, 0.1) !important;
+  transform: none !important;
+}
+
+#social-accounts .team-card,
+#social-accounts .team-card:hover {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74) !important;
+  transform: none !important;
+}
+
+.site-nav .language-switch > summary,
+.site-nav-mobile-menu > summary,
+.site-nav-tool-pill,
+.site-nav-quote {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(20, 67, 103, 0.055) !important;
+}
+
+.site-nav .language-options,
+.site-nav-mobile-panel {
+  border-color: rgba(15, 76, 129, 0.13) !important;
+  background-color: rgba(255, 255, 255, 0.97) !important;
+  box-shadow: 0 10px 28px rgba(20, 45, 76, 0.1) !important;
+}
+
+.site-nav > details[open] {
+  z-index: 1200 !important;
+}
+
+@media (max-width: 960px) {
+  .site-nav .language-options,
+  .site-nav-mobile-panel {
+    top: calc(100% + 8px) !important;
+    max-height: calc(100dvh - 82px) !important;
+    overflow-y: auto !important;
+  }
+
+  .site-nav .language-options {
+    right: 0 !important;
+    left: auto !important;
+    width: max-content;
+    min-width: 148px;
+    max-width: calc(100vw - 24px);
+  }
+
+  [dir="rtl"] .site-nav .language-options {
+    right: auto !important;
+    left: 0 !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .faq-quick-tags {
+    gap: 8px !important;
+  }
+
+  .faq-quick-tag,
+  .social-platform-filter {
+    min-height: 44px !important;
+  }
+
+  .site-nav .language-options {
+    padding: 6px !important;
+  }
+
+  .site-nav .language-options a {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    padding-block: 7px;
+  }
+}
+
+/* 2026-07-19 navigation placement: centered desktop quote, complete mobile menu. */
+.site-nav-links .site-nav-quote-desktop {
+  display: none !important;
+}
+
+@media (min-width: 961px) and (max-width: 1279px) {
+  header.site-nav {
+    grid-template-columns: minmax(0, 1fr) auto auto auto !important;
+  }
+
+  header.site-nav > .site-nav-quote-action {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    z-index: 3 !important;
+    margin: 0 !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  header.site-nav > .site-nav-quote-action {
+    display: none !important;
+  }
+
+  header.site-nav .site-nav-links .site-nav-quote-desktop,
+  header.site-nav .site-nav-links .site-nav-quote-desktop:hover,
+  header.site-nav .site-nav-links .site-nav-quote-desktop:focus-visible {
+    order: 0 !important;
+    min-height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding-inline: clamp(11px, 0.9vw, 16px) !important;
+    color: #ffffff !important;
+    border-color: rgba(15, 107, 168, 0.18) !important;
+    background-color: #0f6ba8 !important;
+    background-image: linear-gradient(135deg, #0f6ba8, #0f766e) !important;
+    box-shadow: 0 5px 14px rgba(15, 107, 168, 0.1) !important;
+    transform: none !important;
   }
 }

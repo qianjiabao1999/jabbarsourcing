@@ -8,7 +8,8 @@ const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 const PENDING_LEASE_MS = 10 * 60 * 1000;
 const IDEMPOTENCY_STORAGE_KEY = "submission";
 const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const CURRENT_PRIVACY_VERSION = "2026-07-18";
+const CURRENT_PRIVACY_VERSION = "2026-07-19";
+const PREVIOUS_CACHED_PRIVACY_VERSION = "2026-07-18";
 const LEGACY_CACHED_PRIVACY_VERSION = "2026-07-12";
 
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"] as const;
@@ -400,7 +401,7 @@ function readHttpUrl(input: Record<string, unknown>, key: string, maxLength: num
 
 function isSafeLandingPath(value: string): boolean {
   return /^\/(?:(?:en|es|ar|fr|pt|ru|de|it|tr)\/)?(?:inquiry\/|calculator\/)?$/.test(value) ||
-    ["/privacy-policy.html", "/support.html", "/404.html", "/other"].includes(value);
+    ["/privacy-policy.html", "/website-privacy-policy.html", "/support.html", "/404.html", "/other"].includes(value);
 }
 
 function isSafeHostname(value: string): boolean {
@@ -487,10 +488,12 @@ function validatePayload(input: unknown, env: Env): InquiryPayload {
   const hasNewInquiryFields = Object.prototype.hasOwnProperty.call(input, "referenceUrl") ||
     Object.prototype.hasOwnProperty.call(input, "attribution");
   const isCurrentPrivacyVersion = privacyVersion === env.PRIVACY_VERSION;
+  const isPreviousCachedPrivacyVersion = env.PRIVACY_VERSION === CURRENT_PRIVACY_VERSION &&
+    privacyVersion === PREVIOUS_CACHED_PRIVACY_VERSION;
   const isStrictLegacyCachePayload = env.PRIVACY_VERSION === CURRENT_PRIVACY_VERSION &&
     privacyVersion === LEGACY_CACHED_PRIVACY_VERSION &&
     !hasNewInquiryFields;
-  if (!isCurrentPrivacyVersion && !isStrictLegacyCachePayload) {
+  if (!isCurrentPrivacyVersion && !isPreviousCachedPrivacyVersion && !isStrictLegacyCachePayload) {
     throw new HttpError(400, "invalid_privacy_version");
   }
 

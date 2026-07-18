@@ -8,9 +8,9 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
-const PRIVACY_VERSION = "2026-07-18";
-const CSS_VERSION = "apple-172";
-const JS_VERSION = "inquiry-20260718c";
+const PRIVACY_VERSION = "2026-07-19";
+const CSS_VERSION = "apple-174";
+const JS_VERSION = "inquiry-20260719a";
 const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
 const PAGES = [
@@ -367,13 +367,13 @@ function checkPage(page, html) {
   if (privacyNoticeBlocks.length === 1) {
     const text = privacyNoticeBlocks[0][2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
     if (!text) fail(scope, "privacy submit notice must contain localized text");
-    if (!/href=["']\/privacy-policy\.html#website-inquiries["']/i.test(privacyNoticeBlocks[0][2])) {
+    if (!/href=["']\/website-privacy-policy\.html#website-inquiries["']/i.test(privacyNoticeBlocks[0][2])) {
       fail(scope, "privacy submit notice must contain the website-inquiries policy link");
     }
   }
 
   const privacyLinks = findTags(formBody, "a")
-    .filter((tag) => tag.attributes.get("href") === "/privacy-policy.html#website-inquiries");
+    .filter((tag) => tag.attributes.get("href") === "/website-privacy-policy.html#website-inquiries");
   checkSingleTag(scope, privacyLinks, "website-inquiries privacy link");
 
   const turnstileElements = Array.from(formBody.matchAll(/<([A-Za-z0-9:-]+)\b[^>]*>/g))
@@ -484,6 +484,34 @@ checkAttributionJavascript(attributionJavascript);
 for (const page of PAGES) {
   const html = await readFile(resolve(ROOT, page.file), "utf8");
   checkPage(page, html);
+}
+
+const websitePrivacy = await readFile(resolve(ROOT, "website-privacy-policy.html"), "utf8");
+const appPrivacy = await readFile(resolve(ROOT, "privacy-policy.html"), "utf8");
+if ((websitePrivacy.match(/\bid="website-inquiries"/g) || []).length !== 1) {
+  fail("website-privacy-policy.html", "must contain exactly one website-inquiries section");
+}
+if (!websitePrivacy.includes('<link rel="canonical" href="https://www.jabbarsourcing.com/website-privacy-policy.html"')) {
+  fail("website-privacy-policy.html", "canonical URL is missing or incorrect");
+}
+if (!websitePrivacy.includes("Google Analytics 4") ||
+    !websitePrivacy.includes("first landing-page path") ||
+    !websitePrivacy.includes("product reference URL") ||
+    !websitePrivacy.includes("Privacy settings")) {
+  fail("website-privacy-policy.html", "website inquiry, attribution, or consent disclosure is incomplete");
+}
+if ((websitePrivacy.match(/\/assets\/analytics-consent\.js\?v=consent-20260719a/g) || []).length !== 1 ||
+    /<script[^>]+(?:googletagmanager\.com|clarity\.ms)/i.test(websitePrivacy)) {
+  fail("website-privacy-policy.html", "analytics must load only through the shared consent controller");
+}
+if ((appPrivacy.match(/\bid="website-inquiries"/g) || []).length !== 1 ||
+    !appPrivacy.includes('href="/website-privacy-policy.html#website-inquiries"') ||
+    appPrivacy.includes("first landing-page path") ||
+    appPrivacy.includes("product reference URL")) {
+  fail("privacy-policy.html", "App policy compatibility notice or website-policy separation regressed");
+}
+if (!appPrivacy.includes("<title>Jabbar ERM Privacy Policy | Jabbar Sourcing</title>")) {
+  fail("privacy-policy.html", "legacy App policy title regressed");
 }
 
 if (failures.length > 0) {

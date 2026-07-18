@@ -17,6 +17,9 @@ for (const locale of LOCALES) {
   const file = localePath(locale);
   const html = await load(file);
   const images = imageTags(html);
+  const navigationMarks = images.filter((tag) => /jabbar-sourcing-mark-transparent\.webp\?v=nav-20260719/.test(tag));
+  assert(navigationMarks.length >= 2, `${file}: optimized navigation/brand mark references missing`);
+  assert.doesNotMatch(html, /jabbar-sourcing-mark-transparent\.png/, `${file}: unoptimized transparent brand mark returned`);
   const gallerySequence = images.filter((tag) => /assets\/gallery\/responsive\//.test(tag) && /\bfetchpriority=/.test(tag));
   assert.equal(gallerySequence.length, 13, `${file}: gallery sequence image count`);
   assert.equal(attribute(gallerySequence[0], "loading"), "eager", `${file}: first gallery image must load eagerly`);
@@ -32,6 +35,10 @@ for (const locale of LOCALES) {
     assert.equal(attribute(tag, "loading"), "lazy", `${file}: social avatar ${index + 1} must be lazy`);
     assert.equal(attribute(tag, "fetchpriority"), "low", `${file}: social avatar ${index + 1} must have low priority`);
   });
+
+  const proofImage = images.find((tag) => /testimonial-boyner-720\.webp/.test(tag));
+  assert(proofImage, `${file}: responsive client proof image missing`);
+  assert.match(attribute(proofImage, "srcset"), /480w.*720w.*1200w/, `${file}: client proof image srcset missing`);
 }
 
 for (const locale of LOCALES) {

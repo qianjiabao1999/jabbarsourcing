@@ -81,6 +81,9 @@ await mkdir(OUTPUT_DIR, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+await context.addInitScript(() => {
+  window.localStorage.setItem("jabbar.analyticsConsent.v1", "granted");
+});
 const apiResponses = [];
 const apiPayloads = [];
 const consoleErrors = [];
@@ -227,7 +230,7 @@ await page.evaluate(() => {
 });
 await page.locator(".inquiry-entry-card-cta").click();
 const quoteEvents = await analyticsEvents("quote_click");
-assert(quoteEvents.length === 1, "Homepage quote CTA must emit quote_click exactly once");
+assert(quoteEvents.length === 1, `Homepage quote CTA must emit quote_click exactly once: ${JSON.stringify(quoteEvents)}`);
 assert(quoteEvents[0].placement === "hero", "Homepage quote_click must retain its placement");
 assert(quoteEvents[0].landing_path === "/" && quoteEvents[0].utm_source === "google", "quote_click must include first-touch attribution");
 
@@ -315,7 +318,7 @@ await page.evaluate(() => {
 const singleActionContract = await page.evaluate(() => ({
   privacyCheckboxes: document.querySelectorAll(".js-inquiry-privacy, .inquiry-privacy input[type=checkbox]").length,
   privacyNotices: document.querySelectorAll(".inquiry-privacy-notice").length,
-  privacyLinks: document.querySelectorAll('.inquiry-privacy-notice a[href="/privacy-policy.html#website-inquiries"]').length,
+  privacyLinks: document.querySelectorAll('.inquiry-privacy-notice a[href="/website-privacy-policy.html#website-inquiries"]').length,
   fallbackButtons: document.querySelectorAll(".js-inquiry-send").length,
   fallbackLabels: document.querySelectorAll(".inquiry-fallback-label").length,
   detailDisclosures: document.querySelectorAll("details.inquiry-optional-details").length,
@@ -529,7 +532,7 @@ for (const viewport of [
         fallbackCount: document.querySelectorAll(".js-inquiry-send, .inquiry-fallback-label").length,
         privacyCheckboxCount: document.querySelectorAll(".js-inquiry-privacy, .inquiry-privacy input[type=checkbox]").length,
         privacyNoticeCount: document.querySelectorAll(".inquiry-privacy-notice").length,
-        privacyLinkCount: document.querySelectorAll('.inquiry-privacy-notice a[href="/privacy-policy.html#website-inquiries"]').length,
+        privacyLinkCount: document.querySelectorAll('.inquiry-privacy-notice a[href="/website-privacy-policy.html#website-inquiries"]').length,
         detailsCount: document.querySelectorAll(".js-inquiry-form details, .js-inquiry-form .inquiry-optional-details").length,
         visibleOrderDetailCount: orderDetailFields.filter((name) => {
           const field = document.querySelector(`[name="${name}"]`);
@@ -575,7 +578,7 @@ for (const viewport of [
     if (item.rtl) assert(metrics.dir === "rtl", "Arabic inquiry page must remain RTL");
   }
 
-  await page.goto(`${BASE_URL}/privacy-policy.html#website-inquiries`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/website-privacy-policy.html#website-inquiries`, { waitUntil: "domcontentloaded" });
   await page.screenshot({
     path: `${OUTPUT_DIR}/privacy-${viewport.name}.png`,
     fullPage: true
@@ -594,8 +597,24 @@ for (const viewport of [
   assert(privacyMetrics.mentionsAnalytics, "Privacy policy must disclose analytics processing");
   assert(privacyMetrics.mentionsAttribution, "Privacy policy must disclose first-touch inquiry attribution");
   assert(privacyMetrics.mentionsReferenceUrl, "Privacy policy must disclose the product reference URL field");
-  assert(privacyMetrics.updatedDate.includes("July 18, 2026"), "Privacy policy must display the current disclosure date");
-  assert(privacyMetrics.title === "Jabbar Sourcing Privacy Policy", "Privacy page title must cover public website inquiries");
+  assert(privacyMetrics.updatedDate.includes("July 19, 2026"), "Privacy policy must display the current disclosure date");
+  assert(privacyMetrics.title === "Jabbar Sourcing Website Inquiry Privacy Notice", "Privacy page title must cover public website inquiries");
+
+  await page.goto(`${BASE_URL}/privacy-policy.html#website-inquiries`, { waitUntil: "domcontentloaded" });
+  const appPolicyMetrics = await page.evaluate(() => {
+    const compatibility = document.querySelector("#website-inquiries");
+    return {
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+      compatibilitySections: document.querySelectorAll("#website-inquiries").length,
+      movedLinkCount: compatibility?.querySelectorAll('a[href="/website-privacy-policy.html#website-inquiries"]').length || 0,
+      stillContainsWebsiteDisclosure: compatibility?.textContent.includes("first landing-page path") || false,
+      title: document.title
+    };
+  });
+  assert(appPolicyMetrics.overflow <= 1, `App privacy ${viewport.name} has horizontal overflow: ${appPolicyMetrics.overflow}px`);
+  assert(appPolicyMetrics.compatibilitySections === 1 && appPolicyMetrics.movedLinkCount >= 1, "App privacy compatibility notice regressed");
+  assert(!appPolicyMetrics.stillContainsWebsiteDisclosure, "Website inquiry disclosure must not remain on the App privacy page");
+  assert(appPolicyMetrics.title === "Jabbar ERM Privacy Policy | Jabbar Sourcing", "Legacy App privacy title regressed");
 }
 
 assert(consoleErrors.length === 0, `Browser console errors: ${consoleErrors.join(" | ")}`);
