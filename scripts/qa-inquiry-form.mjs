@@ -230,6 +230,7 @@ assert(
   (await page.locator('[name="note"]').inputValue()) === "QA calculator result: 12.4 CBM, one 20GP container",
   "Calculator message must prefill note"
 );
+assert(await page.locator(".inquiry-optional-details").getAttribute("open") !== null, "Calculator handoff must reveal its prefilled optional details");
 assert(
   (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
   "Consumed calculator handoff must be removed"
@@ -247,6 +248,9 @@ await openInquiry("/inquiry/");
 assert((await page.locator('[name="product"]').inputValue()) === "", "Calculator handoff older than two hours must be ignored");
 assert((await page.locator('[name="quantity"]').inputValue()) === "", "Stale calculator quantity must be ignored");
 assert((await page.locator('[name="note"]').inputValue()) === "", "Stale calculator note must be ignored");
+assert(await page.locator(".inquiry-optional-details").getAttribute("open") === null, "Empty optional details must start collapsed");
+assert(await page.locator('[name="product"]').evaluate((field) => !field.closest(".inquiry-optional-details")), "Required product field must stay outside the optional disclosure");
+assert(await page.locator('[name="contact"]').evaluate((field) => !field.closest(".inquiry-optional-details")), "Required contact field must stay outside the optional disclosure");
 assert(
   (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
   "Stale calculator handoff must be removed"
@@ -296,6 +300,12 @@ assert((await analyticsEvents("inquiry_channel_click")).length === 0, "Fallback 
 assert((await analyticsEvents("inquiry_submit")).length === 0, "Fallback click must not emit inquiry_submit");
 await page.waitForTimeout(10);
 assert((await analyticsEvents("inquiry_submit_error")).length === 0, "Fallback validation must not impersonate a direct-submit error");
+
+await page.locator(".inquiry-optional-details > summary").click();
+assert(await page.locator(".inquiry-optional-details").getAttribute("open") !== null, "Optional details summary must reveal the fields");
+await page.waitForFunction(() => (window.dataLayer || []).some((entry) => entry[0] === "event" && entry[1] === "inquiry_optional_details_toggle"));
+const optionalToggleEvents = await analyticsEvents("inquiry_optional_details_toggle");
+assert(optionalToggleEvents.length === 1 && optionalToggleEvents[0].expanded === 1, "Opening optional details must emit one controlled analytics event");
 
 await fillRequired("QA invalid reference", "qa-invalid-reference@example.com");
 await page.locator('[name="referenceUrl"]').fill("ftp://example.com/product");
@@ -514,6 +524,13 @@ for (const viewport of [
         statusAfterDirectButton: status?.previousElementSibling?.classList.contains("js-inquiry-direct") || false,
         statusRole: status?.getAttribute("role") || "",
         fallbackCount: fallback.length,
+        optionalDetailsCount: document.querySelectorAll(".inquiry-optional-details").length,
+        optionalSummaryHeight: document.querySelector(".inquiry-optional-details summary")?.getBoundingClientRect().height || 0,
+        returnHomeCount: document.querySelectorAll(".site-nav-return-home").length,
+        returnHomeHref: document.querySelector(".site-nav-return-home")?.getAttribute("href") || "",
+        duplicateMobileHomeCount: document.querySelectorAll(".site-nav-mobile-home").length,
+        mobileTeamCount: document.querySelectorAll(".site-nav-mobile-team").length,
+        mobileTeamHref: document.querySelector(".site-nav-mobile-team")?.getAttribute("href") || "",
         brokenImages: Array.from(document.images).filter((image) => image.complete && image.naturalWidth === 0).length,
         dir: document.documentElement.dir || "ltr",
         mobileNavigationLeft: mobileNavigation?.left ?? 0,
@@ -525,6 +542,11 @@ for (const viewport of [
     assert(metrics.statusInsideDirectPanel && metrics.statusAfterDirectButton, `${item.locale} ${viewport.name} status placement regressed`);
     assert(metrics.statusRole === "status", `${item.locale} ${viewport.name} status semantics regressed`);
     assert(metrics.fallbackCount === 4, `${item.locale} ${viewport.name} lost a fallback channel`);
+    assert(metrics.optionalDetailsCount === 1, `${item.locale} ${viewport.name} optional-details disclosure count`);
+    assert(metrics.optionalSummaryHeight >= 44, `${item.locale} ${viewport.name} optional-details target is too short`);
+    assert(metrics.returnHomeCount === 1 && metrics.returnHomeHref === "../", `${item.locale} ${viewport.name} top Return Home control regressed`);
+    assert(metrics.duplicateMobileHomeCount === 0, `${item.locale} ${viewport.name} duplicate Return Home remains in mobile menu`);
+    assert(metrics.mobileTeamCount === 1 && metrics.mobileTeamHref === "../#social-accounts", `${item.locale} ${viewport.name} team-member mobile link is missing`);
     assert(metrics.brokenImages === 0, `${item.locale} ${viewport.name} has ${metrics.brokenImages} broken loaded images`);
     if (viewport.name === "mobile") {
       assert(

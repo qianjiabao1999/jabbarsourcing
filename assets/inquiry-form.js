@@ -30,6 +30,18 @@
     zh: "可选", en: "optional", es: "opcional", ar: "اختياري", fr: "facultatif",
     pt: "opcional", ru: "необязательно", de: "optional", it: "facoltativo", tr: "isteğe bağlı"
   };
+  var OPTIONAL_DETAILS_LABELS = {
+    zh: "添加订单详情（可选）",
+    en: "Add order details (optional)",
+    es: "Añadir detalles del pedido (opcional)",
+    ar: "إضافة تفاصيل الطلب (اختياري)",
+    fr: "Ajouter les détails de la commande (facultatif)",
+    pt: "Adicionar detalhes do pedido (opcional)",
+    ru: "Добавить детали заказа (необязательно)",
+    de: "Bestelldetails hinzufügen (optional)",
+    it: "Aggiungi dettagli dell’ordine (facoltativo)",
+    tr: "Sipariş ayrıntıları ekleyin (isteğe bağlı)"
+  };
 
   var MESSAGES = {
     zh: {
@@ -379,8 +391,39 @@
       }
     }
 
-    decorateFieldLabels();
     consumeCalculatorResult();
+
+    function groupOptionalFields() {
+      if (form.querySelector(".inquiry-optional-details")) return;
+      var optionalNames = ["referenceUrl", "category", "quantity", "budget", "market", "company", "note"];
+      var labels = optionalNames.map(function (name) {
+        var control = form.elements.namedItem(name);
+        return control ? control.closest("label.field") : null;
+      }).filter(Boolean);
+      if (!labels.length) return;
+
+      var details = document.createElement("details");
+      details.className = "inquiry-optional-details field-wide";
+      var summary = document.createElement("summary");
+      summary.textContent = OPTIONAL_DETAILS_LABELS[locale] || OPTIONAL_DETAILS_LABELS.en;
+      var fields = document.createElement("div");
+      fields.className = "inquiry-optional-fields";
+      labels[0].parentNode.insertBefore(details, labels[0]);
+      details.appendChild(summary);
+      details.appendChild(fields);
+      labels.forEach(function (label) { fields.appendChild(label); });
+
+      details.open = labels.some(function (label) {
+        var control = label.querySelector("input, select, textarea");
+        return control && String(control.value || "").trim().length > 0;
+      });
+      details.addEventListener("toggle", function () {
+        trackEvent("inquiry_optional_details_toggle", { expanded: details.open ? 1 : 0 });
+      });
+    }
+
+    groupOptionalFields();
+    decorateFieldLabels();
 
     function setStatus(message, tone) {
       if (!status) return;

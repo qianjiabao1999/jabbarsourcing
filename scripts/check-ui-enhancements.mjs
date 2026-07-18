@@ -6,10 +6,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-164";
-const AI_VERSION = "ai-20260714c";
-const UI_VERSION = "ui-20260718b";
-const ORDER_VERSION = "order-20260718c";
+const CSS_VERSION = "apple-167";
+const UI_VERSION = "ui-20260718d";
+const ORDER_VERSION = "order-20260718d";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SECTION_CODES = {
   zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 关于我们", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
@@ -42,6 +41,7 @@ const HOME_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale) }
 const CALCULATOR_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "calculator/") }));
 const INQUIRY_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "inquiry/") }));
 const NAV_PAGES = [...HOME_PAGES, ...CALCULATOR_PAGES, ...INQUIRY_PAGES];
+const COMPANY_FOOTER_PAGES = [...NAV_PAGES, { file: "privacy-policy.html" }, { file: "support.html" }];
 const TELEGRAM_PAGES = [...HOME_PAGES, ...INQUIRY_PAGES, { file: "privacy-policy.html" }, { file: "support.html" }];
 const EXTRA_PAGES = ["404.html", "privacy-policy.html", "support.html"];
 const FALLBACK_EVENT_PAGES = [
@@ -128,11 +128,35 @@ async function load(file) {
   return readFile(resolve(ROOT, file), "utf8");
 }
 
+async function exists(file) {
+  try {
+    await readFile(resolve(ROOT, file));
+    return true;
+  } catch (error) {
+    if (error?.code === "ENOENT") return false;
+    throw error;
+  }
+}
+
 for (const { locale, file } of HOME_PAGES) {
   const html = await load(file);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
-  assert.match(html, new RegExp(`ai-sourcing-assistant\\.js\\?v=${AI_VERSION}`), `${file}: stale AI version`);
+  assert.doesNotMatch(html, /ai-sourcing-assistant\.js|JABBAR_AI_ASSISTANT_ENDPOINT/, `${file}: hidden AI bootstrap must not load by default`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
+  assert.equal(countClass(html, "hero-brand-partnership"), 1, `${file}: joint brand lockup count`);
+  assert.equal(countClass(html, "site-logo-lockup-company"), 1, `${file}: Haoduobao logo frame count`);
+  assert.equal(count(html, /haoduobao-logo\.webp\?v=company-20260718a/g), 1, `${file}: Haoduobao logo asset count`);
+  assert.equal(countClass(html, "company-identity"), 1, `${file}: company identity block count`);
+  const galleryRails = tagsWithClass(html, "div", "gallery-rail");
+  assert.equal(galleryRails.length, 2, `${file}: gallery rail count`);
+  assert(galleryRails.every((match) => attribute(match[0], "role") === "region"), `${file}: gallery rails need region semantics`);
+  assert(galleryRails.every((match) => attribute(match[0], "tabindex") === "0"), `${file}: gallery rails need keyboard scrolling`);
+  assert.match(html, /Zhejiang Haoduobao Brand Management Co\., Ltd\./, `${file}: English legal name missing`);
+  assert.match(html, /浙江好多宝品牌管理有限公司/, `${file}: Chinese legal name missing`);
+  assert.match(html, /href="https:\/\/www\.haoduobao123\.com\/"/, `${file}: company ordering website missing`);
+  for (const removedSocial of ["豹哥百货批发全球供应", "豹哥百货严选", "S99_Tv9at_I", "Yk8-Ra0NoRg", "douyin-89144212942", "douyin-dg661661"]) {
+    assert(!html.includes(removedSocial), `${file}: removed social card remains (${removedSocial})`);
+  }
   assert.match(html, /class="social-platform-groups container-wide"/, `${file}: social container is not centered`);
   assert.doesNotMatch(html, /class="[^"]*\bcontain\b[^"]*"/, `${file}: stale contain class`);
   assert.equal(count(html, /mobile-conversion-bar|has-mobile-conversion-bar/g), 0, `${file}: removed mobile conversion bar remains`);
@@ -169,7 +193,7 @@ for (const { locale, file } of HOME_PAGES) {
 for (const { locale, file } of CALCULATOR_PAGES) {
   const html = await load(file);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
-  assert.match(html, new RegExp(`ai-sourcing-assistant\\.js\\?v=${AI_VERSION}`), `${file}: missing multilingual AI assistant`);
+  assert.doesNotMatch(html, /ai-sourcing-assistant\.js|JABBAR_AI_ASSISTANT_ENDPOINT/, `${file}: hidden AI bootstrap must not load by default`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
   assert.match(html, new RegExp(`calculator-order-loader\\.js\\?v=${ORDER_VERSION}`), `${file}: missing deferred Excel order loader`);
   assert.doesNotMatch(html, /<script[^>]+src="\/assets\/calculator-order-analyzer\.js/i, `${file}: Excel order analyzer must not load directly`);
@@ -223,11 +247,33 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   if (locale === "ar") assert.match(html, /<html[^>]+lang="ar"[^>]+dir="rtl"/, `${file}: Arabic RTL root missing`);
 }
 
+assert.equal(COMPANY_FOOTER_PAGES.length, 32, "company footer page count");
+for (const { file } of COMPANY_FOOTER_PAGES) {
+  const html = await load(file);
+  assert.equal(countClass(html, "site-footer-company"), 1, `${file}: legal company footer count`);
+  assert.match(html, /Zhejiang Haoduobao Brand Management Co\., Ltd\./, `${file}: footer English legal name missing`);
+  assert.match(html, /浙江好多宝品牌管理有限公司/, `${file}: footer Chinese legal name missing`);
+  assert.match(html, /href="https:\/\/www\.haoduobao123\.com\/"/, `${file}: footer company ordering website missing`);
+}
+
+assert.equal(NAV_PAGES.length, 30, "organization schema page count");
+for (const { file } of NAV_PAGES) {
+  const html = await load(file);
+  assert.equal(count(html, /"legalName"\s*:\s*"Zhejiang Haoduobao Brand Management Co\., Ltd\."/g), 1, `${file}: Organization legalName count`);
+  assert.equal(count(html, /"alternateName"\s*:\s*\[/g), 1, `${file}: Organization alternateName count`);
+  assert.match(html, /"Jabbar Sourcing Team"[\s\S]*"浙江好多宝品牌管理有限公司"/, `${file}: Organization alternate names missing`);
+}
+
 for (const { file } of INQUIRY_PAGES) {
   const html = await load(file);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing QR enhancement`);
   assert.equal(count(html, /mobile-conversion-bar/g), 0, `${file}: inquiry must not include mobile conversion bar`);
+  const returnLinks = tagsWithClass(html, "a", "site-nav-return-home");
+  assert.equal(returnLinks.length, 1, `${file}: top return-home link count`);
+  assert.equal(attribute(returnLinks[0][0], "href"), "../", `${file}: top return-home target`);
+  assert.equal(countClass(html, "site-nav-mobile-home"), 0, `${file}: duplicate return-home item remains in mobile menu`);
+  assert.equal(countClass(html, "site-nav-mobile-team"), 1, `${file}: mobile team-member link missing`);
 }
 
 assert.equal(NAV_PAGES.length, 30, "site navigation page count");
@@ -238,7 +284,9 @@ for (const { file } of NAV_PAGES) {
   assert(attribute(toolLinks[0][0], "href"), `${file}: site-nav-tool-pill href missing`);
   const mobilePanels = regionsForClass(html, "nav", "site-nav-mobile-panel");
   assert.equal(mobilePanels.length, 1, `${file}: mobile navigation panel count`);
-  assert.doesNotMatch(mobilePanels[0], /href="(?:\.\/|[^\"]*calculator\/?)"|href="[^\"]*#social-accounts"/, `${file}: calculator or team link remains in mobile navigation`);
+  assert.doesNotMatch(mobilePanels[0], /href="(?:\.\/|[^\"]*calculator\/?)"/, `${file}: calculator link remains in mobile navigation`);
+  const expectedMobileTeamLinks = INQUIRY_PAGES.some((page) => page.file === file) ? 1 : 0;
+  assert.equal(countClass(mobilePanels[0], "site-nav-mobile-team"), expectedMobileTeamLinks, `${file}: mobile team-member link count`);
 }
 
 for (const file of EXTRA_PAGES) {
@@ -356,8 +404,10 @@ for (const locale of LOCALES) {
 }
 assert.equal(count(javascript, /showAllAccounts:/g), LOCALES.length, "site-enhancements.js: show-all account label count");
 assert.equal(count(javascript, /showFewerAccounts:/g), LOCALES.length, "site-enhancements.js: show-fewer account label count");
+assert.equal(count(javascript, /calculatorModes:/g), LOCALES.length, "site-enhancements.js: calculator mode label count");
+assert.equal(count(javascript, /allPlatforms:/g), LOCALES.length, "site-enhancements.js: social filter label count");
 for (const token of [
-  "renderCbmVisual", "service-country-marquee", "site-scroll-progress",
+  "renderCbmVisual", "site-scroll-progress",
   "faq-quick-tags", "whatsapp-qr.svg", "prefers-reduced-motion",
   "initTrustStamps", "initShipmentTicker", "Intl.RelativeTimeFormat", "shipments.json",
   "initAnalyticsEvents", "contact_whatsapp", "isPlaceholderRecord", "is-unavailable"
@@ -374,25 +424,44 @@ assert(javascript.includes('ticker.classList.add("is-ready")'), "site-enhancemen
 assert(!javascript.includes("ja:"), "site-enhancements.js: Japanese labels must not return");
 for (const token of [
   "initCalculatorInquiryBridge", "calculator-inquiry-cta", "jabbarCalcResult", "calculator_result",
-  "calculator_inquiry", "service-country-toggle", "pauseCountries", "resumeCountries",
+  "calculator_inquiry",
   "reducedMotionQuery.addEventListener", 'event.key === "Escape"', "company-metric-visual",
   "initSocialAccountDisclosure", "showAllAccounts", "showFewerAccounts",
-  "social-platform-toggle", "is-social-card-collapsed"
+  "social-platform-toggle", "is-social-card-collapsed", "initCalculatorModes",
+  "calculator_mode_change", "social_profile_click", "social_accounts_view", "social_platform_filter"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing round 8 behavior ${token}`);
+}
+for (const removedToken of ["service-country-marquee", "service-country-toggle", "service-country-item", "pauseCountries", "resumeCountries", "copy.countries"]) {
+  assert(!javascript.includes(removedToken), `site-enhancements.js: removed country strip remains (${removedToken})`);
 }
 assert(!javascript.includes('setAttribute("aria-hidden", "false")'), "site-enhancements.js: aria-hidden=false must not return");
 assert(!javascript.includes('setAttribute("fill"'), "site-enhancements.js: dynamic CBM colors must use CSS classes");
 
 const inquiryJavascript = await load("assets/inquiry-form.js");
 const aiJavascript = await load("assets/ai-sourcing-assistant.js");
+const socialAvatarUpdater = await load("scripts/update-social-avatars.mjs");
+const socialAvatarManifest = await load("assets/social-avatars-manifest.json");
 assert(inquiryJavascript.includes('"inquiry_submit"'), "inquiry-form.js: successful direct inquiry event missing");
+assert(inquiryJavascript.includes("inquiry_optional_details_toggle"), "inquiry-form.js: optional-details analytics missing");
+assert(inquiryJavascript.includes("inquiry-optional-details"), "inquiry-form.js: optional field disclosure missing");
 assert(aiJavascript.includes('"ai_first_message"'), "ai-sourcing-assistant.js: first successful AI message event missing");
 assert(!aiJavascript.includes("mobile-conversion-bar"), "ai-sourcing-assistant.js: removed conversion bar integration remains");
+for (const removedSocial of ["S99_Tv9at_I", "Yk8-Ra0NoRg", "douyin-89144212942", "douyin-dg661661"]) {
+  assert(!socialAvatarUpdater.includes(removedSocial), `update-social-avatars.mjs: removed social account remains (${removedSocial})`);
+  assert(!socialAvatarManifest.includes(removedSocial), `social-avatars-manifest.json: removed social account remains (${removedSocial})`);
+}
+for (const removedAsset of [
+  "assets/social-116/douyin-89144212942-116.webp", "assets/social-116/douyin-89144212942-232.webp",
+  "assets/social-116/douyin-dg661661-116.webp", "assets/social-116/douyin-dg661661-232.webp",
+  "assets/social-source/douyin-89144212942.webp", "assets/social-source/douyin-dg661661.webp"
+]) {
+  assert.equal(await exists(removedAsset), false, `${removedAsset}: removed social asset returned`);
+}
 
 const css = await load("styles.css");
 for (const token of [
-  ".cbm-visual", ".service-country-marquee", ".site-scroll-progress",
+  ".cbm-visual", ".site-scroll-progress",
   ".faq-quick-tags", ".whatsapp-qr-card", "prefers-reduced-motion",
   "--font-mono-stack", ".num-mono", ".section-code", ".section-rule", ".stamp-row",
   ".shipment-ticker", ".cbm-dimension-line"
@@ -400,10 +469,11 @@ for (const token of [
   assert(css.includes(token), `styles.css: missing ${token}`);
 }
 for (const token of [
-  ".calculator-inquiry-cta", ".service-country-toggle", ".inquiry-status-icon",
+  ".calculator-inquiry-cta", ".inquiry-status-icon",
   ".inquiry-status-whatsapp", "#cbmFill.is-over", "#cbmRibs", ".field-label-marker",
   ".social-platform-toggle", ".is-social-card-collapsed", ".calculator-result-status",
-  ".calculator-secondary-button:disabled"
+  ".calculator-secondary-button:disabled", ".hero-brand-partnership", ".company-identity",
+  ".inquiry-optional-details", ".calculator-mode-tabs", ".social-platform-filters"
 ]) {
   assert(css.includes(token), `styles.css: missing round 8 style ${token}`);
 }
@@ -411,6 +481,11 @@ assert.doesNotMatch(css, /\.legal-content ul\s*\{[^}]*padding-left\s*:/s, "style
 for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "has-mobile-conversion-bar", ".ui-section-reveal"]) {
   assert(!css.includes(removedToken), `styles.css: removed floating control styles remain (${removedToken})`);
 }
+for (const removedToken of [".service-country-marquee", ".service-country-toggle", ".service-country-item", ".service-country-track"]) {
+  assert(!css.includes(removedToken), `styles.css: removed country strip style remains (${removedToken})`);
+}
+assert(css.includes("scroll-snap-type: x proximity"), "styles.css: mobile gallery proximity snapping missing");
+assert(css.includes("animation: none !important"), "styles.css: mobile gallery animation override missing");
 assert(css.includes(".social-platform-groups .section-heading"), "styles.css: social heading centering missing");
 const rtlMobileProcessRule = css.match(/\[dir="rtl"\]\s+\.process-step\s*\{([^}]*)\}/m)?.[1] || "";
 assert.match(rtlMobileProcessRule, /padding-inline-start:\s*78px\s*;/, "styles.css: RTL mobile process cards must reserve space beside the leading number");
@@ -437,9 +512,13 @@ const orderWorker = await load("assets/calculator-order-worker.js");
 for (const token of [
   "data-order-export", "toBlob", "JABBAR_ORDER_ANALYZER_QA",
   "order_file_selected", "order_parse_success", "order_parse_error",
-  "order_export_png", "order_export_error"
+  "order_export_png", "order_export_error", "data-order-inquiry",
+  "ORDER_INQUIRY_LABELS", "jabbarCalcResult", "calculator_inquiry"
 ])
   assert(orderAnalyzer.includes(token), `calculator-order-analyzer.js: missing ${token}`);
+assert.equal(count(orderAnalyzer, /^\s{4}(?:zh|en|es|ar|fr|pt|ru|de|it|tr):\s+".*"[,]?$/gm), LOCALES.length, "calculator-order-analyzer.js: localized order inquiry label count");
+assert.equal(count(orderAnalyzer, /setAttribute\("data-order-inquiry"/g), 1, "calculator-order-analyzer.js: duplicate order inquiry CTA");
+assert.match(orderAnalyzer, /this\.lang === "zh" \? "\/inquiry\/" : "\/" \+ this\.lang \+ "\/inquiry\/"/, "calculator-order-analyzer.js: localized inquiry path missing");
 for (const removedToken of ["data-order-wechat", "shareToWeChat", "navigator.share"]) {
   assert(!orderAnalyzer.includes(removedToken), `calculator-order-analyzer.js: removed sharing token remains (${removedToken})`);
 }

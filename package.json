@@ -14,7 +14,9 @@
     "qa:inquiry": "node scripts/qa-inquiry-form.mjs",
     "qa:calculator-order": "node scripts/qa-order-analyzer.mjs",
     "test:worker": "npm --prefix cloudflare/inquiry-api test",
-    "verify:worker": "npm --prefix cloudflare/inquiry-api run types:check && npm --prefix cloudflare/inquiry-api run typecheck && npm --prefix cloudflare/inquiry-api test && npm --prefix cloudflare/inquiry-api run deploy:dry"
+    "verify:worker": "npm --prefix cloudflare/inquiry-api run types:check && npm --prefix cloudflare/inquiry-api run typecheck && npm --prefix cloudflare/inquiry-api test && npm --prefix cloudflare/inquiry-api run deploy:dry",
+    "test:security-headers": "npm --prefix cloudflare/site-response-headers test",
+    "verify:security-headers": "npm --prefix cloudflare/site-response-headers run types:check && npm --prefix cloudflare/site-response-headers run typecheck && npm --prefix cloudflare/site-response-headers test && npm --prefix cloudflare/site-response-headers run deploy:dry"
   },
   "repository": {
     "type": "git",

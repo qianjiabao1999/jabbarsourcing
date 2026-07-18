@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "jabbar-sourcing-site-response-headers-test",
+  "main": "src/index.ts",
+  // The latest published workerd bundled with the test pool currently supports
+  // compatibility dates through 2026-07-17. Production stays on 2026-07-18.
+  "compatibility_date": "2026-07-17",
+  "compatibility_flags": ["nodejs_compat"]
+}

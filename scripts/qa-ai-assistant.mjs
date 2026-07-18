@@ -6,8 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_AI_OUTPUT_DIR || "/tmp/jabbar-ai-assistant-qa";
-const AI_VERSION = "ai-20260714c";
-const UI_VERSION = "ui-20260718b";
+const UI_VERSION = "ui-20260718d";
 const LOCALES = ["", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const PAGES = LOCALES.flatMap((locale) => {
   const root = locale ? `/${locale}/` : "/";
@@ -59,19 +58,16 @@ async function assertNoFloatingAssistant(page, item, scope) {
   assert.equal(state.floatingCount, 0, `${scope}: floating WhatsApp/Telegram/AI controls remain`);
   assert.equal(state.conversionCount, 0, `${scope}: mobile conversion bar remains`);
   assert.equal(state.bodyConversionClass, false, `${scope}: mobile conversion body class remains`);
-  if (state.aiVersion) {
-    assert(state.aiVersion.endsWith(`?v=${AI_VERSION}`), `${scope}: stale AI script ${state.aiVersion}`);
-    assert.equal(state.toggleCount, 1, `${scope}: assistant panel bootstrap toggle missing`);
-    assert.equal(state.toggleDisplay, "none", `${scope}: hidden assistant bootstrap toggle became visible`);
-    assert.equal(state.panelCount, 1, `${scope}: assistant panel logic is missing`);
-    assert.equal(state.panelDisplay, "none", `${scope}: assistant panel opened without an entry point`);
-    assert.equal(state.panelOpen, false, `${scope}: assistant panel retained an open state`);
-  } else {
-    assert.equal(state.toggleCount, 0, `${scope}: assistant toggle exists without its script`);
-    assert.equal(state.panelCount, 0, `${scope}: assistant panel exists without its script`);
-  }
+  assert.equal(state.aiVersion, "", `${scope}: hidden AI script still loads by default`);
+  assert.equal(state.toggleCount, 0, `${scope}: assistant toggle exists without a visible product entry point`);
+  assert.equal(state.panelCount, 0, `${scope}: assistant panel exists without a visible product entry point`);
+  assert.equal(state.panelOpen, false, `${scope}: assistant panel retained an open state`);
   assert.equal(state.mobileMenuCalculator, 0, `${scope}: calculator link remains in the mobile menu`);
-  assert.equal(state.mobileMenuTeam, 0, `${scope}: team link remains in the mobile menu`);
+  assert.equal(
+    state.mobileMenuTeam,
+    item.type === "inquiry" ? 1 : 0,
+    `${scope}: mobile team-member link count`
+  );
   assert(state.documentWidth <= state.viewportWidth + 1, `${scope}: horizontal overflow ${state.documentWidth} > ${state.viewportWidth}`);
   if (item.type === "home" || item.type === "inquiry") {
     assert.equal(state.footerContacts, 5, `${scope}: normal footer contact pills were removed`);
@@ -115,4 +111,4 @@ await desktopPage.screenshot({ path: `${OUTPUT_DIR}/no-floating-controls-desktop
 await desktopContext.close();
 await desktop.close();
 
-console.log(`AI/floating-control QA passed: ${PAGES.length} localized pages in Chromium/WebKit plus desktop, with footer contacts retained and no floating entry points.`);
+console.log(`AI/floating-control QA passed: ${PAGES.length} localized pages in Chromium/WebKit plus desktop, with no default AI bootstrap and no floating entry points.`);

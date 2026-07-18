@@ -69,14 +69,6 @@ const ACCOUNT_HINTS = {
     platform: "xiaohongshu",
     profileUrl: "https://www.xiaohongshu.com/user/profile/5af044554eacab1175529438",
   },
-  "douyin-89144212942.webp": {
-    platform: "douyin",
-    profileUrl: "https://v.douyin.com/S99_Tv9at_I/",
-  },
-  "douyin-dg661661.webp": {
-    platform: "douyin",
-    profileUrl: "https://v.douyin.com/Yk8-Ra0NoRg/",
-  },
   "douyin-999999q99999.webp": {
     platform: "douyin",
     profileUrl: "https://v.douyin.com/vyPKT52O7iE/",

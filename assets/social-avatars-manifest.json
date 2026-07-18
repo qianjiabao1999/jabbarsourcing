@@ -26,16 +26,15 @@
     }
   },
   "counts": {
-    "checked": 40,
-    "changed": 15,
-    "avatarChanged": 15,
+    "checked": 38,
+    "changed": 14,
+    "avatarChanged": 14,
     "failed": 6
   },
   "changed": [
     "lesley-in-yiwu-116.webp",
     "douyin-05280606-116.webp",
     "douyin-138411321-116.webp",
-    "douyin-89144212942-116.webp",
     "douyin-999999q99999-116.webp",
     "douyin-87296762727-116.webp",
     "douyin-92340484988-116.webp",
@@ -52,7 +51,6 @@
     "lesley-in-yiwu-116.webp",
     "douyin-05280606-116.webp",
     "douyin-138411321-116.webp",
-    "douyin-89144212942-116.webp",
     "douyin-999999q99999-116.webp",
     "douyin-87296762727-116.webp",
     "douyin-92340484988-116.webp",
@@ -755,73 +753,6 @@
       },
       "reason": null,
       "failures": []
-    },
-    {
-      "assetName": "douyin-89144212942-116.webp",
-      "platform": "douyin",
-      "profileUrl": "https://v.douyin.com/S99_Tv9at_I/",
-      "status": "updated",
-      "changed": true,
-      "sourceChanged": false,
-      "outputChanged": true,
-      "sourceUrl": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_218a92aa360d4b544eaf3c22776e1936~tplv-dy-aweme-images:q75.webp",
-      "sourceSize": "4284x4284",
-      "fetchedFormat": "webp",
-      "sourceFormat": "webp",
-      "sourcePath": "assets/social-source/douyin-89144212942.webp",
-      "hashes": {
-        "116": "a94ebbacb5e1f057f8292f8e72ea12603aed08e8665c93eacc80bc6f6b48bcfc",
-        "232": "e41c932fd13f75f418a07006a41b3eb59a86d61d45373cb13fb0d55cab078b84",
-        "fetched": "d00c993e8727d873344b369928aff1371829ccd8d5c580a7b82d5f7a962f1d21",
-        "source": "920ae76e973e777bd77649cd5b8205405d8dd5e5f9081b541af083101acfaf65"
-      },
-      "outputs": {
-        "116": {
-          "path": "assets/social-116/douyin-89144212942-116.webp",
-          "sha256": "a94ebbacb5e1f057f8292f8e72ea12603aed08e8665c93eacc80bc6f6b48bcfc"
-        },
-        "232": {
-          "path": "assets/social-116/douyin-89144212942-232.webp",
-          "sha256": "e41c932fd13f75f418a07006a41b3eb59a86d61d45373cb13fb0d55cab078b84"
-        }
-      },
-      "reason": null,
-      "failures": []
-    },
-    {
-      "assetName": "douyin-dg661661-116.webp",
-      "platform": "douyin",
-      "profileUrl": "https://v.douyin.com/Yk8-Ra0NoRg/",
-      "status": "unchanged",
-      "changed": false,
-      "sourceChanged": false,
-      "outputChanged": false,
-      "sourceUrl": "https://p3.douyinpic.com/aweme/1080x1080/aweme-avatar/tos-cn-avt-0015_ca64c5d3c5678f9b45d8a51f75e89d6c.jpeg?from=2956013662",
-      "sourceSize": "1080x1080",
-      "fetchedFormat": "jpeg",
-      "sourceFormat": "webp",
-      "sourcePath": "assets/social-source/douyin-dg661661.webp",
-      "hashes": {
-        "116": "35b8f06f3e091b953fb703fce3411905dca81d1d655d9fbc83ca0ec94f0e8bdc",
-        "232": "1100fbdeb087efd71b4296c6e22ccb6a1bb1f7d31bf4bce7f6ce5a6681071014",
-        "fetched": "a753fc6a17bd9db5bb5aae7b2cbd9e49a37793c574338928fb568ec288c3ca49",
-        "source": "f50c976c87859ef55da53ee2c3cbd3af8b63020738f246b1206487749655c22d"
-      },
-      "outputs": {
-        "116": {
-          "path": "assets/social-116/douyin-dg661661-116.webp",
-          "sha256": "35b8f06f3e091b953fb703fce3411905dca81d1d655d9fbc83ca0ec94f0e8bdc"
-        },
-        "232": {
-          "path": "assets/social-116/douyin-dg661661-232.webp",
-          "sha256": "1100fbdeb087efd71b4296c6e22ccb6a1bb1f7d31bf4bce7f6ce5a6681071014"
-        }
-      },
-      "reason": "unchanged",
-      "failures": [
-        "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ca64c5d3c5678f9b45d8a51f75e89d6c~tplv-dy-aweme-images:q75.webp: source is not square enough: 1535x2732 (ratio 1.780)",
-        "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ca64c5d3c5678f9b45d8a51f75e89d6c~tplv-dy-aweme-images:q75.jpeg: source is not square enough: 1535x2732 (ratio 1.780)"
-      ]
     },
     {
       "assetName": "douyin-999999q99999-116.webp",

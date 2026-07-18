@@ -439,6 +439,10 @@ async function createGenericPendingBatchFixtures(browser) {
 }
 
 async function waitForAnalyzer(page) {
+  const excelTab = page.locator('[data-calculator-mode="excel"]');
+  if (await excelTab.count()) {
+    if (await excelTab.getAttribute("aria-selected") !== "true") await excelTab.click();
+  }
   const mount = page.locator("[data-order-analyzer]");
   await mount.waitFor({ state: "attached" });
   await mount.scrollIntoViewIfNeeded();
@@ -617,6 +621,9 @@ try {
   await waitForAnalyzer(page);
   await page.waitForTimeout(200);
   assert(!requests.some((request) => request.url.includes("/assets/vendor/xlsx.full.min.js")), "vendor XLSX loaded before file selection");
+  assert.equal(await page.locator(".calculator-results .calculator-inquiry-cta").count(), 1, "manual calculator inquiry CTA count");
+  assert.equal(await page.locator("[data-order-inquiry]").count(), 1, "Excel analyzer inquiry CTA count");
+  assert.equal(await page.locator("[data-order-inquiry]").isVisible(), false, "Excel inquiry CTA visible before a result exists");
 
   const uploadRequestIndex = requests.length;
   let payload = await uploadWorkbook(page, { name: FIXTURE_NAME, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: fixture });
@@ -1166,6 +1173,39 @@ try {
   assert(payload.result.warnings.includes("negative_values_skipped"), "negative values warning missing");
   assert.equal(payload.result.negativeValuesSkipped, 1, "negative row count");
   assert.equal(await page.locator("[data-order-export]").isDisabled(), true, "negative values did not block export");
+
+  const bridgePage = await context.newPage();
+  const bridgeErrors = collectErrors(bridgePage);
+  await bridgePage.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
+  await waitForAnalyzer(bridgePage);
+  await uploadWorkbook(bridgePage, { name: FIXTURE_NAME, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: fixture });
+  const bridgeLink = bridgePage.locator("[data-order-inquiry]");
+  assert.equal(await bridgeLink.isVisible(), true, "Excel inquiry CTA is not visible with a valid result");
+  assert.equal(await bridgeLink.getAttribute("href"), "/inquiry/", "Chinese Excel inquiry CTA path");
+  assert.equal((await bridgeLink.textContent())?.trim(), "携带此结果获取报价", "Chinese Excel inquiry CTA label");
+  await Promise.all([
+    bridgePage.waitForURL(/\/inquiry\/$/),
+    bridgeLink.click()
+  ]);
+  const inquiryBridgeState = await bridgePage.evaluate(() => {
+    const form = document.querySelector(".js-inquiry-form");
+    return {
+      product: form?.elements.product?.value || "",
+      quantity: form?.elements.quantity?.value || "",
+      note: form?.elements.note?.value || "",
+      optionalOpen: Boolean(document.querySelector(".inquiry-optional-details")?.open),
+      stored: sessionStorage.getItem("jabbarCalcResult")
+    };
+  });
+  assert.equal(inquiryBridgeState.product, "QA Product 1 / QA Product 2 / QA Product 3 +2", "Excel inquiry product handoff");
+  assert.equal(inquiryBridgeState.quantity, "380", "Excel inquiry quantity handoff");
+  assert.match(inquiryBridgeState.note, /订单自动统计结果/, "Excel inquiry result title handoff");
+  assert.match(inquiryBridgeState.note, /总体积: 9\.5 m³/, "Excel inquiry volume handoff");
+  assert.match(inquiryBridgeState.note, /qa-order-analyzer-190-products\.xlsx/, "Excel inquiry source file handoff");
+  assert.equal(inquiryBridgeState.optionalOpen, true, "Excel inquiry optional fields did not open for prefilled result");
+  assert.equal(inquiryBridgeState.stored, null, "Excel inquiry handoff was not consumed");
+  assert.deepEqual(bridgeErrors, [], `Excel inquiry bridge console errors: ${bridgeErrors.join(" | ")}`);
+  await bridgePage.close();
   assert.deepEqual(errors, [], `Chinese calculator console errors: ${errors.join(" | ")}`);
   await context.close();
 
@@ -1209,6 +1249,8 @@ try {
   await rtlPage.goto(`${BASE_URL}/ar/calculator/`, { waitUntil: "domcontentloaded" });
   await waitForAnalyzer(rtlPage);
   await uploadWorkbook(rtlPage, { name: FIXTURE_NAME, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: fixture });
+  assert.equal((await rtlPage.locator("[data-order-inquiry]").textContent())?.trim(), "اطلب عرض سعر بهذه النتيجة", "Arabic Excel inquiry CTA label");
+  assert.equal(await rtlPage.locator("[data-order-inquiry]").getAttribute("href"), "/ar/inquiry/", "Arabic Excel inquiry CTA path");
   const rtlProductOption = await rtlPage.locator('[data-order-column] option[value="product"]').first().textContent();
   assert.notEqual(rtlProductOption, "Product name", "Arabic mapping option fell back to English");
   assert.match(rtlProductOption || "", /[\u0600-\u06ff]/, "Arabic product mapping option is not localized");

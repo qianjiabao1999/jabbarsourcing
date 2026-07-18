@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260718c";
+  var VERSION = "order-20260718d";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   var MAX_FILES = 10;
   var WORKER_TIMEOUT_MS = 60000;
@@ -801,6 +801,19 @@
   };
   Object.keys(BATCH_COPY).forEach(function (code) { Object.assign(LOCALES[code], BATCH_COPY[code]); });
 
+  var ORDER_INQUIRY_LABELS = {
+    zh: "携带此结果获取报价",
+    en: "Get a quote with this result",
+    es: "Solicitar cotización con este resultado",
+    ar: "اطلب عرض سعر بهذه النتيجة",
+    fr: "Demander un devis avec ce résultat",
+    pt: "Pedir cotação com este resultado",
+    ru: "Запросить расчёт с этим результатом",
+    de: "Mit diesem Ergebnis Angebot anfragen",
+    it: "Richiedi un preventivo con questo risultato",
+    tr: "Bu sonuçla teklif isteyin"
+  };
+
   function languageCode() {
     var code = (document.documentElement.lang || navigator.language || "en").toLowerCase().split("-")[0];
     return LOCALES[code] ? code : "en";
@@ -983,6 +996,10 @@
     this.exportButton.type = "button";
     this.exportButton.setAttribute("data-order-export", "");
     actions.appendChild(this.exportButton);
+    this.inquiryLink = element("a", "order-analyzer__inquiry calculator-inquiry-cta", ORDER_INQUIRY_LABELS[this.lang] || ORDER_INQUIRY_LABELS.en);
+    this.inquiryLink.href = this.lang === "zh" ? "/inquiry/" : "/" + this.lang + "/inquiry/";
+    this.inquiryLink.setAttribute("data-order-inquiry", "");
+    actions.appendChild(this.inquiryLink);
     this.results.appendChild(actions);
     this.tableWrap = element("div", "order-analyzer__table-wrap");
     this.results.appendChild(this.tableWrap);
@@ -1038,6 +1055,10 @@
       });
     });
     this.exportButton.addEventListener("click", function () { self.exportReport(); });
+    this.inquiryLink.addEventListener("click", function (event) {
+      if (!self.payload) { event.preventDefault(); return; }
+      self.storeInquiryResult();
+    });
   };
 
   Analyzer.prototype.setStatus = function (text, error) {
@@ -1618,6 +1639,64 @@
     this.renderContainer(estimate);
     var detailPayload = this.fileResults[this.activeFileIndex] || payload;
     this.renderTable(detailPayload.result.items, detailPayload.fileName);
+  };
+
+  Analyzer.prototype.inquiryProductText = function () {
+    var names = [];
+    var seen = {};
+    (this.fileResults.length ? this.fileResults : [this.payload]).forEach(function (payload) {
+      ((payload && payload.result && payload.result.items) || []).forEach(function (item) {
+        var name = String(item.product || "").trim();
+        var key = name.toLowerCase().replace(/\s+/g, " ");
+        if (!name || seen[key]) return;
+        seen[key] = true;
+        names.push(name);
+      });
+    });
+    var value = names.slice(0, 3).join(" / ");
+    if (names.length > 3) value += " +" + (names.length - 3);
+    return value.slice(0, 120);
+  };
+
+  Analyzer.prototype.inquirySummary = function () {
+    var payload = this.payload;
+    var result = payload && payload.result;
+    var metrics = result && result.metrics;
+    if (!metrics) return "";
+    var estimate = this.containerEstimate(metrics.volume, result.pending && result.pending.volumeUnit);
+    var files = (this.fileResults.length ? this.fileResults : [payload]).map(function (item) { return item && item.fileName; }).filter(Boolean);
+    var fileText = files.slice(0, 5).join(", ");
+    if (files.length > 5) fileText += " +" + (files.length - 5);
+    return [
+      this.copy.resultTitle,
+      this.copy.file + ": " + (fileText || payload.fileName || this.copy.missing),
+      this.copy.productRows + ": " + this.formatNumber(metrics.productRows, 0),
+      this.copy.uniqueProducts + ": " + this.formatNumber(metrics.uniqueProducts, 0),
+      this.copy.quantity + ": " + this.formatNumber(metrics.quantity, 2),
+      this.copy.cartons + ": " + this.formatNumber(metrics.cartons, 2),
+      this.copy.volume + ": " + (metrics.volume == null ? this.copy.missing : this.formatNumber(metrics.volume, 3) + " m³"),
+      this.copy.weight + ": " + (metrics.weight == null ? this.copy.missing : this.formatNumber(metrics.weight, 2) + " kg"),
+      this.copy.amount + ": " + this.amountText(metrics.amounts),
+      this.copy.containerTitle + ": " + estimate.label
+    ].join("\n");
+  };
+
+  Analyzer.prototype.storeInquiryResult = function () {
+    var metrics = this.payload && this.payload.result && this.payload.result.metrics;
+    if (!metrics) return false;
+    var estimate = this.containerEstimate(metrics.volume, this.payload.result.pending && this.payload.result.pending.volumeUnit);
+    var handoff = {
+      savedAt: Date.now(),
+      message: this.inquirySummary(),
+      product: this.inquiryProductText(),
+      quantity: metrics.quantity == null ? "" : this.formatNumber(metrics.quantity, 2),
+      totalCbm: metrics.volume == null ? 0 : Number(metrics.volume),
+      bufferedCbm: metrics.volume == null ? 0 : Number(metrics.volume),
+      container: estimate.label
+    };
+    try { window.sessionStorage.setItem("jabbarCalcResult", JSON.stringify(handoff)); } catch (_) {}
+    trackEvent("calculator_inquiry", { method: "excel", file_count: this.fileResults.length || 1 });
+    return true;
   };
 
   Analyzer.prototype.renderTable = function (items, fileName) {

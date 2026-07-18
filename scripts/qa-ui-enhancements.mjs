@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-164";
-const UI_VERSION = "ui-20260718b";
+const CSS_VERSION = "apple-167";
+const UI_VERSION = "ui-20260718d";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -157,7 +157,11 @@ async function pageState(page) {
         shipmentItems: document.querySelectorAll(".shipment-ticker-item").length,
         metricNumbers: document.querySelectorAll(".company-metric-number.num-mono").length,
         reviewNumbers: document.querySelectorAll(".testimonial-order-meta .num-mono").length,
-        dimensionLines: document.querySelectorAll(".cbm-dimension-line").length
+        dimensionLines: document.querySelectorAll(".cbm-dimension-line").length,
+        jointBrandLockups: document.querySelectorAll(".hero-brand-partnership").length,
+        companyIdentityBlocks: document.querySelectorAll(".company-identity").length,
+        socialFilters: document.querySelectorAll(".social-platform-filter").length,
+        calculatorModeTabs: document.querySelectorAll(".calculator-mode-tab").length
       },
       sectionCodes: Array.from(document.querySelectorAll(".section-code"), (element) => normalizeText(element.textContent)),
       sectionCodeDirections: Array.from(document.querySelectorAll(".section-code"), (element) => getComputedStyle(element).direction),
@@ -354,14 +358,15 @@ function assertNoFloatingControls(state, scope) {
   assert.equal(state.counts.floatingContacts, 0, `${scope}: floating contact controls remain`);
   assert.equal(state.counts.conversionBars, 0, `${scope}: mobile conversion bar remains`);
   assert.equal(state.rects.conversionBar, null, `${scope}: mobile conversion bar is rendered`);
+  assert.equal(state.aiVersion, "", `${scope}: hidden AI bootstrap still loads by default`);
   if (state.rects.legacyToggle) {
     assert.equal(state.rects.legacyToggle.display, "none", `${scope}: legacy AI launcher visible`);
   }
 }
 
-function assertMobileMenuTrimmed(state, scope) {
+function assertMobileMenuTrimmed(state, scope, { teamLinks = 0 } = {}) {
   assert.equal(state.mobileMenu.calculatorLinks, 0, `${scope}: calculator link remains in mobile menu`);
-  assert.equal(state.mobileMenu.teamLinks, 0, `${scope}: team link remains in mobile menu`);
+  assert.equal(state.mobileMenu.teamLinks, teamLinks, `${scope}: mobile team-member link count`);
 }
 
 function assertDesktopFooter(state, scope, { contacts = false } = {}) {
@@ -465,6 +470,48 @@ async function assertMobileSocialDisclosure(page, scope) {
   assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${scope}: Space did not collapse social accounts`);
 }
 
+async function assertDesktopSocialDisclosure(page, scope) {
+  const groups = await page.locator(".social-platform-group").evaluateAll((items) => items.map((group) => {
+    const cards = Array.from(group.querySelectorAll(":scope > .team-grid > .team-card"));
+    const toggle = group.querySelector(":scope > .social-platform-toggle");
+    return {
+      total: cards.length,
+      visible: cards.filter((card) => getComputedStyle(card).display !== "none").length,
+      toggleHidden: toggle ? toggle.hidden || getComputedStyle(toggle).display === "none" : null
+    };
+  }));
+  for (const [index, group] of groups.entries()) {
+    assert.equal(group.visible, Math.min(6, group.total), `${scope}: social group ${index + 1} desktop card count`);
+    if (group.total > 6) assert.equal(group.toggleHidden, false, `${scope}: social group ${index + 1} desktop toggle hidden`);
+  }
+}
+
+async function assertSocialPlatformFilters(page, scope) {
+  const groupCount = await page.locator(".social-platform-group").count();
+  const filters = page.locator(".social-platform-filter");
+  assert.equal(await filters.count(), groupCount + 1, `${scope}: platform filter count`);
+  assert.equal(await filters.first().getAttribute("aria-pressed"), "true", `${scope}: all-platform filter initial state`);
+  if (groupCount < 2) return;
+  await filters.nth(1).click();
+  assert.equal(await page.locator(".social-platform-group[hidden]").count(), groupCount - 1, `${scope}: platform filter hidden group count`);
+  const filterEvent = await page.evaluate(() => (window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .filter((entry) => entry[0] === "event" && entry[1] === "social_platform_filter")
+    .at(-1));
+  assert(filterEvent && filterEvent[2]?.platform && filterEvent[2].platform !== "all", `${scope}: platform filter analytics missing`);
+  await filters.first().click();
+  assert.equal(await page.locator(".social-platform-group[hidden]").count(), 0, `${scope}: all-platform filter did not restore groups`);
+  await page.locator(".team-card[href]").first().evaluate((card) => {
+    card.addEventListener("click", (event) => event.preventDefault(), { once: true });
+  });
+  await page.locator(".team-card[href]").first().click();
+  const profileEvent = await page.evaluate(() => (window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .filter((entry) => entry[0] === "event" && entry[1] === "social_profile_click")
+    .at(-1));
+  assert(profileEvent && profileEvent[2]?.platform && profileEvent[2]?.position === 1, `${scope}: social profile click analytics missing`);
+}
+
 async function assertMobileRtlProcessLayout(page, scope) {
   const cards = await page.locator(".process-step").evaluateAll((items) => items.map((card) => {
     const rect = (element) => {
@@ -514,6 +561,133 @@ async function auditImages(page, scope) {
   assert.deepEqual(broken, [], `${scope}: broken images ${broken.join(", ")}`);
 }
 
+async function assertMobileGalleryScroll(page, scope) {
+  await page.locator(".sourcing-gallery").scrollIntoViewIfNeeded();
+  const rails = await page.locator(".gallery-rail").evaluateAll(async (elements) => {
+    const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    const results = [];
+    for (const rail of elements) {
+      const track = rail.querySelector(".gallery-track");
+      const railStyle = getComputedStyle(rail);
+      const trackStyle = getComputedStyle(track);
+      rail.scrollLeft = 0;
+      await nextFrame();
+      rail.scrollLeft = 220;
+      await nextFrame();
+      const moved = rail.scrollLeft;
+      rail.scrollLeft = rail.scrollWidth;
+      await nextFrame();
+      const reachedEnd = rail.scrollLeft;
+      const maxScroll = rail.scrollWidth - rail.clientWidth;
+      results.push({
+        overflowX: railStyle.overflowX,
+        clientWidth: rail.clientWidth,
+        scrollWidth: rail.scrollWidth,
+        moved,
+        reachedEnd,
+        maxScroll,
+        animationName: trackStyle.animationName,
+        transform: trackStyle.transform,
+        role: rail.getAttribute("role"),
+        tabIndex: rail.tabIndex
+      });
+      rail.scrollLeft = 0;
+    }
+    return results;
+  });
+
+  assert.equal(rails.length, 2, `${scope}: gallery rail count`);
+  for (const [index, rail] of rails.entries()) {
+    assert(["auto", "scroll"].includes(rail.overflowX), `${scope}: rail ${index + 1} overflow-x is ${rail.overflowX}`);
+    assert(rail.scrollWidth > rail.clientWidth + 120, `${scope}: rail ${index + 1} is not horizontally scrollable`);
+    assert(rail.moved >= 100, `${scope}: rail ${index + 1} rejected a horizontal scroll`);
+    assert(Math.abs(rail.reachedEnd - rail.maxScroll) <= 2, `${scope}: rail ${index + 1} cannot reach its final image`);
+    assert.equal(rail.animationName, "none", `${scope}: rail ${index + 1} still competes with touch using animation ${rail.animationName}`);
+    assert(["none", "matrix(1, 0, 0, 1, 0, 0)"].includes(rail.transform), `${scope}: rail ${index + 1} track remains transformed (${rail.transform})`);
+    assert.equal(rail.role, "region", `${scope}: rail ${index + 1} region role`);
+    assert.equal(rail.tabIndex, 0, `${scope}: rail ${index + 1} keyboard access`);
+  }
+}
+
+async function assertCompanyProofLayout(page, scope, mobile) {
+  await page.locator("#services").scrollIntoViewIfNeeded();
+  const state = await page.evaluate(() => {
+    const rect = (element) => {
+      const box = element.getBoundingClientRect();
+      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, width: box.width, height: box.height };
+    };
+    const photo = document.querySelector("#services .company-photo-card");
+    const metrics = document.querySelector("#services .company-metrics");
+    const cards = Array.from(document.querySelectorAll("#services .company-metric-card"));
+    const labels = Array.from(document.querySelectorAll("#services .company-metric-card span"));
+    const aboutCopy = document.querySelector(".company-about .company-story > p:not(.section-code)");
+    return {
+      photo: rect(photo),
+      metrics: rect(metrics),
+      cards: cards.map((card) => ({ rect: rect(card), textAlign: getComputedStyle(card).textAlign })),
+      labelFonts: labels.map((label) => Number.parseFloat(getComputedStyle(label).fontSize)),
+      labelAlignments: labels.map((label) => getComputedStyle(label).textAlign),
+      aboutFont: Number.parseFloat(getComputedStyle(aboutCopy).fontSize),
+      aboutAlign: getComputedStyle(aboutCopy).textAlign
+    };
+  });
+
+  assert(Math.abs(state.photo.left - state.metrics.left) <= 2, `${scope}: company photo and metrics left edges differ`);
+  assert(Math.abs(state.photo.width - state.metrics.width) <= 2, `${scope}: company photo and metrics widths differ`);
+  assert(state.photo.bottom < state.metrics.top, `${scope}: company photo does not sit above metrics`);
+  assert.equal(state.cards.length, 5, `${scope}: company metric card count`);
+  assert(state.cards.every((card) => card.textAlign === "center"), `${scope}: company metric card text is not centered`);
+  assert(state.labelAlignments.every((value) => value === "center"), `${scope}: company metric labels are not centered`);
+  assert(state.labelFonts.every((value) => value >= 14.5), `${scope}: company metric label is too small (${state.labelFonts.join(", ")})`);
+  assert(state.aboutFont >= 16, `${scope}: company introduction text is too small (${state.aboutFont})`);
+  assert.equal(state.aboutAlign, "center", `${scope}: company introduction copy is not aligned`);
+
+  if (mobile) {
+    assert(Math.abs(state.cards[0].rect.top - state.cards[1].rect.top) <= 2, `${scope}: first mobile metric row is misaligned`);
+    assert(Math.abs(state.cards[4].rect.width - state.metrics.width) <= 2, `${scope}: final mobile metric does not span the row`);
+  } else {
+    const firstTop = state.cards[0].rect.top;
+    assert(state.cards.every((card) => Math.abs(card.rect.top - firstTop) <= 2), `${scope}: desktop metric cards are not aligned in one row`);
+  }
+}
+
+async function assertFooterJoin(page, scope) {
+  const state = await page.evaluate(() => {
+    const social = document.querySelector("#social-accounts.social-platform-groups");
+    const team = document.querySelector("#team.team");
+    const footer = document.querySelector(".site-footer");
+    const gmail = document.querySelector('.site-footer .contact-link[aria-label*="Gmail"] .contact-value');
+    const socialRect = social?.getBoundingClientRect();
+    const footerRect = footer?.getBoundingClientRect();
+    const gmailStyle = gmail ? getComputedStyle(gmail) : null;
+    return {
+      gap: socialRect && footerRect ? footerRect.top - socialRect.bottom : null,
+      teamPaddingBottom: team ? Number.parseFloat(getComputedStyle(team).paddingBottom) : null,
+      socialMarginBottom: social ? Number.parseFloat(getComputedStyle(social).marginBottom) : null,
+      footerMarginTop: footer ? Number.parseFloat(getComputedStyle(footer).marginTop) : null,
+      gmail: gmail ? {
+        text: gmail.textContent.trim(),
+        whiteSpace: gmailStyle.whiteSpace,
+        overflow: gmailStyle.overflow,
+        textOverflow: gmailStyle.textOverflow,
+        clientWidth: gmail.clientWidth,
+        scrollWidth: gmail.scrollWidth
+      } : null
+    };
+  });
+
+  assert.notEqual(state.gap, null, `${scope}: footer join elements are missing`);
+  assert(Math.abs(state.gap) <= 1, `${scope}: ${state.gap}px blank seam remains before footer`);
+  assert.equal(state.teamPaddingBottom, 0, `${scope}: team bottom padding reintroduced a footer seam`);
+  assert.equal(state.socialMarginBottom, 0, `${scope}: social bottom margin reintroduced a footer seam`);
+  assert.equal(state.footerMarginTop, 0, `${scope}: footer top margin reintroduced a seam`);
+  assert.equal(state.gmail?.text, "qianjiabao1999@gmail.com", `${scope}: footer Gmail text changed`);
+  assert.notEqual(state.gmail.whiteSpace, "nowrap", `${scope}: Gmail cannot wrap`);
+  assert.notEqual(state.gmail.overflow, "hidden", `${scope}: Gmail remains clipped`);
+  assert.notEqual(state.gmail.textOverflow, "ellipsis", `${scope}: Gmail remains ellipsized`);
+  assert(state.gmail.scrollWidth <= state.gmail.clientWidth + 1, `${scope}: Gmail still overflows (${state.gmail.scrollWidth}/${state.gmail.clientWidth})`);
+}
+
 async function homeMatrix(browserType) {
   for (const viewport of [{ width: 390, height: 844, mobile: true }, { width: 1280, height: 900, mobile: false }]) {
     const context = await browserType.newContext({
@@ -539,10 +713,15 @@ async function homeMatrix(browserType) {
       assertPageTelegram(state, scope);
       assertHomeVisualSignature(state, scope, item.locale);
       assertHeroCta(state, scope);
+      await assertCompanyProofLayout(page, scope, viewport.mobile);
+      await assertFooterJoin(page, scope);
       assert.equal(state.counts.faqTags, 7, `${scope}: FAQ tag count`);
       assert.equal(state.counts.faqItems, 7, `${scope}: FAQ item count`);
-      assert.equal(state.counts.countries, 24, `${scope}: duplicated country item count`);
+      assert.equal(state.counts.countries, 0, `${scope}: removed country strip returned`);
       assert.equal(state.counts.metrics, 5, `${scope}: current five company metrics must remain`);
+      assert.equal(state.counts.jointBrandLockups, 1, `${scope}: joint brand lockup count`);
+      assert.equal(state.counts.companyIdentityBlocks, 1, `${scope}: company identity block count`);
+      assert(state.counts.socialFilters >= 2, `${scope}: social platform filters missing`);
       assert.equal(state.counts.progress, 1, `${scope}: progress count`);
       assert(state.rects.social, `${scope}: social section missing`);
       assert(state.rects.socialHeading, `${scope}: social heading missing`);
@@ -552,17 +731,15 @@ async function homeMatrix(browserType) {
       const socialCenter = state.rects.social.left + state.rects.social.width / 2;
       const headingCenter = state.rects.socialHeading.left + state.rects.socialHeading.width / 2;
       assert(Math.abs(socialCenter - headingCenter) <= 1, `${scope}: social heading center delta ${headingCenter - socialCenter}`);
+      await assertSocialPlatformFilters(page, scope);
       if (viewport.mobile) {
+        await assertMobileGalleryScroll(page, scope);
         assert.equal(state.counts.qrCards, 0, `${scope}: QR hover card must not initialize on touch`);
         await assertMobileSocialDisclosure(page, scope);
         if (item.rtl) await assertMobileRtlProcessLayout(page, scope);
       } else {
         assert.equal(state.counts.qrCards, 1, `${scope}: desktop QR card missing`);
-        assert.equal(await page.locator(".team-card.is-social-card-collapsed, .team-card[hidden]").count(), 0, `${scope}: social cards remain collapsed on desktop`);
-        const desktopSocialToggles = page.locator(".social-platform-toggle");
-        for (let index = 0; index < await desktopSocialToggles.count(); index += 1) {
-          assert.equal(await desktopSocialToggles.nth(index).isHidden(), true, `${scope}: social toggle visible on desktop`);
-        }
+        await assertDesktopSocialDisclosure(page, scope);
         assertDesktopFooter(state, scope, { contacts: true });
         await assertHeroCtaHover(page, scope);
       }
@@ -590,7 +767,8 @@ async function calculatorMatrix(browserType) {
     assertMobileMenuTrimmed(state, scope);
     assertCalculatorVisualSignature(state, scope, item.locale);
     assertDesktopFooter(state, scope);
-    assert(state.aiVersion.includes("ai-sourcing-assistant.js?v="), `${scope}: AI assistant missing`);
+    assert.equal(state.aiVersion, "", `${scope}: hidden AI bootstrap still loads by default`);
+    assert.equal(state.counts.calculatorModeTabs, 2, `${scope}: calculator mode tab count`);
     assert.equal(state.counts.cbm, 1, `${scope}: CBM visual count`);
     assert.equal(state.counts.progress, 1, `${scope}: progress count`);
     assert.equal(state.rects.conversionBar, null, `${scope}: calculator must not have mobile bar`);
@@ -656,12 +834,16 @@ async function inquiryMatrix(browserType) {
     assertShared(state, scope);
     assertHeaderNavigation(state, scope, { desktop: true });
     assertNoFloatingControls(state, scope);
-    assertMobileMenuTrimmed(state, scope);
+    assertMobileMenuTrimmed(state, scope, { teamLinks: 1 });
     assertPageTelegram(state, scope);
     assertDesktopFooter(state, scope, { contacts: true });
     assert.equal(state.counts.progress, 0, `${scope}: short inquiry page must not have progress bar`);
     assert.equal(state.counts.qrCards, 1, `${scope}: desktop QR enhancement missing`);
     assert.equal(state.rects.conversionBar, null, `${scope}: inquiry must not have mobile conversion bar`);
+    assert.equal(await page.locator(".site-nav-return-home").count(), 1, `${scope}: top return-home control count`);
+    assert.equal(await page.locator(".site-nav-return-home").getAttribute("href"), "../", `${scope}: top return-home target`);
+    assert.equal(await page.locator(".site-nav-mobile-home").count(), 0, `${scope}: duplicate return-home mobile item remains`);
+    assert.equal(await page.locator(".site-nav-mobile-team").count(), 1, `${scope}: mobile team-member item missing`);
     if (item.locale === "en") {
       const productField = page.locator('.inquiry-form [name="product"]');
       await productField.focus();
@@ -699,7 +881,7 @@ async function mobileHeaderMatrix(browserType) {
     assertShared(state, scope);
     assertHeaderNavigation(state, scope);
     assertNoFloatingControls(state, scope);
-    assertMobileMenuTrimmed(state, scope);
+    assertMobileMenuTrimmed(state, scope, { teamLinks: item.type === "inquiry" ? 1 : 0 });
     assert.equal(errors.length, 0, `${scope}: console errors ${errors.splice(0).join(" | ")}`);
   }
   await context.close();
@@ -798,40 +980,11 @@ async function interactionChecks(browserType) {
   assert.deepEqual(metricVisuals.map((item) => item.trim()), expectedMetrics, "company metric visuals changed or did not finish counting");
   assert.deepEqual(metricAccessible.map((item) => item.trim()), expectedMetrics, "company metric accessible copy changed during animation");
   assert.equal(await page.locator(".company-metric-card strong[aria-label]").count(), 0, "company metrics still rely on aria-label");
-  await page.locator(".service-country-marquee").scrollIntoViewIfNeeded();
-  await page.waitForTimeout(80);
-  const firstTransform = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  await page.waitForTimeout(180);
-  const secondTransform = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  assert(secondTransform < firstTransform, `LTR country strip direction is wrong: ${firstTransform} -> ${secondTransform}`);
-  await page.locator(".service-country-marquee").hover();
-  await page.waitForTimeout(80);
-  const pausedStart = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  await page.waitForTimeout(160);
-  const pausedEnd = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  assert(Math.abs(pausedEnd - pausedStart) < 1, `country strip did not pause: ${pausedStart} -> ${pausedEnd}`);
-  await page.mouse.move(0, 0);
-  const countryToggle = page.locator(".service-country-toggle");
-  await countryToggle.click();
-  await page.mouse.move(0, 0);
-  assert.equal(await countryToggle.getAttribute("aria-pressed"), "true", "country strip pause button state");
-  const userPausedStart = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  await page.waitForTimeout(180);
-  const userPausedEnd = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  assert(Math.abs(userPausedEnd - userPausedStart) < 1, `country strip user pause did not persist: ${userPausedStart} -> ${userPausedEnd}`);
-  await countryToggle.click();
-  await page.mouse.move(0, 0);
-  await page.waitForTimeout(180);
-  const resumedEnd = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  assert(resumedEnd < userPausedEnd - 1, `country strip did not resume: ${userPausedEnd} -> ${resumedEnd}`);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.waitForTimeout(40);
-  assert.equal(await page.locator(".service-country-marquee.is-static").count(), 1, "live reduced-motion change did not stop country strip");
-  assert.equal(await page.locator(".service-country-track").evaluate((element) => getComputedStyle(element).transform), "none", "country strip kept a transform after live reduced-motion change");
   assert.equal(await page.locator(".shipment-ticker.is-static").count(), 1, "live reduced-motion change did not stop shipment ticker");
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.waitForTimeout(180);
-  assert.equal(await page.locator(".service-country-marquee.is-static").count(), 0, "country strip did not leave static mode");
 
   for (let index = 0; index < 7; index += 1) {
     const button = page.locator(".faq-quick-tag").nth(index);
@@ -865,6 +1018,38 @@ async function interactionChecks(browserType) {
   await mobilePage.locator(".site-nav-mobile-menu > summary").click();
   assert.equal(await mobilePage.locator('.site-nav-mobile-panel a[href*="calculator"], .site-nav-mobile-panel a[href="./"], .site-nav-mobile-panel a[href*="#social-accounts"]').count(), 0, "removed calculator/team links remain in mobile menu");
   await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-menu-trimmed-390x844.png` });
+  await mobilePage.locator(".site-nav-mobile-menu").evaluate((menu) => { menu.open = false; });
+
+  const galleryRail = mobilePage.locator(".gallery-rail").first();
+  await galleryRail.scrollIntoViewIfNeeded();
+  await galleryRail.evaluate((rail) => { rail.scrollLeft = 0; });
+  const galleryBox = await galleryRail.boundingBox();
+  assert(galleryBox, "mobile gallery rail has no touchable bounding box");
+  const touchY = galleryBox.y + Math.min(galleryBox.height / 2, 180);
+  const touchStartX = galleryBox.x + Math.min(galleryBox.width - 28, 340);
+  const touchEndX = galleryBox.x + 48;
+  const cdp = await mobile.newCDPSession(mobilePage);
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x: touchStartX, y: touchY, radiusX: 7, radiusY: 7, force: 1 }]
+  });
+  for (const ratio of [0.2, 0.4, 0.6, 0.8, 1]) {
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [{
+        x: touchStartX + ((touchEndX - touchStartX) * ratio),
+        y: touchY,
+        radiusX: 7,
+        radiusY: 7,
+        force: 1
+      }]
+    });
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await mobilePage.waitForTimeout(350);
+  const touchScrollLeft = await galleryRail.evaluate((rail) => rail.scrollLeft);
+  assert(touchScrollLeft >= 120, `mobile gallery ignored a real horizontal touch swipe (${touchScrollLeft}px)`);
+  await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-gallery-native-swipe-390x844.png` });
   assert.equal(await mobilePage.locator(".whatsapp-qr-card").count(), 0, "touch page initialized QR hover card");
   assert.equal(mobileErrors.length, 0, `mobile interaction console errors: ${mobileErrors.join(" | ")}`);
   await mobile.close();
@@ -878,7 +1063,7 @@ async function accessibilityFallbackChecks(browserType) {
   await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction((count) => document.querySelectorAll(".shipment-ticker-item").length === count, VALID_SHIPMENTS.length * 2);
   assert.equal(await page.locator(".ui-section-reveal").count(), 0, "reduced motion still hides sections for reveal");
-  assert.equal(await page.locator(".service-country-marquee.is-static").count(), 1, "reduced motion country strip is not static");
+  assert.equal(await page.locator(".service-country-marquee, .service-country-toggle, .service-country-item").count(), 0, "removed country strip exists in reduced-motion mode");
   assert.equal(await page.locator(".shipment-ticker.is-static").count(), 1, "reduced motion shipment ticker is not static");
   assert.equal(await page.locator(".shipment-ticker-track").evaluate((element) => getComputedStyle(element).transform), "none", "reduced motion shipment ticker still transforms");
   assert.equal(await page.locator(".shipment-ticker-list").nth(1).evaluate((element) => getComputedStyle(element).display), "none", "reduced motion duplicate shipment list is visible");
@@ -927,12 +1112,6 @@ async function rtlMotionCheck(browserType) {
   await page.goto(`${BASE_URL}/ar/`, { waitUntil: "domcontentloaded" });
   await page.locator(".company-intro").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelector(".company-intro")?.classList.contains("is-visible"));
-  await page.locator(".service-country-marquee").scrollIntoViewIfNeeded();
-  await page.waitForTimeout(80);
-  const first = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  await page.waitForTimeout(180);
-  const second = await page.locator(".service-country-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  assert(second > first, `RTL country strip must run in the opposite direction: ${first} -> ${second}`);
   await page.locator(".shipment-ticker").scrollIntoViewIfNeeded();
   await page.waitForFunction((count) => document.querySelectorAll(".shipment-ticker-item").length === count, VALID_SHIPMENTS.length * 2);
   const shipmentFirst = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
@@ -976,6 +1155,19 @@ async function calculatorAnalyticsChecks(browserType) {
   await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
   assert.equal(await page.locator(".contact-speed-dial, .mobile-conversion-bar").count(), 0, "removed floating controls remain on calculator");
 
+  await page.locator('[data-calculator-mode="excel"]').click();
+  const analyzerMount = page.locator("[data-order-analyzer]");
+  await analyzerMount.waitFor({ state: "visible" });
+  const loadAnalyzer = analyzerMount.locator("[data-order-load]");
+  if (await loadAnalyzer.count()) await loadAnalyzer.click();
+  await page.waitForFunction(() => window.JABBAR_ORDER_ANALYZER_QA?.ready === true);
+  const excelQuoteLink = page.locator("[data-order-inquiry]");
+  assert.equal(await excelQuoteLink.count(), 1, "Excel analyzer inquiry CTA count");
+  assert.equal(await excelQuoteLink.getAttribute("href"), "/inquiry/", "Excel analyzer inquiry CTA path");
+  assert.equal((await excelQuoteLink.textContent())?.trim(), "携带此结果获取报价", "Excel analyzer inquiry CTA label");
+  assert.equal(await excelQuoteLink.isVisible(), false, "Excel analyzer inquiry CTA visible before a result");
+  await page.locator('[data-calculator-mode="quick"]').click();
+
   const events = async (name) => page.evaluate((eventName) => (window.dataLayer || [])
     .map((entry) => Array.from(entry))
     .filter((entry) => entry[0] === "event" && entry[1] === eventName)
@@ -1001,7 +1193,7 @@ async function calculatorAnalyticsChecks(browserType) {
   assert.equal(resultEvents[0].method, "manual", "calculator result method");
   assert.equal(resultEvents[0].locale, "zh-CN", "calculator result locale");
   assert(Number(resultEvents[0].total_cbm) > 0, "calculator result CBM missing");
-  const quoteLink = page.locator(".calculator-inquiry-cta");
+  const quoteLink = page.locator(".calculator-results .calculator-inquiry-cta");
   await quoteLink.waitFor({ state: "visible" });
 
   await page.locator("#qty").fill("0.5");
@@ -1071,8 +1263,11 @@ for (const item of HOME_PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes
   assertPageTelegram(state, `WebKit ${item.locale}`);
   assertHomeVisualSignature(state, `WebKit ${item.locale}`, item.locale);
   assertHeroCta(state, `WebKit ${item.locale}`);
+  await assertCompanyProofLayout(webkitPage, `WebKit ${item.locale}`, true);
+  await assertFooterJoin(webkitPage, `WebKit ${item.locale}`);
+  await assertMobileGalleryScroll(webkitPage, `WebKit ${item.locale}`);
   assert.equal(state.counts.faqTags, 7, `WebKit ${item.locale}: FAQ tags`);
-  assert.equal(state.counts.countries, 24, `WebKit ${item.locale}: countries`);
+  assert.equal(state.counts.countries, 0, `WebKit ${item.locale}: removed country strip returned`);
   if (item.locale === "zh") {
     await webkitPage.evaluate(() => document.querySelector('a[href="#social-accounts"]')?.click());
     await webkitPage.waitForFunction(() => location.hash === "#social-accounts");

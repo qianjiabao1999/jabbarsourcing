@@ -5,72 +5,82 @@
   var labels = {
     zh: {
       scan: "手机扫码直聊", reply: "在线 · 24 小时内回复",
-      countries: "服务国家和地区", pauseCountries: "暂停国家滚动", resumeCountries: "继续国家滚动",
       shipments: "最近发运", cbmTitle: "集装箱装载示意", quoteWithResult: "用此结果获取报价",
       showAllAccounts: "查看全部账号", showFewerAccounts: "收起账号",
+      calculatorModes: "选择计算方式", quickMode: "快速计算", excelMode: "Excel 订单分析",
+      allPlatforms: "全部平台", socialFilter: "按平台筛选账号",
       faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发"]
     },
     en: {
       scan: "Scan to chat", reply: "Online · replies within 24h",
-      countries: "Countries and regions served", pauseCountries: "Pause country list", resumeCountries: "Resume country list",
       shipments: "Recent shipments", cbmTitle: "Container loading illustration", quoteWithResult: "Get a quote with this result",
       showAllAccounts: "View all accounts", showFewerAccounts: "Show fewer accounts",
+      calculatorModes: "Choose calculation mode", quickMode: "Quick calculation", excelMode: "Excel order analysis",
+      allPlatforms: "All platforms", socialFilter: "Filter accounts by platform",
       faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping"]
     },
     es: {
       scan: "Escanea para chatear", reply: "En línea · respuesta en 24 h",
-      countries: "Países y regiones atendidos", pauseCountries: "Pausar lista de países", resumeCountries: "Reanudar lista de países",
       shipments: "Envíos recientes", cbmTitle: "Ilustración de carga del contenedor", quoteWithResult: "Solicitar cotización con este resultado",
       showAllAccounts: "Ver todas las cuentas", showFewerAccounts: "Mostrar menos cuentas",
+      calculatorModes: "Elegir modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análisis de Excel",
+      allPlatforms: "Todas las plataformas", socialFilter: "Filtrar cuentas por plataforma",
       faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo"]
     },
     ar: {
       scan: "امسح للدردشة", reply: "متصل · نرد خلال 24 ساعة",
-      countries: "الدول والمناطق التي نخدمها", pauseCountries: "إيقاف قائمة الدول مؤقتًا", resumeCountries: "استئناف قائمة الدول",
       shipments: "الشحنات الأخيرة", cbmTitle: "رسم توضيحي لتحميل الحاوية", quoteWithResult: "اطلب عرض سعر بهذه النتيجة",
       showAllAccounts: "عرض كل الحسابات", showFewerAccounts: "عرض حسابات أقل",
+      calculatorModes: "اختر طريقة الحساب", quickMode: "حساب سريع", excelMode: "تحليل طلبات Excel",
+      allPlatforms: "جميع المنصات", socialFilter: "تصفية الحسابات حسب المنصة",
       faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر"]
     },
     fr: {
       scan: "Scannez pour discuter", reply: "En ligne · réponse sous 24 h",
-      countries: "Pays et régions desservis", pauseCountries: "Mettre la liste des pays en pause", resumeCountries: "Reprendre la liste des pays",
       shipments: "Expéditions récentes", cbmTitle: "Illustration du chargement du conteneur", quoteWithResult: "Demander un devis avec ce résultat",
       showAllAccounts: "Voir tous les comptes", showFewerAccounts: "Afficher moins de comptes",
+      calculatorModes: "Choisir le mode de calcul", quickMode: "Calcul rapide", excelMode: "Analyse Excel",
+      allPlatforms: "Toutes les plateformes", socialFilter: "Filtrer les comptes par plateforme",
       faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe"]
     },
     pt: {
       scan: "Escaneie para conversar", reply: "Online · resposta em até 24 h",
-      countries: "Países e regiões atendidos", pauseCountries: "Pausar lista de países", resumeCountries: "Retomar lista de países",
       shipments: "Envios recentes", cbmTitle: "Ilustração do carregamento do contêiner", quoteWithResult: "Pedir cotação com este resultado",
       showAllAccounts: "Ver todas as contas", showFewerAccounts: "Mostrar menos contas",
+      calculatorModes: "Escolher modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análise de Excel",
+      allPlatforms: "Todas as plataformas", socialFilter: "Filtrar contas por plataforma",
       faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping"]
     },
     ru: {
       scan: "Сканируйте для чата", reply: "Онлайн · ответим в течение 24 ч",
-      countries: "Страны и регионы обслуживания", pauseCountries: "Приостановить список стран", resumeCountries: "Продолжить список стран",
       shipments: "Последние отправки", cbmTitle: "Схема загрузки контейнера", quoteWithResult: "Запросить расчёт с этим результатом",
       showAllAccounts: "Показать все аккаунты", showFewerAccounts: "Свернуть список",
+      calculatorModes: "Выбор режима расчета", quickMode: "Быстрый расчет", excelMode: "Анализ Excel",
+      allPlatforms: "Все платформы", socialFilter: "Фильтр аккаунтов по платформе",
       faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг"]
     },
     de: {
       scan: "Zum Chatten scannen", reply: "Online · Antwort innerhalb 24 Std.",
-      countries: "Bediente Länder und Regionen", pauseCountries: "Länderliste pausieren", resumeCountries: "Länderliste fortsetzen",
       shipments: "Letzte Sendungen", cbmTitle: "Darstellung der Containerbeladung", quoteWithResult: "Mit diesem Ergebnis Angebot anfragen",
       showAllAccounts: "Alle Konten anzeigen", showFewerAccounts: "Weniger Konten anzeigen",
+      calculatorModes: "Berechnungsart wählen", quickMode: "Schnellberechnung", excelMode: "Excel-Analyse",
+      allPlatforms: "Alle Plattformen", socialFilter: "Konten nach Plattform filtern",
       faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping"]
     },
     it: {
       scan: "Scansiona per chattare", reply: "Online · risposta entro 24 ore",
-      countries: "Paesi e regioni serviti", pauseCountries: "Metti in pausa l’elenco dei Paesi", resumeCountries: "Riprendi l’elenco dei Paesi",
       shipments: "Spedizioni recenti", cbmTitle: "Illustrazione del carico del container", quoteWithResult: "Richiedi un preventivo con questo risultato",
       showAllAccounts: "Vedi tutti gli account", showFewerAccounts: "Mostra meno account",
+      calculatorModes: "Scegli modalità di calcolo", quickMode: "Calcolo rapido", excelMode: "Analisi Excel",
+      allPlatforms: "Tutte le piattaforme", socialFilter: "Filtra account per piattaforma",
       faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping"]
     },
     tr: {
       scan: "Sohbet için tarayın", reply: "Çevrimiçi · 24 saat içinde yanıt",
-      countries: "Hizmet verilen ülkeler ve bölgeler", pauseCountries: "Ülke listesini duraklat", resumeCountries: "Ülke listesini sürdür",
       shipments: "Son gönderiler", cbmTitle: "Konteyner yükleme görseli", quoteWithResult: "Bu sonuçla teklif iste",
       showAllAccounts: "Tüm hesapları göster", showFewerAccounts: "Daha az hesap göster",
+      calculatorModes: "Hesaplama yöntemini seçin", quickMode: "Hızlı hesaplama", excelMode: "Excel analizi",
+      allPlatforms: "Tüm platformlar", socialFilter: "Platforma göre hesapları filtrele",
       faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış"]
     }
   };
@@ -197,6 +207,13 @@
   var pageAttribution = captureAttribution();
   window.jabbarCaptureAttribution = captureAttribution;
 
+  function socialPlatformKey(group) {
+    if (!group) return "unknown";
+    if (group.dataset.socialPlatform) return group.dataset.socialPlatform;
+    var match = String(group.className || "").match(/social-platform-group-([a-z0-9-]+)/i);
+    return match ? match[1].toLowerCase() : "unknown";
+  }
+
   function initAnalyticsEvents() {
     if (typeof window.jabbarTrack !== "function") {
       window.jabbarTrack = function (eventName, params) {
@@ -207,6 +224,40 @@
 
     var calculatorPage = document.querySelector("main.calculator-page");
     var inquiryForm = document.querySelector(".js-inquiry-form");
+    var social = document.querySelector(".social-platform-groups");
+
+    if (social) {
+      social.addEventListener("click", function (event) {
+        var card = event.target.closest("a.team-card[href]");
+        if (!card || !social.contains(card)) return;
+        var group = card.closest(".social-platform-group");
+        var grid = card.parentElement;
+        var cards = grid ? Array.prototype.filter.call(grid.children, function (child) {
+          return child.classList.contains("team-card");
+        }) : [];
+        var handleNode = card.querySelector(".team-handle");
+        var handle = handleNode ? handleNode.textContent.trim() : "";
+        window.jabbarTrack("social_profile_click", withAttribution({
+          locale: lang,
+          source_path: safeLandingPath(window.location.pathname),
+          platform: socialPlatformKey(group),
+          handle: handle.slice(0, 100),
+          position: Math.max(1, cards.indexOf(card) + 1)
+        }, pageAttribution));
+      });
+
+      if ("IntersectionObserver" in window) {
+        var socialObserver = new IntersectionObserver(function (entries) {
+          if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+          window.jabbarTrack("social_accounts_view", withAttribution({
+            locale: lang,
+            source_path: safeLandingPath(window.location.pathname)
+          }, pageAttribution));
+          socialObserver.disconnect();
+        }, { threshold: 0.24 });
+        socialObserver.observe(social);
+      }
+    }
 
     if (!inquiryForm) {
       document.addEventListener("click", function (event) {
@@ -234,6 +285,94 @@
         page_type: "calculator"
       });
     }, true);
+  }
+
+  function initCalculatorModes() {
+    var panel = document.querySelector(".calculator-panel");
+    var analyzer = panel && panel.querySelector("[data-order-analyzer]");
+    var manualLabel = panel && panel.querySelector(".calculator-manual-label");
+    var form = panel && panel.querySelector("#cbm-calculator");
+    if (!panel || !analyzer || !manualLabel || !form || panel.querySelector(".calculator-mode-tabs")) return;
+
+    var tabs = createElement("div", "calculator-mode-tabs");
+    tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-orientation", "horizontal");
+    tabs.setAttribute("aria-label", copy.calculatorModes);
+
+    var quickButton = createElement("button", "calculator-mode-tab is-active", copy.quickMode);
+    quickButton.type = "button";
+    quickButton.id = "calculator-mode-quick-tab";
+    quickButton.setAttribute("role", "tab");
+    quickButton.setAttribute("aria-selected", "true");
+    quickButton.setAttribute("aria-controls", "calculator-mode-quick");
+    quickButton.dataset.calculatorMode = "quick";
+
+    var excelButton = createElement("button", "calculator-mode-tab", copy.excelMode);
+    excelButton.type = "button";
+    excelButton.id = "calculator-mode-excel-tab";
+    excelButton.setAttribute("role", "tab");
+    excelButton.setAttribute("aria-selected", "false");
+    excelButton.setAttribute("aria-controls", "calculator-mode-excel");
+    excelButton.setAttribute("tabindex", "-1");
+    excelButton.dataset.calculatorMode = "excel";
+
+    tabs.appendChild(quickButton);
+    tabs.appendChild(excelButton);
+
+    var quickPanel = createElement("section", "calculator-mode-panel calculator-mode-panel-quick");
+    quickPanel.id = "calculator-mode-quick";
+    quickPanel.setAttribute("role", "tabpanel");
+    quickPanel.setAttribute("aria-labelledby", quickButton.id);
+    quickPanel.appendChild(manualLabel);
+    quickPanel.appendChild(form);
+
+    var excelPanel = createElement("section", "calculator-mode-panel calculator-mode-panel-excel");
+    excelPanel.id = "calculator-mode-excel";
+    excelPanel.setAttribute("role", "tabpanel");
+    excelPanel.setAttribute("aria-labelledby", excelButton.id);
+    excelPanel.hidden = true;
+    excelPanel.appendChild(analyzer);
+
+    panel.prepend(excelPanel);
+    panel.prepend(quickPanel);
+    panel.prepend(tabs);
+
+    var buttons = [quickButton, excelButton];
+    function activate(mode, shouldFocus, shouldTrack) {
+      var excelActive = mode === "excel";
+      quickPanel.hidden = excelActive;
+      excelPanel.hidden = !excelActive;
+      buttons.forEach(function (button) {
+        var selected = button.dataset.calculatorMode === mode;
+        button.classList.toggle("is-active", selected);
+        button.setAttribute("aria-selected", String(selected));
+        button.setAttribute("tabindex", selected ? "0" : "-1");
+        if (selected && shouldFocus) button.focus();
+      });
+      if (shouldTrack) {
+        window.jabbarTrack("calculator_mode_change", withAttribution({
+          locale: lang,
+          source_path: safeLandingPath(window.location.pathname),
+          mode: mode
+        }, pageAttribution));
+      }
+    }
+
+    buttons.forEach(function (button, index) {
+      button.addEventListener("click", function () {
+        activate(button.dataset.calculatorMode, false, true);
+      });
+      button.addEventListener("keydown", function (event) {
+        if (["ArrowLeft", "ArrowRight", "Home", "End"].indexOf(event.key) === -1) return;
+        event.preventDefault();
+        var forwardKey = document.documentElement.dir === "rtl" ? "ArrowLeft" : "ArrowRight";
+        var targetIndex = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1
+          : event.key === forwardKey ? (index + 1) % buttons.length : (index - 1 + buttons.length) % buttons.length;
+        activate(buttons[targetIndex].dataset.calculatorMode, true, true);
+      });
+    });
+
+    activate("quick", false, false);
   }
 
   function initCalculatorInquiryBridge() {
@@ -778,106 +917,6 @@
       });
     }
 
-    var introLayout = document.querySelector(".company-intro-layout");
-    var metricGrid = document.querySelector(".company-metrics");
-    if (!introLayout || !metricGrid || document.querySelector(".service-country-marquee")) return;
-
-    var countries = [
-      ["🇬🇭", "GH"], ["🇳🇬", "NG"], ["🇧🇷", "BR"], ["🇲🇽", "MX"],
-      ["🇷🇺", "RU"], ["🇸🇦", "SA"], ["🇦🇪", "AE"], ["🇹🇷", "TR"],
-      ["🇰🇿", "KZ"], ["🇮🇩", "ID"], ["🇪🇸", "ES"], ["🇮🇹", "IT"]
-    ];
-    var fallbackNames = ["Ghana", "Nigeria", "Brazil", "Mexico", "Russia", "Saudi Arabia", "United Arab Emirates", "Turkey", "Kazakhstan", "Indonesia", "Spain", "Italy"];
-    var displayNames = null;
-    try { displayNames = new Intl.DisplayNames([lang], { type: "region" }); } catch (error) {}
-
-    var marquee = createElement("div", "service-country-marquee");
-    marquee.setAttribute("role", "region");
-    marquee.setAttribute("aria-label", copy.countries);
-    var toggle = createElement("button", "service-country-toggle", copy.pauseCountries);
-    toggle.type = "button";
-    toggle.setAttribute("aria-pressed", "false");
-    var track = createElement("div", "service-country-track");
-    function countryList(hidden) {
-      var list = createElement("ul", "service-country-list");
-      if (hidden) list.setAttribute("aria-hidden", "true");
-      countries.forEach(function (country, index) {
-        var item = createElement("li", "service-country-item");
-        item.setAttribute("dir", "auto");
-        item.appendChild(createElement("span", "service-country-flag", country[0]));
-        item.appendChild(createElement("span", "service-country-name", displayNames ? displayNames.of(country[1]) : fallbackNames[index]));
-        list.appendChild(item);
-      });
-      return list;
-    }
-    var firstList = countryList(false);
-    track.appendChild(firstList);
-    track.appendChild(countryList(true));
-    marquee.appendChild(toggle);
-    marquee.appendChild(track);
-    introLayout.appendChild(marquee);
-
-    var offset = 0;
-    var width = 0;
-    var visible = true;
-    var hoverPaused = false;
-    var userPaused = false;
-    var frameId = 0;
-    var last = 0;
-    var rtl = document.documentElement.dir === "rtl";
-
-    function measure() {
-      width = firstList.getBoundingClientRect().width;
-      if (rtl && offset === 0) offset = -width;
-    }
-    function stop() {
-      if (frameId) window.cancelAnimationFrame(frameId);
-      frameId = 0;
-      last = 0;
-    }
-    function frame(now) {
-      if (!last) last = now;
-      var frameScale = Math.min(2, Math.max(0, (now - last) / 16.67));
-      last = now;
-      offset += (rtl ? 0.5 : -0.5) * frameScale;
-      if (!rtl && offset <= -width) offset += width;
-      if (rtl && offset >= 0) offset -= width;
-      track.style.transform = "translate3d(" + offset + "px,0,0)";
-      frameId = window.requestAnimationFrame(frame);
-    }
-    function sync() {
-      var paused = reducedMotion || hoverPaused || userPaused || !visible || document.hidden || width <= 0;
-      marquee.classList.toggle("is-paused", hoverPaused || userPaused);
-      if (paused) stop();
-      else if (!frameId) frameId = window.requestAnimationFrame(frame);
-    }
-    function syncReducedState() {
-      marquee.classList.toggle("is-static", reducedMotion);
-      if (reducedMotion) track.style.transform = "none";
-      else measure();
-      sync();
-    }
-    function setUserPaused(value) {
-      userPaused = value;
-      toggle.setAttribute("aria-pressed", String(userPaused));
-      toggle.textContent = userPaused ? copy.resumeCountries : copy.pauseCountries;
-      sync();
-    }
-
-    toggle.addEventListener("click", function () { setUserPaused(!userPaused); });
-    marquee.addEventListener("pointerenter", function () { hoverPaused = true; sync(); });
-    marquee.addEventListener("pointerleave", function () { hoverPaused = false; sync(); });
-    document.addEventListener("visibilitychange", sync);
-    window.addEventListener("resize", function () { measure(); sync(); }, { passive: true });
-    if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) { visible = entry.isIntersecting; });
-        sync();
-      }, { rootMargin: "120px 0px" }).observe(marquee);
-    }
-    onReducedMotionChange(syncReducedState);
-    measure();
-    syncReducedState();
   }
 
   function initFaqTags() {
@@ -927,6 +966,49 @@
     var mobileQuery = window.matchMedia("(max-width: 767px)");
     var groups = Array.prototype.slice.call(social.querySelectorAll(".social-platform-group"));
 
+    groups.forEach(function (group) {
+      group.dataset.socialPlatform = socialPlatformKey(group);
+    });
+
+    if (groups.length > 1 && !social.querySelector(".social-platform-filters")) {
+      var filters = createElement("div", "social-platform-filters");
+      filters.setAttribute("role", "group");
+      filters.setAttribute("aria-label", copy.socialFilter);
+      var filterItems = [{ key: "all", label: copy.allPlatforms }].concat(groups.map(function (group) {
+        var title = group.querySelector(".social-platform-title");
+        return { key: group.dataset.socialPlatform, label: title ? title.textContent.trim() : group.dataset.socialPlatform };
+      }));
+
+      filterItems.forEach(function (item, index) {
+        var button = createElement("button", "social-platform-filter" + (index === 0 ? " is-active" : ""), item.label);
+        button.type = "button";
+        button.dataset.socialFilter = item.key;
+        button.setAttribute("aria-pressed", String(index === 0));
+        button.addEventListener("click", function () {
+          var selected = button.dataset.socialFilter;
+          Array.prototype.forEach.call(filters.querySelectorAll(".social-platform-filter"), function (candidate) {
+            var active = candidate === button;
+            candidate.classList.toggle("is-active", active);
+            candidate.setAttribute("aria-pressed", String(active));
+          });
+          groups.forEach(function (group) {
+            group.hidden = selected !== "all" && group.dataset.socialPlatform !== selected;
+          });
+          social.classList.toggle("is-social-filtered", selected !== "all");
+          window.jabbarTrack("social_platform_filter", withAttribution({
+            locale: lang,
+            source_path: safeLandingPath(window.location.pathname),
+            platform: selected
+          }, pageAttribution));
+        });
+        filters.appendChild(button);
+      });
+
+      var heading = social.querySelector(".social-accounts-heading") || social.querySelector(".section-heading");
+      if (heading) heading.insertAdjacentElement("afterend", filters);
+      else social.prepend(filters);
+    }
+
     groups.forEach(function (group, groupIndex) {
       var grid = group.querySelector(".team-grid");
       if (!grid) return;
@@ -951,21 +1033,29 @@
 
       function sync() {
         var mobile = mobileQuery.matches;
-        var collapsed = mobile && !expanded;
+        var visibleLimit = mobile ? 4 : 6;
+        var collapsible = cards.length > visibleLimit;
+        var collapsed = collapsible && !expanded;
         cards.forEach(function (card, cardIndex) {
-          var hidden = collapsed && cardIndex >= 4;
+          var hidden = collapsed && cardIndex >= visibleLimit;
           card.hidden = hidden;
           card.classList.toggle("is-social-card-collapsed", hidden);
         });
-        group.classList.toggle("is-social-expanded", mobile && expanded);
-        toggle.hidden = !mobile;
-        toggle.setAttribute("aria-expanded", String(mobile && expanded));
+        group.classList.toggle("is-social-expanded", collapsible && expanded);
+        toggle.hidden = !collapsible;
+        toggle.setAttribute("aria-expanded", String(collapsible && expanded));
         toggle.textContent = expanded ? copy.showFewerAccounts : copy.showAllAccounts;
       }
 
       toggle.addEventListener("click", function () {
         expanded = !expanded;
         sync();
+        window.jabbarTrack(expanded ? "social_accounts_expand" : "social_accounts_collapse", withAttribution({
+          locale: lang,
+          source_path: safeLandingPath(window.location.pathname),
+          platform: group.dataset.socialPlatform,
+          account_count: cards.length
+        }, pageAttribution));
       });
       if (typeof mobileQuery.addEventListener === "function") mobileQuery.addEventListener("change", sync);
       else if (typeof mobileQuery.addListener === "function") mobileQuery.addListener(sync);
@@ -974,6 +1064,7 @@
   }
 
   initAnalyticsEvents();
+  initCalculatorModes();
   initCalculatorInquiryBridge();
   initTrustStamps();
   initShipmentTicker();
