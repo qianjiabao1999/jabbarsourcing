@@ -927,6 +927,9 @@
         rail.addEventListener("pointerdown", beginMobilePointerInteraction, { passive: true });
         rail.addEventListener("pointerup", endMobilePointerInteraction, { passive: true });
         rail.addEventListener("pointercancel", endMobilePointerInteraction, { passive: true });
+        rail.addEventListener("touchstart", beginMobilePointerInteraction, { passive: true });
+        rail.addEventListener("touchend", endMobilePointerInteraction, { passive: true });
+        rail.addEventListener("touchcancel", endMobilePointerInteraction, { passive: true });
         rail.addEventListener("scroll", adoptManualMobilePosition, { passive: true });
         rail.addEventListener("wheel", function () {
           pauseMobileLoop();

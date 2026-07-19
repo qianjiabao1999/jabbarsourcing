@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CSS_VERSION = "apple-178";
-const UI_VERSION = "ui-20260719f";
+const UI_VERSION = "ui-20260719g";
 const ORDER_VERSION = "order-20260719c";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
