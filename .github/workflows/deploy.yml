@@ -117,54 +117,63 @@ jobs:
             --include='/ar/calculator/index.html' \
             --include='/ar/inquiry/' \
             --include='/ar/inquiry/index.html' \
+            --include='/ar/website-privacy-policy.html' \
             --include='/de/' \
             --include='/de/index.html' \
             --include='/de/calculator/' \
             --include='/de/calculator/index.html' \
             --include='/de/inquiry/' \
             --include='/de/inquiry/index.html' \
+            --include='/de/website-privacy-policy.html' \
             --include='/en/' \
             --include='/en/index.html' \
             --include='/en/calculator/' \
             --include='/en/calculator/index.html' \
             --include='/en/inquiry/' \
             --include='/en/inquiry/index.html' \
+            --include='/en/website-privacy-policy.html' \
             --include='/es/' \
             --include='/es/index.html' \
             --include='/es/calculator/' \
             --include='/es/calculator/index.html' \
             --include='/es/inquiry/' \
             --include='/es/inquiry/index.html' \
+            --include='/es/website-privacy-policy.html' \
             --include='/fr/' \
             --include='/fr/index.html' \
             --include='/fr/calculator/' \
             --include='/fr/calculator/index.html' \
             --include='/fr/inquiry/' \
             --include='/fr/inquiry/index.html' \
+            --include='/fr/website-privacy-policy.html' \
             --include='/it/' \
             --include='/it/index.html' \
             --include='/it/calculator/' \
             --include='/it/calculator/index.html' \
             --include='/it/inquiry/' \
             --include='/it/inquiry/index.html' \
+            --include='/it/website-privacy-policy.html' \
             --include='/pt/' \
             --include='/pt/index.html' \
             --include='/pt/calculator/' \
             --include='/pt/calculator/index.html' \
             --include='/pt/inquiry/' \
             --include='/pt/inquiry/index.html' \
+            --include='/pt/website-privacy-policy.html' \
             --include='/ru/' \
             --include='/ru/index.html' \
             --include='/ru/calculator/' \
             --include='/ru/calculator/index.html' \
             --include='/ru/inquiry/' \
             --include='/ru/inquiry/index.html' \
+            --include='/ru/website-privacy-policy.html' \
             --include='/tr/' \
             --include='/tr/index.html' \
             --include='/tr/calculator/' \
             --include='/tr/calculator/index.html' \
             --include='/tr/inquiry/' \
             --include='/tr/inquiry/index.html' \
+            --include='/tr/website-privacy-policy.html' \
             --exclude='*' \
             ./ _site/
 
@@ -196,7 +205,8 @@ jobs:
             test -f "_site/$locale/index.html"
             test -f "_site/$locale/calculator/index.html"
             test -f "_site/$locale/inquiry/index.html"
-            test "$(find "_site/$locale" -type f | wc -l)" -eq 3
+            test -f "_site/$locale/website-privacy-policy.html"
+            test "$(find "_site/$locale" -type f | wc -l)" -eq 4
           done
           test -f _site/calculator/index.html
           test -f _site/inquiry/index.html
@@ -207,7 +217,7 @@ jobs:
           test -f _site/assets/calculator-order-analyzer.js
           test -f _site/assets/calculator-order-worker.js
           test -f _site/assets/vendor/xlsx.full.min.js
-          test "$(find _site -type f -name '*.html' | wc -l)" -eq 35
+          test "$(find _site -type f -name '*.html' | wc -l)" -eq 44
 
           test ! -e _site/assets/social-source
           test -z "$(find _site/assets/gallery -maxdepth 1 -type f -name '*.jpg' -print)"
