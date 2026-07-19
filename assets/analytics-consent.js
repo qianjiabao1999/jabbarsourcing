@@ -5,12 +5,22 @@
 
   var STORAGE_KEY = "jabbar.analyticsConsent.v1";
   var SESSION_DEFER_KEY = "jabbar.analyticsConsent.deferred";
+  var POLICY_VERSION = "2026-07-19";
+  var CONSENT_TTL_MS = 365 * 24 * 60 * 60 * 1000;
+  var AUTO_PROMPT_DELAY_MS = 1800;
   var GOOGLE_ID = "G-C6X14RZHNZ";
   var CLARITY_ID = "xgsjhmd527";
   var VALID_STATES = { granted: true, denied: true };
   var queuedEvents = [];
   var analyticsLoaded = false;
   var panel = null;
+  var primaryAction = null;
+  var lastFocusedElement = null;
+  var autoPromptTimer = 0;
+  var autoPromptInputEventsInstalled = false;
+  var autoPromptTriggered = false;
+  var inquiryForm = null;
+  var inquiryFormFocused = false;
 
   var messages = {
     "zh": {
@@ -117,7 +127,18 @@
   function readStoredState() {
     try {
       var value = window.localStorage.getItem(STORAGE_KEY);
-      return VALID_STATES[value] ? value : null;
+      if (!value) return null;
+      if (VALID_STATES[value]) {
+        storeState(value);
+        return value;
+      }
+      var record = JSON.parse(value);
+      if (!record || !VALID_STATES[record.state] || typeof record.at !== "number") return null;
+      if (record.policy !== POLICY_VERSION || Date.now() - record.at > CONSENT_TTL_MS || record.at > Date.now() + 60000) {
+        window.localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+      return record.state;
     } catch (error) {
       return null;
     }
@@ -125,7 +146,11 @@
 
   function storeState(value) {
     try {
-      window.localStorage.setItem(STORAGE_KEY, value);
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        state: value,
+        at: Date.now(),
+        policy: POLICY_VERSION
+      }));
     } catch (error) {}
   }
 
@@ -183,6 +208,19 @@
       window.gtag = window.gtag || function () {
         window.dataLayer.push(arguments);
       };
+      window.gtag("consent", "default", {
+        ad_storage: "denied",
+        analytics_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        wait_for_update: 500
+      });
+      window.gtag("consent", "update", {
+        ad_storage: "denied",
+        analytics_storage: "granted",
+        ad_user_data: "denied",
+        ad_personalization: "denied"
+      });
       window.gtag("js", new Date());
       window.gtag("config", GOOGLE_ID, { anonymize_ip: true });
       appendExternalScript(
@@ -231,13 +269,110 @@
     });
   }
 
-  function setPanelOpen(isOpen) {
+  function focusWithoutScroll(element) {
+    if (!element || typeof element.focus !== "function") return;
+    try {
+      element.focus({ preventScroll: true });
+    } catch (error) {
+      element.focus();
+    }
+  }
+
+  function setPanelOpen(isOpen, shouldFocus) {
     if (!panel) return;
     panel.hidden = !isOpen;
+    if (isOpen && shouldFocus) {
+      lastFocusedElement = document.activeElement;
+      focusWithoutScroll(primaryAction);
+    } else if (!isOpen && lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+      focusWithoutScroll(lastFocusedElement);
+      lastFocusedElement = null;
+    }
+  }
+
+  function clearAutomaticPromptTriggers() {
+    if (autoPromptTimer) {
+      window.clearTimeout(autoPromptTimer);
+      autoPromptTimer = 0;
+    }
+    if (autoPromptInputEventsInstalled) {
+      window.removeEventListener("wheel", handleAutomaticScrollIntent);
+      window.removeEventListener("touchmove", handleAutomaticScrollIntent);
+      document.removeEventListener("keydown", handleAutomaticScrollIntent);
+      autoPromptInputEventsInstalled = false;
+    }
+  }
+
+  function canShowAutomaticPanel() {
+    return !consentState && !readSessionDeferred() && !inquiryFormFocused;
+  }
+
+  function maybeShowAutomaticPanel() {
+    if (!autoPromptTriggered || !canShowAutomaticPanel() || !panel || !panel.hidden) return;
+    setPanelOpen(true, false);
+  }
+
+  function triggerAutomaticPanel() {
+    autoPromptTriggered = true;
+    clearAutomaticPromptTriggers();
+    maybeShowAutomaticPanel();
+  }
+
+  function handleAutomaticScrollIntent(event) {
+    if (event.type === "wheel" && !event.deltaY) return;
+    if (event.type === "keydown") {
+      var scrollKeys = {
+        ArrowDown: true,
+        ArrowUp: true,
+        End: true,
+        Home: true,
+        PageDown: true,
+        PageUp: true,
+        Spacebar: true,
+        " ": true
+      };
+      if (!scrollKeys[event.key]) return;
+      var target = event.target;
+      if (target && (target.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName))) return;
+    }
+    triggerAutomaticPanel();
+  }
+
+  function hidePanelForInquiryFocus() {
+    inquiryFormFocused = true;
+    if (!panel || panel.hidden) return;
+    lastFocusedElement = null;
+    setPanelOpen(false, false);
+  }
+
+  function syncInquiryFormFocus() {
+    inquiryFormFocused = Boolean(inquiryForm && inquiryForm.contains(document.activeElement));
+    if (inquiryFormFocused) hidePanelForInquiryFocus();
+    else maybeShowAutomaticPanel();
+  }
+
+  function installInquiryFormGuard() {
+    inquiryForm = document.querySelector(".js-inquiry-form");
+    if (!inquiryForm) return;
+    inquiryForm.addEventListener("focusin", hidePanelForInquiryFocus);
+    inquiryForm.addEventListener("focusout", function () {
+      window.setTimeout(syncInquiryFormFocus, 0);
+    });
+    syncInquiryFormFocus();
+  }
+
+  function installAutomaticPrompt() {
+    if (consentState || readSessionDeferred()) return;
+    autoPromptTimer = window.setTimeout(triggerAutomaticPanel, AUTO_PROMPT_DELAY_MS);
+    window.addEventListener("wheel", handleAutomaticScrollIntent, { passive: true });
+    window.addEventListener("touchmove", handleAutomaticScrollIntent, { passive: true });
+    document.addEventListener("keydown", handleAutomaticScrollIntent);
+    autoPromptInputEventsInstalled = true;
   }
 
   function accept() {
     consentState = "granted";
+    clearAutomaticPromptTriggers();
     setPanelOpen(false);
     setSessionDeferred(false);
     storeState(consentState);
@@ -247,17 +382,27 @@
   function reject() {
     var requiresReload = analyticsLoaded;
     consentState = "denied";
+    clearAutomaticPromptTriggers();
     queuedEvents.length = 0;
     setPanelOpen(false);
     setSessionDeferred(false);
     storeState(consentState);
     try {
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
+          ad_storage: "denied",
+          analytics_storage: "denied",
+          ad_user_data: "denied",
+          ad_personalization: "denied"
+        });
+      }
       clearKnownAnalyticsCookies();
     } catch (error) {}
     if (requiresReload) window.location.reload();
   }
 
   function decideLater() {
+    clearAutomaticPromptTriggers();
     setSessionDeferred(true);
     setPanelOpen(false);
   }
@@ -282,14 +427,14 @@
     var style = document.createElement("style");
     style.id = "jabbar-analytics-consent-style";
     style.textContent = [
-      "#jabbar-analytics-consent{position:fixed;z-index:2147483000;left:50%;bottom:max(14px,env(safe-area-inset-bottom));width:min(760px,calc(100% - 28px));transform:translateX(-50%);font-family:DM Sans,Arial,sans-serif;color:#17243a}",
+      "#jabbar-analytics-consent{position:fixed;z-index:2147483000;left:50%;bottom:max(14px,env(safe-area-inset-bottom));width:min(760px,calc(100% - 28px));transform:translateX(-50%);font-family:Arial,Helvetica,sans-serif;color:#17243a}",
       "#jabbar-analytics-consent[hidden]{display:none!important}",
       ".jabbar-consent-card{border:1px solid rgba(15,118,110,.2);border-radius:20px;background:rgba(255,255,255,.98);box-shadow:0 6px 18px rgba(20,51,86,.08);padding:18px 20px;backdrop-filter:blur(16px)}",
       ".jabbar-consent-title{margin:0 0 6px;font-size:18px;line-height:1.35;font-weight:750;color:#12334d}",
       ".jabbar-consent-body{margin:0;font-size:14px;line-height:1.6;color:#43546a}",
       ".jabbar-consent-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:15px}",
       ".jabbar-consent-actions button,.jabbar-consent-actions a{min-height:42px;border-radius:999px;padding:9px 16px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}",
-      ".jabbar-consent-accept{border:1px solid transparent;background:linear-gradient(135deg,#147ca6,#0f766e);color:#fff}",
+      ".jabbar-consent-accept{border:1px solid transparent;background-color:#0f766e;background-image:linear-gradient(135deg,#147ca6,#0f766e);color:#fff}",
       ".jabbar-consent-reject,.jabbar-consent-later{border:1px solid rgba(40,79,112,.2);background:#f6fafc;color:#24445f}",
       ".jabbar-consent-privacy{display:inline-flex;align-items:center;color:#116d77}",
       ".jabbar-consent-actions button:focus-visible,.jabbar-consent-actions a:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}",
@@ -308,6 +453,8 @@
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "false");
     panel.setAttribute("aria-label", copy.dialogLabel);
+    panel.setAttribute("aria-live", "polite");
+    panel.hidden = true;
 
     var card = document.createElement("div");
     card.className = "jabbar-consent-card";
@@ -318,12 +465,14 @@
     var actions = document.createElement("div");
     actions.className = "jabbar-consent-actions";
     card.appendChild(actions);
-    addButton(actions, "jabbar-consent-accept", copy.accept, accept);
+    primaryAction = addButton(actions, "jabbar-consent-accept", copy.accept, accept);
     addButton(actions, "jabbar-consent-reject", copy.reject, reject);
     addButton(actions, "jabbar-consent-later", copy.later, decideLater);
 
     var privacyLink = addTextElement(actions, "a", "jabbar-consent-privacy", copy.privacy);
-    privacyLink.href = "/website-privacy-policy.html";
+    privacyLink.href = languageKey() === "zh"
+      ? "/website-privacy-policy.html"
+      : "/" + languageKey() + "/website-privacy-policy.html";
 
     document.body.appendChild(panel);
 
@@ -334,14 +483,15 @@
       if (!opener) return;
       event.preventDefault();
       setSessionDeferred(false);
-      setPanelOpen(true);
+      setPanelOpen(true, true);
     });
 
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && !panel.hidden) decideLater();
     });
 
-    setPanelOpen(!consentState && !readSessionDeferred());
+    installInquiryFormGuard();
+    installAutomaticPrompt();
   }
 
   window.jabbarTrack = track;
@@ -350,7 +500,7 @@
     reject: reject,
     open: function () {
       setSessionDeferred(false);
-      setPanelOpen(true);
+      setPanelOpen(true, true);
     },
     getState: function () { return consentState; }
   };

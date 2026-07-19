@@ -225,6 +225,10 @@ async function createAuditEdgeFixtures(browser) {
         ["Locale product", "2,5", "EUR 30", "1.234,56", "0,5"],
         ["Scientific product", "1E3", "EUR 2,5", "2.5", "1e-3"]
       ], "Locale numbers"),
+      currencyTextAmount: workbookBase64([
+        ["Product", "Quantity", "Amount EUR"],
+        ["Unreadable amount", 2, "EUR thirty"]
+      ], "Currency without number"),
       ambiguousComma: workbookBase64([
         ["Product", "Quantity", "Amount CNY"],
         ["Ambiguous grouping", "1,234", "CNY 1,234"]
@@ -1093,6 +1097,19 @@ try {
   assert.equal(payload.result.pending.numericFormat, false, "locale numeric fixture: valid decimal comma was marked ambiguous");
   assert.equal(payload.result.warnings.includes("numeric_format_pending"), false, "locale numeric fixture: false numeric ambiguity warning");
   assert.equal(await page.locator("[data-order-export]").isEnabled(), true, "locale numeric fixture: valid locale numbers blocked export");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-currency-without-number.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.currencyTextAmount
+  });
+  assert.equal(payload.result.metrics.productRows, 1, "currency without number fixture: product row disappeared");
+  assert.equal(payload.result.metrics.amounts.length, 0, "currency without number fixture: fabricated amount was reported");
+  assert.equal(payload.result.pending.amountValue, true, "currency without number fixture: pending flag missing");
+  assert.equal(payload.result.unparsedAmountValues, 1, "currency without number fixture: unreadable value count");
+  assert.equal(payload.result.warningCounts.amount_value_pending, 1, "currency without number fixture: warning count");
+  assert(payload.result.warnings.includes("amount_value_pending"), "currency without number fixture: warning missing");
+  assert.equal(await page.locator("[data-order-export]").isDisabled(), true, "currency without number fixture: unreadable amount was exportable");
 
   payload = await uploadWorkbook(page, {
     name: "qa-ambiguous-comma-number.xlsx",

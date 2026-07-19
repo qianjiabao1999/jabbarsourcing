@@ -6,7 +6,7 @@ Static GitHub Pages website for `www.jabbarsourcing.com`.
 
 - Multilingual landing pages for Jabbar Sourcing
 - Direct sourcing inquiry submission through Cloudflare Turnstile and Workers
-- WhatsApp, Gmail, WeChat, and Telegram fallback contact flows
+- A temporary WhatsApp fallback only when the inquiry security check fails to load or run
 - WebP image assets for faster loading
 - `robots.txt` and `sitemap.xml` for Google Search Console
 - SEO title, meta description, Open Graph tags, and canonical URLs on the main pages
@@ -91,10 +91,9 @@ Set Cloudflare proxy only after GitHub Pages HTTPS is working.
 Current form behavior:
 
 - Direct submit: validates Turnstile in a Cloudflare Worker and sends the inquiry to `qianjiabao1999@gmail.com`
-- WhatsApp: opens `wa.me`
-- Gmail: opens a prefilled compose window
-- WeChat: copies the request text and asks the buyer to add the WeChat ID
-- Telegram: copies the request and opens the Telegram contact
+- Turnstile failure: shows one contextual, temporary WhatsApp fallback link so the buyer can still send the inquiry
+- Normal, pending, validation, rate-limit, and delivery states do not show the WhatsApp fallback
+- Calculator transfer: prefilled calculator results show a visible, dismissible confirmation on the inquiry form
 
 The public contact mailbox remains `qianjiabao1999@gmail.com`. `inquiry@jabbarsourcing.com` is only the technical sender used by the Worker Email binding.
 
@@ -110,6 +109,36 @@ To use Tawk.to:
 
 1. Create a Tawk.to property.
 2. Add the provided embed snippet before `</body>` in the HTML pages where chat should appear.
+
+## Archived UI decisions
+
+Decision D1 is closed as **confirmed deletion, do not restore**. The following
+interfaces were intentionally removed and must not return through a later UI
+cleanup or enhancement pass:
+
+- floating contact controls
+- the mobile bottom conversion bar
+- the country flag ticker and its pause control
+- the inquiry page's four-channel send panel
+
+The only permitted contextual exception is a temporary WhatsApp fallback shown
+after Turnstile itself fails to load or run. It is not a floating control and it
+must disappear when the security check recovers or the form enters another
+state.
+
+The footer language selector and back-to-top control are deliberate replacements
+for any floating utilities. Both are inline in the page footer. The language
+selector keeps buyers on the equivalent home, inquiry, calculator, or website
+privacy-policy surface whenever that localized surface exists.
+
+## JavaScript performance budgets
+
+`npm run test:asset-budgets` enforces compressed limits rather than allowing the
+shared script to grow around the latest implementation. The shared
+`site-enhancements.js` budget is 15 KiB gzip. Homepage-only shipment behavior
+lives in `site-home-enhancements.js` with a 4 KiB budget, while inline footer
+utilities live in `site-footer-tools.js` with a 3 KiB budget. Split another
+page-specific responsibility before raising any of these limits.
 
 ## Image Optimization
 

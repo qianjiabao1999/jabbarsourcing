@@ -5,70 +5,70 @@
   var labels = {
     zh: {
       scan: "手机扫码直聊", reply: "在线 · 24 小时内回复",
-      shipments: "最近发运", cbmTitle: "集装箱装载示意", quoteWithResult: "用此结果获取报价",
+      cbmTitle: "集装箱装载示意", quoteWithResult: "用此结果获取报价",
       calculatorModes: "选择计算方式", quickMode: "快速计算", excelMode: "Excel 订单分析", calculatorOptional: "产品与补充信息（可选）",
       socialFilter: "按平台筛选账号",
       faqPrompt: "选择问题查看答案", faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发"]
     },
     en: {
       scan: "Scan to chat", reply: "Online · replies within 24h",
-      shipments: "Recent shipments", cbmTitle: "Container loading illustration", quoteWithResult: "Get a quote with this result",
+      cbmTitle: "Container loading illustration", quoteWithResult: "Get a quote with this result",
       calculatorModes: "Choose calculation mode", quickMode: "Quick calculation", excelMode: "Excel order analysis", calculatorOptional: "Product and extra details (optional)",
       socialFilter: "Filter accounts by platform",
       faqPrompt: "Choose a topic to view its answer", faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping"]
     },
     es: {
       scan: "Escanea para chatear", reply: "En línea · respuesta en 24 h",
-      shipments: "Envíos recientes", cbmTitle: "Ilustración de carga del contenedor", quoteWithResult: "Solicitar cotización con este resultado",
+      cbmTitle: "Ilustración de carga del contenedor", quoteWithResult: "Solicitar cotización con este resultado",
       calculatorModes: "Elegir modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análisis de Excel", calculatorOptional: "Producto y detalles extra (opcional)",
       socialFilter: "Filtrar cuentas por plataforma",
       faqPrompt: "Elige un tema para ver la respuesta", faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo"]
     },
     ar: {
       scan: "امسح للدردشة", reply: "متصل · نرد خلال 24 ساعة",
-      shipments: "الشحنات الأخيرة", cbmTitle: "رسم توضيحي لتحميل الحاوية", quoteWithResult: "اطلب عرض سعر بهذه النتيجة",
+      cbmTitle: "رسم توضيحي لتحميل الحاوية", quoteWithResult: "اطلب عرض سعر بهذه النتيجة",
       calculatorModes: "اختر طريقة الحساب", quickMode: "حساب سريع", excelMode: "تحليل طلبات Excel", calculatorOptional: "المنتج وتفاصيل إضافية (اختياري)",
       socialFilter: "تصفية الحسابات حسب المنصة",
       faqPrompt: "اختر سؤالاً لعرض الإجابة", faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر"]
     },
     fr: {
       scan: "Scannez pour discuter", reply: "En ligne · réponse sous 24 h",
-      shipments: "Expéditions récentes", cbmTitle: "Illustration du chargement du conteneur", quoteWithResult: "Demander un devis avec ce résultat",
+      cbmTitle: "Illustration du chargement du conteneur", quoteWithResult: "Demander un devis avec ce résultat",
       calculatorModes: "Choisir le mode de calcul", quickMode: "Calcul rapide", excelMode: "Analyse Excel", calculatorOptional: "Produit et précisions (facultatif)",
       socialFilter: "Filtrer les comptes par plateforme",
       faqPrompt: "Choisissez un sujet pour voir la réponse", faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe"]
     },
     pt: {
       scan: "Escaneie para conversar", reply: "Online · resposta em até 24 h",
-      shipments: "Envios recentes", cbmTitle: "Ilustração do carregamento do contêiner", quoteWithResult: "Pedir cotação com este resultado",
+      cbmTitle: "Ilustração do carregamento do contêiner", quoteWithResult: "Pedir cotação com este resultado",
       calculatorModes: "Escolher modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análise de Excel", calculatorOptional: "Produto e detalhes extras (opcional)",
       socialFilter: "Filtrar contas por plataforma",
       faqPrompt: "Escolha um tema para ver a resposta", faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping"]
     },
     ru: {
       scan: "Сканируйте для чата", reply: "Онлайн · ответим в течение 24 ч",
-      shipments: "Последние отправки", cbmTitle: "Схема загрузки контейнера", quoteWithResult: "Запросить расчёт с этим результатом",
+      cbmTitle: "Схема загрузки контейнера", quoteWithResult: "Запросить расчёт с этим результатом",
       calculatorModes: "Выбор режима расчета", quickMode: "Быстрый расчет", excelMode: "Анализ Excel", calculatorOptional: "Товар и дополнительные данные (необязательно)",
       socialFilter: "Фильтр аккаунтов по платформе",
       faqPrompt: "Выберите тему, чтобы увидеть ответ", faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг"]
     },
     de: {
       scan: "Zum Chatten scannen", reply: "Online · Antwort innerhalb 24 Std.",
-      shipments: "Letzte Sendungen", cbmTitle: "Darstellung der Containerbeladung", quoteWithResult: "Mit diesem Ergebnis Angebot anfragen",
+      cbmTitle: "Darstellung der Containerbeladung", quoteWithResult: "Mit diesem Ergebnis Angebot anfragen",
       calculatorModes: "Berechnungsart wählen", quickMode: "Schnellberechnung", excelMode: "Excel-Analyse", calculatorOptional: "Produkt und Zusatzangaben (optional)",
       socialFilter: "Konten nach Plattform filtern",
       faqPrompt: "Thema auswählen und Antwort anzeigen", faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping"]
     },
     it: {
       scan: "Scansiona per chattare", reply: "Online · risposta entro 24 ore",
-      shipments: "Spedizioni recenti", cbmTitle: "Illustrazione del carico del container", quoteWithResult: "Richiedi un preventivo con questo risultato",
+      cbmTitle: "Illustrazione del carico del container", quoteWithResult: "Richiedi un preventivo con questo risultato",
       calculatorModes: "Scegli modalità di calcolo", quickMode: "Calcolo rapido", excelMode: "Analisi Excel", calculatorOptional: "Prodotto e dettagli extra (facoltativi)",
       socialFilter: "Filtra account per piattaforma",
       faqPrompt: "Scegli un argomento per vedere la risposta", faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping"]
     },
     tr: {
       scan: "Sohbet için tarayın", reply: "Çevrimiçi · 24 saat içinde yanıt",
-      shipments: "Son gönderiler", cbmTitle: "Konteyner yükleme görseli", quoteWithResult: "Bu sonuçla teklif iste",
+      cbmTitle: "Konteyner yükleme görseli", quoteWithResult: "Bu sonuçla teklif iste",
       calculatorModes: "Hesaplama yöntemini seçin", quickMode: "Hızlı hesaplama", excelMode: "Excel analizi", calculatorOptional: "Ürün ve ek ayrıntılar (isteğe bağlı)",
       socialFilter: "Platforma göre hesapları filtrele",
       faqPrompt: "Yanıtı görmek için bir konu seçin", faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış"]
@@ -494,198 +494,6 @@
     observer.observe(row);
   }
 
-  function initShipmentTicker() {
-    var ticker = document.querySelector(".shipment-ticker");
-    if (!ticker) return;
-    var rail = ticker.querySelector(".shipment-ticker-rail");
-    var track = ticker.querySelector(".shipment-ticker-track");
-    if (!rail || !track) return;
-
-    if (rail.getAttribute("data-shipments-enabled") !== "true") {
-      ticker.classList.add("is-unavailable");
-      return;
-    }
-
-    var source = rail.getAttribute("data-shipments-source") || "/shipments.json";
-    var field = "city_" + lang;
-    var locale = document.documentElement.lang || lang || "en";
-    var dayFormatter;
-    try { dayFormatter = new Intl.RelativeTimeFormat(locale, { numeric: "always" }); } catch (error) {
-      dayFormatter = new Intl.RelativeTimeFormat("en", { numeric: "always" });
-    }
-
-    function parseCalendarDay(value) {
-      if (typeof value !== "string") return null;
-      var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-      if (!match) return null;
-      var year = Number(match[1]);
-      var month = Number(match[2]);
-      var day = Number(match[3]);
-      var stamp = Date.UTC(year, month - 1, day);
-      var date = new Date(stamp);
-      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
-      return Math.floor(stamp / 86400000);
-    }
-
-    function relativeDay(dayNumber) {
-      if (dayNumber === null) return "";
-      var now = new Date();
-      var today = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
-      return dayFormatter.format(dayNumber - today, "day");
-    }
-
-    function normalize(data) {
-      if (!Array.isArray(data)) return [];
-      return data.map(function (item, index) {
-        if (!item || typeof item !== "object") return null;
-        var city = item[field] || item.city_en || item.city_zh;
-        if (typeof city !== "string" || !city.trim()) return null;
-        var calendarDay = parseCalendarDay(item.when);
-        return {
-          city: city.trim(),
-          flag: typeof item.flag === "string" ? item.flag.trim() : "",
-          load: typeof item.load === "string" ? item.load.trim() : "",
-          when: relativeDay(calendarDay),
-          day: calendarDay,
-          placeholder: item.placeholder === true,
-          index: index
-        };
-      }).filter(Boolean).sort(function (left, right) {
-        if (left.day !== null && right.day !== null) return right.day - left.day;
-        if (left.day !== null) return -1;
-        if (right.day !== null) return 1;
-        return left.index - right.index;
-      }).slice(0, 10);
-    }
-
-    function isPlaceholderRecord(item) {
-      if (!item || typeof item !== "object" || item.placeholder === true) return true;
-      return Object.keys(item).some(function (key) {
-        var value = item[key];
-        return typeof value === "string" && /^\s*\[[\s\S]+\]\s*$/.test(value);
-      });
-    }
-
-    function buildItem(item) {
-      var li = createElement("li", "shipment-ticker-item num-mono");
-      if (item.placeholder) li.classList.add("is-placeholder");
-      li.setAttribute("dir", "auto");
-      if (item.flag) {
-        var flag = createElement("span", "shipment-ticker-flag", item.flag);
-        flag.setAttribute("aria-hidden", "true");
-        li.appendChild(flag);
-      }
-      var city = createElement("bdi", "shipment-ticker-city", item.city);
-      li.appendChild(city);
-      if (item.load) {
-        li.appendChild(document.createTextNode(" · "));
-        var load = createElement("bdi", "shipment-ticker-load", item.load);
-        load.dir = "ltr";
-        li.appendChild(load);
-      }
-      if (item.when) {
-        li.appendChild(document.createTextNode(" · "));
-        li.appendChild(createElement("bdi", "shipment-ticker-when", item.when));
-      }
-      return li;
-    }
-
-    function buildList(items, hidden) {
-      var list = createElement("ul", "shipment-ticker-list");
-      if (hidden) list.setAttribute("aria-hidden", "true");
-      items.forEach(function (item) { list.appendChild(buildItem(item)); });
-      return list;
-    }
-
-    function startMotion(firstList) {
-      var rtl = document.documentElement.dir === "rtl";
-      var width = 0;
-      var offset = 0;
-      var visible = true;
-      var paused = false;
-      var frameId = 0;
-      var last = 0;
-
-      function measure() {
-        width = firstList.getBoundingClientRect().width;
-        offset = rtl ? -width : 0;
-        track.style.transform = "translate3d(" + offset + "px,0,0)";
-      }
-      function stop() {
-        if (frameId) window.cancelAnimationFrame(frameId);
-        frameId = 0;
-        last = 0;
-      }
-      function frame(now) {
-        if (!last) last = now;
-        var elapsed = Math.min(50, Math.max(0, now - last));
-        last = now;
-        offset += (rtl ? 1 : -1) * 0.03 * elapsed;
-        if (!rtl && offset <= -width) offset += width;
-        if (rtl && offset >= 0) offset -= width;
-        track.style.transform = "translate3d(" + offset + "px,0,0)";
-        frameId = window.requestAnimationFrame(frame);
-      }
-      function sync() {
-        if (reducedMotion || !visible || paused || document.hidden || width <= 0) stop();
-        else if (!frameId) frameId = window.requestAnimationFrame(frame);
-      }
-      function setPaused(value) {
-        paused = value;
-        ticker.classList.toggle("is-paused", paused);
-        sync();
-      }
-      function syncReducedState() {
-        ticker.classList.toggle("is-static", reducedMotion);
-        if (reducedMotion) {
-          track.style.transform = "translate3d(0,0,0)";
-          stop();
-        } else {
-          measure();
-          sync();
-        }
-      }
-
-      rail.addEventListener("pointerenter", function () { setPaused(true); });
-      rail.addEventListener("pointerleave", function () { setPaused(false); });
-      rail.addEventListener("focusin", function () { setPaused(true); });
-      rail.addEventListener("focusout", function () { setPaused(false); });
-      document.addEventListener("visibilitychange", sync);
-      window.addEventListener("resize", function () { measure(); sync(); }, { passive: true });
-      if ("IntersectionObserver" in window) {
-        new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) { visible = entry.isIntersecting; });
-          sync();
-        }, { rootMargin: "120px 0px" }).observe(ticker);
-      }
-      onReducedMotionChange(syncReducedState);
-      measure();
-      syncReducedState();
-    }
-
-    fetch(source, { credentials: "same-origin" }).then(function (response) {
-      if (!response.ok) throw new Error("Shipment data unavailable");
-      return response.json();
-    }).then(function (data) {
-      if (!Array.isArray(data) || !data.length || data.some(isPlaceholderRecord)) {
-        ticker.classList.add("is-unavailable");
-        return;
-      }
-      var items = normalize(data);
-      if (!items.length) {
-        ticker.classList.add("is-unavailable");
-        return;
-      }
-      var firstList = buildList(items, false);
-      var secondList = buildList(items, true);
-      track.replaceChildren(firstList, secondList);
-      ticker.classList.add("is-ready");
-      ticker.setAttribute("aria-label", copy.shipments);
-      startMotion(firstList);
-    }).catch(function () {
-      ticker.classList.add("is-unavailable");
-    });
-  }
 
   function initCbmVisual() {
     var results = document.querySelector(".calculator-results");
@@ -1033,6 +841,11 @@
         if (!rail || !mobileLoopDistance) return;
         mobileAutoPosition = mobileLoopDistance + mobileLoopPhase(position, mobileLoopDistance);
         rail.scrollLeft = mobileAutoPosition;
+        var renderedPosition = rail.scrollLeft;
+        if (renderedPosition < mobileLoopDistance || renderedPosition >= mobileLoopDistance * 2) {
+          mobileAutoPosition = mobileLoopDistance + mobileLoopPhase(renderedPosition, mobileLoopDistance);
+          rail.scrollLeft = mobileAutoPosition;
+        }
       }
 
       function runMobileLoop(timestamp) {
@@ -1436,11 +1249,30 @@
     });
   }
 
+  function initFooterUtilities() {
+    if (document.querySelector('script[data-footer-utilities]')) return;
+    var script = document.createElement("script");
+    script.src = "/assets/site-footer-tools.js?v=footer-20260719a";
+    script.async = true;
+    script.setAttribute("data-footer-utilities", "");
+    document.head.appendChild(script);
+  }
+
+  function initHomeUtilities() {
+    if (!document.querySelector(".shipment-ticker")) return;
+    if (document.querySelector('script[data-home-utilities]')) return;
+    var script = document.createElement("script");
+    script.src = "/assets/site-home-enhancements.js?v=home-20260719a";
+    script.async = true;
+    script.setAttribute("data-home-utilities", "");
+    document.head.appendChild(script);
+  }
+
   initAnalyticsEvents();
   initCalculatorModes();
   initCalculatorInquiryBridge();
   initTrustStamps();
-  initShipmentTicker();
+  initHomeUtilities();
   initCbmVisual();
   initScrollProgress();
   initGalleryMarquee();
@@ -1448,6 +1280,7 @@
   initNavigationDisclosures();
   initFaqTags();
   initSocialAccountDisclosure();
+  initFooterUtilities();
   initFooterMapNavigation();
   initWhatsappQr();
 })();

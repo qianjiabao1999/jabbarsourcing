@@ -9,10 +9,9 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-19";
-const CSS_VERSION = "apple-177";
-const CONSENT_VERSION = "consent-20260719b";
-const JS_VERSION = "inquiry-20260719b";
-const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+const CSS_VERSION = "apple-178";
+const CONSENT_VERSION = "consent-20260719c";
+const JS_VERSION = "inquiry-20260719c";
 
 const PAGES = [
   { file: "inquiry/index.html", locale: "zh", source: "/inquiry/" },
@@ -135,6 +134,11 @@ function checkSharedJavascript(source) {
     if (!/sendingLabel\s*:/.test(messageBlock[1])) {
       fail(scope, `${locale} messages must include sendingLabel`);
     }
+    for (const messageKey of ["turnstileLoading", "verifyRetry", "whatsappFallback", "referenceLabel"]) {
+      if (!new RegExp(`${messageKey}\\s*:`).test(messageBlock[1])) {
+        fail(scope, `${locale} messages must include ${messageKey}`);
+      }
+    }
     if (!/retryAfterUnit\s*:/.test(messageBlock[1])) {
       fail(scope, `${locale} messages must include retryAfterUnit`);
     }
@@ -151,10 +155,15 @@ function checkSharedJavascript(source) {
     ["submitting button label", "messages.sendingLabel : directButtonLabel"],
     ["accessible success icon", 'icon.setAttribute("aria-hidden", "true")'],
     ["interaction-only Turnstile", 'appearance: "interaction-only"'],
+    ["light Turnstile theme", 'theme: "light"'],
+    ["non-blocking Turnstile injection", 'script.async = true'],
+    ["Turnstile onload callback", "jabbarTurnstileApiReady"],
+    ["slow-network Turnstile allowance", "}, 30000)"],
     ["token-gated submit button", "directButton.disabled = value || !turnstileToken"],
     ["Turnstile reset disables submit", "directButton.disabled = true"],
     ["Turnstile callback enables submit", "directButton.disabled = !turnstileToken"],
     ["status reveal animation frame", "window.requestAnimationFrame"],
+    ["status tone reset", 'status.classList.remove("is-success", "is-error", "is-pending")'],
     ["reduced-motion status reveal", 'window.matchMedia("(prefers-reduced-motion: reduce)")'],
     ["nearest status reveal", 'status.scrollIntoView({ block: "nearest"'],
     ["status focus without extra scrolling", "status.focus({ preventScroll: true })"],
@@ -173,6 +182,8 @@ function checkSharedJavascript(source) {
     ["duration upper bound", "Math.min(60000"],
     ["canonical success event", 'trackEvent("inquiry_submit"'],
     ["localized retry-after formatter", "formatRetryAfter"],
+    ["failure-only WhatsApp fallback", "whatsappFallback: true"],
+    ["submission reference display", "messages.referenceLabel"],
   ];
   for (const [label, fragment] of requiredSourceFragments) {
     if (!source.includes(fragment)) fail(scope, `missing ${label}`);
@@ -183,7 +194,6 @@ function checkSharedJavascript(source) {
     ["optional-details disclosure copy", "OPTIONAL_DETAILS_LABELS"],
     ["privacy checkbox lookup", 'querySelector(".js-inquiry-privacy")'],
     ["fallback-channel analytics", 'trackEvent("channel_fallback"'],
-    ["success-state WhatsApp shortcut", "inquiry-status-whatsapp"],
   ];
   for (const [label, fragment] of removedFlowFragments) {
     if (source.includes(fragment)) fail(scope, `${label} must be removed from the single-action flow`);
@@ -436,16 +446,25 @@ function checkPage(page, html) {
   if (!/<button\b[^>]*\bjs-inquiry-direct\b[^>]*>[\s\S]*?<\/button>\s*<p\b[^>]*\binquiry-status\b[^>]*><\/p>\s*<\/div>/i.test(formBody)) {
     fail(scope, "inquiry status must be immediately after the direct-submit button inside the direct panel");
   }
-  if (!html.includes('status.classList.remove("is-success", "is-error", "is-pending")')) {
-    fail(scope, "status updates must clear earlier submit state styles");
-  }
-
   const fallbackButtons = buttons.filter((button) => hasClass(button, "js-inquiry-send"));
   if (fallbackButtons.length !== 0 || countClassToken(formBody, "js-inquiry-send") !== 0) {
     fail(scope, `redundant fallback buttons must be removed, got ${fallbackButtons.length}`);
   }
   if (countClassToken(formBody, "inquiry-fallback-label") !== 0 || countClassToken(formBody, "inquiry-actions") !== 0) {
     fail(scope, "fallback label and action container must be removed from the form");
+  }
+  for (const deadAttribute of [
+    "data-required-message",
+    "data-copied-message",
+    "data-copy-fail-message",
+    "data-telegram-copied-message",
+    "data-product-required-message",
+    "data-contact-required-message",
+  ]) {
+    if (formTag.attributes.has(deadAttribute)) fail(scope, `${deadAttribute} must be removed with the legacy channel code`);
+  }
+  if (html.includes("buildMessage") || html.includes('querySelectorAll(".js-inquiry-form")')) {
+    fail(scope, "legacy inline inquiry channel builder must be removed");
   }
 
   const stylesheetLinks = findTags(html, "link")
@@ -459,8 +478,12 @@ function checkPage(page, html) {
   }
 
   const scripts = findTags(html, "script");
-  const turnstileScripts = scripts.filter((tag) => tag.attributes.get("src") === TURNSTILE_SCRIPT);
-  checkSingleTag(scope, turnstileScripts, "explicit-render Turnstile script");
+  const turnstileScripts = scripts.filter((tag) =>
+    String(tag.attributes.get("src") ?? "").includes("challenges.cloudflare.com/turnstile/"),
+  );
+  if (turnstileScripts.length !== 0) {
+    fail(scope, "Turnstile must be injected asynchronously by inquiry-form.js instead of blocking page markup");
+  }
   const inquiryScripts = scripts.filter((tag) =>
     String(tag.attributes.get("src") ?? "").includes("/assets/inquiry-form.js"),
   );
@@ -488,6 +511,17 @@ const sharedJavascript = await readFile(resolve(ROOT, "assets/inquiry-form.js"),
 checkSharedJavascript(sharedJavascript);
 const attributionJavascript = await readFile(resolve(ROOT, "assets/site-enhancements.js"), "utf8");
 checkAttributionJavascript(attributionJavascript);
+const stylesheetSource = await readFile(resolve(ROOT, "styles.css"), "utf8");
+if (/font-size:\s*(?:9\.5|11\.2)px/.test(stylesheetSource)) {
+  fail("styles.css", "mobile quote copy or CTA regressed below the approved readable size");
+}
+if (!stylesheetSource.includes(".inquiry-entry-copy span { max-width: 288px; font-size: 13px; line-height: 1.4; }") ||
+    !stylesheetSource.includes(".inquiry-entry-button { max-width: 100%; min-height: 44px; padding: 0 16px; font-size: 15px;")) {
+  fail("styles.css", "mobile inquiry CTA source rules must keep 13px copy and a 44px, 15px button");
+}
+if (!/\.inquiry-turnstile:empty\s*\{\s*min-height:\s*65px\s*!important;/.test(stylesheetSource)) {
+  fail("styles.css", "Turnstile must retain a stable 65px placeholder to prevent layout shift");
+}
 
 for (const page of PAGES) {
   const html = await readFile(resolve(ROOT, page.file), "utf8");

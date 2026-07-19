@@ -6,7 +6,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const ORDER_VERSION = "order-20260719b";
+const ORDER_VERSION = "order-20260719c";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const load = (file) => readFile(resolve(ROOT, file), "utf8");
@@ -59,6 +59,10 @@ for (const token of [
   "touchstart",
   "pointerenter",
   "dragenter",
+  "dragover",
+  "pendingDropFiles",
+  "event.preventDefault()",
+  "replayPendingDrop",
   "data-order-analyzer-runtime",
   "showLoadError",
   "JabbarOrderAnalyzer.init"

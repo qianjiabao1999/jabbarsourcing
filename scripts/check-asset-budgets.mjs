@@ -7,14 +7,21 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const SITE_ENHANCEMENTS_GZIP_MAX = 17 * 1024;
+const BUDGETS = {
+  "assets/site-enhancements.js": 15 * 1024,
+  "assets/site-home-enhancements.js": 4 * 1024,
+  "assets/site-footer-tools.js": 3 * 1024,
+};
 
-const source = await readFile(resolve(ROOT, "assets/site-enhancements.js"));
-const gzipBytes = gzipSync(source, { level: constants.Z_BEST_COMPRESSION }).byteLength;
+const results = [];
+for (const [file, budget] of Object.entries(BUDGETS)) {
+  const source = await readFile(resolve(ROOT, file));
+  const gzipBytes = gzipSync(source, { level: constants.Z_BEST_COMPRESSION }).byteLength;
+  assert(
+    gzipBytes <= budget,
+    `${file} is ${gzipBytes} gzip bytes; budget is ${budget}. Split page-specific behavior before raising the budget.`,
+  );
+  results.push(`${file} ${gzipBytes}/${budget}`);
+}
 
-assert(
-  gzipBytes <= SITE_ENHANCEMENTS_GZIP_MAX,
-  `assets/site-enhancements.js is ${gzipBytes} gzip bytes; budget is ${SITE_ENHANCEMENTS_GZIP_MAX}. Split homepage-only behavior before raising the budget.`,
-);
-
-console.log(`Asset budget passed: site-enhancements.js ${gzipBytes}/${SITE_ENHANCEMENTS_GZIP_MAX} gzip bytes.`);
+console.log(`Asset budgets passed: ${results.join(", ")}.`);

@@ -6,9 +6,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-177";
-const UI_VERSION = "ui-20260719e";
-const ORDER_VERSION = "order-20260719b";
+const CSS_VERSION = "apple-178";
+const UI_VERSION = "ui-20260719f";
+const ORDER_VERSION = "order-20260719c";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
   zh: "社媒账号",
@@ -35,16 +35,16 @@ const SOCIAL_ACCOUNT_COMPACT_LABELS = {
   tr: "Sosyal"
 };
 const SECTION_CODES = {
-  zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
-  en: ["Jabbar · Team", "Jabbar · Gallery", "Jabbar · Services", "Jabbar · Process", "Jabbar · Reviews", "Jabbar · FAQ", "Jabbar · Social"],
-  es: ["Jabbar · Equipo", "Jabbar · Galería", "Jabbar · Servicios", "Jabbar · Proceso", "Jabbar · Reseñas", "Jabbar · Preguntas frecuentes", "Jabbar · Redes sociales"],
-  ar: ["Jabbar · الفريق", "Jabbar · المعرض", "Jabbar · الخدمات", "Jabbar · خطوات العمل", "Jabbar · آراء العملاء", "Jabbar · الأسئلة الشائعة", "Jabbar · التواصل الاجتماعي"],
-  fr: ["Jabbar · Équipe", "Jabbar · Galerie", "Jabbar · Services", "Jabbar · Processus", "Jabbar · Avis clients", "Jabbar · FAQ", "Jabbar · Réseaux sociaux"],
-  pt: ["Jabbar · Equipe", "Jabbar · Galeria", "Jabbar · Serviços", "Jabbar · Processo", "Jabbar · Avaliações", "Jabbar · Perguntas frequentes", "Jabbar · Redes sociais"],
-  ru: ["Jabbar · Команда", "Jabbar · Галерея", "Jabbar · Услуги", "Jabbar · Процесс", "Jabbar · Отзывы", "Jabbar · Частые вопросы", "Jabbar · Соцсети"],
-  de: ["Jabbar · Team", "Jabbar · Galerie", "Jabbar · Leistungen", "Jabbar · Ablauf", "Jabbar · Bewertungen", "Jabbar · FAQ", "Jabbar · Soziale Medien"],
-  it: ["Jabbar · Team", "Jabbar · Galleria", "Jabbar · Servizi", "Jabbar · Processo", "Jabbar · Recensioni", "Jabbar · Domande frequenti", "Jabbar · Social"],
-  tr: ["Jabbar · Ekip", "Jabbar · Galeri", "Jabbar · Hizmetler", "Jabbar · Süreç", "Jabbar · Yorumlar", "Jabbar · SSS", "Jabbar · Sosyal medya"]
+  zh: ["Jabbar · 团队", "Jabbar · 服务", "Jabbar · 图库", "Jabbar · 流程", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
+  en: ["Jabbar · Team", "Jabbar · Services", "Jabbar · Gallery", "Jabbar · Process", "Jabbar · Reviews", "Jabbar · FAQ", "Jabbar · Social"],
+  es: ["Jabbar · Equipo", "Jabbar · Servicios", "Jabbar · Galería", "Jabbar · Proceso", "Jabbar · Reseñas", "Jabbar · Preguntas frecuentes", "Jabbar · Redes sociales"],
+  ar: ["Jabbar · الفريق", "Jabbar · الخدمات", "Jabbar · المعرض", "Jabbar · خطوات العمل", "Jabbar · آراء العملاء", "Jabbar · الأسئلة الشائعة", "Jabbar · التواصل الاجتماعي"],
+  fr: ["Jabbar · Équipe", "Jabbar · Services", "Jabbar · Galerie", "Jabbar · Processus", "Jabbar · Avis clients", "Jabbar · FAQ", "Jabbar · Réseaux sociaux"],
+  pt: ["Jabbar · Equipe", "Jabbar · Serviços", "Jabbar · Galeria", "Jabbar · Processo", "Jabbar · Avaliações", "Jabbar · Perguntas frequentes", "Jabbar · Redes sociais"],
+  ru: ["Jabbar · Команда", "Jabbar · Услуги", "Jabbar · Галерея", "Jabbar · Процесс", "Jabbar · Отзывы", "Jabbar · Частые вопросы", "Jabbar · Соцсети"],
+  de: ["Jabbar · Team", "Jabbar · Leistungen", "Jabbar · Galerie", "Jabbar · Ablauf", "Jabbar · Bewertungen", "Jabbar · FAQ", "Jabbar · Soziale Medien"],
+  it: ["Jabbar · Team", "Jabbar · Servizi", "Jabbar · Galleria", "Jabbar · Processo", "Jabbar · Recensioni", "Jabbar · Domande frequenti", "Jabbar · Social"],
+  tr: ["Jabbar · Ekip", "Jabbar · Hizmetler", "Jabbar · Galeri", "Jabbar · Süreç", "Jabbar · Yorumlar", "Jabbar · SSS", "Jabbar · Sosyal medya"]
 };
 const CALCULATOR_SECTION_CODES = {
   zh: "Jabbar · 体积工具",
@@ -120,6 +120,9 @@ for (const file of ["assets/testimonial-boyner-480.webp", "assets/testimonial-bo
   assert(asset.byteLength > 10_000, `${file}: responsive proof asset is unexpectedly empty`);
   assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
   assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
+}
+for (const file of ["testimonial-maria.webp", "testimonial-kwame.webp", "testimonial-samuel.webp"]) {
+  await assert.rejects(readFile(resolve(ROOT, "assets", file)), { code: "ENOENT" }, `${file}: confirmed unused asset returned`);
 }
 
 function count(source, pattern) {
@@ -267,6 +270,10 @@ for (const { locale, file } of HOME_PAGES) {
   );
   const galleryRails = tagsWithClass(html, "div", "gallery-rail");
   assert.equal(galleryRails.length, 2, `${file}: gallery rail count`);
+  assert(
+    html.indexOf('id="services"') < html.indexOf('class="sourcing-gallery'),
+    `${file}: services and company proof must appear before the gallery`,
+  );
   assert(galleryRails.every((match) => attribute(match[0], "role") === "region"), `${file}: gallery rails need region semantics`);
   assert(galleryRails.every((match) => attribute(match[0], "tabindex") === "0"), `${file}: gallery rails need keyboard scrolling`);
   assert.match(html, /Zhejiang Haoduobao Brand Management Co\., Ltd\./, `${file}: English legal name missing`);
@@ -291,6 +298,7 @@ for (const { locale, file } of HOME_PAGES) {
   assert.equal(countClass(html, "social-platform-filter"), 0, `${file}: category filters must be generated once by JavaScript`);
   assert.doesNotMatch(html, /class="[^"]*\bcontain\b[^"]*"/, `${file}: stale contain class`);
   assert.equal(count(html, /mobile-conversion-bar|has-mobile-conversion-bar/g), 0, `${file}: removed mobile conversion bar remains`);
+  assert.equal(count(html, /js-inquiry-send|inquiry_channel_click/g), 0, `${file}: archived four-channel inquiry tracking returned`);
   const faqItems = tagsWithClass(html, "details", "faq-item");
   assert.equal(faqItems.length, 7, `${file}: FAQ item count`);
   assert.equal(countClass(html, "is-faq-focused"), 0, `${file}: JavaScript-only FAQ focus scope leaked into HTML`);
@@ -530,14 +538,9 @@ for (const { file } of TELEGRAM_PAGES) {
 }
 
 assert.equal(FALLBACK_EVENT_PAGES.length, 24, "fallback analytics page count");
-const inquiryFallbackFiles = new Set(INQUIRY_PAGES.map(({ file }) => file));
 for (const file of FALLBACK_EVENT_PAGES) {
   const html = await load(file);
-  if (inquiryFallbackFiles.has(file)) {
-    assert.doesNotMatch(html, /window\.jabbarTrack\(["']inquiry_channel_click["']/, `${file}: superseded inquiry channel event remains`);
-  } else {
-    assert.match(html, /window\.jabbarTrack\(["']inquiry_channel_click["']/, `${file}: fallback channel event missing`);
-  }
+  assert.doesNotMatch(html, /window\.jabbarTrack\(["']inquiry_channel_click["']/, `${file}: archived inquiry channel event returned`);
   assert.doesNotMatch(html, /(?:jabbarTrack|gtag)\s*\([^)]*["']inquiry_submit["']/, `${file}: fallback channel must not impersonate a successful inquiry`);
 }
 const inquiryFormJavascript = await load("assets/inquiry-form.js");
@@ -553,11 +556,16 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
   const EXPECTED_LEGAL_LASTMOD = {
     [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-19",
     [`${PUBLIC_ORIGIN}/website-privacy-policy.html`]: "2026-07-19",
+    ...Object.fromEntries(LOCALES.filter((locale) => locale !== "zh").map((locale) => [
+      `${PUBLIC_ORIGIN}/${locale}/website-privacy-policy.html`,
+      "2026-07-19"
+    ])),
     [`${PUBLIC_ORIGIN}/support.html`]: "2026-07-12"
   };
   const LEGAL_PAGE_URLS = [
     `${PUBLIC_ORIGIN}/privacy-policy.html`,
     `${PUBLIC_ORIGIN}/website-privacy-policy.html`,
+    ...LOCALES.filter((locale) => locale !== "zh").map((locale) => `${PUBLIC_ORIGIN}/${locale}/website-privacy-policy.html`),
     `${PUBLIC_ORIGIN}/support.html`
   ];
   const publicUrlForFile = (file) => {
@@ -590,7 +598,7 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
     ...LEGAL_PAGE_URLS
   ].sort();
 
-  assert.equal(sitemapEntries.length, 33, "sitemap.xml: public URL count");
+  assert.equal(sitemapEntries.length, 42, "sitemap.xml: public URL count");
   assert.equal(entriesByUrl.size, sitemapEntries.length, "sitemap.xml: duplicate URL");
   assert.deepEqual([...entriesByUrl.keys()].sort(), expectedPublicUrls, "sitemap.xml: public URL set");
   assert.doesNotMatch(sitemap, /\/ja\/|hreflang="ja"/, "sitemap.xml: Japanese route or hreflang must not return");
@@ -643,8 +651,8 @@ for (const removedLabel of ["showAllAccounts", "showFewerAccounts", "allPlatform
 for (const token of [
   "renderCbmVisual", "site-scroll-progress",
   "faq-quick-tags", "whatsapp-qr.svg", "prefers-reduced-motion",
-  "initTrustStamps", "initShipmentTicker", "Intl.RelativeTimeFormat", "shipments.json",
-  "initAnalyticsEvents", "contact_whatsapp", "isPlaceholderRecord", "is-unavailable"
+  "initTrustStamps", "initHomeUtilities", "site-home-enhancements.js", "data-home-utilities",
+  "initAnalyticsEvents", "contact_whatsapp"
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing ${token}`);
 }
@@ -653,10 +661,6 @@ for (const removedToken of ["contact-speed-dial", "initContactSpeedDial", "ui-se
   assert(!javascript.includes(removedToken), `site-enhancements.js: removed floating/reveal token remains (${removedToken})`);
 }
 assert(javascript.includes("sharedObserver.observe(section)"), "site-enhancements.js: homepage sections must still be observed without being hidden");
-assert(javascript.includes('createElement("li", "shipment-ticker-item num-mono")'), "site-enhancements.js: dynamic shipment item must explicitly use num-mono");
-assert(javascript.includes('ticker.classList.add("is-ready")'), "site-enhancements.js: valid shipment data must opt into the visible state");
-assert.match(javascript, /data-shipments-enabled[\s\S]*!== "true"[\s\S]*is-unavailable[\s\S]*return;/, "site-enhancements.js: disabled shipment data must stop before fetching");
-assert.doesNotMatch(javascript, /cache:\s*["']no-store["']/, "site-enhancements.js: versioned shipment data must use normal browser caching");
 assert(!javascript.includes("ja:"), "site-enhancements.js: Japanese labels must not return");
 for (const token of [
   "initCalculatorInquiryBridge", "calculator-inquiry-cta", "jabbarCalcResult", "calculator_result",
@@ -664,6 +668,7 @@ for (const token of [
   "reducedMotionQuery.addEventListener", 'event.key === "Escape"', "company-metric-visual",
   "initSocialAccountDisclosure", "initCalculatorModes",
   "calculator_mode_change", "social_profile_click", "social_accounts_view", "social_platform_filter",
+  "initFooterUtilities", "site-footer-tools.js", "data-footer-utilities",
   "initGalleryMarquee", "galleryLoopInitialized", "galleryOriginalCount",
   "data-gallery-clone", "--gallery-loop-distance", "--gallery-loop-duration",
   "calculator-optional-details", "calculator-optional-summary", "calculator-optional-fields",
@@ -671,6 +676,31 @@ for (const token of [
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing round 8 behavior ${token}`);
 }
+
+const footerJavascript = await load("assets/site-footer-tools.js");
+for (const locale of LOCALES) {
+  assert.match(footerJavascript, new RegExp(`\\n\\s*${locale}: \\[`), `site-footer-tools.js: missing ${locale} labels`);
+}
+for (const token of ["initCalculatorPrefillNotice", "calculator-prefill-notice", "initFooterTools", "site-footer-tools", "routeForLocale"]) {
+  assert(footerJavascript.includes(token), `site-footer-tools.js: missing ${token}`);
+}
+assert.equal(count(footerJavascript, /:\s*\[[^\n]+\]/g), LOCALES.length, "site-footer-tools.js: localized label count");
+
+const homeJavascript = await load("assets/site-home-enhancements.js");
+for (const locale of LOCALES) {
+  assert.match(homeJavascript, new RegExp(`\\n\\s*${locale}: `), `site-home-enhancements.js: missing ${locale} shipment label`);
+}
+for (const token of ["initShipmentTicker", "Intl.RelativeTimeFormat", "shipments.json", "isPlaceholderRecord", "is-unavailable"]) {
+  assert(homeJavascript.includes(token), `site-home-enhancements.js: missing ${token}`);
+}
+for (const token of ["quoteLabels", "initReviewQuoteCta", "testimonial-quote-cta", "/inquiry/"]) {
+  assert(homeJavascript.includes(token), `site-home-enhancements.js: review quote CTA missing ${token}`);
+}
+assert(homeJavascript.includes('createElement("li", "shipment-ticker-item num-mono")'), "site-home-enhancements.js: dynamic shipment item must explicitly use num-mono");
+assert(homeJavascript.includes('ticker.classList.add("is-ready")'), "site-home-enhancements.js: valid shipment data must opt into the visible state");
+assert.match(homeJavascript, /data-shipments-enabled[\s\S]*!== "true"[\s\S]*is-unavailable[\s\S]*return;/, "site-home-enhancements.js: disabled shipment data must stop before fetching");
+assert.doesNotMatch(homeJavascript, /cache:\s*["']no-store["']/, "site-home-enhancements.js: versioned shipment data must use normal browser caching");
+assert(!homeJavascript.includes("ja:"), "site-home-enhancements.js: Japanese labels must not return");
 for (const removedToken of ["service-country-marquee", "service-country-toggle", "service-country-item", "pauseCountries", "resumeCountries", "copy.countries"]) {
   assert(!javascript.includes(removedToken), `site-enhancements.js: removed country strip remains (${removedToken})`);
 }
@@ -871,6 +901,13 @@ assert(calculatorGridAlphas.length >= 2 && calculatorGridAlphas.slice(0, 2).ever
 assert.doesNotMatch(css, /\.calculator-page::before\s*\{/, "styles.css: calculator grid must not be hidden in a pseudo-element");
 assert.match(cssRuleBody(css, ".shipment-ticker"), /display:\s*none\s*;/, "styles.css: shipment ticker must default to hidden");
 assert.match(cssRuleBody(css, ".shipment-ticker.is-ready"), /display:\s*grid\s*;/, "styles.css: shipment ticker ready state must be visible");
+assert.match(cssRuleBody(css, ".site-footer-tools"), /display:\s*flex\s*!important\s*;/, "styles.css: inline footer tools layout missing");
+assert.doesNotMatch(cssRuleBody(css, ".site-footer-tools"), /position:\s*fixed/, "styles.css: footer tools must never float");
+assert.match(cssRuleBody(css, ".calculator-prefill-notice"), /grid-column:\s*1\s*\/\s*-1\s*;/, "styles.css: calculator prefill notice must span the inquiry form");
+const reviewQuoteRule = cssRuleBody(css, ".testimonial-quote-cta");
+assert.match(reviewQuoteRule, /background-color:\s*#0f6ba8\s*;/, "styles.css: review quote CTA fallback color missing");
+assert.match(reviewQuoteRule, /background-image:\s*linear-gradient/, "styles.css: review quote CTA gradient missing");
+assert.doesNotMatch(reviewQuoteRule, /position:\s*fixed/, "styles.css: review quote CTA must remain inline");
 for (const token of [
   ".calculator-order-upload", ".order-analyzer__dropzone", ".order-analyzer__mapping",
   ".order-analyzer__metrics", ".order-analyzer__actions", ".order-analyzer__table"
@@ -913,6 +950,10 @@ assert.match(orderAnalyzer, /Analyzer\.prototype\.renderContainer[\s\S]*var load
 assert.equal(count(orderAnalyzer, /drawContainerLoadBars\(/g), 1, "calculator-order-analyzer.js: the active 4K report must share per-container bars");
 for (const token of ["xlsx.full.min.js?v=0.20.3", "MAX_ROWS", "unitWeight", "unitVolume", "amount"])
   assert(orderWorker.includes(token), `calculator-order-worker.js: missing ${token}`);
+for (const token of ["amountValue", "unparsedAmountValues", "amount_value_pending"]) {
+  assert(orderWorker.includes(token), `calculator-order-worker.js: missing unreadable amount guard ${token}`);
+}
+assert(orderAnalyzer.includes("amount_value_pending"), "calculator-order-analyzer.js: unreadable amount warning UI missing");
 assert.match(orderWorker, /var MAX_ROWS = 10000;/, "calculator-order-worker.js: row limit must be 10,000");
 assert.match(orderWorker, /var MAX_COLUMNS = 100;/, "calculator-order-worker.js: column limit must be 100");
 assert.match(orderWorker, /bookFiles:\s*false/, "calculator-order-worker.js: workbook archive files must not be retained");

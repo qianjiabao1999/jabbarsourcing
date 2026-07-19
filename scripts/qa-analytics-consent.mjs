@@ -6,6 +6,7 @@ import { chromium } from "playwright";
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const STORAGE_KEY = "jabbar.analyticsConsent.v1";
 const SESSION_DEFER_KEY = "jabbar.analyticsConsent.deferred";
+const POLICY_VERSION = "2026-07-19";
 const ANALYTICS_REQUEST = /^https:\/\/(www\.googletagmanager\.com|www\.clarity\.ms)\//;
 const WECHAT_USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.60 NetType/WIFI Language/zh_CN";
 
@@ -59,6 +60,24 @@ async function assertNoFloatingSettings(page, label) {
   );
 }
 
+async function storedConsent(page) {
+  return page.evaluate((key) => {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  }, STORAGE_KEY);
+}
+
+async function waitForAutomaticPanel(page, label, timeout = 2800) {
+  await page.locator("#jabbar-analytics-consent").waitFor({ state: "visible", timeout });
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), true, `${label}: automatic consent panel did not appear`);
+}
+
+async function showAutomaticPanelOnFirstScroll(page, label) {
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, `${label}: consent panel appeared before the first-scroll trigger`);
+  await page.mouse.wheel(0, 260);
+  await waitForAutomaticPanel(page, label, 1000);
+}
+
 // Decide later is session-scoped, does not load analytics, and can be reopened
 // only from the in-page privacy-policy control.
 {
@@ -69,7 +88,9 @@ async function assertNoFloatingSettings(page, label) {
   assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), null, "first visit should not have a stored analytics choice");
   assert.equal(await page.evaluate(() => window.jabbarAnalyticsConsent.getState()), null, "first visit should remain undecided");
   assert.equal(analyticsRequests.length, 0, "analytics loaded before explicit consent");
-  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), true, "first-visit consent panel is hidden");
+  await showAutomaticPanelOnFirstScroll(page, "first visit");
+  assert.equal(await page.locator("#jabbar-analytics-consent").getAttribute("aria-live"), "polite", "automatic consent panel is not announced politely");
+  assert.equal(await page.locator(".jabbar-consent-privacy").getAttribute("href"), "/en/website-privacy-policy.html", "consent panel did not link to the current language policy");
   await assertNoFloatingSettings(page, "first visit");
 
   await page.evaluate(() => window.jabbarTrack("qa_before_consent", { source: "qa" }));
@@ -86,7 +107,7 @@ async function assertNoFloatingSettings(page, label) {
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "session defer did not survive same-tab navigation");
   assert.equal(analyticsRequests.length, 0, "session-deferred navigation loaded analytics");
 
-  await gotoAndWait(page, "/website-privacy-policy.html");
+  await gotoAndWait(page, "/en/website-privacy-policy.html");
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "session-deferred privacy page reopened the panel automatically");
   const inPageControl = page.locator("[data-analytics-consent-open]");
   assert.equal(await inPageControl.count(), 1, "privacy policy must expose exactly one in-page analytics control");
@@ -95,11 +116,12 @@ async function assertNoFloatingSettings(page, label) {
   await inPageControl.tap();
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), true, "privacy-policy control did not reopen analytics preferences");
   assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_DEFER_KEY), null, "privacy-policy control did not clear session defer");
+  assert.equal(await page.evaluate(() => document.activeElement?.classList.contains("jabbar-consent-accept")), true, "explicit analytics control did not focus the primary choice");
 
   await page.evaluate(() => { document.cookie = "_ga=qa-cookie; path=/; SameSite=Lax"; });
   await page.locator(".jabbar-consent-reject").tap();
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "rejection did not close the panel");
-  assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), "denied", "rejection was not stored");
+  assert.deepEqual(await storedConsent(page), { state: "denied", at: (await storedConsent(page)).at, policy: POLICY_VERSION }, "rejection was not stored as a versioned JSON record");
   assert.equal(analyticsRequests.length, 0, "rejection loaded analytics");
   assert.equal(await page.evaluate(() => document.cookie.includes("_ga=")), false, "rejection did not remove known analytics cookies");
   await assertNoFloatingSettings(page, "rejection");
@@ -112,6 +134,41 @@ async function assertNoFloatingSettings(page, label) {
   await context.close();
 }
 
+// The automatic prompt must never interrupt inquiry typing. Once the user
+// leaves the form, an already-triggered prompt may appear without creating a
+// session defer record. Returning to the form temporarily hides it again.
+{
+  const { context, analyticsRequests } = await createMobileContext();
+  const page = await context.newPage();
+  await gotoAndWait(page, "/en/inquiry/");
+
+  const productField = page.locator('.js-inquiry-form input[name="product"]');
+  const contactField = page.locator('.js-inquiry-form input[name="contact"]');
+  const outsideControl = page.locator(".site-nav-brand");
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "inquiry prompt appeared before the automatic trigger");
+  await productField.focus();
+  await productField.fill("QA sourcing request");
+  await page.waitForTimeout(1950);
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "automatic prompt interrupted an active inquiry field");
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_DEFER_KEY), null, "inquiry focus was incorrectly stored as decide later");
+  assert.equal(analyticsRequests.length, 0, "inquiry focus loaded analytics before consent");
+
+  await outsideControl.focus();
+  await waitForAutomaticPanel(page, "inquiry focusout recovery", 800);
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_DEFER_KEY), null, "inquiry focusout created a session defer record");
+  assert.equal(await outsideControl.evaluate((element) => document.activeElement === element), true, "automatic inquiry recovery stole focus from the user");
+
+  await contactField.focus();
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "returning to the inquiry form did not hide the prompt");
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_DEFER_KEY), null, "temporary inquiry hide was stored as decide later");
+  await outsideControl.focus();
+  await waitForAutomaticPanel(page, "second inquiry focusout recovery", 800);
+
+  await page.locator(".jabbar-consent-later").tap();
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_DEFER_KEY), "1", "explicit decide-later action did not remain session-scoped");
+  await context.close();
+}
+
 // A real touch tap under a MicroMessenger user agent closes immediately and
 // analytics requests start only after explicit consent.
 {
@@ -119,14 +176,24 @@ async function assertNoFloatingSettings(page, label) {
   const page = await context.newPage();
   await gotoAndWait(page, "/");
 
+  await showAutomaticPanelOnFirstScroll(page, "MicroMessenger first visit");
   await page.locator(".jabbar-consent-accept").tap();
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "MicroMessenger tap did not close the consent panel immediately");
   assert.equal(await page.evaluate(() => window.jabbarAnalyticsConsent.getState()), "granted", "MicroMessenger tap did not update in-memory consent");
-  assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), "granted", "acceptance was not stored");
+  const mobileGrant = await storedConsent(page);
+  assert.equal(mobileGrant?.state, "granted", "acceptance state was not stored");
+  assert.equal(mobileGrant?.policy, POLICY_VERSION, "acceptance policy version was not stored");
+  assert.equal(typeof mobileGrant?.at, "number", "acceptance timestamp was not stored");
   await assertNoFloatingSettings(page, "acceptance");
   await page.waitForFunction(() => document.querySelectorAll("#jabbar-google-analytics, #jabbar-microsoft-clarity").length === 2);
   assert(analyticsRequests.some((url) => url.includes("googletagmanager.com")), "Google Analytics did not load after consent");
   assert(analyticsRequests.some((url) => url.includes("clarity.ms")), "Microsoft Clarity did not load after consent");
+  assert.equal(await page.evaluate(() => {
+    const calls = (window.dataLayer || []).map((entry) => Array.from(entry));
+    const consentDefault = calls.findIndex((entry) => entry[0] === "consent" && entry[1] === "default");
+    const jsStart = calls.findIndex((entry) => entry[0] === "js");
+    return consentDefault >= 0 && jsStart >= 0 && consentDefault < jsStart;
+  }), true, "Consent Mode default was not recorded before gtag js");
 
   await page.evaluate(() => window.jabbarTrack("qa_after_consent", { source: "qa" }));
   assert.equal(
@@ -146,9 +213,10 @@ async function assertNoFloatingSettings(page, label) {
   page.on("pageerror", (error) => pageErrors.push(String(error)));
   await gotoAndWait(page, "/en/");
 
+  await showAutomaticPanelOnFirstScroll(page, "blocked analytics first visit");
   await page.locator(".jabbar-consent-accept").tap();
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "blocked analytics request kept the consent panel open");
-  assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), "granted", "blocked analytics request prevented consent storage");
+  assert.equal((await storedConsent(page))?.state, "granted", "blocked analytics request prevented consent storage");
   await page.waitForFunction(() => document.querySelectorAll("#jabbar-google-analytics, #jabbar-microsoft-clarity").length === 2);
   await page.waitForTimeout(100);
   assert(analyticsRequests.some((url) => url.includes("googletagmanager.com")), "blocked-network QA did not attempt Google Analytics");
@@ -167,6 +235,7 @@ async function assertNoFloatingSettings(page, label) {
   page.on("pageerror", (error) => pageErrors.push(String(error)));
   await gotoAndWait(page, "/en/");
 
+  await showAutomaticPanelOnFirstScroll(page, "restricted WebView first visit");
   await page.locator(".jabbar-consent-accept").tap();
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "localStorage failure kept the consent panel open");
   assert.equal(await page.evaluate(() => window.jabbarAnalyticsConsent.getState()), "granted", "localStorage failure prevented in-memory consent");
@@ -192,12 +261,16 @@ async function assertNoFloatingSettings(page, label) {
     await route.fulfill({ status: 204, body: "" });
   });
   const page = await context.newPage();
+  const promptStart = Date.now();
   await gotoAndWait(page, "/en/");
 
-  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), true, "desktop first-visit consent panel is hidden");
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "desktop panel appeared before the automatic delay");
+  await waitForAutomaticPanel(page, "desktop timer first visit");
+  const promptDelay = Date.now() - promptStart;
+  assert(promptDelay >= 1400 && promptDelay <= 2800, `desktop automatic prompt delay escaped the expected window (${promptDelay}ms)`);
   await page.locator(".jabbar-consent-accept").click();
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "desktop consent click did not close the panel immediately");
-  assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), "granted", "desktop consent was not stored");
+  assert.equal((await storedConsent(page))?.state, "granted", "desktop consent was not stored");
   await assertNoFloatingSettings(page, "desktop acceptance");
   await page.waitForFunction(() => document.querySelectorAll("#jabbar-google-analytics, #jabbar-microsoft-clarity").length === 2);
   await page.waitForTimeout(100);
@@ -210,5 +283,32 @@ async function assertNoFloatingSettings(page, label) {
   await context.close();
 }
 
+// Legacy string choices are accepted and migrated to the current JSON record.
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await context.addInitScript(({ key }) => localStorage.setItem(key, "denied"), { key: STORAGE_KEY });
+  const page = await context.newPage();
+  await gotoAndWait(page, "/en/");
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "legacy denied choice was not accepted");
+  const migrated = await storedConsent(page);
+  assert.equal(migrated?.state, "denied", "legacy choice did not migrate to JSON");
+  assert.equal(migrated?.policy, POLICY_VERSION, "legacy choice did not receive current policy version");
+  await context.close();
+}
+
+// A stored choice older than 12 months expires and asks again.
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await context.addInitScript(({ key, policy }) => {
+    localStorage.setItem(key, JSON.stringify({ state: "denied", at: Date.now() - 366 * 24 * 60 * 60 * 1000, policy }));
+  }, { key: STORAGE_KEY, policy: POLICY_VERSION });
+  const page = await context.newPage();
+  await gotoAndWait(page, "/en/");
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "expired choice reopened preferences before the automatic trigger");
+  await showAutomaticPanelOnFirstScroll(page, "expired choice");
+  assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), null, "expired choice was not removed");
+  await context.close();
+}
+
 await browser.close();
-console.log("Analytics consent browser QA passed: desktop click, MicroMessenger tap, accept/reject/later, session defer, privacy-page control, blocked analytics, and localStorage failure.");
+console.log("Analytics consent browser QA passed: desktop click, MicroMessenger tap, JSON expiry/migration, Consent Mode order, accept/reject/later, localized privacy control, blocked analytics, and localStorage failure.");

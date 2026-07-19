@@ -2737,9 +2737,7 @@ html.gallery-ready .gallery-track {
   .inquiry-entry-copy { align-items: center; text-align: center; gap: 3px; }
   [dir="rtl"] .inquiry-entry-copy { text-align: center; align-items: center; }
   .inquiry-entry-copy strong { font-size: clamp(17px, 4.8vw, 22px); letter-spacing: -0.04em; }
-  .inquiry-entry-copy span { max-width: 288px; font-size: 11.2px; line-height: 1.34; }
-  .inquiry-entry-button,
-  .inquiry-back { min-height: 34px; padding: 0 11px; font-size: 10px; white-space: normal; }
+  .inquiry-entry-copy span { max-width: 288px; font-size: 13px; line-height: 1.4; }
   .inquiry-back {
     min-width: 146px;
     min-height: 52px;
@@ -2749,7 +2747,7 @@ html.gallery-ready .gallery-track {
     font-weight: 950;
     white-space: nowrap;
   }
-  .inquiry-entry-button { max-width: 100%; min-height: 32px; padding: 0 12px; font-size: 9.5px; white-space: normal; }
+  .inquiry-entry-button { max-width: 100%; min-height: 44px; padding: 0 16px; font-size: 15px; white-space: normal; }
   .company-intro { margin: 26px auto 34px; }
   .company-intro .section-heading { margin-bottom: 14px; }
   .company-story {
@@ -9804,20 +9802,6 @@ html[lang="ar"] .section-code {
   outline-offset: 2px !important;
 }
 
-@media (max-width: 560px) {
-  .team-heading .quote-entry .inquiry-entry-button {
-    min-height: 44px !important;
-    padding-inline: 16px !important;
-    font-size: 15px !important;
-    line-height: 1.2 !important;
-  }
-
-  .team-heading .quote-entry .inquiry-entry-copy span {
-    font-size: 13px !important;
-    line-height: 1.4 !important;
-  }
-}
-
 /* Round 8 conversion feedback and accessible motion controls. */
 .inquiry-direct-panel .inquiry-status {
   grid-column: 1 / -1;
@@ -9896,6 +9880,15 @@ html[lang="ar"] .section-code {
 .inquiry-status-message {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.inquiry-status-reference {
+  display: block;
+  margin-top: 3px;
+  color: #47645a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
 }
 
 .inquiry-status-whatsapp {
@@ -10790,7 +10783,7 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
 
 .inquiry-turnstile,
 .inquiry-turnstile:empty {
-  min-height: 0 !important;
+  min-height: 65px !important;
 }
 
 .inquiry-direct-panel .inquiry-button-primary {
@@ -12210,5 +12203,168 @@ main > #team.team {
 @media (min-width: 961px) and (max-width: 1279px) {
   header.site-nav {
     grid-template-columns: minmax(0, 1fr) auto auto auto auto !important;
+  }
+}
+
+/* 2026-07-19 Round 10: inline footer utilities and calculator-prefill feedback. */
+.calculator-prefill-notice {
+  grid-column: 1 / -1;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 4px;
+  padding: 10px 10px 10px 16px;
+  color: #164e63;
+  border: 1px solid rgba(13, 148, 136, 0.34);
+  border-radius: 16px;
+  background-color: #ecfeff;
+  background-image: linear-gradient(135deg, #ecfeff 0%, #eff6ff 100%);
+  font-size: 14px;
+  font-weight: 760;
+  line-height: 1.5;
+}
+
+.calculator-prefill-notice-dismiss {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: inline-grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  color: #155e75;
+  border: 1px solid rgba(14, 116, 144, 0.24);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.74);
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.site-footer-tools {
+  width: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(226, 232, 240, 0.16);
+}
+
+.site-footer-language {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px 5px 16px;
+  color: #e5eef8;
+  border: 1px solid rgba(226, 232, 240, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.site-footer-language-select {
+  min-width: 142px;
+  min-height: 36px;
+  margin: 0;
+  padding: 6px 34px 6px 12px;
+  color: #0f2f46;
+  border: 0;
+  border-radius: 999px;
+  background-color: #f8fafc;
+  font: inherit;
+  cursor: pointer;
+}
+
+.site-footer-backtop {
+  min-height: 46px;
+  margin: 0;
+  padding: 8px 20px;
+  color: #f8fafc;
+  border: 1px solid rgba(45, 212, 191, 0.38);
+  border-radius: 999px;
+  background-color: #0f766e;
+  background-image: linear-gradient(135deg, #0f6ba8 0%, #0f766e 100%);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.testimonial-quote-cta {
+  display: flex;
+  width: fit-content;
+  min-height: 46px;
+  margin: 24px auto 0;
+  padding: 10px 22px;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background-color: #0f6ba8;
+  background-image: linear-gradient(135deg, #0f6ba8 0%, #0f766e 100%);
+  border: 1px solid rgba(var(--brand-teal-rgb), 0.28);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.testimonial-quote-cta:hover {
+  background-color: #0d6097;
+}
+
+.testimonial-quote-cta:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+.calculator-prefill-notice-dismiss:focus-visible,
+.site-footer-language-select:focus-visible,
+.site-footer-backtop:focus-visible {
+  outline: 3px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .calculator-prefill-notice {
+    align-items: flex-start;
+    padding-left: 14px;
+    font-size: 13px;
+  }
+
+  .site-footer-tools {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(112px, 0.58fr);
+    gap: 8px;
+    margin-top: 22px;
+    padding-top: 20px;
+  }
+
+  .site-footer-language {
+    min-width: 0;
+    justify-content: space-between;
+    padding-left: 12px;
+  }
+
+  .site-footer-language-label {
+    white-space: nowrap;
+  }
+
+  .site-footer-language-select {
+    min-width: 0;
+    width: 100%;
+    max-width: 132px;
+  }
+
+  .site-footer-backtop {
+    min-width: 0;
+    padding-inline: 12px;
   }
 }

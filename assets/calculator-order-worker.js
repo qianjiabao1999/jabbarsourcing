@@ -6,7 +6,7 @@
 (function (scope) {
   "use strict";
 
-  var VERSION = "order-20260719b";
+  var VERSION = "order-20260719c";
   var MAX_ROWS = 10000;
   var MAX_COLUMNS = 100;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
@@ -704,6 +704,7 @@
       volumeUnit: false,
       weightUnit: false,
       currency: false,
+      amountValue: false,
       dimensionUnit: false,
       numericFormat: false,
       summaryRows: false,
@@ -715,6 +716,7 @@
     var negativeValuesSkipped = 0;
     var subtotalMismatchCount = 0;
     var ambiguousNumericValues = 0;
+    var unparsedAmountValues = 0;
     var items = [];
     var summaryAnalysis = analyzeSummaryRows(table, mapping);
     var reconciledSummaryRows = summaryAnalysis.reconciled;
@@ -730,6 +732,8 @@
       if (!hasAnyMappedValue(row, mapping)) return;
       var product = textValue(valueAt(row, mapping, "product"));
       var sku = textValue(valueAt(row, mapping, "sku"));
+      var rawUnitPrice = valueAt(row, mapping, "unitPrice");
+      var rawAmount = valueAt(row, mapping, "amount");
       var numericFields = {
         quantity: numericDetails(valueAt(row, mapping, "qty")),
         cartons: numericDetails(valueAt(row, mapping, "cartons")),
@@ -737,8 +741,8 @@
         directWeight: numericDetails(valueAt(row, mapping, "totalWeight")),
         unitVolume: numericDetails(valueAt(row, mapping, "unitVolume")),
         directVolume: numericDetails(valueAt(row, mapping, "totalVolume")),
-        unitPrice: numericDetails(valueAt(row, mapping, "unitPrice")),
-        directAmount: numericDetails(valueAt(row, mapping, "amount")),
+        unitPrice: numericDetails(rawUnitPrice),
+        directAmount: numericDetails(rawAmount),
         length: numericDetails(valueAt(row, mapping, "length")),
         width: numericDetails(valueAt(row, mapping, "width")),
         height: numericDetails(valueAt(row, mapping, "height"))
@@ -762,16 +766,26 @@
         skippedSummaryRows += 1;
         return;
       }
+
+      var explicitRowCurrency = detectCurrency(valueAt(row, mapping, "currency"))
+        || detectCurrency(rawAmount)
+        || detectCurrency(rawUnitPrice)
+        || headerCurrency
+        || overrideCurrency;
       if ([quantity, cartons, unitWeight, directWeight, unitVolume, directVolume, unitPrice, directAmount, length, width, height].some(function (value) {
         return value != null && value < 0;
       })) {
         negativeValuesSkipped += 1;
         return;
       }
+      if (explicitRowCurrency) {
+        if (!isBlank(rawAmount) && directAmount == null) unparsedAmountValues += 1;
+        if (!isBlank(rawUnitPrice) && unitPrice == null) unparsedAmountValues += 1;
+      }
 
       var rowWeightUnit = detectWeightUnit(valueAt(row, mapping, "weightUnit")) || detectWeightUnit(valueAt(row, mapping, "unitWeight")) || detectWeightUnit(valueAt(row, mapping, "totalWeight")) || headerWeightUnit || overrideWeight;
       var rowVolumeUnit = detectVolumeUnit(valueAt(row, mapping, "volumeUnit")) || detectVolumeUnit(valueAt(row, mapping, "unitVolume")) || detectVolumeUnit(valueAt(row, mapping, "totalVolume")) || headerVolumeUnit || overrideVolume;
-      var rowCurrency = detectCurrency(valueAt(row, mapping, "currency")) || detectCurrency(valueAt(row, mapping, "amount")) || detectCurrency(valueAt(row, mapping, "unitPrice")) || headerCurrency || overrideCurrency || "CNY";
+      var rowCurrency = explicitRowCurrency || "CNY";
       var rowDimensionUnit = detectDimensionUnit(valueAt(row, mapping, "dimensionUnit")) || detectDimensionUnit([valueAt(row, mapping, "length"), valueAt(row, mapping, "width"), valueAt(row, mapping, "height")].join(" ")) || headerDimensionUnit || overrideDimension;
       var computedWeight = null;
       var computedVolume = null;
@@ -846,6 +860,10 @@
     if (pending.weightUnit) warnings.push("weight_unit_pending");
     if (pending.volumeUnit) warnings.push("volume_unit_pending");
     if (pending.currency) warnings.push("currency_pending");
+    if (unparsedAmountValues) {
+      pending.amountValue = true;
+      warnings.push("amount_value_pending");
+    }
     if (pending.dimensionUnit) warnings.push("dimension_unit_pending");
     if (ambiguousNumericValues) {
       pending.numericFormat = true;
@@ -880,12 +898,14 @@
       skippedSummaryRows: skippedSummaryRows,
       negativeValuesSkipped: negativeValuesSkipped,
       subtotalMismatchCount: subtotalMismatchCount,
+      unparsedAmountValues: unparsedAmountValues,
       ambiguousNumericValues: ambiguousNumericValues,
       ambiguousSummaryRows: ambiguousSummaryRowCount,
       warningCounts: {
         summary_rows_skipped: skippedSummaryRows,
         summary_rows_pending: ambiguousSummaryRowCount,
         numeric_format_pending: ambiguousNumericValues,
+        amount_value_pending: unparsedAmountValues,
         negative_values_skipped: negativeValuesSkipped,
         subtotal_mismatch: subtotalMismatchCount
       },

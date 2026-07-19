@@ -19,6 +19,27 @@ Content Security Policy.
 
 HSTS deliberately omits both `includeSubDomains` and `preload`.
 
+This is a conservative `www`-only policy. It does not establish HSTS coverage
+for the apex hostname or other subdomains. That gap is documented and accepted
+for the current deployment; expanding HSTS scope requires a separate review of
+every HTTPS subdomain.
+
+## Production record
+
+The 2026-07-19 site audit records this Worker as deployed outside the repository
+and active on the configured `www.jabbarsourcing.com/*` route. A live read-only
+check on 2026-07-19 returned Cloudflare response headers and all five exact
+managed values from this Worker on `https://www.jabbarsourcing.com/`.
+
+The Cloudflare account plan has **not** been confirmed. Do not describe the
+account as Workers Paid. Until the site owner confirms the plan, the Free-plan
+daily request limit and fail-closed route behavior remain an open operational
+risk because static HTML and asset requests all pass through this route.
+
+This record does not authorize changing the route, the production compatibility
+date, or migrating the policy to Transform Rules. Those require a separately
+approved and tested change.
+
 ## Local verification
 
 ```bash
@@ -33,21 +54,21 @@ Use `npm run dev` for a local Worker session. Wrangler's local origin behavior
 is not identical to the production zone route, so validate the deployed route
 with response headers as described below.
 
-## Deployment procedure
+## Deployment and verification procedure
 
-No deployment is performed by this directory setup.
+The current deployment was performed out of band. For any later deployment:
 
-Before the first deployment:
-
-1. Confirm in the Cloudflare dashboard that no existing Worker route owns
-   `www.jabbarsourcing.com/*` or a broader overlapping pattern.
-2. Confirm `www.jabbarsourcing.com` still resolves to the intended Pages/origin
+1. Confirm the Cloudflare account plan and request allowance.
+2. Confirm in the Cloudflare dashboard that the existing route is still exactly
+   `www.jabbarsourcing.com/*` and that no broader pattern conflicts with it.
+3. Confirm `www.jabbarsourcing.com` still resolves to the intended Pages/origin
    service and that HTTPS is healthy.
-3. Authenticate Wrangler with the intended Cloudflare account and run
+4. Authenticate Wrangler with the intended Cloudflare account and run
    `npm run deploy:dry`.
-4. Review the route in `wrangler.jsonc`. It intentionally covers only the
+5. Review the route and compatibility date in `wrangler.jsonc`. They are
+   production constraints, not cleanup targets. The route intentionally covers only the
    `www` hostname.
-5. When explicitly approved, run `npm run deploy` from this directory.
+6. When explicitly approved, run `npm run deploy` from this directory.
 
 After deployment, test representative success, redirect, error, and asset
 responses:
@@ -60,6 +81,11 @@ curl -sS -D - -o /dev/null https://www.jabbarsourcing.com/does-not-exist
 
 Also submit a real inquiry only when that end-to-end test has been separately
 authorized; this Worker is intended to leave request methods and bodies intact.
+
+For each representative response, verify status, `Cache-Control`, content type,
+origin headers, and the five values in the table above. Record the deployment ID
+shown by Wrangler or the dashboard so a specific prior deployment can be chosen
+if rollback is needed.
 
 ## Operational risks and rollback
 
@@ -76,6 +102,10 @@ authorized; this Worker is intended to leave request methods and bodies intact.
 - The five managed headers replace any conflicting values from the origin. All
   other origin headers are retained.
 
-To roll back the Worker behavior, remove or disable its route in Cloudflare.
+To roll back the Worker behavior, first use the Cloudflare dashboard deployment
+history to restore the last known-good deployment. If the Worker itself is the
+failure, remove or disable only its `www.jabbarsourcing.com/*` route so requests
+return directly to the existing origin. Re-run the three `curl` checks above and
+confirm the origin status/body/cache behavior before declaring recovery.
 If the security headers themselves must be reverted while keeping the route,
 deploy a reviewed change that removes the corresponding `headers.set` calls.

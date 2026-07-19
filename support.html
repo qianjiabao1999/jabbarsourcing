@@ -31,14 +31,8 @@
     <link rel="shortcut icon" href="favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="site.webmanifest?v=jabbar-5" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@500;600;700&amp;display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles.min.css?v=apple-177" />
-    <script src="/assets/analytics-consent.js?v=consent-20260719b" defer></script>
+    <link rel="stylesheet" href="styles.min.css?v=apple-178" />
+    <script src="/assets/analytics-consent.js?v=consent-20260719c" defer></script>
     <script src="script.js?v=apple-154" defer></script>
     <script>
       window.jabbarTrack = function (eventName, params) {
@@ -48,10 +42,6 @@
         var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp');
         if (whatsappLink) {
           window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
-        }
-        var inquiryButton = event.target.closest(".js-inquiry-send");
-        if (inquiryButton) {
-          window.jabbarTrack("inquiry_channel_click", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
         }
       }, true);
     </script>
@@ -169,6 +159,6 @@
           <p class="site-footer-copy">Copyright © 2026 Zhejiang Haoduobao Brand Management Co., Ltd. All rights reserved.</p>
         </div>
       </footer>
-  <script src="/assets/site-enhancements.js?v=ui-20260719e" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260719f" defer></script>
   </body>
 </html>

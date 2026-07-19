@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Public website inquiry and analytics privacy notice; this is separate from the Jabbar ERM employee app policy. -->
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -26,19 +27,24 @@
     <meta name="twitter:image:alt" content="Jabbar Sourcing Team" />
     <title>Jabbar Sourcing Website Inquiry Privacy Notice</title>
     <link rel="canonical" href="https://www.jabbarsourcing.com/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="x-default" href="https://www.jabbarsourcing.com/en/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="zh-Hans" href="https://www.jabbarsourcing.com/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="en" href="https://www.jabbarsourcing.com/en/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="es" href="https://www.jabbarsourcing.com/es/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="ar" href="https://www.jabbarsourcing.com/ar/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="fr" href="https://www.jabbarsourcing.com/fr/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="pt" href="https://www.jabbarsourcing.com/pt/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.jabbarsourcing.com/ru/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="de" href="https://www.jabbarsourcing.com/de/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="it" href="https://www.jabbarsourcing.com/it/website-privacy-policy.html" />
+    <link rel="alternate" hreflang="tr" href="https://www.jabbarsourcing.com/tr/website-privacy-policy.html" />
     <link rel="icon" href="assets/favicon.png?v=jabbar-5" type="image/png" sizes="32x32" />
     <link rel="icon" href="assets/favicon-192.png?v=jabbar-5" type="image/png" sizes="192x192" />
     <link rel="shortcut icon" href="favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="site.webmanifest?v=jabbar-5" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@500;600;700&amp;display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles.min.css?v=apple-177" />
-    <script src="/assets/analytics-consent.js?v=consent-20260719b" defer></script>
+    <link rel="stylesheet" href="styles.min.css?v=apple-178" />
+    <script src="/assets/analytics-consent.js?v=consent-20260719c" defer></script>
     <script src="script.js?v=apple-154" defer></script>
     <script>
       window.jabbarTrack = function (eventName, params) {
@@ -48,10 +54,6 @@
         var whatsappLink = event.target.closest('a[href*="wa.me"], a[data-app-link^="whatsapp:"], .contact-whatsapp');
         if (whatsappLink) {
           window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
-        }
-        var inquiryButton = event.target.closest(".js-inquiry-send");
-        if (inquiryButton) {
-          window.jabbarTrack("inquiry_channel_click", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
         }
       }, true);
     </script>
@@ -114,6 +116,8 @@
             仅在你明确选择“允许分析”后，网站才会加载 Google Analytics 4 和 Microsoft Clarity，
             用于了解页面使用情况、排查性能和交互问题。选择拒绝不会影响网站核心功能或询盘提交；
             你可以通过本隐私政策页下方的非悬浮“分析设置”按钮随时改变选择。
+            你的分析选择、选择时间和本政策版本只保存在本设备的浏览器本地存储中，最长保存 12 个月；
+            这条偏好记录不会发送到我们的服务器。
             为判断询盘来源，直接提交的询盘邮件还会包含首次进入本站的页面路径、外部来源网站的域名，以及网址中受长度限制的
             UTM source、medium、campaign、term 和 content 参数；这些来源字段不属于用户填写的询盘表单正文或联系方式。
             获得允许后，分析服务可能处理页面地址、设备与浏览器信息、粗略网络位置、点击和会话诊断数据；
@@ -133,8 +137,10 @@
             <!--email_off--><a href="mailto:qianjiabao1999@gmail.com">qianjiabao1999@gmail.com</a><!--/email_off-->，说明你的请求和用于定位询盘的最少信息。
             我们可能需要进行必要的身份核验，并会在 30 日内或适用法律规定的期限内答复。
             撤回同意不影响撤回前处理的合法性。
+            在适用法律允许时，你也可以向有管辖权的个人信息或数据保护监管机构投诉。
             如果你选择 WhatsApp、Gmail、WeChat 或 Telegram 备选渠道，相关平台也会按照各自的隐私规则处理信息。
           </p>
+          <p>我们会在处理方式或法律义务发生变化时更新本说明；页面顶部的日期表示当前版本。</p>
 
           <h3>Website inquiry privacy notice</h3>
           <p>
@@ -195,9 +201,11 @@
             in the subject and the minimum information needed to locate the inquiry. We may perform proportionate
             identity verification and will respond within 30 days or the period required by applicable law.
             Withdrawing consent does not affect processing that was lawful before withdrawal.
+            Where applicable, you may also complain to the personal-information or data-protection authority with jurisdiction.
             If you choose a WhatsApp, Gmail, WeChat, or Telegram fallback, that provider also processes
             the information under its own privacy terms.
           </p>
+          <p>We may update this notice when our processing practices or legal duties change; the date above identifies the current version.</p>
           <button class="privacy-consent-control" type="button" data-analytics-consent-open>
             分析设置 / Analytics settings
           </button>
@@ -248,6 +256,6 @@
         <p class="site-footer-copy">Copyright © 2026 浙江好多宝品牌管理有限公司 保留所有权利。</p>
       </div>
     </footer>
-    <script src="/assets/site-enhancements.js?v=ui-20260719e" defer></script>
+    <script src="/assets/site-enhancements.js?v=ui-20260719f" defer></script>
   </body>
 </html>

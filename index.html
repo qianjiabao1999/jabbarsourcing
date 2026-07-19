@@ -48,8 +48,8 @@
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="site.webmanifest?v=jabbar-5" />
 
-    <link rel="stylesheet" href="styles.min.css?v=apple-177" />
-    <script src="/assets/analytics-consent.js?v=consent-20260719b" defer></script>
+    <link rel="stylesheet" href="styles.min.css?v=apple-178" />
+    <script src="/assets/analytics-consent.js?v=consent-20260719c" defer></script>
     <script type="application/ld+json" data-schema="organization">
 {
   "@context": "https://schema.org",
@@ -175,10 +175,6 @@
         if (whatsappLink) {
           window.jabbarTrack("contact_whatsapp", { link_text: (whatsappLink.innerText || "WhatsApp").trim() });
         }
-        var inquiryButton = event.target.closest(".js-inquiry-send");
-        if (inquiryButton) {
-          window.jabbarTrack("inquiry_channel_click", { channel: inquiryButton.getAttribute("data-channel") || "unknown" });
-        }
       }, true);
     </script>
   </head>
@@ -271,6 +267,26 @@
             </div>
           </section>
 
+          <section class="company-intro" id="services" aria-labelledby="services-title">
+            <div class="section-heading company-intro-heading container-narrow">
+              <p class="section-code" dir="ltr">Jabbar · 服务</p>
+              <h2 id="services-title">一站式采购服务</h2>
+              <span class="section-rule" aria-hidden="true"></span>
+            </div>
+            <div class="company-intro-layout company-intro-metrics-layout container-wide">
+              <figure class="company-photo-card">
+                <img src="assets/gallery/responsive/landscape-03-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing 仓库与客户验货现场" width="960" height="640" loading="lazy" decoding="async" />
+              </figure>
+              <div class="company-metrics" aria-label="Jabbar Sourcing company numbers">
+                <article class="company-metric-card"><strong><bdi class="num-mono company-metric-number" dir="ltr">2008</bdi>年</strong><span>成立年份</span></article>
+                <article class="company-metric-card"><strong><bdi class="num-mono company-metric-number" dir="ltr">300</bdi>+</strong><span>公司人数</span></article>
+                <article class="company-metric-card"><strong><bdi class="num-mono company-metric-number" dir="ltr">50,000</bdi>㎡</strong><span>仓库面积</span></article>
+                <article class="company-metric-card"><strong>全球 <bdi class="num-mono company-metric-number" dir="ltr">100</bdi>+ 国家和地区</strong><span>服务覆盖范围</span></article>
+                <article class="company-metric-card"><strong><bdi class="num-mono company-metric-number" dir="ltr" data-counter-value="500000000" data-counter-grouped="true">500,000,000</bdi> 人民币元</strong><span>年出货额</span></article>
+              </div>
+            </div>
+          </section>
+
           <section class="sourcing-gallery container-wide" aria-labelledby="gallery-title">
             <div class="section-heading gallery-heading">
               <p class="section-code" dir="ltr">Jabbar · 图库</p>
@@ -336,26 +352,6 @@
 
 
 
-
-          <section class="company-intro" id="services" aria-labelledby="services-title">
-            <div class="section-heading company-intro-heading container-narrow">
-              <p class="section-code" dir="ltr">Jabbar · 服务</p>
-              <h2 id="services-title">一站式采购服务</h2>
-              <span class="section-rule" aria-hidden="true"></span>
-            </div>
-            <div class="company-intro-layout company-intro-metrics-layout container-wide">
-              <figure class="company-photo-card">
-                <img src="assets/gallery/responsive/landscape-03-960.webp?v=gallery-960-20260703" alt="Jabbar Sourcing 仓库与客户验货现场" width="960" height="640" loading="lazy" decoding="async" />
-              </figure>
-              <div class="company-metrics" aria-label="Jabbar Sourcing company numbers">
-                <article class="company-metric-card"><strong><bdi class="num-mono company-metric-number" dir="ltr">2008</bdi>年</strong><span>成立年份</span></article>
-                <article class="company-metric-card"><strong><bdi class="num-mono company-metric-number" dir="ltr">300</bdi>+</strong><span>公司人数</span></article>
-                <article class="company-metric-card"><strong><bdi class="num-mono company-metric-number" dir="ltr">50,000</bdi>㎡</strong><span>仓库面积</span></article>
-                <article class="company-metric-card"><strong>全球 <bdi class="num-mono company-metric-number" dir="ltr">100</bdi>+ 国家和地区</strong><span>服务覆盖范围</span></article>
-                <article class="company-metric-card"><strong><bdi class="num-mono company-metric-number" dir="ltr" data-counter-value="500000000" data-counter-grouped="true">500,000,000</bdi> 人民币元</strong><span>年出货额</span></article>
-              </div>
-            </div>
-          </section>
 
           <section class="work-process container-wide" id="how-it-works" aria-labelledby="how-it-works-title">
             <div class="section-heading">
@@ -1230,6 +1226,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260719e" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260719f" defer></script>
   </body>
 </html>

@@ -12,11 +12,12 @@ const targets = [
   "404.html",
   "privacy-policy.html",
   "website-privacy-policy.html",
-  "support.html"
+  "support.html",
+  ...locales.filter(Boolean).map((locale) => `${locale}/website-privacy-policy.html`)
 ];
 
 const googleTag = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-C6X14RZHNZ"></script>';
-const CONSENT_VERSION = "consent-20260719b";
+const CONSENT_VERSION = "consent-20260719c";
 const replacementTag = `<script src="/assets/analytics-consent.js?v=${CONSENT_VERSION}" defer></script>`;
 const consentTagPattern = /^[ \t]*<script src="\/assets\/analytics-consent\.js\?v=consent-[^"]+" defer><\/script>[ \t]*(?:\r?\n)?/gm;
 

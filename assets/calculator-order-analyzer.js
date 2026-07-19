@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260719b";
+  var VERSION = "order-20260719c";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   // Main-thread parsing is an emergency compatibility path. Keep its memory
   // ceiling well below the Worker limit so older mobile browsers stay usable.
@@ -81,6 +81,7 @@
       weight_unit_pending: "Weight was treated provisionally as kg. Confirm the unit above.",
       volume_unit_pending: "Volume was treated provisionally as m³. Confirm the unit above.",
       currency_pending: "The workbook does not identify a currency. Confirm it above.",
+      amount_value_pending: "{n} price or amount value(s) include a currency but no readable number. Correct them before exporting.",
       dimension_unit_pending: "Dimensions were treated provisionally as cm. Confirm their unit.",
       weight_meaning_pending: "The generic weight column is treated as per-unit weight. Confirm the mapping or change it to line-total weight.",
       volume_meaning_pending: "The generic volume column is treated as per-unit volume. Confirm the mapping or change it to line-total volume.",
@@ -872,16 +873,16 @@
   Object.keys(ANALYZER_COPY).forEach(function (code) { Object.assign(LOCALES[code], ANALYZER_COPY[code]); });
 
   var ANALYZER_WARNING_COPY = {
-    en: { numeric_format_pending: "Some text numbers have an ambiguous decimal or thousands separator. Confirm their values before exporting.", summary_rows_pending: "Some unlabeled subtotal rows could not be reconciled safely. Confirm the mapping or simplify the workbook before exporting." },
-    zh: { numeric_format_pending: "部分文本数字的小数点或千位分隔符存在歧义，请确认数值后再导出。", summary_rows_pending: "部分未标注的小计行无法安全核对，请确认列映射或精简表格后再导出。" },
-    es: { numeric_format_pending: "Algunos números de texto tienen separadores decimales o de miles ambiguos. Confirma los valores antes de exportar.", summary_rows_pending: "No se pudieron conciliar con seguridad algunas filas de subtotal sin etiqueta. Confirma la asignación o simplifica el archivo antes de exportar." },
-    ar: { numeric_format_pending: "تحتوي بعض الأرقام النصية على فاصل عشري أو فاصل آلاف ملتبس. تحقق من القيم قبل التصدير.", summary_rows_pending: "تعذر التحقق بأمان من بعض صفوف الإجمالي الفرعي غير المسماة. أكد تعيين الأعمدة أو بسّط الملف قبل التصدير." },
-    fr: { numeric_format_pending: "Certains nombres textuels ont un séparateur décimal ou de milliers ambigu. Confirmez les valeurs avant l’exportation.", summary_rows_pending: "Certaines lignes de sous-total non libellées n’ont pas pu être rapprochées de façon sûre. Confirmez le mappage ou simplifiez le fichier avant l’exportation." },
-    pt: { numeric_format_pending: "Alguns números em texto têm separador decimal ou de milhar ambíguo. Confirme os valores antes de exportar.", summary_rows_pending: "Algumas linhas de subtotal sem rótulo não puderam ser conciliadas com segurança. Confirme o mapeamento ou simplifique o arquivo antes de exportar." },
-    ru: { numeric_format_pending: "В некоторых текстовых числах неоднозначен десятичный разделитель или разделитель тысяч. Проверьте значения перед экспортом.", summary_rows_pending: "Некоторые неподписанные строки промежуточных итогов нельзя безопасно сверить. Подтвердите сопоставление или упростите файл перед экспортом." },
-    de: { numeric_format_pending: "Bei einigen Textzahlen ist das Dezimal- oder Tausendertrennzeichen mehrdeutig. Prüfen Sie die Werte vor dem Export.", summary_rows_pending: "Einige unbeschriftete Zwischensummenzeilen konnten nicht sicher abgeglichen werden. Bestätigen Sie die Zuordnung oder vereinfachen Sie die Datei vor dem Export." },
-    it: { numeric_format_pending: "Alcuni numeri testuali hanno un separatore decimale o delle migliaia ambiguo. Conferma i valori prima di esportare.", summary_rows_pending: "Non è stato possibile riconciliare in modo sicuro alcune righe di subtotale senza etichetta. Conferma la mappatura o semplifica il file prima di esportare." },
-    tr: { numeric_format_pending: "Bazı metin sayılarında ondalık veya binlik ayırıcı belirsiz. Dışa aktarmadan önce değerleri doğrulayın.", summary_rows_pending: "Bazı etiketsiz ara toplam satırları güvenli biçimde uzlaştırılamadı. Dışa aktarmadan önce eşlemeyi onaylayın veya dosyayı sadeleştirin." }
+    en: { numeric_format_pending: "Some text numbers have an ambiguous decimal or thousands separator. Confirm their values before exporting.", summary_rows_pending: "Some unlabeled subtotal rows could not be reconciled safely. Confirm the mapping or simplify the workbook before exporting.", amount_value_pending: "{n} price or amount value(s) include a currency but no readable number. Correct them before exporting." },
+    zh: { numeric_format_pending: "部分文本数字的小数点或千位分隔符存在歧义，请确认数值后再导出。", summary_rows_pending: "部分未标注的小计行无法安全核对，请确认列映射或精简表格后再导出。", amount_value_pending: "{n} 个单价或金额单元格包含币种但没有可识别的数字，请修正后再导出。" },
+    es: { numeric_format_pending: "Algunos números de texto tienen separadores decimales o de miles ambiguos. Confirma los valores antes de exportar.", summary_rows_pending: "No se pudieron conciliar con seguridad algunas filas de subtotal sin etiqueta. Confirma la asignación o simplifica el archivo antes de exportar.", amount_value_pending: "{n} valor(es) de precio o importe incluyen una moneda, pero no un número legible. Corrígelos antes de exportar." },
+    ar: { numeric_format_pending: "تحتوي بعض الأرقام النصية على فاصل عشري أو فاصل آلاف ملتبس. تحقق من القيم قبل التصدير.", summary_rows_pending: "تعذر التحقق بأمان من بعض صفوف الإجمالي الفرعي غير المسماة. أكد تعيين الأعمدة أو بسّط الملف قبل التصدير.", amount_value_pending: "تتضمن {n} من قيم السعر أو المبلغ عملة دون رقم قابل للقراءة. صححها قبل التصدير." },
+    fr: { numeric_format_pending: "Certains nombres textuels ont un séparateur décimal ou de milliers ambigu. Confirmez les valeurs avant l’exportation.", summary_rows_pending: "Certaines lignes de sous-total non libellées n’ont pas pu être rapprochées de façon sûre. Confirmez le mappage ou simplifiez le fichier avant l’exportation.", amount_value_pending: "{n} valeur(s) de prix ou de montant indiquent une devise sans nombre lisible. Corrigez-les avant l’exportation." },
+    pt: { numeric_format_pending: "Alguns números em texto têm separador decimal ou de milhar ambíguo. Confirme os valores antes de exportar.", summary_rows_pending: "Algumas linhas de subtotal sem rótulo não puderam ser conciliadas com segurança. Confirme o mapeamento ou simplifique o arquivo antes de exportar.", amount_value_pending: "{n} valor(es) de preço ou total incluem uma moeda, mas não um número legível. Corrija-os antes de exportar." },
+    ru: { numeric_format_pending: "В некоторых текстовых числах неоднозначен десятичный разделитель или разделитель тысяч. Проверьте значения перед экспортом.", summary_rows_pending: "Некоторые неподписанные строки промежуточных итогов нельзя безопасно сверить. Подтвердите сопоставление или упростите файл перед экспортом.", amount_value_pending: "В {n} значениях цены или суммы указана валюта, но нет распознаваемого числа. Исправьте их перед экспортом." },
+    de: { numeric_format_pending: "Bei einigen Textzahlen ist das Dezimal- oder Tausendertrennzeichen mehrdeutig. Prüfen Sie die Werte vor dem Export.", summary_rows_pending: "Einige unbeschriftete Zwischensummenzeilen konnten nicht sicher abgeglichen werden. Bestätigen Sie die Zuordnung oder vereinfachen Sie die Datei vor dem Export.", amount_value_pending: "{n} Preis- oder Betragswert(e) enthalten eine Währung, aber keine lesbare Zahl. Korrigieren Sie sie vor dem Export." },
+    it: { numeric_format_pending: "Alcuni numeri testuali hanno un separatore decimale o delle migliaia ambiguo. Conferma i valori prima di esportare.", summary_rows_pending: "Non è stato possibile riconciliare in modo sicuro alcune righe di subtotale senza etichetta. Conferma la mappatura o semplifica il file prima di esportare.", amount_value_pending: "{n} valore/i di prezzo o importo includono una valuta ma non un numero leggibile. Correggili prima di esportare." },
+    tr: { numeric_format_pending: "Bazı metin sayılarında ondalık veya binlik ayırıcı belirsiz. Dışa aktarmadan önce değerleri doğrulayın.", summary_rows_pending: "Bazı etiketsiz ara toplam satırları güvenli biçimde uzlaştırılamadı. Dışa aktarmadan önce eşlemeyi onaylayın veya dosyayı sadeleştirin.", amount_value_pending: "{n} fiyat veya tutar değerinde para birimi var ancak okunabilir sayı yok. Dışa aktarmadan önce düzeltin." }
   };
   Object.keys(ANALYZER_WARNING_COPY).forEach(function (code) { Object.assign(LOCALES[code].warnings, ANALYZER_WARNING_COPY[code]); });
 

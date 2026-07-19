@@ -35,6 +35,10 @@
       verifyError: "请完成安全验证。",
       sending: "正在安全提交…",
       sendingLabel: "提交中…",
+      turnstileLoading: "正在加载安全验证…",
+      verifyRetry: "安全验证已失效。请完成新的验证后再次提交。",
+      whatsappFallback: "改用 WhatsApp",
+      referenceLabel: "询盘编号",
       success: "我们已收到您的询盘，将在 24 小时内回复。",
       accepted: "我们已收到您的询盘，正在确认发送结果；请勿重复提交，我们会在 24 小时内回复。",
       pending: "该询盘正在处理中，请几秒后重试。",
@@ -48,6 +52,10 @@
       verifyError: "Please complete the security check.",
       sending: "Submitting securely…",
       sendingLabel: "Submitting…",
+      turnstileLoading: "Loading the security check…",
+      verifyRetry: "The security check expired. Complete the new check, then submit again.",
+      whatsappFallback: "Continue on WhatsApp",
+      referenceLabel: "Inquiry reference",
       success: "We have received your inquiry and will reply within 24 hours.",
       accepted: "We have received your inquiry and are confirming delivery. Please do not submit again; we will reply within 24 hours.",
       pending: "This inquiry is already being processed. Try again in a few seconds.",
@@ -61,6 +69,10 @@
       verifyError: "Completa la verificación de seguridad.",
       sending: "Enviando de forma segura…",
       sendingLabel: "Enviando…",
+      turnstileLoading: "Cargando la verificación de seguridad…",
+      verifyRetry: "La verificación de seguridad caducó. Completa la nueva verificación y vuelve a enviar.",
+      whatsappFallback: "Continuar por WhatsApp",
+      referenceLabel: "Referencia de solicitud",
       success: "Hemos recibido tu solicitud y responderemos en un plazo de 24 horas.",
       accepted: "Hemos recibido tu solicitud y estamos confirmando el envío. No la envíes de nuevo; responderemos en un plazo de 24 horas.",
       pending: "Esta solicitud ya se está procesando. Inténtalo de nuevo en unos segundos.",
@@ -74,6 +86,10 @@
       verifyError: "يرجى إكمال التحقق الأمني.",
       sending: "جارٍ الإرسال بأمان…",
       sendingLabel: "جارٍ الإرسال…",
+      turnstileLoading: "جارٍ تحميل التحقق الأمني…",
+      verifyRetry: "انتهت صلاحية التحقق الأمني. أكمل التحقق الجديد ثم أرسل الطلب مجددًا.",
+      whatsappFallback: "المتابعة عبر WhatsApp",
+      referenceLabel: "مرجع الطلب",
       success: "لقد استلمنا طلبك وسنرد عليك خلال 24 ساعة.",
       accepted: "لقد استلمنا طلبك ونتحقق من وصوله. يرجى عدم إرساله مجددًا؛ سنرد عليك خلال 24 ساعة.",
       pending: "هذا الطلب قيد المعالجة بالفعل. حاول مجددًا بعد بضع ثوانٍ.",
@@ -87,6 +103,10 @@
       verifyError: "Veuillez effectuer la vérification de sécurité.",
       sending: "Envoi sécurisé en cours…",
       sendingLabel: "Envoi…",
+      turnstileLoading: "Chargement de la vérification de sécurité…",
+      verifyRetry: "La vérification de sécurité a expiré. Effectuez la nouvelle vérification, puis renvoyez la demande.",
+      whatsappFallback: "Continuer sur WhatsApp",
+      referenceLabel: "Référence de la demande",
       success: "Nous avons bien reçu votre demande et vous répondrons sous 24 heures.",
       accepted: "Nous avons bien reçu votre demande et vérifions sa transmission. Ne la renvoyez pas ; nous vous répondrons sous 24 heures.",
       pending: "Cette demande est déjà en cours de traitement. Réessayez dans quelques secondes.",
@@ -100,6 +120,10 @@
       verifyError: "Complete a verificação de segurança.",
       sending: "Enviando com segurança…",
       sendingLabel: "Enviando…",
+      turnstileLoading: "Carregando a verificação de segurança…",
+      verifyRetry: "A verificação de segurança expirou. Conclua a nova verificação e envie novamente.",
+      whatsappFallback: "Continuar no WhatsApp",
+      referenceLabel: "Referência da solicitação",
       success: "Recebemos sua solicitação e responderemos em até 24 horas.",
       accepted: "Recebemos sua solicitação e estamos confirmando o envio. Não envie novamente; responderemos em até 24 horas.",
       pending: "Esta solicitação já está sendo processada. Tente novamente em alguns segundos.",
@@ -113,6 +137,10 @@
       verifyError: "Пройдите проверку безопасности.",
       sending: "Безопасная отправка…",
       sendingLabel: "Отправка…",
+      turnstileLoading: "Загрузка проверки безопасности…",
+      verifyRetry: "Срок проверки безопасности истёк. Пройдите новую проверку и отправьте запрос ещё раз.",
+      whatsappFallback: "Продолжить в WhatsApp",
+      referenceLabel: "Номер запроса",
       success: "Мы получили ваш запрос и ответим в течение 24 часов.",
       accepted: "Мы получили ваш запрос и проверяем его доставку. Не отправляйте его повторно; мы ответим в течение 24 часов.",
       pending: "Этот запрос уже обрабатывается. Повторите попытку через несколько секунд.",
@@ -126,6 +154,10 @@
       verifyError: "Bitte schließen Sie die Sicherheitsprüfung ab.",
       sending: "Wird sicher gesendet…",
       sendingLabel: "Wird gesendet…",
+      turnstileLoading: "Sicherheitsprüfung wird geladen…",
+      verifyRetry: "Die Sicherheitsprüfung ist abgelaufen. Schließen Sie die neue Prüfung ab und senden Sie erneut.",
+      whatsappFallback: "Über WhatsApp fortfahren",
+      referenceLabel: "Anfragereferenz",
       success: "Wir haben Ihre Anfrage erhalten und antworten innerhalb von 24 Stunden.",
       accepted: "Wir haben Ihre Anfrage erhalten und bestätigen gerade die Zustellung. Bitte senden Sie sie nicht erneut; wir antworten innerhalb von 24 Stunden.",
       pending: "Diese Anfrage wird bereits bearbeitet. Versuchen Sie es in einigen Sekunden erneut.",
@@ -139,6 +171,10 @@
       verifyError: "Completa la verifica di sicurezza.",
       sending: "Invio sicuro in corso…",
       sendingLabel: "Invio…",
+      turnstileLoading: "Caricamento della verifica di sicurezza…",
+      verifyRetry: "La verifica di sicurezza è scaduta. Completa la nuova verifica e invia di nuovo.",
+      whatsappFallback: "Continua su WhatsApp",
+      referenceLabel: "Riferimento richiesta",
       success: "Abbiamo ricevuto la tua richiesta e risponderemo entro 24 ore.",
       accepted: "Abbiamo ricevuto la tua richiesta e ne stiamo confermando l’invio. Non inviarla di nuovo; risponderemo entro 24 ore.",
       pending: "Questa richiesta è già in elaborazione. Riprova tra qualche secondo.",
@@ -152,6 +188,10 @@
       verifyError: "Lütfen güvenlik kontrolünü tamamlayın.",
       sending: "Güvenli şekilde gönderiliyor…",
       sendingLabel: "Gönderiliyor…",
+      turnstileLoading: "Güvenlik kontrolü yükleniyor…",
+      verifyRetry: "Güvenlik kontrolünün süresi doldu. Yeni kontrolü tamamlayıp tekrar gönderin.",
+      whatsappFallback: "WhatsApp ile devam et",
+      referenceLabel: "Talep referansı",
       success: "Talebinizi aldık ve 24 saat içinde yanıt vereceğiz.",
       accepted: "Talebinizi aldık ve iletimi doğruluyoruz. Lütfen tekrar göndermeyin; 24 saat içinde yanıt vereceğiz.",
       pending: "Bu talep zaten işleniyor. Birkaç saniye sonra tekrar deneyin.",
@@ -259,6 +299,57 @@
       window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
     } catch (error) {}
     return attribution;
+  }
+
+  var TURNSTILE_API_URL = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=jabbarTurnstileApiReady";
+  var turnstileReadyPromise = null;
+
+  function loadTurnstileApi() {
+    if (window.turnstile && typeof window.turnstile.render === "function") {
+      return Promise.resolve(window.turnstile);
+    }
+    if (turnstileReadyPromise) return turnstileReadyPromise;
+
+    turnstileReadyPromise = new Promise(function (resolve, reject) {
+      var settled = false;
+      var timeoutId = window.setTimeout(function () {
+        if (settled) return;
+        settled = true;
+        reject(new Error("turnstile_load_timeout"));
+      }, 30000);
+
+      function finish() {
+        if (settled) return;
+        if (!window.turnstile || typeof window.turnstile.render !== "function") {
+          settled = true;
+          window.clearTimeout(timeoutId);
+          reject(new Error("turnstile_api_unavailable"));
+          return;
+        }
+        settled = true;
+        window.clearTimeout(timeoutId);
+        resolve(window.turnstile);
+      }
+
+      window.jabbarTurnstileApiReady = finish;
+      var script = document.querySelector('script[data-jabbar-turnstile-api="true"]');
+      if (!script) {
+        script = document.createElement("script");
+        script.src = TURNSTILE_API_URL;
+        script.async = true;
+        script.setAttribute("data-jabbar-turnstile-api", "true");
+        document.head.appendChild(script);
+      }
+      script.addEventListener("load", finish, { once: true });
+      script.addEventListener("error", function () {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeoutId);
+        reject(new Error("turnstile_load_failed"));
+      }, { once: true });
+    });
+
+    return turnstileReadyPromise;
   }
 
   if (typeof window.jabbarCaptureAttribution !== "function") {
@@ -375,13 +466,16 @@
           quantity: result.quantity,
           note: result.note || result.message
         };
+        var prefilled = false;
         ["product", "quantity", "note"].forEach(function (name) {
           var field = form.elements[name];
           var value = typeof values[name] === "string" ? values[name].trim() : "";
           if (!field || !value || String(field.value || "").trim()) return;
           var maximum = Number(field.getAttribute("maxlength"));
           field.value = Number.isFinite(maximum) && maximum > 0 ? value.slice(0, maximum) : value;
+          prefilled = true;
         });
+        if (prefilled) form.setAttribute("data-calculator-prefill", "true");
       } catch (error) {
       } finally {
         if (raw !== null) {
@@ -394,11 +488,33 @@
 
     decorateFieldLabels();
 
-    function setStatus(message, tone) {
+    function buildWhatsAppSummary() {
+      var labels = {
+        product: "Product",
+        quantity: "Quantity",
+        budget: "Budget",
+        market: "Market",
+        contact: "Contact",
+        company: "Name / company",
+        note: "Notes"
+      };
+      var lines = ["Jabbar Sourcing inquiry: secure form unavailable"];
+      Object.keys(labels).forEach(function (name) {
+        var value = readValue(name);
+        if (value) lines.push(labels[name] + ": " + value);
+      });
+      lines.push("Page: " + window.location.href.split("#")[0]);
+      return "https://wa.me/8618658925544?text=" + encodeURIComponent(lines.join("\n"));
+    }
+
+    function setStatus(message, tone, options) {
       if (!status) return;
+      options = options || {};
       while (status.firstChild) status.removeChild(status.firstChild);
       status.classList.remove("is-success", "is-error", "is-pending");
+      delete status.dataset.securityRelated;
       if (tone) status.classList.add("is-" + tone);
+      if (options.securityRelated) status.dataset.securityRelated = "true";
       if (!message) return;
 
       if (tone === "success") {
@@ -409,10 +525,25 @@
         var text = document.createElement("span");
         text.className = "inquiry-status-message";
         text.textContent = message;
+        if (options.reference) {
+          var reference = document.createElement("small");
+          reference.className = "inquiry-status-reference";
+          reference.textContent = messages.referenceLabel + ": " + options.reference;
+          text.appendChild(reference);
+        }
         status.appendChild(icon);
         status.appendChild(text);
       } else {
         status.textContent = message;
+        if (options.whatsappFallback) {
+          var whatsapp = document.createElement("a");
+          whatsapp.className = "inquiry-status-whatsapp";
+          whatsapp.href = buildWhatsAppSummary();
+          whatsapp.target = "_blank";
+          whatsapp.rel = "noopener noreferrer";
+          whatsapp.textContent = messages.whatsappFallback;
+          status.appendChild(whatsapp);
+        }
       }
 
       window.requestAnimationFrame(function () {
@@ -487,11 +618,11 @@
       };
     }
 
-    function completeSubmission(message, submittedContentKey, statusCode, startedAt) {
+    function completeSubmission(message, submittedContentKey, statusCode, startedAt, submissionId) {
       if (!submittedContentKey || contentKey() === submittedContentKey) form.reset();
       currentSubmissionId = "";
       resetTurnstile();
-      setStatus(message, "success");
+      setStatus(message, "success", { reference: String(submissionId || "").slice(0, 8) });
       trackEvent("inquiry_submit", {
         method: "direct",
         status: Number(statusCode),
@@ -536,7 +667,7 @@
         return;
       }
       if (!turnstileToken) {
-        setStatus(messages.verifyError, "error");
+        setStatus(messages.verifyError, "error", { securityRelated: true });
         trackSubmitError("turnstile_missing", 0, "turnstile");
         return;
       }
@@ -574,11 +705,11 @@
         var body = result.body || {};
 
         if (response.status === 200 || response.status === 201) {
-          completeSubmission(messages.success, submittedContentKey, response.status, submissionStartedAt);
+          completeSubmission(messages.success, submittedContentKey, response.status, submissionStartedAt, payload.submissionId);
           return;
         }
         if (response.status === 202) {
-          completeSubmission(messages.accepted, submittedContentKey, response.status, submissionStartedAt);
+          completeSubmission(messages.accepted, submittedContentKey, response.status, submissionStartedAt, payload.submissionId);
           return;
         }
 
@@ -595,7 +726,7 @@
           return;
         }
         if (response.status === 422) {
-          setStatus(messages.verifyError, "error");
+          setStatus(messages.verifyRetry, "error", { securityRelated: true, whatsappFallback: true });
           return;
         }
         if (response.status === 429) {
@@ -615,51 +746,47 @@
       });
     });
 
-    var renderAttempts = 0;
-    function renderTurnstile() {
-      if (window.turnstile && typeof window.turnstile.render === "function") {
-        try {
-          widgetId = window.turnstile.render(turnstileElement, {
+    function showTurnstileFailure(errorCode) {
+      turnstileToken = "";
+      directButton.disabled = true;
+      setStatus(messages.genericError, "error", { securityRelated: true, whatsappFallback: true });
+      trackSubmitError(errorCode, 0, "turnstile");
+    }
+
+    function renderTurnstile(turnstileApi) {
+      try {
+          widgetId = turnstileApi.render(turnstileElement, {
             sitekey: turnstileElement.getAttribute("data-sitekey"),
             action: turnstileElement.getAttribute("data-action") || "turnstile-spin-v1",
             language: turnstileElement.getAttribute("data-language") || "auto",
             size: "flexible",
-            theme: "auto",
+            theme: "light",
             appearance: "interaction-only",
             callback: function (token) {
               turnstileToken = String(token || "");
               directButton.disabled = !turnstileToken;
+              if (status && status.dataset.securityRelated === "true") setStatus("", "");
             },
             "expired-callback": function () {
               turnstileToken = "";
               directButton.disabled = true;
-              setStatus(messages.verifyError, "error");
             },
             "timeout-callback": function () {
-              turnstileToken = "";
-              directButton.disabled = true;
-              setStatus(messages.verifyError, "error");
+              showTurnstileFailure("turnstile_timeout");
             },
             "error-callback": function () {
-              turnstileToken = "";
-              directButton.disabled = true;
-              setStatus(messages.genericError, "error");
+              showTurnstileFailure("turnstile_widget_error");
             }
           });
-        } catch (error) {
-          setStatus(messages.genericError, "error");
-        }
-        return;
-      }
-      renderAttempts += 1;
-      if (renderAttempts < 20) {
-        window.setTimeout(renderTurnstile, 250);
-      } else {
-        setStatus(messages.genericError, "error");
+      } catch (error) {
+        showTurnstileFailure("turnstile_render_failed");
       }
     }
 
-    renderTurnstile();
+    setStatus(messages.turnstileLoading, "pending", { securityRelated: true });
+    loadTurnstileApi().then(renderTurnstile).catch(function () {
+      showTurnstileFailure("turnstile_load_failed");
+    });
   }
 
   function initialize() {

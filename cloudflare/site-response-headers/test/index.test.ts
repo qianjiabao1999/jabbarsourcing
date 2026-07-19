@@ -1,6 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { SELF } from "cloudflare:test";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { SECURITY_HEADERS, withSecurityHeaders } from "../src/index";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe("withSecurityHeaders", () => {
   it("preserves the origin response while adding the security policy", async () => {
@@ -65,5 +71,33 @@ describe("withSecurityHeaders", () => {
     expect(hardened.headers.get("Strict-Transport-Security")).not.toContain(
       "preload",
     );
+  });
+
+  it("applies the policy through the real default SELF entrypoint", async () => {
+    const originFetch = vi.fn(async (request: Request) =>
+      new Response(`origin:${new URL(request.url).pathname}`, {
+        status: 206,
+        statusText: "Partial Content",
+        headers: {
+          "Cache-Control": "public, max-age=120",
+          "X-Origin-Header": "entrypoint-kept",
+        },
+      }),
+    );
+    vi.stubGlobal("fetch", originFetch);
+
+    const response = await SELF.fetch(
+      "https://www.jabbarsourcing.com/assets/example.css?entrypoint=1",
+    );
+
+    expect(originFetch).toHaveBeenCalledTimes(1);
+    expect(response.status).toBe(206);
+    expect(response.statusText).toBe("Partial Content");
+    expect(response.headers.get("Cache-Control")).toBe("public, max-age=120");
+    expect(response.headers.get("X-Origin-Header")).toBe("entrypoint-kept");
+    expect(await response.text()).toBe("origin:/assets/example.css");
+    for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+      expect(response.headers.get(name)).toBe(value);
+    }
   });
 });

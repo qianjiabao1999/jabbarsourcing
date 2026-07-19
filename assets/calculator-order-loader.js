@@ -2,7 +2,7 @@
   var root = document.querySelector("[data-order-analyzer]");
   if (!root || root.getAttribute("data-order-loader-bound") === "true") return;
 
-  var VERSION = "order-20260719b";
+  var VERSION = "order-20260719c";
   var SCRIPT_URL = "/assets/calculator-order-analyzer.js?v=" + VERSION;
   var language = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
   var labels = {
@@ -21,7 +21,9 @@
   var loading = false;
   var loaded = false;
   var failedScript = null;
-  var intentEvents = ["pointerenter", "pointerdown", "touchstart", "click", "dragenter"];
+  var pendingDropFiles = [];
+  var intentEvents = ["pointerenter", "pointerdown", "touchstart", "click"];
+  var preloadDragEvents = ["dragenter", "dragover", "drop"];
 
   root.setAttribute("data-order-loader-bound", "true");
   root.setAttribute("role", "region");
@@ -59,6 +61,41 @@
     intentEvents.forEach(function (name) { root.removeEventListener(name, loadAnalyzer); });
   }
 
+  function removePreloadDragListeners() {
+    preloadDragEvents.forEach(function (name) { root.removeEventListener(name, handlePreloadDrag); });
+  }
+
+  function hasDraggedFiles(event) {
+    var transfer = event && event.dataTransfer;
+    if (!transfer) return false;
+    if (transfer.files && transfer.files.length) return true;
+    if (!transfer.types) return false;
+    if (typeof transfer.types.contains === "function" && transfer.types.contains("Files")) return true;
+    return Array.prototype.indexOf.call(transfer.types, "Files") !== -1;
+  }
+
+  function handlePreloadDrag(event) {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    if (event.dataTransfer && event.type === "dragover") {
+      try { event.dataTransfer.dropEffect = "copy"; } catch (error) {}
+    }
+    if (event.type === "drop" && event.dataTransfer && event.dataTransfer.files.length) {
+      pendingDropFiles = Array.prototype.slice.call(event.dataTransfer.files, 0, 10);
+    }
+    loadAnalyzer();
+  }
+
+  function replayPendingDrop() {
+    if (!pendingDropFiles.length) return;
+    var instance = root.__jabbarOrderAnalyzer;
+    if (!instance || typeof instance.parseFiles !== "function") return;
+    var files = pendingDropFiles.slice();
+    pendingDropFiles = [];
+    var replay = instance.parseFiles(files, "drop");
+    if (replay && typeof replay.catch === "function") replay.catch(function () {});
+  }
+
   function finishLoading() {
     if (!window.JabbarOrderAnalyzer || typeof window.JabbarOrderAnalyzer.init !== "function") {
       showLoadError();
@@ -70,6 +107,8 @@
     root.removeAttribute("aria-label");
     removeIntentListeners();
     window.JabbarOrderAnalyzer.init();
+    removePreloadDragListeners();
+    replayPendingDrop();
   }
 
   function showLoadError() {
@@ -127,5 +166,8 @@
   showLoadPrompt();
   intentEvents.forEach(function (name) {
     root.addEventListener(name, loadAnalyzer, name === "touchstart" ? { passive: true } : false);
+  });
+  preloadDragEvents.forEach(function (name) {
+    root.addEventListener(name, handlePreloadDrag);
   });
 })();

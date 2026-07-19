@@ -47,10 +47,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-5" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-5" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-177" />
-    <script src="/assets/analytics-consent.js?v=consent-20260719b" defer></script>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20260719b" defer></script>
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-178" />
+    <script src="/assets/analytics-consent.js?v=consent-20260719c" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20260719c" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -169,7 +168,7 @@
                 <h2 id="inquiry-title">Ne satın almak istediğinizi yazın</h2>
                 <p>Ürün, miktar ve iletişim bilgilerinizi paylaşın. Size Yiwu tedarikçileri, fiyat ve seçenekleri bulalım.</p>
               </div>
-              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="tr" data-inquiry-source="/tr/inquiry/" data-privacy-version="2026-07-19" data-required-message="Lütfen en az ürün ihtiyacını ve iletişim bilgilerini doldurun." data-copied-message="Kopyalandı. WeChat’i açın, 18658925544 arayın ve talebi yapıştırın." data-copy-fail-message="Kopyalama başarısız. Lütfen talebi manuel kopyalayın." data-telegram-copied-message="Talep kopyalandi. Telegram acilinca yapistirip gonderin.">
+              <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="tr" data-inquiry-source="/tr/inquiry/" data-privacy-version="2026-07-19">
                 <label class="field field-wide">
                   <span>Gerekli ürünler</span>
                   <input name="product" type="text" maxlength="300" placeholder="örn. tek fiyat mağazası ürünleri, mutfak, oyuncak, düzenleme…" autocomplete="off"  required/>
@@ -342,90 +341,8 @@
             try { sessionStorage.setItem("jabbarManualLanguage", "1"); } catch (error) {}
           });
         });
-        document.querySelectorAll(".js-inquiry-form").forEach(function (form) {
-          var status = form.querySelector(".inquiry-status");
-          var getValue = function (name) {
-            var field = form.elements[name];
-            return field ? String(field.value || "").trim() : "";
-          };
-          var buildMessage = function () {
-            var labels = Array.prototype.slice.call(form.querySelectorAll(".field")).map(function (field) {
-              var label = field.querySelector("span");
-              var control = field.querySelector("input, select, textarea");
-              return control && label ? [control.name, label.textContent.trim()] : null;
-            }).filter(Boolean);
-            var lines = ["Jabbar Sourcing Team - Satın alma talebi"];
-            labels.forEach(function (item) {
-              var value = getValue(item[0]);
-              if (value) lines.push(item[1] + ": " + value);
-            });
-            lines.push("Page: " + window.location.href.split("#")[0]);
-            return lines.join("\n");
-          };
-          var setStatus = function (message) {
-            if (!status) return;
-            status.classList.remove("is-success", "is-error", "is-pending");
-            status.textContent = message || "";
-          };
-          form.querySelectorAll(".js-inquiry-send").forEach(function (button) {
-            button.addEventListener("click", function () {
-              if (typeof form.reportValidity === "function" && !form.reportValidity()) {
-                return;
-              }
-              var product = getValue("product");
-              var contact = getValue("contact");
-              if (!product || !contact) {
-                setStatus(form.getAttribute("data-required-message"));
-                return;
-              }
-              var message = buildMessage();
-              var channel = button.getAttribute("data-channel");
-              if (channel === "whatsapp") {
-                window.location.href = "https://wa.me/8618658925544?text=" + encodeURIComponent(message);
-                return;
-              }
-              if (channel === "gmail") {
-                window.location.href = "mailto:qianjiabao1999@gmail.com?subject=" + encodeURIComponent("Jabbar Sourcing Team talebi") + "&body=" + encodeURIComponent(message);
-                return;
-              }
-              if (channel === "telegram") {
-                var telegramCopied = function () {
-                  setStatus(form.getAttribute("data-telegram-copied-message") || "Inquiry copied. Paste it in Telegram after the chat opens.");
-                };
-                if (navigator.clipboard && window.isSecureContext) {
-                  navigator.clipboard.writeText(message).then(telegramCopied).catch(function () {
-                    setStatus(form.getAttribute("data-copy-fail-message"));
-                  });
-                } else {
-                  setStatus(form.getAttribute("data-copy-fail-message"));
-                }
-                var telegramOpened = false;
-                var markTelegramOpened = function () { telegramOpened = true; };
-                window.addEventListener("pagehide", markTelegramOpened, { once: true });
-                window.addEventListener("blur", markTelegramOpened, { once: true });
-                window.location.href = "tg://resolve?domain=Jabbar_in_Yiwu";
-                window.setTimeout(function () {
-                  if (!telegramOpened) window.location.href = "https://t.me/Jabbar_in_Yiwu";
-                }, 1600);
-                return;
-              }
-              if (channel === "wechat") {
-                var copied = function () {
-                  setStatus(form.getAttribute("data-copied-message"));
-                };
-                if (navigator.clipboard && window.isSecureContext) {
-                  navigator.clipboard.writeText(message).then(copied).catch(function () {
-                    setStatus(form.getAttribute("data-copy-fail-message"));
-                  });
-                } else {
-                  setStatus(form.getAttribute("data-copy-fail-message"));
-                }
-              }
-            });
-          });
-        });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260719e" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20260719f" defer></script>
   </body>
 </html>

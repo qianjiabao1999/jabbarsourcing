@@ -250,7 +250,109 @@ try {
   assert.equal(scriptRetry.secondFailures, 0, "successful reader retry retained the old failure");
   assert.equal(scriptRetry.fallbackUsed, true, "reader retry did not use the recovered local fallback");
 
-  console.log(JSON.stringify({ ok: true, partialBatch: result, fallbackAndLimits: fallbackResult, workerRecovery, scriptRetry: { ...scriptRetry, coreAttempts } }, null, 2));
+  async function verifyPreloadDropReplay({ delayed }) {
+    const dropPage = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    let releaseAnalyzer;
+    const analyzerGate = new Promise((resolve) => { releaseAnalyzer = resolve; });
+
+    await dropPage.addInitScript(() => {
+      let analyzerApi;
+      window.__qaDropParseCalls = [];
+      Object.defineProperty(window, "JabbarOrderAnalyzer", {
+        configurable: true,
+        get() { return analyzerApi; },
+        set(api) {
+          if (!api || typeof api.init !== "function") {
+            analyzerApi = api;
+            return;
+          }
+          const originalInit = api.init;
+          api.init = function () {
+            originalInit.apply(this, arguments);
+            const root = document.querySelector("[data-order-analyzer]");
+            const instance = root && root.__jabbarOrderAnalyzer;
+            if (!instance || instance.__qaDropWrapped) return;
+            const originalParseFiles = instance.parseFiles.bind(instance);
+            instance.__qaDropWrapped = true;
+            instance.parseFiles = function (files, method) {
+              window.__qaDropParseCalls.push({
+                method,
+                names: Array.from(files || [], (file) => file && file.name)
+              });
+              return originalParseFiles(files, method);
+            };
+          };
+          analyzerApi = api;
+        }
+      });
+    });
+
+    await dropPage.route("**/assets/calculator-order-analyzer.js*", async (route) => {
+      if (delayed) await analyzerGate;
+      await route.continue();
+    });
+
+    try {
+      await dropPage.goto(`http://127.0.0.1:${address.port}/en/calculator/`);
+      await dropPage.locator('[data-calculator-mode="excel"]').click();
+      await dropPage.waitForFunction(() => document.querySelector("[data-order-analyzer]")?.getAttribute("data-order-loader-bound") === "true");
+      const originalUrl = dropPage.url();
+      const dispatchState = await dropPage.evaluate(() => {
+        const root = document.querySelector("[data-order-analyzer]");
+        const data = ["Product,Quantity,Amount CNY", "Preload drop,2,20"].join("\n");
+        const transfer = new DataTransfer();
+        transfer.items.add(new File([data], "preload-drop.csv", { type: "text/csv" }));
+        const dragover = new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: transfer });
+        const drop = new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: transfer });
+        const dragoverDispatch = root.dispatchEvent(dragover);
+        const dropDispatch = root.dispatchEvent(drop);
+        return {
+          dragoverPrevented: dragover.defaultPrevented,
+          dropPrevented: drop.defaultPrevented,
+          dragoverDispatch,
+          dropDispatch,
+          href: location.href
+        };
+      });
+
+      assert.equal(dispatchState.dragoverPrevented, true, `${delayed ? "delayed" : "fast"} preload dragover did not prevent browser navigation`);
+      assert.equal(dispatchState.dropPrevented, true, `${delayed ? "delayed" : "fast"} preload drop did not prevent browser navigation`);
+      assert.equal(dispatchState.dragoverDispatch, false, `${delayed ? "delayed" : "fast"} dragover dispatch did not report cancellation`);
+      assert.equal(dispatchState.dropDispatch, false, `${delayed ? "delayed" : "fast"} drop dispatch did not report cancellation`);
+      assert.equal(dispatchState.href, originalUrl, `${delayed ? "delayed" : "fast"} preload drop navigated away before analyzer load`);
+
+      if (delayed) {
+        assert.deepEqual(await dropPage.evaluate(() => window.__qaDropParseCalls), [], "delayed analyzer parsed before its script was released");
+        releaseAnalyzer();
+      }
+
+      await dropPage.waitForFunction(() => window.__qaDropParseCalls?.length === 1);
+      await dropPage.waitForFunction(() => {
+        const qa = window.JABBAR_ORDER_ANALYZER_QA;
+        return Boolean(qa && (qa.fileResults.length + qa.fileFailures.length >= 1));
+      });
+      await dropPage.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      const finalState = await dropPage.evaluate(() => ({ calls: window.__qaDropParseCalls, href: location.href }));
+      assert.deepEqual(finalState.calls, [{ method: "drop", names: ["preload-drop.csv"] }], `${delayed ? "delayed" : "fast"} preload drop was not replayed exactly once`);
+      assert.equal(finalState.href, originalUrl, `${delayed ? "delayed" : "fast"} analyzer replay navigated away from calculator`);
+      return finalState;
+    } finally {
+      if (delayed) releaseAnalyzer();
+      await dropPage.close();
+    }
+  }
+
+  const delayedPreloadDrop = await verifyPreloadDropReplay({ delayed: true });
+  const fastPreloadDrop = await verifyPreloadDropReplay({ delayed: false });
+
+  console.log(JSON.stringify({
+    ok: true,
+    partialBatch: result,
+    fallbackAndLimits: fallbackResult,
+    workerRecovery,
+    scriptRetry: { ...scriptRetry, coreAttempts },
+    preloadDropReplay: { delayed: delayedPreloadDrop, fast: fastPreloadDrop }
+  }, null, 2));
 } finally {
   await browser.close();
   await new Promise((resolve) => server.close(resolve));

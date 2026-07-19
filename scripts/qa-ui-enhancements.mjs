@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-177";
-const UI_VERSION = "ui-20260719e";
+const CSS_VERSION = "apple-178";
+const UI_VERSION = "ui-20260719f";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -22,16 +22,16 @@ const HEADER_PAGES = [
 ];
 const IMAGE_AUDIT_LOCALES = new Set(["zh", "en", "es", "ru", "ar"]);
 const HOME_SECTION_CODES = {
-  zh: ["团队", "图库", "服务", "流程", "客户评价", "常见问题", "社交账号"],
-  en: ["Team", "Gallery", "Services", "Process", "Reviews", "FAQ", "Social"],
-  es: ["Equipo", "Galería", "Servicios", "Proceso", "Reseñas", "Preguntas frecuentes", "Redes sociales"],
-  ar: ["الفريق", "المعرض", "الخدمات", "خطوات العمل", "آراء العملاء", "الأسئلة الشائعة", "التواصل الاجتماعي"],
-  fr: ["Équipe", "Galerie", "Services", "Processus", "Avis clients", "FAQ", "Réseaux sociaux"],
-  pt: ["Equipe", "Galeria", "Serviços", "Processo", "Avaliações", "Perguntas frequentes", "Redes sociais"],
-  ru: ["Команда", "Галерея", "Услуги", "Процесс", "Отзывы", "Частые вопросы", "Соцсети"],
-  de: ["Team", "Galerie", "Leistungen", "Ablauf", "Bewertungen", "FAQ", "Soziale Medien"],
-  it: ["Team", "Galleria", "Servizi", "Processo", "Recensioni", "Domande frequenti", "Social"],
-  tr: ["Ekip", "Galeri", "Hizmetler", "Süreç", "Yorumlar", "SSS", "Sosyal medya"]
+  zh: ["团队", "服务", "图库", "流程", "客户评价", "常见问题", "社交账号"],
+  en: ["Team", "Services", "Gallery", "Process", "Reviews", "FAQ", "Social"],
+  es: ["Equipo", "Servicios", "Galería", "Proceso", "Reseñas", "Preguntas frecuentes", "Redes sociales"],
+  ar: ["الفريق", "الخدمات", "المعرض", "خطوات العمل", "آراء العملاء", "الأسئلة الشائعة", "التواصل الاجتماعي"],
+  fr: ["Équipe", "Services", "Galerie", "Processus", "Avis clients", "FAQ", "Réseaux sociaux"],
+  pt: ["Equipe", "Serviços", "Galeria", "Processo", "Avaliações", "Perguntas frequentes", "Redes sociais"],
+  ru: ["Команда", "Услуги", "Галерея", "Процесс", "Отзывы", "Частые вопросы", "Соцсети"],
+  de: ["Team", "Leistungen", "Galerie", "Ablauf", "Bewertungen", "FAQ", "Soziale Medien"],
+  it: ["Team", "Servizi", "Galleria", "Processo", "Recensioni", "Domande frequenti", "Social"],
+  tr: ["Ekip", "Hizmetler", "Galeri", "Süreç", "Yorumlar", "SSS", "Sosyal medya"]
 };
 const METRIC_EXPECTED = {
   zh: { first: "2008年", last: "500,000,000 人民币元" },
@@ -81,6 +81,37 @@ await mkdir(OUTPUT_DIR, { recursive: true });
 async function blockAnalytics(context) {
   await context.route("**://www.googletagmanager.com/**", (route) => route.fulfill({ status: 204, body: "" }));
   await context.route("**://www.clarity.ms/**", (route) => route.fulfill({ status: 204, body: "" }));
+  await context.route("**/turnstile/v0/api.js*", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/javascript; charset=utf-8",
+    body: `(() => {
+      let sequence = 0;
+      const widgets = new Map();
+      const issueToken = (widget) => {
+        Promise.resolve().then(() => widget.options.callback?.("qa-turnstile-token-" + widget.id));
+      };
+      window.turnstile = {
+        render(target, options = {}) {
+          const id = "qa-turnstile-widget-" + (++sequence);
+          const widget = { id, target, options };
+          widgets.set(id, widget);
+          issueToken(widget);
+          return id;
+        },
+        reset(id) {
+          if (id !== undefined && id !== null) {
+            const widget = widgets.get(id);
+            if (widget) issueToken(widget);
+            return;
+          }
+          widgets.forEach(issueToken);
+        }
+      };
+      if (typeof window.jabbarTurnstileApiReady === "function") {
+        window.setTimeout(window.jabbarTurnstileApiReady, 0);
+      }
+    })();`
+  }));
   // Interaction analytics are part of this UI suite. Grant the same explicit
   // preference a returning user would have stored, while keeping third-party
   // requests locally stubbed. Consent-default behavior has its own QA check.
@@ -101,14 +132,11 @@ async function mockValidShipments(context) {
 
 function collectErrors(page) {
   const errors = [];
-  const isTurnstileNoise = (value) => String(value || "").includes("challenges.cloudflare.com");
   page.on("console", (message) => {
     if (message.type() !== "error") return;
-    if (isTurnstileNoise(message.location()?.url)) return;
     errors.push(message.text());
   });
   page.on("pageerror", (error) => {
-    if (isTurnstileNoise(`${error.message}\n${error.stack || ""}`)) return;
     errors.push(error.message);
   });
   return errors;
@@ -208,7 +236,8 @@ async function pageState(page) {
         companyAboutBlocks: document.querySelectorAll(".company-about").length,
         companyIdentityBlocks: document.querySelectorAll(".company-identity").length,
         socialFilters: document.querySelectorAll(".social-platform-filter").length,
-        calculatorModeTabs: document.querySelectorAll(".calculator-mode-tab").length
+        calculatorModeTabs: document.querySelectorAll(".calculator-mode-tab").length,
+        reviewQuoteCtas: document.querySelectorAll(".testimonial-quote-cta").length
       },
       sectionCodes: Array.from(document.querySelectorAll(".section-code"), (element) => normalizeText(element.textContent)),
       sectionCodeDirections: Array.from(document.querySelectorAll(".section-code"), (element) => getComputedStyle(element).direction),
@@ -316,6 +345,7 @@ async function pageState(page) {
 async function waitForHomeVisualSignature(page) {
   await page.locator(".stamp-row").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelectorAll(".stamp.land").length === 3);
+  await page.locator(".testimonial-quote-cta").waitFor({ state: "visible" });
   await page.waitForFunction(() => {
     const ticker = document.querySelector(".shipment-ticker");
     return ticker?.classList.contains("is-ready") || ticker?.classList.contains("is-unavailable");
@@ -357,6 +387,7 @@ function assertHomeVisualSignature(state, scope, locale) {
   assert.equal(state.shipment.display, "none", `${scope}: placeholder shipment ticker is visible`);
   assert.equal(state.counts.metricNumbers, 5, `${scope}: monospaced company metric count`);
   assert.equal(state.counts.reviewNumbers, 2, `${scope}: monospaced review amount count`);
+  assert.equal(state.counts.reviewQuoteCtas, 1, `${scope}: review quote CTA count`);
   assert(isMonoFamily(state.fonts.numeric), `${scope}: numeric font is not monospaced: ${state.fonts.numeric}`);
   assert(isMonoFamily(state.fonts.review), `${scope}: review amount is not monospaced: ${state.fonts.review}`);
   assert(isMonoFamily(state.fonts.phone), `${scope}: footer phone is not monospaced: ${state.fonts.phone}`);
@@ -1173,6 +1204,49 @@ async function assertLocalizedMetricAnimation(page, scope, locale) {
   assert.equal(copy.ariaLabels, 0, `${scope}: company metrics still rely on aria-label`);
 }
 
+async function footerToolsChecks(browserType) {
+  const context = await browserType.newContext({
+    viewport: { width: 1280, height: 900 },
+    reducedMotion: "reduce"
+  });
+  await blockAnalytics(context);
+  const page = await context.newPage();
+  const errors = collectErrors(page);
+  const cases = [
+    { from: "/", locale: "en", destination: "/en/", scope: "home footer tools" },
+    { from: "/calculator/", locale: "fr", destination: "/fr/calculator/", scope: "calculator footer tools" },
+    { from: "/inquiry/", locale: "de", destination: "/de/inquiry/", scope: "inquiry footer tools" },
+    { from: "/website-privacy-policy.html", locale: "es", destination: "/es/website-privacy-policy.html", scope: "privacy footer tools" }
+  ];
+
+  for (const testCase of cases) {
+    await page.goto(`${BASE_URL}${testCase.from}`, { waitUntil: "domcontentloaded" });
+    const tools = page.locator(".site-footer-tools");
+    const language = page.locator(".site-footer-language-select");
+    const backToTop = page.locator(".site-footer-backtop");
+    await tools.waitFor({ state: "visible" });
+    assert.equal(await tools.count(), 1, `${testCase.scope}: footer tools count`);
+    assert.equal(await language.count(), 1, `${testCase.scope}: language select count`);
+    assert.equal(await backToTop.count(), 1, `${testCase.scope}: back-to-top count`);
+    const position = await tools.evaluate((element) => getComputedStyle(element).position);
+    assert(!["fixed", "sticky"].includes(position), `${testCase.scope}: footer tools must remain in document flow (${position})`);
+
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForFunction(() => window.scrollY > 40);
+    await backToTop.click();
+    await page.waitForFunction(() => window.scrollY <= 1);
+
+    const navigation = page.waitForURL(`${BASE_URL}${testCase.destination}`);
+    await language.selectOption(testCase.locale);
+    await navigation;
+    await page.locator(".site-footer-language-select").waitFor({ state: "attached" });
+    assert.equal(await page.locator(".site-footer-language-select").inputValue(), testCase.locale, `${testCase.scope}: selected locale after navigation`);
+    assert.equal(errors.length, 0, `${testCase.scope}: console errors ${errors.splice(0).join(" | ")}`);
+  }
+
+  await context.close();
+}
+
 async function homeMatrix(browserType) {
   for (const viewport of [{ width: 390, height: 844, mobile: true }, { width: 1280, height: 900, mobile: false }]) {
     const context = await browserType.newContext({
@@ -1934,6 +2008,15 @@ async function calculatorAnalyticsChecks(browserType) {
   await page.waitForURL(`${BASE_URL}/inquiry/`);
   assert.equal(await page.locator('[name="quantity"]').inputValue(), "1350", "calculator quantity was not transferred to inquiry");
   assert((await page.locator('[name="note"]').inputValue()).includes("Total CBM"), "calculator summary was not transferred to inquiry notes");
+  const prefillNotice = page.locator(".calculator-prefill-notice");
+  await prefillNotice.waitFor({ state: "visible" });
+  assert.equal(await prefillNotice.count(), 1, "calculator handoff notice count");
+  assert.equal(await prefillNotice.getAttribute("role"), "status", "calculator handoff notice role");
+  assert((await prefillNotice.locator(".calculator-prefill-notice-text").textContent())?.trim(), "calculator handoff notice copy is empty");
+  const dismissPrefillNotice = prefillNotice.locator(".calculator-prefill-notice-dismiss");
+  assert.equal(await dismissPrefillNotice.isVisible(), true, "calculator handoff notice dismiss control is hidden");
+  await dismissPrefillNotice.click();
+  assert.equal(await page.locator(".calculator-prefill-notice").count(), 0, "calculator handoff notice did not close");
   assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null, "calculator handoff was not consumed");
 
   await context.close();
@@ -1968,6 +2051,7 @@ await accessibilityFallbackChecks(chromiumBrowser);
 await rtlMotionCheck(chromiumBrowser);
 await shipmentGuardChecks(chromiumBrowser);
 await calculatorAnalyticsChecks(chromiumBrowser);
+await footerToolsChecks(chromiumBrowser);
 await chromiumBrowser.close();
 
 const webkitBrowser = await webkit.launch({ headless: true });

@@ -87,8 +87,13 @@ await context.addInitScript(() => {
 const apiResponses = [];
 const apiPayloads = [];
 const consoleErrors = [];
+let delayNextTurnstileApi = true;
 
 await context.route("**/turnstile/v0/api.js*", async (route) => {
+  if (delayNextTurnstileApi) {
+    delayNextTurnstileApi = false;
+    await new Promise((resolve) => setTimeout(resolve, 15000));
+  }
   await route.fulfill({
     status: 200,
     contentType: "application/javascript; charset=utf-8",
@@ -97,6 +102,7 @@ await context.route("**/turnstile/v0/api.js*", async (route) => {
         var sequence = 0;
         window.__turnstileResetCount = 0;
         window.__turnstileIssueCount = 0;
+        window.__turnstileAutoIssueOnReset = true;
         window.__issueTurnstileToken = function () {
           sequence += 1;
           window.__turnstileIssueCount += 1;
@@ -110,7 +116,7 @@ await context.route("**/turnstile/v0/api.js*", async (route) => {
           },
           reset: function () {
             window.__turnstileResetCount += 1;
-            window.setTimeout(window.__issueTurnstileToken, 0);
+            if (window.__turnstileAutoIssueOnReset) window.setTimeout(window.__issueTurnstileToken, 0);
           }
         };
       })();
@@ -157,10 +163,12 @@ async function openInquiry(path) {
   });
   const turnstileContract = await page.evaluate(() => ({
     appearance: window.__turnstileOptions?.appearance,
+    theme: window.__turnstileOptions?.theme,
     containerAppearance: document.querySelector(".js-inquiry-turnstile")?.getAttribute("data-appearance"),
     initiallyDisabled: document.querySelector(".js-inquiry-direct")?.disabled === true,
   }));
   assert(turnstileContract.appearance === "interaction-only", `${path} Turnstile render must use interaction-only appearance`);
+  assert(turnstileContract.theme === "light", `${path} Turnstile render must use the stable light theme`);
   assert(turnstileContract.containerAppearance === "interaction-only", `${path} Turnstile container must declare interaction-only appearance`);
   assert(turnstileContract.initiallyDisabled, `${path} submit must remain disabled before a Turnstile token`);
   await page.evaluate(() => window.__issueTurnstileToken());
@@ -199,6 +207,23 @@ function assertInquiryEvent(event, status, scope) {
   assert(!JSON.stringify(event).includes("qa@example.com"), `${scope} analytics leaked contact data`);
   assert(!JSON.stringify(event).includes("QA storage items"), `${scope} analytics leaked product data`);
 }
+
+const slowTurnstilePage = await context.newPage();
+await slowTurnstilePage.goto(`${BASE_URL}/en/inquiry/`, { waitUntil: "domcontentloaded" });
+await slowTurnstilePage.waitForFunction(() =>
+  document.querySelector(".inquiry-status")?.classList.contains("is-pending")
+);
+assert(
+  (await slowTurnstilePage.locator(".inquiry-status").textContent()).includes("Loading the security check"),
+  "A slow Turnstile response must show localized pending feedback"
+);
+assert(await slowTurnstilePage.locator(".js-inquiry-direct").isDisabled(), "Submit must remain disabled during a 15-second Turnstile load");
+await slowTurnstilePage.waitForFunction(() => Boolean(window.__turnstileOptions), null, { timeout: 25000 });
+await slowTurnstilePage.evaluate(() => window.__issueTurnstileToken());
+await slowTurnstilePage.waitForFunction(() =>
+  !document.querySelector(".js-inquiry-direct")?.disabled && !document.querySelector(".inquiry-status")?.textContent.trim()
+);
+await slowTurnstilePage.close();
 
 const indexGuardPage = await context.newPage();
 await indexGuardPage.goto(
@@ -383,6 +408,10 @@ assert(submitStartEvents.length === 1, "Happy path must emit inquiry_submit_star
 assert(submitStartEvents[0].duration_ms === 0, "Submit-start duration must begin at zero");
 assert((await analyticsEvents("inquiry_submit_success")).length === 0, "Existing inquiry_submit must remain the sole success event");
 assert((await page.locator(".inquiry-status").textContent()).includes("24"), "Success feedback must promise a reply within 24 hours");
+assert(
+  (await page.locator(".inquiry-status .inquiry-status-reference").textContent()).includes(apiPayloads[0].submissionId.slice(0, 8)),
+  "Success feedback must show the first eight characters of the submission reference"
+);
 assert(await page.locator(".inquiry-status .inquiry-status-icon").getAttribute("aria-hidden") === "true", "Success check must not duplicate the live-region announcement");
 assert(await page.locator(".inquiry-status .inquiry-status-whatsapp").count() === 0, "Success feedback must not restore a redundant fallback action");
 await page.waitForFunction(() => (window.__inquiryScrollCalls || []).length >= 2);
@@ -426,6 +455,33 @@ assert(apiPayloads[beforeRetry + 1].submissionId === firstRetryId, "Same-content
 inquiryEvents = await analyticsEvents("inquiry_submit");
 assert(inquiryEvents.length === beforeRetryEvents + 1, "Retry success must emit inquiry_submit exactly once");
 assertInquiryEvent(inquiryEvents.at(-1), 200, "200 retry success");
+
+await fillRequired("QA Turnstile fallback product", "qa-turnstile@example.com");
+await page.evaluate(() => window.__turnstileOptions["error-callback"]());
+await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
+assert(await page.locator(".js-inquiry-direct").isDisabled(), "Turnstile widget failure must disable direct submit");
+assert(await page.locator(".inquiry-status .inquiry-status-whatsapp").count() === 1, "Turnstile widget failure must expose one temporary WhatsApp fallback");
+const turnstileFallbackHref = await page.locator(".inquiry-status .inquiry-status-whatsapp").getAttribute("href");
+assert(turnstileFallbackHref.includes("wa.me/8618658925544") && turnstileFallbackHref.includes("QA%20Turnstile%20fallback%20product"), "Turnstile fallback must prefill the current inquiry summary");
+await page.evaluate(() => window.__issueTurnstileToken());
+await page.waitForFunction(() => !document.querySelector(".js-inquiry-direct")?.disabled);
+assert(await page.locator(".inquiry-status .inquiry-status-whatsapp").count() === 0, "A refreshed token must remove the temporary WhatsApp fallback");
+
+await fillRequired("QA expired verification", "qa-422@example.com");
+await page.evaluate(() => { window.__turnstileAutoIssueOnReset = false; });
+apiResponses.push(response(422, { ok: false, error: "turnstile_invalid" }));
+const before422SuccessEvents = inquiryEvents.length;
+await clickDirect();
+await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
+assert((await page.locator(".inquiry-status").textContent()).includes("再次提交"), "422 feedback must tell the user to complete a new check and submit again");
+assert(await page.locator(".inquiry-status .inquiry-status-whatsapp").count() === 1, "422 must expose one temporary WhatsApp fallback");
+assert((await analyticsEvents("inquiry_submit")).length === before422SuccessEvents, "422 must not emit inquiry_submit");
+await page.evaluate(() => {
+  window.__issueTurnstileToken();
+  window.__turnstileAutoIssueOnReset = true;
+});
+await page.waitForFunction(() => !document.querySelector(".js-inquiry-direct")?.disabled);
+assert(await page.locator(".inquiry-status .inquiry-status-whatsapp").count() === 0, "A new token must clear the 422 fallback");
 
 await fillRequired("QA pending product", "qa-pending@example.com");
 apiResponses.push(
@@ -471,19 +527,22 @@ assertInquiryEvent(inquiryEvents.at(-1), 201, "In-flight 201 success");
 await page.waitForFunction(() => !document.querySelector(".js-inquiry-direct")?.disabled);
 await page.emulateMedia({ reducedMotion: "reduce" });
 const scrollCallsBeforeReducedMotion = await page.evaluate(() => window.__inquiryScrollCalls.length);
+const statusBeforeExpiry = await page.locator(".inquiry-status").textContent();
 await page.evaluate(() => window.__turnstileOptions["expired-callback"]());
-await page.waitForFunction(
-  (before) => (window.__inquiryScrollCalls || []).length > before,
-  scrollCallsBeforeReducedMotion
-);
-const reducedMotionScroll = await page.evaluate(() => window.__inquiryScrollCalls.at(-1));
-assert(reducedMotionScroll?.block === "nearest" && reducedMotionScroll?.behavior === "auto", "Reduced motion must reveal status without smooth scrolling");
 assert(await page.locator(".js-inquiry-direct").isDisabled(), "Expired Turnstile token must disable direct submit");
+assert((await page.locator(".inquiry-status").textContent()) === statusBeforeExpiry, "Token expiry must remain silent until the user submits again");
+assert((await page.evaluate(() => window.__inquiryScrollCalls.length)) === scrollCallsBeforeReducedMotion, "Silent token expiry must not move the page");
 const beforeTokenExpiryApi = apiPayloads.length;
 const beforeTokenExpiryEvents = inquiryEvents.length;
 const beforeTurnstileErrors = (await analyticsEvents("inquiry_submit_error")).length;
 await page.evaluate(() => document.querySelector(".js-inquiry-form")?.requestSubmit());
 await page.waitForFunction(() => document.querySelector(".inquiry-status")?.classList.contains("is-error"));
+await page.waitForFunction(
+  (before) => (window.__inquiryScrollCalls || []).length > before,
+  scrollCallsBeforeReducedMotion
+);
+const reducedMotionScroll = await page.evaluate(() => window.__inquiryScrollCalls.at(-1));
+assert(reducedMotionScroll?.block === "nearest" && reducedMotionScroll?.behavior === "auto", "Reduced motion must reveal submit feedback without smooth scrolling");
 assert(apiPayloads.length === beforeTokenExpiryApi, "Expired Turnstile token must not call the API");
 assert((await analyticsEvents("inquiry_submit")).length === beforeTokenExpiryEvents, "Expired Turnstile token must not emit inquiry_submit");
 const turnstileErrors = await analyticsEvents("inquiry_submit_error");
@@ -572,7 +631,7 @@ for (const viewport of [
     assert(metrics.privacyNoticeCount === 1 && metrics.privacyLinkCount === 1, `${item.locale} ${viewport.name} privacy submit notice regressed`);
     assert(metrics.detailsCount === 0, `${item.locale} ${viewport.name} still collapses order details`);
     assert(metrics.visibleOrderDetailCount === ORDER_DETAIL_FIELDS.length, `${item.locale} ${viewport.name} does not show every order-detail field`);
-    assert(metrics.turnstileHeight <= 1, `${item.locale} ${viewport.name} interaction-only Turnstile reserves ${metrics.turnstileHeight}px`);
+    assert(metrics.turnstileHeight >= 65 && metrics.turnstileHeight <= 70, `${item.locale} ${viewport.name} Turnstile placeholder is ${metrics.turnstileHeight}px instead of a stable 65px`);
     assert(metrics.turnstileAppearance === "interaction-only", `${item.locale} ${viewport.name} Turnstile appearance regressed`);
     assert(metrics.submitEnabledAfterToken, `${item.locale} ${viewport.name} token callback did not enable submit`);
     assert(metrics.returnHomeCount === 1 && metrics.returnHomeHref === "../", `${item.locale} ${viewport.name} top Return Home control regressed`);
@@ -631,6 +690,17 @@ for (const viewport of [
   assert(!appPolicyMetrics.stillContainsWebsiteDisclosure, "Website inquiry disclosure must not remain on the App privacy page");
   assert(appPolicyMetrics.title === "Jabbar ERM Privacy Policy | Jabbar Sourcing", "Legacy App privacy title regressed");
 }
+
+await page.setViewportSize({ width: 390, height: 844 });
+await page.goto(`${BASE_URL}/404.html`, { waitUntil: "domcontentloaded" });
+const notFoundCtas = await page.locator(".not-found-actions .inquiry-entry-button").evaluateAll((buttons) =>
+  buttons.map((button) => {
+    const style = getComputedStyle(button);
+    return { height: button.getBoundingClientRect().height, fontSize: parseFloat(style.fontSize) };
+  })
+);
+assert(notFoundCtas.length === 2, "404 must retain its two recovery actions");
+assert(notFoundCtas.every((cta) => cta.height >= 44 && cta.fontSize >= 15), "404 mobile actions must remain at least 44px high with 15px text");
 
 assert(consoleErrors.length === 0, `Browser console errors: ${consoleErrors.join(" | ")}`);
 
