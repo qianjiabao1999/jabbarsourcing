@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ORIGIN = "https://www.jabbarsourcing.com";
 const CONSENT_VERSION = "consent-20260719c";
-const UI_VERSION = "ui-20260719g";
+const UI_VERSION = "ui-20260719h";
 
 const routes = {
   zh: { lang: "zh-CN", hreflang: "zh-Hans", path: "/website-privacy-policy.html", home: "/" },

@@ -818,6 +818,7 @@
       var mobileInView = true;
       var mobilePointerActive = false;
       var mobileKeyboardActive = false;
+      var mobileManualScrollCandidateAt = 0;
       var preservedMobilePhaseRatio = 0;
 
       function mobileLoopPhase(position, distance) {
@@ -918,7 +919,19 @@
       }
 
       function adoptManualMobilePosition() {
-        if (desktopQuery.matches || reducedMotion || !rail || !mobilePaused) return;
+        if (desktopQuery.matches || reducedMotion || !rail) return;
+        if (!mobilePaused && Math.abs(rail.scrollLeft - mobileAutoPosition) > 2) {
+          var candidateNow = window.performance && typeof window.performance.now === "function"
+            ? window.performance.now()
+            : Date.now();
+          if (mobileManualScrollCandidateAt && candidateNow - mobileManualScrollCandidateAt < 320) {
+            pauseMobileLoop();
+          } else {
+            mobileManualScrollCandidateAt = candidateNow;
+          }
+        }
+        if (!mobilePaused) return;
+        mobileManualScrollCandidateAt = 0;
         mobileAutoPosition = rail.scrollLeft;
         if (!mobilePointerActive && !mobileKeyboardActive) resumeMobileLoopSoon();
       }
