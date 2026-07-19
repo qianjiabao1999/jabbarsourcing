@@ -2,8 +2,11 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260719a";
+  var VERSION = "order-20260719b";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
+  // Main-thread parsing is an emergency compatibility path. Keep its memory
+  // ceiling well below the Worker limit so older mobile browsers stay usable.
+  var MAIN_THREAD_FALLBACK_MAX_BYTES = 8 * 1024 * 1024;
   var MAX_FILES = 10;
   var WORKER_TIMEOUT_MS = 60000;
   var CONTAINER_CAPACITY_CBM = 68;
@@ -804,6 +807,84 @@
   };
   Object.keys(BATCH_COPY).forEach(function (code) { Object.assign(LOCALES[code], BATCH_COPY[code]); });
 
+  var ANALYZER_COPY = {
+    en: {
+      exportPng: "Export 4K PNG overview", exportPreparing: "Preparing one lossless 4K PNG overview…", exportDone: "The lossless 4K PNG overview has been downloaded.",
+      readerUnavailable: "The local Excel reader could not load. Check your connection and try again.", workerTimeout: "Analysis timed out. Split this workbook or try again; it was not moved to the slower browser fallback.",
+      fallbackTooLarge: "The Excel Worker is unavailable, and this file is larger than the safe {mb} MB browser fallback limit. Split the file or try again after the reader loads.",
+      partialReady: "{success} of {total} files were analyzed. {failed} failed; review the file list below.", batchNoneReady: "No files could be analyzed. Review each failed file below.", fileFailed: "Could not analyze: {reason}"
+    },
+    zh: {
+      exportPng: "导出 4K PNG 总览图", exportPreparing: "正在生成单张 4K 无损 PNG 总览图…", exportDone: "4K 无损 PNG 总览图已下载。",
+      readerUnavailable: "本地 Excel 解析组件加载失败，请检查网络后重试。", workerTimeout: "分析超时。请拆分表格或重试；本次没有转到较慢的浏览器主线程处理。",
+      fallbackTooLarge: "Excel Worker 当前不可用，且文件超过浏览器安全回退上限 {mb} MB。请拆分文件，或等待解析组件恢复后重试。",
+      partialReady: "已完成 {success} / {total} 个文件，另有 {failed} 个失败；请在下方文件列表中检查。", batchNoneReady: "没有文件分析成功，请在下方逐个检查失败原因。", fileFailed: "分析失败：{reason}"
+    },
+    es: {
+      exportPng: "Exportar resumen PNG 4K", exportPreparing: "Preparando un resumen PNG 4K sin pérdida…", exportDone: "Se descargó el resumen PNG 4K sin pérdida.",
+      readerUnavailable: "No se pudo cargar el lector local de Excel. Comprueba la conexión e inténtalo de nuevo.", workerTimeout: "El análisis agotó el tiempo. Divide el archivo o vuelve a intentarlo; no se trasladó al modo lento del navegador.",
+      fallbackTooLarge: "El Worker de Excel no está disponible y el archivo supera el límite seguro de {mb} MB del navegador. Divide el archivo o vuelve a intentarlo cuando cargue el lector.",
+      partialReady: "Se analizaron {success} de {total} archivos. Fallaron {failed}; revisa la lista inferior.", batchNoneReady: "No se pudo analizar ningún archivo. Revisa cada error en la lista inferior.", fileFailed: "No se pudo analizar: {reason}"
+    },
+    ar: {
+      exportPng: "تصدير ملخص PNG بدقة 4K", exportPreparing: "جارٍ إعداد ملخص PNG واحد بدقة 4K دون فقد…", exportDone: "تم تنزيل ملخص PNG بدقة 4K دون فقد.",
+      readerUnavailable: "تعذر تحميل قارئ Excel المحلي. تحقق من الاتصال ثم حاول مرة أخرى.", workerTimeout: "انتهت مهلة التحليل. قسّم الملف أو حاول مجددًا؛ لم يُنقل إلى المعالجة الأبطأ في المتصفح.",
+      fallbackTooLarge: "عامل Excel غير متاح، والملف أكبر من حد المعالجة الآمنة في المتصفح وهو {mb} MB. قسّم الملف أو أعد المحاولة بعد تحميل القارئ.",
+      partialReady: "تم تحليل {success} من أصل {total} ملفات. فشل {failed}؛ راجع قائمة الملفات أدناه.", batchNoneReady: "تعذر تحليل أي ملف. راجع سبب فشل كل ملف أدناه.", fileFailed: "تعذر التحليل: {reason}"
+    },
+    fr: {
+      exportPng: "Exporter l’aperçu PNG 4K", exportPreparing: "Préparation d’un aperçu PNG 4K unique sans perte…", exportDone: "L’aperçu PNG 4K sans perte a été téléchargé.",
+      readerUnavailable: "Le lecteur Excel local n’a pas pu être chargé. Vérifiez la connexion et réessayez.", workerTimeout: "L’analyse a expiré. Divisez le fichier ou réessayez ; il n’a pas été transféré vers le mode navigateur plus lent.",
+      fallbackTooLarge: "Le Worker Excel est indisponible et ce fichier dépasse la limite sûre de {mb} MB du navigateur. Divisez-le ou réessayez lorsque le lecteur sera chargé.",
+      partialReady: "{success} fichier(s) sur {total} ont été analysés. {failed} ont échoué ; consultez la liste ci-dessous.", batchNoneReady: "Aucun fichier n’a pu être analysé. Consultez chaque erreur ci-dessous.", fileFailed: "Analyse impossible : {reason}"
+    },
+    pt: {
+      exportPng: "Exportar visão geral PNG 4K", exportPreparing: "Preparando uma visão geral PNG 4K sem perdas…", exportDone: "A visão geral PNG 4K sem perdas foi baixada.",
+      readerUnavailable: "Não foi possível carregar o leitor local de Excel. Verifique a conexão e tente novamente.", workerTimeout: "A análise excedeu o tempo limite. Divida o arquivo ou tente novamente; ele não foi transferido para o modo lento do navegador.",
+      fallbackTooLarge: "O Worker do Excel está indisponível e o arquivo excede o limite seguro de {mb} MB do navegador. Divida-o ou tente novamente quando o leitor carregar.",
+      partialReady: "{success} de {total} arquivos foram analisados. {failed} falharam; confira a lista abaixo.", batchNoneReady: "Nenhum arquivo pôde ser analisado. Confira cada falha abaixo.", fileFailed: "Não foi possível analisar: {reason}"
+    },
+    ru: {
+      exportPng: "Экспорт обзора PNG 4K", exportPreparing: "Подготавливается единый обзор PNG 4K без потерь…", exportDone: "Обзор PNG 4K без потерь загружен.",
+      readerUnavailable: "Не удалось загрузить локальный модуль Excel. Проверьте подключение и повторите попытку.", workerTimeout: "Время анализа истекло. Разделите файл или повторите попытку; медленный режим браузера не использовался.",
+      fallbackTooLarge: "Excel Worker недоступен, а файл превышает безопасный предел браузера {mb} МБ. Разделите файл или повторите попытку после загрузки модуля.",
+      partialReady: "Обработано файлов: {success} из {total}. Ошибок: {failed}; проверьте список ниже.", batchNoneReady: "Не удалось обработать ни одного файла. Проверьте ошибки ниже.", fileFailed: "Ошибка анализа: {reason}"
+    },
+    de: {
+      exportPng: "4K-PNG-Übersicht exportieren", exportPreparing: "Eine verlustfreie 4K-PNG-Übersicht wird erstellt…", exportDone: "Die verlustfreie 4K-PNG-Übersicht wurde heruntergeladen.",
+      readerUnavailable: "Der lokale Excel-Reader konnte nicht geladen werden. Prüfen Sie die Verbindung und versuchen Sie es erneut.", workerTimeout: "Die Analyse hat das Zeitlimit überschritten. Teilen Sie die Datei oder versuchen Sie es erneut; der langsamere Browsermodus wurde nicht verwendet.",
+      fallbackTooLarge: "Der Excel Worker ist nicht verfügbar und die Datei überschreitet das sichere Browserlimit von {mb} MB. Teilen Sie die Datei oder versuchen Sie es nach dem Laden des Readers erneut.",
+      partialReady: "{success} von {total} Dateien wurden analysiert. {failed} sind fehlgeschlagen; prüfen Sie die Liste unten.", batchNoneReady: "Keine Datei konnte analysiert werden. Prüfen Sie die Fehler unten.", fileFailed: "Analyse fehlgeschlagen: {reason}"
+    },
+    it: {
+      exportPng: "Esporta panoramica PNG 4K", exportPreparing: "Preparazione di una panoramica PNG 4K senza perdita…", exportDone: "La panoramica PNG 4K senza perdita è stata scaricata.",
+      readerUnavailable: "Impossibile caricare il lettore Excel locale. Controlla la connessione e riprova.", workerTimeout: "L’analisi è scaduta. Dividi il file o riprova; non è stato trasferito alla modalità lenta del browser.",
+      fallbackTooLarge: "Il Worker Excel non è disponibile e il file supera il limite sicuro del browser di {mb} MB. Dividi il file o riprova quando il lettore sarà caricato.",
+      partialReady: "Analizzati {success} file su {total}. {failed} non riusciti; controlla l’elenco in basso.", batchNoneReady: "Non è stato possibile analizzare alcun file. Controlla ogni errore in basso.", fileFailed: "Analisi non riuscita: {reason}"
+    },
+    tr: {
+      exportPng: "4K PNG genel görünümünü dışa aktar", exportPreparing: "Tek bir kayıpsız 4K PNG genel görünümü hazırlanıyor…", exportDone: "Kayıpsız 4K PNG genel görünümü indirildi.",
+      readerUnavailable: "Yerel Excel okuyucusu yüklenemedi. Bağlantıyı kontrol edip tekrar deneyin.", workerTimeout: "Analiz zaman aşımına uğradı. Dosyayı bölün veya yeniden deneyin; daha yavaş tarayıcı moduna aktarılmadı.",
+      fallbackTooLarge: "Excel Worker kullanılamıyor ve dosya güvenli {mb} MB tarayıcı sınırını aşıyor. Dosyayı bölün veya okuyucu yüklendiğinde yeniden deneyin.",
+      partialReady: "{total} dosyadan {success} tanesi analiz edildi. {failed} dosya başarısız; aşağıdaki listeyi kontrol edin.", batchNoneReady: "Hiçbir dosya analiz edilemedi. Aşağıdaki hata nedenlerini kontrol edin.", fileFailed: "Analiz edilemedi: {reason}"
+    }
+  };
+  Object.keys(ANALYZER_COPY).forEach(function (code) { Object.assign(LOCALES[code], ANALYZER_COPY[code]); });
+
+  var ANALYZER_WARNING_COPY = {
+    en: { numeric_format_pending: "Some text numbers have an ambiguous decimal or thousands separator. Confirm their values before exporting.", summary_rows_pending: "Some unlabeled subtotal rows could not be reconciled safely. Confirm the mapping or simplify the workbook before exporting." },
+    zh: { numeric_format_pending: "部分文本数字的小数点或千位分隔符存在歧义，请确认数值后再导出。", summary_rows_pending: "部分未标注的小计行无法安全核对，请确认列映射或精简表格后再导出。" },
+    es: { numeric_format_pending: "Algunos números de texto tienen separadores decimales o de miles ambiguos. Confirma los valores antes de exportar.", summary_rows_pending: "No se pudieron conciliar con seguridad algunas filas de subtotal sin etiqueta. Confirma la asignación o simplifica el archivo antes de exportar." },
+    ar: { numeric_format_pending: "تحتوي بعض الأرقام النصية على فاصل عشري أو فاصل آلاف ملتبس. تحقق من القيم قبل التصدير.", summary_rows_pending: "تعذر التحقق بأمان من بعض صفوف الإجمالي الفرعي غير المسماة. أكد تعيين الأعمدة أو بسّط الملف قبل التصدير." },
+    fr: { numeric_format_pending: "Certains nombres textuels ont un séparateur décimal ou de milliers ambigu. Confirmez les valeurs avant l’exportation.", summary_rows_pending: "Certaines lignes de sous-total non libellées n’ont pas pu être rapprochées de façon sûre. Confirmez le mappage ou simplifiez le fichier avant l’exportation." },
+    pt: { numeric_format_pending: "Alguns números em texto têm separador decimal ou de milhar ambíguo. Confirme os valores antes de exportar.", summary_rows_pending: "Algumas linhas de subtotal sem rótulo não puderam ser conciliadas com segurança. Confirme o mapeamento ou simplifique o arquivo antes de exportar." },
+    ru: { numeric_format_pending: "В некоторых текстовых числах неоднозначен десятичный разделитель или разделитель тысяч. Проверьте значения перед экспортом.", summary_rows_pending: "Некоторые неподписанные строки промежуточных итогов нельзя безопасно сверить. Подтвердите сопоставление или упростите файл перед экспортом." },
+    de: { numeric_format_pending: "Bei einigen Textzahlen ist das Dezimal- oder Tausendertrennzeichen mehrdeutig. Prüfen Sie die Werte vor dem Export.", summary_rows_pending: "Einige unbeschriftete Zwischensummenzeilen konnten nicht sicher abgeglichen werden. Bestätigen Sie die Zuordnung oder vereinfachen Sie die Datei vor dem Export." },
+    it: { numeric_format_pending: "Alcuni numeri testuali hanno un separatore decimale o delle migliaia ambiguo. Conferma i valori prima di esportare.", summary_rows_pending: "Non è stato possibile riconciliare in modo sicuro alcune righe di subtotale senza etichetta. Conferma la mappatura o semplifica il file prima di esportare." },
+    tr: { numeric_format_pending: "Bazı metin sayılarında ondalık veya binlik ayırıcı belirsiz. Dışa aktarmadan önce değerleri doğrulayın.", summary_rows_pending: "Bazı etiketsiz ara toplam satırları güvenli biçimde uzlaştırılamadı. Dışa aktarmadan önce eşlemeyi onaylayın veya dosyayı sadeleştirin." }
+  };
+  Object.keys(ANALYZER_WARNING_COPY).forEach(function (code) { Object.assign(LOCALES[code].warnings, ANALYZER_WARNING_COPY[code]); });
+
   var ORDER_INQUIRY_LABELS = {
     zh: "携带此结果获取报价",
     en: "Get a quote with this result",
@@ -845,6 +926,30 @@
     return code || fallback || "unknown";
   }
 
+  function errorText(error) {
+    return String(error && error.message ? error.message : error || "unknown_error");
+  }
+
+  function workerInfrastructureFailed(error) {
+    var message = errorText(error).toLowerCase();
+    if (message.indexOf("worker_timeout") !== -1) return false;
+    return /(?:xlsx_library_unavailable|script_load_failed|worker_failed|worker_unavailable|fallback_unavailable|importscripts|networkerror|network error)/.test(message);
+  }
+
+  function normalizeProductKeyFallback(value) {
+    var text = String(value == null ? "" : value);
+    if (text.normalize) text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return text.toLowerCase()
+      .replace(/[\s\u00a0_\-–—:：/\\|()[\]{}（）.,，。;；'"“”‘’!?！？@#$%^&*+=~`<>《》]+/g, "")
+      .trim();
+  }
+
+  function normalizeProductKey(value) {
+    var core = window.JabbarOrderWorkerCore;
+    if (core && typeof core.normalizeProductKey === "function") return core.normalizeProductKey(value);
+    return normalizeProductKeyFallback(value);
+  }
+
   function replaceVars(text, vars) {
     return String(text || "").replace(/\{([^}]+)\}/g, function (_, key) { return vars && vars[key] != null ? vars[key] : ""; });
   }
@@ -853,6 +958,12 @@
     var node = document.createElement(tag);
     if (className) node.className = className;
     if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function isolatedText(value) {
+    var node = element("bdi", "", value);
+    node.dir = "ltr";
     return node;
   }
 
@@ -865,16 +976,23 @@
 
   function loadScript(src, id) {
     if (scriptPromises[src]) return scriptPromises[src];
-    scriptPromises[src] = new Promise(function (resolve, reject) {
+    var promise = new Promise(function (resolve, reject) {
       if (id && document.getElementById(id)) { resolve(); return; }
       var script = document.createElement("script");
       if (id) script.id = id;
       script.src = src;
       script.onload = resolve;
-      script.onerror = function () { reject(new Error("script_load_failed:" + src)); };
+      script.onerror = function () {
+        if (script.parentNode) script.parentNode.removeChild(script);
+        reject(new Error("script_load_failed:" + src));
+      };
       document.head.appendChild(script);
     });
-    return scriptPromises[src];
+    scriptPromises[src] = promise;
+    promise.catch(function () {
+      if (scriptPromises[src] === promise) delete scriptPromises[src];
+    });
+    return promise;
   }
 
   function fileExtension(name) {
@@ -898,6 +1016,7 @@
     this.workerRequests = {};
     this.workerSequence = 0;
     this.fallbackSession = null;
+    this.preferFallback = false;
     this.currentFile = null;
     this.currentFiles = [];
     this.fileEntries = [];
@@ -1155,7 +1274,22 @@
     });
   };
 
+  Analyzer.prototype.messageForError = function (error) {
+    var message = errorText(error).toLowerCase();
+    if (message.indexOf("worker_timeout") !== -1) return this.copy.workerTimeout;
+    if (message.indexOf("fallback_file_too_large") !== -1) {
+      return replaceVars(this.copy.fallbackTooLarge, { mb: Math.floor(MAIN_THREAD_FALLBACK_MAX_BYTES / 1024 / 1024) });
+    }
+    if (workerInfrastructureFailed(error) || message.indexOf("reader_unavailable") !== -1) return this.copy.readerUnavailable;
+    if (message.indexOf("unsupported_file") !== -1) return this.copy.unsupported;
+    if (message.indexOf("file_too_large") !== -1) return this.copy.fileTooLarge;
+    return this.copy.parseError;
+  };
+
   Analyzer.prototype.resetAnalysis = function () {
+    // Infrastructure fallback is scoped to one selection. A later upload must
+    // retry the Worker in case a transient load/network failure has recovered.
+    this.preferFallback = false;
     this.fileInput.value = "";
     this.currentFile = null;
     this.currentFiles = [];
@@ -1176,6 +1310,7 @@
     qa.lastResult = null;
     qa.combinedResult = null;
     qa.fileResults = [];
+    qa.fileFailures = [];
     qa.exportPageCount = 0;
     qa.lastError = "";
   };
@@ -1183,16 +1318,48 @@
   Analyzer.prototype.parseOneFile = async function (file) {
     this.currentFile = file;
     qa.lastFile = { name: file.name, size: file.size };
-    var buffer = await file.arrayBuffer();
+    var canUseMainThread = file.size <= MAIN_THREAD_FALLBACK_MAX_BYTES;
+    if (this.preferFallback || typeof Worker === "undefined") {
+      if (!canUseMainThread) throw new Error("fallback_file_too_large");
+      try {
+        var fallbackOnlyBuffer = await file.arrayBuffer();
+        var fallbackOnlySession = await this.ensureFallback();
+        return fallbackOnlySession.parse(fallbackOnlyBuffer, window.XLSX, file.name);
+      } catch (fallbackOnlyError) {
+        if (workerInfrastructureFailed(fallbackOnlyError)) throw new Error("reader_unavailable:" + errorText(fallbackOnlyError));
+        throw fallbackOnlyError;
+      }
+    }
     if (typeof Worker !== "undefined") {
+      var buffer = await file.arrayBuffer();
       // Workbooks are intentionally parsed one at a time. The ArrayBuffer is
       // transferred to the Worker and is not retained on the main thread.
+      // Keep a second buffer only below the conservative main-thread limit, so
+      // an importScripts/vendor failure can be recovered exactly once.
+      var fallbackBuffer = canUseMainThread ? buffer.slice(0) : null;
       if (!this.worker && this.workerFailed) this.workerFailed = false;
-      if (!this.ensureWorker()) throw new Error("worker_unavailable");
-      return this.workerRequest("parse", { buffer: buffer, fileName: file.name }, [buffer]);
+      try {
+        if (!this.ensureWorker()) throw new Error("worker_unavailable");
+        return await this.workerRequest("parse", { buffer: buffer, fileName: file.name }, [buffer]);
+      } catch (workerError) {
+        // Timeouts and workbook parse errors are deliberately not retried on
+        // the main thread: doing so can freeze the exact browser that timed out.
+        if (!workerInfrastructureFailed(workerError)) throw workerError;
+        this.preferFallback = true;
+        this.workerFailed = true;
+        if (this.worker) this.worker.terminate();
+        this.worker = null;
+        if (!fallbackBuffer) throw new Error("fallback_file_too_large");
+        try {
+          var recoveredSession = await this.ensureFallback();
+          return recoveredSession.parse(fallbackBuffer, window.XLSX, file.name);
+        } catch (fallbackError) {
+          if (workerInfrastructureFailed(fallbackError)) throw new Error("reader_unavailable:" + errorText(fallbackError));
+          throw fallbackError;
+        }
+      }
     }
-    var session = await this.ensureFallback();
-    return session.parse(buffer, window.XLSX, file.name);
+    throw new Error("worker_unavailable");
   };
 
   Analyzer.prototype.combinePayloads = function (payloads) {
@@ -1225,7 +1392,7 @@
         amountTotals[key] = (amountTotals[key] || 0) + Number(group.value || 0);
       });
       (result.items || []).forEach(function (item) {
-        var key = String(item.sku || item.product || "").trim().toLowerCase().replace(/\s+/g, " ");
+        var key = normalizeProductKey(item.sku || item.product || "");
         if (key) uniqueProducts[key] = true;
       });
       (result.warnings || []).forEach(function (code) { warningSet[code] = true; });
@@ -1279,27 +1446,33 @@
     this.fileList.appendChild(element("h3", "", this.copy.fileCollection));
     var grid = element("div", "order-analyzer__file-grid");
     this.fileEntries.forEach(function (entry, index) {
-      var button = element("button", "order-analyzer__file-item" + (index === self.activeFileIndex ? " is-active" : ""));
+      var isActive = entry.resultIndex === self.activeFileIndex && Boolean(entry.payload);
+      var button = element("button", "order-analyzer__file-item" + (isActive ? " is-active" : "") + (entry.errorMessage ? " is-error" : ""));
       button.type = "button";
       button.setAttribute("data-order-file-item", "");
-      button.setAttribute("aria-pressed", index === self.activeFileIndex ? "true" : "false");
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
       button.disabled = !entry.payload;
       button.appendChild(element("strong", "", entry.file.name));
-      if (!entry.payload) button.appendChild(element("span", "", self.copy.parsing));
+      if (entry.errorMessage) button.appendChild(element("span", "", replaceVars(self.copy.fileFailed, { reason: entry.errorMessage })));
+      else if (!entry.payload) button.appendChild(element("span", "", self.copy.parsing));
       else {
         var metrics = entry.payload.result.metrics;
         button.appendChild(element("span", "", self.copy.fileReady + " · " + self.copy.productRows + " " + self.formatNumber(metrics.productRows, 0) + " · " + self.copy.quantity + " " + self.formatNumber(metrics.quantity, 2)));
       }
       button.addEventListener("click", function () {
         if (!entry.payload) return;
-        self.activeFileIndex = index;
+        self.activeFileIndex = entry.resultIndex;
         self.renderFileList();
         self.renderTable(entry.payload.result.items, entry.payload.fileName);
-        if (self.isBatchMode && self.payloadNeedsConfirmation(entry.payload)) self.showBatchMapping(index);
+        if (self.isBatchMode && self.payloadNeedsConfirmation(entry.payload)) self.showBatchMapping(entry.resultIndex);
       });
       grid.appendChild(button);
     });
     this.fileList.appendChild(grid);
+  };
+
+  Analyzer.prototype.entryForResultIndex = function (resultIndex) {
+    return this.fileEntries.find(function (entry) { return entry.resultIndex === resultIndex; }) || null;
   };
 
   Analyzer.prototype.parseFile = function (file) {
@@ -1329,23 +1502,26 @@
       this.setStatus(this.copy.tooManyFiles, true);
       return null;
     }
+    this.fileEntries = files.map(function (file) { return { file: file, payload: null, resultIndex: -1, errorCode: "", errorMessage: "" }; });
+    qa.fileFailures = [];
     for (var validationIndex = 0; validationIndex < files.length; validationIndex += 1) {
       var validationFile = files[validationIndex];
       var extension = fileExtension(validationFile.name);
+      var validationError = "";
       if (["xlsx", "xls", "xlsm", "csv"].indexOf(extension) === -1) {
-        qa.lastError = "unsupported_file:" + validationFile.name;
-        trackEvent("order_parse_error", { error_code: "unsupported_file", file_count: files.length, duration_ms: elapsedMilliseconds(startedAt) });
-        this.setStatus(this.copy.unsupported, true);
-        return null;
+        validationError = "unsupported_file";
+      } else if (validationFile.size > MAX_FILE_BYTES) {
+        validationError = "file_too_large";
       }
-      if (validationFile.size > MAX_FILE_BYTES) {
-        qa.lastError = "file_too_large:" + validationFile.name;
-        trackEvent("order_parse_error", { error_code: "file_too_large", file_count: files.length, duration_ms: elapsedMilliseconds(startedAt) });
-        this.setStatus(this.copy.fileTooLarge, true);
-        return null;
+      if (validationError) {
+        var validationMessage = this.messageForError(new Error(validationError));
+        this.fileEntries[validationIndex].errorCode = validationError;
+        this.fileEntries[validationIndex].errorMessage = validationMessage;
+        qa.fileFailures.push({ index: validationIndex, code: validationError });
+        qa.lastError = validationError + ":" + validationFile.name;
+        trackEvent("order_parse_error", { error_code: validationError, file_count: files.length, duration_ms: elapsedMilliseconds(startedAt) });
       }
     }
-    this.fileEntries = files.map(function (file) { return { file: file, payload: null }; });
     this.renderFileList();
     this.setBusy(true);
     qa.fileResults = [];
@@ -1353,30 +1529,60 @@
     qa.queueMaxConcurrent = 0;
     try {
       for (var index = 0; index < files.length; index += 1) {
+        if (this.fileEntries[index].errorCode) continue;
         this.setStatus(replaceVars(this.copy.parsingBatch, { current: index + 1, total: files.length }), false);
         qa.queueActive = 1;
         qa.queueMaxConcurrent = Math.max(qa.queueMaxConcurrent, qa.queueActive);
-        var payload = await this.parseOneFile(files[index]);
+        try {
+          var payload = await this.parseOneFile(files[index]);
+          this.fileEntries[index].payload = payload;
+          this.fileEntries[index].resultIndex = this.fileResults.length;
+          this.fileResults.push(payload);
+          qa.fileResults = this.fileResults.slice();
+        } catch (fileError) {
+          var fileErrorText = errorText(fileError);
+          var fileErrorCode = safeErrorCode(fileErrorText, "parse_failed");
+          var localizedError = this.messageForError(fileError);
+          this.fileEntries[index].errorCode = fileErrorCode;
+          this.fileEntries[index].errorMessage = localizedError;
+          qa.fileFailures.push({ index: index, code: fileErrorCode });
+          qa.lastError = fileErrorText;
+          trackEvent("order_parse_error", {
+            error_code: fileErrorCode,
+            file_count: files.length,
+            successful_files: this.fileResults.length,
+            duration_ms: elapsedMilliseconds(startedAt)
+          });
+        }
         qa.queueActive = 0;
-        this.fileEntries[index].payload = payload;
-        this.fileResults.push(payload);
-        qa.fileResults = this.fileResults.slice();
-        this.activeFileIndex = index === 0 ? 0 : this.activeFileIndex;
         this.renderFileList();
         // Yield between files so progress remains responsive on mobile.
         await new Promise(function (resolve) { window.setTimeout(resolve, 0); });
       }
-      this.isBatchMode = this.fileResults.length > 1;
+      if (!this.fileResults.length) {
+        this.deliveryBlocked = files.length === 1 && this.fileEntries[0].errorMessage
+          ? this.fileEntries[0].errorMessage : this.copy.batchNoneReady;
+        this.results.hidden = true;
+        this.mappingDetails.hidden = true;
+        this.setStatus(this.deliveryBlocked, true);
+        return null;
+      }
+      this.isBatchMode = files.length > 1;
       this.activeFileIndex = 0;
       var combined = this.combinePayloads(this.fileResults);
       qa.combinedResult = combined;
       this.acceptPayload(combined);
       this.renderFileList();
-      this.setStatus(this.isBatchMode
-        ? (this.payloadNeedsConfirmation(combined) ? this.copy.confirmBeforeExport : replaceVars(this.copy.combinedReady, { total: files.length }))
-        : this.copy.ready, false);
+      var failedCount = qa.fileFailures.length;
+      this.setStatus(failedCount
+        ? replaceVars(this.copy.partialReady, { success: this.fileResults.length, total: files.length, failed: failedCount })
+        : this.isBatchMode
+          ? (this.payloadNeedsConfirmation(combined) ? this.copy.confirmBeforeExport : replaceVars(this.copy.combinedReady, { total: files.length }))
+          : this.copy.ready, false);
       trackEvent("order_parse_success", {
         file_count: files.length,
+        successful_files: this.fileResults.length,
+        failed_files: failedCount,
         batch: this.isBatchMode ? "yes" : "no",
         duration_ms: elapsedMilliseconds(startedAt),
         worker_mode: qa.fallbackUsed ? "fallback" : "worker"
@@ -1385,15 +1591,14 @@
     } catch (error) {
       qa.queueActive = 0;
       var errorMessage = error && error.message ? error.message : String(error);
-      this.resetAnalysis();
       qa.lastError = errorMessage;
-      this.deliveryBlocked = this.copy.parseError;
+      this.deliveryBlocked = this.messageForError(error);
       trackEvent("order_parse_error", {
         error_code: safeErrorCode(errorMessage, "parse_failed"),
         file_count: files.length,
         duration_ms: elapsedMilliseconds(startedAt)
       });
-      this.setStatus(this.copy.parseError, true);
+      this.setStatus(this.deliveryBlocked, true);
       return null;
     } finally {
       this.setBusy(false);
@@ -1410,8 +1615,9 @@
       else payload = this.fallbackSession.selectSheet(sheetName, window.XLSX);
       this.acceptPayload(payload);
       this.setStatus(this.copy.ready, false);
-    } catch (_) {
-      this.setStatus(this.copy.parseError, true);
+    } catch (error) {
+      qa.lastError = errorText(error);
+      this.setStatus(this.messageForError(error), true);
     } finally { this.setBusy(false); }
   };
 
@@ -1443,14 +1649,15 @@
       var payload;
       if (this.isBatchMode) {
         var targetIndex = this.mappingFileIndex;
-        if (targetIndex < 0 || !this.fileEntries[targetIndex]) throw new Error("batch_mapping_target_missing");
+        var targetEntry = this.entryForResultIndex(targetIndex);
+        if (targetIndex < 0 || !targetEntry) throw new Error("batch_mapping_target_missing");
         // Re-open only the selected workbook in the single reusable worker
         // session, then apply its confirmed column meanings. Files are still
         // processed strictly one at a time and no workbook buffer is retained.
-        await this.parseOneFile(this.fileEntries[targetIndex].file);
+        await this.parseOneFile(targetEntry.file);
         if (this.worker && !this.workerFailed) payload = await this.workerRequest("remap", { mapping: mapping, overrides: overrides });
         else payload = this.fallbackSession.remap(mapping, overrides);
-        this.fileEntries[targetIndex].payload = payload;
+        targetEntry.payload = payload;
         this.fileResults[targetIndex] = payload;
         qa.fileResults = this.fileResults.slice();
         var combined = this.combinePayloads(this.fileResults);
@@ -1464,8 +1671,9 @@
       else payload = this.fallbackSession.remap(mapping, overrides);
       this.acceptPayload(payload, true);
       this.setStatus(this.copy.ready, false);
-    } catch (_) {
-      this.setStatus(this.copy.parseError, true);
+    } catch (error) {
+      qa.lastError = errorText(error);
+      this.setStatus(this.messageForError(error), true);
     } finally { this.setBusy(false); }
   };
 
@@ -1576,10 +1784,13 @@
     return groups.map(function (group) { return (group.currency ? group.currency + " " : "") + self.formatNumber(group.value, 2) + (group.currency ? "" : " · " + self.copy.currencyPending); }).join(" / ");
   };
 
-  Analyzer.prototype.metric = function (label, value) {
+  Analyzer.prototype.metric = function (label, value, isolateLtr) {
     var card = element("div", "order-analyzer__metric");
     card.appendChild(element("span", "", label));
-    card.appendChild(element("strong", "", value));
+    var output = element("strong", "");
+    if (isolateLtr) output.appendChild(isolatedText(value));
+    else output.textContent = value;
+    card.appendChild(output);
     this.metrics.appendChild(card);
   };
 
@@ -1643,7 +1854,7 @@
       ].join("");
     }).join("");
     this.containerVisual.innerHTML = [
-      '<svg viewBox="0 0 420 ' + contentHeight + '" role="img" aria-label="' + this.copy.containerTitle.replace(/"/g, "&quot;") + ': ' + loads.map(function (entry) { return Math.round(entry.percent) + "%"; }).join(", ") + '">',
+      '<svg viewBox="0 0 420 ' + contentHeight + '" role="img" dir="ltr" style="direction:ltr" aria-label="' + this.copy.containerTitle.replace(/"/g, "&quot;") + ': ' + loads.map(function (entry) { return Math.round(entry.percent) + "%"; }).join(", ") + '">',
       '<text x="28" y="30" font-size="15" font-weight="800" fill="#0f172a">' + this.copy.containerTitle + '</text>',
       '<text x="392" y="30" text-anchor="end" font-size="14" font-family="ui-monospace,Consolas,monospace" fill="#475569">' + (estimate.volume == null ? "—" : this.formatNumber(estimate.volume, 3) + " m³") + '</text>',
       rows,
@@ -1663,7 +1874,7 @@
     this.metric(this.copy.cartons, this.formatNumber(metrics.cartons, 2));
     this.metric(this.copy.volume, metrics.volume == null ? this.copy.missing : this.formatNumber(metrics.volume, 3) + " m³" + (result.pending.volumeUnit ? " · " + this.copy.unitPending : ""));
     this.metric(this.copy.weight, metrics.weight == null ? this.copy.missing : this.formatNumber(metrics.weight, 2) + " kg" + (result.pending.weightUnit ? " · " + this.copy.unitPending : ""));
-    this.metric(this.copy.amount, this.amountText(metrics.amounts));
+    this.metric(this.copy.amount, this.amountText(metrics.amounts), Boolean(metrics.amounts && metrics.amounts.length));
     this.warningList.innerHTML = "";
     var warningCodes = result.warnings || [];
     if (!warningCodes.length) this.warningList.hidden = true;
@@ -1687,7 +1898,7 @@
     (this.fileResults.length ? this.fileResults : [this.payload]).forEach(function (payload) {
       ((payload && payload.result && payload.result.items) || []).forEach(function (item) {
         var name = String(item.product || "").trim();
-        var key = name.toLowerCase().replace(/\s+/g, " ");
+        var key = normalizeProductKey(name);
         if (!name || seen[key]) return;
         seen[key] = true;
         names.push(name);
@@ -1764,34 +1975,16 @@
         item.unitPrice == null ? "—" : (item.currency ? item.currency + " " : "") + this.formatNumber(item.unitPrice, 2) + (!item.currency ? " ?" : ""),
         item.amount == null ? "—" : (item.currency ? item.currency + " " : "") + this.formatNumber(item.amount, 2) + (!item.currency ? " ?" : "")
       ];
-      values.forEach(function (value, index) { row.appendChild(element("td", index === 1 || index === 2 ? "" : "num", value)); });
+      values.forEach(function (value, index) {
+        var cell = element("td", "");
+        if ((index === 7 || index === 8) && value !== "—") cell.appendChild(isolatedText(value));
+        else cell.textContent = value;
+        row.appendChild(cell);
+      });
       tbody.appendChild(row);
     }, this);
     table.appendChild(tbody);
     this.tableWrap.appendChild(table);
-  };
-
-  Analyzer.prototype.wrapLines = function (ctx, value, maxWidth) {
-    var text = String(value == null || value === "" ? "—" : value);
-    var lines = [];
-    var current = "";
-    Array.from(text).forEach(function (character) {
-      var candidate = current + character;
-      if (current && ctx.measureText(candidate).width > maxWidth) { lines.push(current); current = character; }
-      else current = candidate;
-    });
-    if (current) lines.push(current);
-    return lines.length ? lines : ["—"];
-  };
-
-  Analyzer.prototype.reportRows = function (ctx) {
-    var self = this;
-    ctx.font = '22px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
-    return this.payload.result.items.map(function (item) {
-      var productText = (item.product || "—") + (item.sku ? " · " + item.sku : "");
-      var lines = self.wrapLines(ctx, productText, 470);
-      return { item: item, lines: lines, height: Math.max(64, 22 + lines.length * 26) };
-    });
   };
 
   Analyzer.prototype.roundRect = function (ctx, x, y, width, height, radius, fill, stroke) {
@@ -1801,16 +1994,6 @@
     ctx.arcTo(x, y + height, x, y, r); ctx.arcTo(x, y, x + width, y, r); ctx.closePath();
     if (fill) { ctx.fillStyle = fill; ctx.fill(); }
     if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
-  };
-
-  Analyzer.prototype.drawMetricCard = function (ctx, x, y, width, label, value) {
-    this.roundRect(ctx, x, y, width, 96, 18, "#f8fbff", "#d7e6f3");
-    ctx.textAlign = this.rtl ? "right" : "left";
-    ctx.fillStyle = "#64748b"; ctx.font = '700 17px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
-    ctx.fillText(label, this.rtl ? x + width - 22 : x + 22, y + 31);
-    ctx.fillStyle = "#0f172a"; ctx.font = '800 28px ui-monospace,"SF Mono",Consolas,monospace';
-    var trimmed = String(value).length > 30 ? String(value).slice(0, 29) + "…" : String(value);
-    ctx.fillText(trimmed, this.rtl ? x + width - 22 : x + 22, y + 70);
   };
 
   Analyzer.prototype.drawContainerLoadBars = function (ctx, x, y, width, height, estimate) {
@@ -1836,110 +2019,6 @@
       ctx.font = '900 ' + Math.max(11, Math.min(20, barHeight * 0.48)) + 'px ui-monospace,"SF Mono",Consolas,monospace';
       ctx.fillText(Math.round(safePct) + "%", boxX + boxWidth / 2, rowY + barHeight * 0.69);
     }, this);
-  };
-
-  Analyzer.prototype.drawContainer = function (ctx, x, y, width, estimate) {
-    this.roundRect(ctx, x, y, width, 184, 22, "#f8fbff", "#d7e6f3");
-    ctx.textAlign = this.rtl ? "right" : "left";
-    ctx.fillStyle = "#0f172a"; ctx.font = '800 21px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
-    ctx.fillText(this.copy.containerTitle, this.rtl ? x + width - 24 : x + 24, y + 38);
-    this.drawContainerLoadBars(ctx, x + 24, y + 56, width - 48, 82, estimate);
-    ctx.textAlign = this.rtl ? "right" : "left"; ctx.fillStyle = "#0f172a"; ctx.font = '800 20px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
-    ctx.fillText(estimate.label, this.rtl ? x + width - 24 : x + 24, y + 162);
-  };
-
-  Analyzer.prototype.createReportPages = async function () {
-    if (!this.payload) throw new Error("no_result");
-    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (_) {} }
-    var scratch = document.createElement("canvas");
-    scratch.width = 1600; scratch.height = 1000;
-    var scratchCtx = scratch.getContext("2d");
-    var rowLayouts = this.reportRows(scratchCtx);
-    // Keep each bitmap below the conservative iOS/Safari canvas-area limit.
-    // Large orders are split into numbered PNG files instead of dropping rows.
-    var maxPageHeight = 8400;
-    var topHeight = 770;
-    var footerHeight = 76;
-    var pages = [];
-    var pageRows = [];
-    var used = topHeight;
-    rowLayouts.forEach(function (layout) {
-      if (pageRows.length && used + layout.height + footerHeight > maxPageHeight) { pages.push(pageRows); pageRows = []; used = topHeight; }
-      pageRows.push(layout); used += layout.height;
-    });
-    pages.push(pageRows);
-    scratch.width = 1;
-    scratch.height = 1;
-    return pages;
-  };
-
-  Analyzer.prototype.drawReportPage = function (rows, pageIndex, totalPages) {
-    var width = 1600, margin = 80, topHeight = 770, footerHeight = 76;
-    var rowsHeight = rows.reduce(function (sum, row) { return sum + row.height; }, 0);
-    var height = Math.max(980, topHeight + rowsHeight + footerHeight);
-    var canvas = document.createElement("canvas");
-    canvas.width = width; canvas.height = height;
-    var ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#f4f8fc"; ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = "#ffffff"; ctx.fillRect(38, 38, width - 76, height - 76);
-    ctx.textBaseline = "alphabetic";
-    ctx.direction = this.rtl ? "rtl" : "ltr";
-    ctx.textAlign = this.rtl ? "right" : "left";
-    var startX = this.rtl ? width - margin : margin;
-    ctx.fillStyle = "#0f766e"; ctx.font = '800 18px ui-monospace,"SF Mono",Consolas,monospace'; ctx.fillText(this.copy.toolLabel, startX, 92);
-    ctx.fillStyle = "#0f172a"; ctx.font = '900 46px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif'; ctx.fillText(this.copy.reportTitle, startX, 150);
-    ctx.fillStyle = "#64748b"; ctx.font = '20px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
-    ctx.fillText(this.copy.file + ": " + this.payload.fileName + " · " + this.copy.sheet + ": " + this.payload.sheetName, startX, 192);
-    ctx.fillText(this.copy.generated + ": " + new Date().toLocaleString(this.locale), startX, 226);
-    var m = this.payload.result.metrics;
-    var metricValues = [
-      [this.copy.productRows, this.formatNumber(m.productRows, 0)], [this.copy.uniqueProducts, this.formatNumber(m.uniqueProducts, 0)], [this.copy.quantity, this.formatNumber(m.quantity, 2)],
-      [this.copy.cartons, this.formatNumber(m.cartons, 2)], [this.copy.volume, m.volume == null ? this.copy.missing : this.formatNumber(m.volume, 3) + " m³" + (this.payload.result.pending.volumeUnit ? " ?" : "")],
-      [this.copy.weight, m.weight == null ? this.copy.missing : this.formatNumber(m.weight, 2) + " kg" + (this.payload.result.pending.weightUnit ? " ?" : "")], [this.copy.amount, this.amountText(m.amounts)]
-    ];
-    var cardWidth = 346, gap = 18;
-    metricValues.slice(0, 6).forEach(function (entry, index) {
-      var column = index % 3, row = Math.floor(index / 3);
-      this.drawMetricCard(ctx, margin + column * (cardWidth + gap), 270 + row * 114, cardWidth, entry[0], entry[1]);
-    }, this);
-    this.drawMetricCard(ctx, margin + 3 * (cardWidth + gap), 270, 346, metricValues[6][0], metricValues[6][1]);
-    var estimate = this.containerEstimate(m.volume, this.payload.result.pending.volumeUnit);
-    this.drawContainer(ctx, margin + 3 * (cardWidth + gap), 384, 346, estimate);
-    ctx.fillStyle = "#0f172a"; ctx.font = '900 28px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif'; ctx.textAlign = this.rtl ? "right" : "left";
-    ctx.fillText(this.copy.detailsTitle, this.rtl ? width - margin : margin, 628);
-    var columns = [70, 400, 110, 110, 175, 175, 180, 220];
-    var labels = [this.copy.sourceRow, this.copy.product + " / " + this.copy.sku, this.copy.quantity, this.copy.cartons, this.copy.volume, this.copy.weight, this.copy.fields.unitPrice, this.copy.amount];
-    var tableX = margin, headerY = 660, tableWidth = columns.reduce(function (a, b) { return a + b; }, 0);
-    var rtl = this.rtl;
-    var columnStarts = [];
-    var cursorX = rtl ? tableX + tableWidth : tableX;
-    columns.forEach(function (columnWidth) {
-      if (rtl) cursorX -= columnWidth;
-      columnStarts.push(cursorX);
-      if (!rtl) cursorX += columnWidth;
-    });
-    function tableTextX(index) { return rtl ? columnStarts[index] + columns[index] - 12 : columnStarts[index] + 12; }
-    ctx.fillStyle = "#eaf3fa"; ctx.fillRect(tableX, headerY, tableWidth, 58);
-    ctx.fillStyle = "#334155"; ctx.font = '800 17px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif'; ctx.textAlign = rtl ? "right" : "left";
-    labels.forEach(function (label, index) { ctx.fillText(label, tableTextX(index), headerY + 37); });
-    var y = headerY + 58;
-    rows.forEach(function (layout, rowIndex) {
-      var item = layout.item;
-      ctx.fillStyle = rowIndex % 2 ? "#f8fafc" : "#ffffff"; ctx.fillRect(tableX, y, tableWidth, layout.height);
-      ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(tableX, y + layout.height); ctx.lineTo(tableX + tableWidth, y + layout.height); ctx.stroke();
-      var amount = item.amount == null ? "—" : (item.currency ? item.currency + " " : "") + this.formatNumber(item.amount, 2) + (!item.currency ? " ?" : "");
-      var unitPrice = item.unitPrice == null ? "—" : (item.currency ? item.currency + " " : "") + this.formatNumber(item.unitPrice, 2) + (!item.currency ? " ?" : "");
-      var values = [String(item.row), null, item.quantity == null ? "—" : this.formatNumber(item.quantity, 2), item.cartons == null ? "—" : this.formatNumber(item.cartons, 2), item.volume == null ? "—" : this.formatNumber(item.volume, 4) + " m³" + (!item.volumeUnit ? " ?" : ""), item.weight == null ? "—" : this.formatNumber(item.weight, 3) + " kg" + (!item.weightUnit ? " ?" : ""), unitPrice, amount];
-      ctx.fillStyle = "#0f172a"; ctx.font = '20px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif'; ctx.textAlign = rtl ? "right" : "left";
-      values.forEach(function (value, index) { if (value != null) ctx.fillText(value, tableTextX(index), y + 38); });
-      ctx.font = '20px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",sans-serif';
-      layout.lines.forEach(function (line, lineIndex) { ctx.fillText(line, tableTextX(1), y + 28 + lineIndex * 26); });
-      y += layout.height;
-    }, this);
-    ctx.fillStyle = "#64748b"; ctx.font = '18px ui-monospace,"SF Mono",Consolas,monospace';
-    ctx.textAlign = this.rtl ? "right" : "left"; ctx.fillText("Jabbar Sourcing · jabbarsourcing.com", this.rtl ? width - margin : margin, height - 58);
-    ctx.textAlign = this.rtl ? "left" : "right"; ctx.fillText(replaceVars(this.copy.page, { current: pageIndex + 1, total: totalPages }), this.rtl ? margin : width - margin, height - 58);
-    return canvas;
   };
 
   Analyzer.prototype.canvasBlob = function (canvas) {
@@ -2120,10 +2199,12 @@
   qa.version = VERSION;
   qa.noUpload = true;
   qa.maxFileBytes = MAX_FILE_BYTES;
+  qa.mainThreadFallbackMaxBytes = MAIN_THREAD_FALLBACK_MAX_BYTES;
   qa.maxFiles = MAX_FILES;
   qa.workerUsed = false;
   qa.fallbackUsed = false;
   qa.vendorRequested = false;
+  qa.fileFailures = qa.fileFailures || [];
   qa.instances = qa.instances || [];
 
   function init() {

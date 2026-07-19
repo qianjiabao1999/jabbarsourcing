@@ -6,7 +6,7 @@
 (function (scope) {
   "use strict";
 
-  var VERSION = "order-20260719a";
+  var VERSION = "order-20260719b";
   var MAX_ROWS = 10000;
   var MAX_COLUMNS = 100;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
@@ -62,6 +62,14 @@
       .normalize ? String(value == null ? "" : value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[\s\u00a0_\-–—:：/\\|()[\]{}（）]+/g, " ").replace(/\s+/g, " ").trim() : String(value == null ? "" : value).toLowerCase().trim();
   }
 
+  function normalizeProductKey(value) {
+    var text = String(value == null ? "" : value);
+    if (text.normalize) text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return text.toLowerCase()
+      .replace(/[\s\u00a0_\-–—:：/\\|()[\]{}（）.,，。;；'"“”‘’!?！？@#$%^&*+=~`<>《》]+/g, "")
+      .trim();
+  }
+
   function isSummaryValue(value) {
     var text = normalize(value);
     return Boolean(text && SUMMARY_WORDS.test(text));
@@ -113,17 +121,86 @@
     return value == null || String(value).trim() === "";
   }
 
+  function numericDetails(value) {
+    if (typeof value === "number") return { value: Number.isFinite(value) ? value : null, ambiguous: false };
+    if (value == null) return { value: null, ambiguous: false };
+    var original = String(value).trim();
+    if (!original || /^[-—–/]$/.test(original)) return { value: null, ambiguous: false };
+
+    var parenthesizedNegative = /^\(.*\)$/.test(original);
+    var compact = original
+      .replace(/[，]/g, ",")
+      .replace(/[。]/g, ".")
+      .replace(/[−—–]/g, "-")
+      .replace(/[()]/g, "")
+      .replace(/[\s\u00a0\u202f]/g, "");
+    // Extract the numeric token instead of retaining arbitrary E/e letters.
+    // This keeps scientific notation (1E+3) while EUR 30 no longer becomes E30.
+    var match = compact.match(/[+-]?(?:\d[\d.,]*|[.,]\d+)(?:[eE][+-]?\d+)?/);
+    if (!match) return { value: null, ambiguous: false };
+    var token = match[0].replace(/[.,]+$/, "");
+    if (!token) return { value: null, ambiguous: false };
+
+    var exponentMatch = token.match(/([eE][+-]?\d+)$/);
+    var exponent = exponentMatch ? exponentMatch[1] : "";
+    var mantissa = exponent ? token.slice(0, -exponent.length) : token;
+    var sign = "";
+    if (/^[+-]/.test(mantissa)) {
+      sign = mantissa.charAt(0);
+      mantissa = mantissa.slice(1);
+    }
+    var commaCount = (mantissa.match(/,/g) || []).length;
+    var dotCount = (mantissa.match(/\./g) || []).length;
+    var ambiguous = false;
+    var normalizedMantissa = mantissa;
+
+    if (commaCount && dotCount) {
+      var decimalSeparator = mantissa.lastIndexOf(",") > mantissa.lastIndexOf(".") ? "," : ".";
+      var groupingSeparator = decimalSeparator === "," ? "." : ",";
+      normalizedMantissa = mantissa.split(groupingSeparator).join("");
+      if (decimalSeparator === ",") normalizedMantissa = normalizedMantissa.replace(",", ".");
+      if ((normalizedMantissa.match(/\./g) || []).length > 1) ambiguous = true;
+    } else if (commaCount) {
+      if (commaCount === 1) {
+        var commaParts = mantissa.split(",");
+        if (commaParts[1].length === 3 && /^\d{1,3}$/.test(commaParts[0])) {
+          // 1,234 can mean one thousand two hundred thirty-four or 1.234.
+          // Use the grouping interpretation provisionally but block export.
+          normalizedMantissa = commaParts.join("");
+          ambiguous = true;
+        } else normalizedMantissa = commaParts[0] + "." + commaParts[1];
+      } else if (/^\d{1,3}(?:,\d{3})+$/.test(mantissa)) normalizedMantissa = mantissa.replace(/,/g, "");
+      else {
+        var lastComma = mantissa.lastIndexOf(",");
+        normalizedMantissa = mantissa.slice(0, lastComma).replace(/,/g, "") + "." + mantissa.slice(lastComma + 1);
+        ambiguous = true;
+      }
+    } else if (dotCount === 1) {
+      var dotParts = mantissa.split(".");
+      if (dotParts[1].length === 3 && /^\d{1,3}$/.test(dotParts[0])) {
+        // 1.234 can mean one thousand two hundred thirty-four or 1.234.
+        // Use the grouping interpretation provisionally but block export.
+        normalizedMantissa = dotParts.join("");
+        ambiguous = true;
+      }
+    } else if (dotCount > 1) {
+      if (/^\d{1,3}(?:\.\d{3})+$/.test(mantissa)) normalizedMantissa = mantissa.replace(/\./g, "");
+      else {
+        var lastDot = mantissa.lastIndexOf(".");
+        normalizedMantissa = mantissa.slice(0, lastDot).replace(/\./g, "") + "." + mantissa.slice(lastDot + 1);
+        ambiguous = true;
+      }
+    }
+
+    if (!normalizedMantissa || normalizedMantissa === ".") return { value: null, ambiguous: ambiguous };
+    var result = Number(sign + normalizedMantissa + exponent);
+    if (!Number.isFinite(result)) return { value: null, ambiguous: ambiguous };
+    if (parenthesizedNegative) result = -Math.abs(result);
+    return { value: result, ambiguous: ambiguous };
+  }
+
   function numeric(value) {
-    if (typeof value === "number") return Number.isFinite(value) ? value : null;
-    if (value == null) return null;
-    var text = String(value).trim();
-    if (!text || /^[-—–/]$/.test(text)) return null;
-    var negative = /^\(.*\)$/.test(text);
-    text = text.replace(/[()]/g, "").replace(/[\s\u00a0,，]/g, "").replace(/[^0-9eE+\-.]/g, "");
-    if (!text || text === "." || text === "-") return null;
-    var result = Number(text);
-    if (!Number.isFinite(result)) return null;
-    return negative ? -result : result;
+    return numericDetails(value).value;
   }
 
   function textValue(value) {
@@ -271,7 +348,10 @@
     var matrix = XLSX.utils.sheet_to_json(sheet, {
       header: 1,
       range: range,
-      raw: false,
+      // Preserve numeric cell types. Formatted Excel values such as 1,234 are
+      // not locale-ambiguous when the underlying cell is already a number.
+      // Text CSV values still pass through the locale-aware parser below.
+      raw: true,
       defval: null,
       blankrows: true
     });
@@ -402,11 +482,12 @@
     }, 0);
   }
 
-  function rawColumnSum(table, mapping, field, endIndex, multiplyByQuantity, reconciledSummaryRows) {
+  function rawColumnSum(table, mapping, field, endIndex, multiplyByQuantity, reconciledSummaryRows, startIndex) {
     var found = false;
     var sum = 0;
+    startIndex = Number.isFinite(startIndex) ? startIndex : 0;
     table.rows.forEach(function (rowEntry, rowIndex) {
-      if (rowIndex >= endIndex) return;
+      if (rowIndex < startIndex || rowIndex >= endIndex) return;
       var row = rowCells(rowEntry);
       if (isMarkedSummaryRow(row, mapping)) return;
       if (reconciledSummaryRows && reconciledSummaryRows[rowIndex]) return;
@@ -423,10 +504,11 @@
     return found ? sum : null;
   }
 
-  function detailRowCountBefore(table, mapping, endIndex, reconciledSummaryRows) {
+  function detailRowCountBefore(table, mapping, endIndex, reconciledSummaryRows, startIndex) {
     var count = 0;
+    startIndex = Number.isFinite(startIndex) ? startIndex : 0;
     table.rows.forEach(function (rowEntry, rowIndex) {
-      if (rowIndex >= endIndex) return;
+      if (rowIndex < startIndex || rowIndex >= endIndex) return;
       var row = rowCells(rowEntry);
       if (!hasAnyMappedValue(row, mapping) || isMarkedSummaryRow(row, mapping)) return;
       if (reconciledSummaryRows && reconciledSummaryRows[rowIndex]) return;
@@ -435,61 +517,102 @@
     return count;
   }
 
-  function findReconciledSummaryRows(table, mapping) {
-    var reconciled = {};
-    var candidates = [];
-    var fields = summaryNumericFields(mapping);
-    if (!fields.length || (mapping.product == null && mapping.sku == null)) return reconciled;
+  function sameSummaryValues(left, right, mapping) {
+    var comparable = 0;
+    var matches = 0;
+    summaryNumericFields(mapping).forEach(function (field) {
+      var leftValue = numeric(valueAt(left, mapping, field));
+      var rightValue = numeric(valueAt(right, mapping, field));
+      if (leftValue == null || rightValue == null) return;
+      comparable += 1;
+      if (nearlyEqual(leftValue, rightValue)) matches += 1;
+    });
+    return comparable >= 2 && matches === comparable;
+  }
 
-    // Only inspect the trailing summary region. Text-only footers and already
-    // labelled totals are transparent, while the first real detail row ends
-    // the scan. This keeps ordinary blank-name continuation lines eligible as
-    // details unless their values actually reconcile with the preceding rows.
-    for (var rowIndex = table.rows.length - 1; rowIndex >= 0; rowIndex -= 1) {
+  function analyzeSummaryRows(table, mapping) {
+    var reconciled = {};
+    var ambiguous = {};
+    var fields = summaryNumericFields(mapping);
+    if (!fields.length || (mapping.product == null && mapping.sku == null)) return { reconciled: reconciled, ambiguous: ambiguous };
+
+    var segmentStart = 0;
+    var lastReconciledRow = null;
+    for (var rowIndex = 0; rowIndex < table.rows.length; rowIndex += 1) {
       var row = rowCells(table.rows[rowIndex]);
-      if (!hasAnyMappedValue(row, mapping) || isMarkedSummaryRow(row, mapping)) continue;
+      if (!hasAnyMappedValue(row, mapping)) continue;
+      if (isMarkedSummaryRow(row, mapping)) {
+        // A labelled subtotal is already safe to skip and starts a new section.
+        segmentStart = rowIndex + 1;
+        lastReconciledRow = row;
+        continue;
+      }
       var numericCount = numericSummaryFieldCount(row, mapping);
       if (!numericCount) continue;
-      if (!hasBlankMappedIdentity(row, mapping) || !isBlank(valueAt(row, mapping, "unitPrice")) || numericCount < 2) break;
-      candidates.unshift(rowIndex);
-    }
+      if (!hasBlankMappedIdentity(row, mapping) || !isBlank(valueAt(row, mapping, "unitPrice")) || numericCount < 2) continue;
 
-    candidates.forEach(function (candidateIndex) {
-      var candidateEntry = table.rows[candidateIndex];
-      var candidate = rowCells(candidateEntry);
-      var matches = 0;
-      var keyMatches = 0;
-      var positiveMatches = 0;
-      var aggregateFormulaMatches = 0;
-      var mismatches = 0;
-      fields.forEach(function (field) {
-        var statedTotal = numeric(valueAt(candidate, mapping, field));
-        if (statedTotal == null || statedTotal < 0) return;
-        var directSum = rawColumnSum(table, mapping, field, candidateIndex, false, reconciled);
-        if (directSum == null) return;
-        var matchesDirect = nearlyEqual(statedTotal, directSum);
-        var matchesMultiplied = false;
-        if (field === "unitWeight" || field === "unitVolume") {
-          var multipliedSum = rawColumnSum(table, mapping, field, candidateIndex, true, reconciled);
-          matchesMultiplied = multipliedSum != null && nearlyEqual(statedTotal, multipliedSum);
-        }
-        if (matchesDirect || matchesMultiplied) {
-          matches += 1;
-          if (field === "qty" || field === "cartons" || field === "amount") keyMatches += 1;
-          if (statedTotal > 0) positiveMatches += 1;
-          if (isAggregateFormula(formulaAt(candidateEntry, mapping, field))) aggregateFormulaMatches += 1;
-        } else mismatches += 1;
-      });
-      var detailRows = detailRowCountBefore(table, mapping, candidateIndex, reconciled);
-      var formulaBackedSingleDetail = detailRows >= 1 && aggregateFormulaMatches >= 2;
+      var candidateEntry = table.rows[rowIndex];
+      var candidate = row;
+      function reconcileAgainst(startIndex) {
+        var result = {
+          matches: 0,
+          keyMatches: 0,
+          positiveMatches: 0,
+          aggregateFormulaMatches: 0,
+          mismatches: 0,
+          detailRows: detailRowCountBefore(table, mapping, rowIndex, reconciled, startIndex)
+        };
+        fields.forEach(function (field) {
+          var statedTotal = numeric(valueAt(candidate, mapping, field));
+          if (statedTotal == null || statedTotal < 0) return;
+          var directSum = rawColumnSum(table, mapping, field, rowIndex, false, reconciled, startIndex);
+          if (directSum == null) return;
+          var matchesDirect = nearlyEqual(statedTotal, directSum);
+          var matchesMultiplied = false;
+          if (field === "unitWeight" || field === "unitVolume") {
+            var multipliedSum = rawColumnSum(table, mapping, field, rowIndex, true, reconciled, startIndex);
+            matchesMultiplied = multipliedSum != null && nearlyEqual(statedTotal, multipliedSum);
+          }
+          if (matchesDirect || matchesMultiplied) {
+            result.matches += 1;
+            if (field === "qty" || field === "cartons" || field === "amount") result.keyMatches += 1;
+            if (statedTotal > 0) result.positiveMatches += 1;
+            if (isAggregateFormula(formulaAt(candidateEntry, mapping, field))) result.aggregateFormulaMatches += 1;
+          } else result.mismatches += 1;
+        });
+        result.formulaBackedSingleDetail = result.detailRows >= 1 && result.aggregateFormulaMatches >= 2;
+        result.safe = !result.mismatches && result.matches >= 2 && result.keyMatches >= 1 && result.positiveMatches >= 1 && (result.detailRows >= 2 || result.formulaBackedSingleDetail);
+        result.summaryLike = result.aggregateFormulaMatches || (result.matches >= 2 && result.keyMatches >= 1 && result.positiveMatches >= 1);
+        return result;
+      }
+      var segmentResult = reconcileAgainst(segmentStart);
+      // A final unlabelled grand total follows the last inline subtotal, so
+      // the current segment can be empty. Reconcile it against all detail rows
+      // as well, excluding already reconciled subtotals, to avoid counting the
+      // grand total as another product row.
+      var globalResult = segmentStart > 0 ? reconcileAgainst(0) : segmentResult;
+      var detailRows = segmentResult.detailRows;
+      var duplicateReconciledSummary = detailRows === 0 && lastReconciledRow && sameSummaryValues(candidate, lastReconciledRow, mapping);
       // A single detail row and a blank-identity continuation can contain the
       // same three values, so value reconciliation alone is ambiguous. Only
       // formula provenance can safely classify that one-detail case as total.
-      if (!mismatches && matches >= 2 && keyMatches >= 1 && positiveMatches >= 1 && (detailRows >= 2 || formulaBackedSingleDetail)) {
-        reconciled[candidateIndex] = true;
+      if (duplicateReconciledSummary || segmentResult.safe || globalResult.safe) {
+        reconciled[rowIndex] = true;
+        segmentStart = rowIndex + 1;
+        lastReconciledRow = candidate;
+      } else if (segmentResult.summaryLike || globalResult.summaryLike) {
+        // This row is summary-like but cannot be excluded without guessing
+        // (for example, an exact one-detail continuation without formulas or
+        // a subtotal with one mismatched field). Keep it provisional and make
+        // the ambiguity block report export instead of silently double-counting.
+        ambiguous[rowIndex] = true;
       }
-    });
-    return reconciled;
+    }
+    return { reconciled: reconciled, ambiguous: ambiguous };
+  }
+
+  function findReconciledSummaryRows(table, mapping) {
+    return analyzeSummaryRows(table, mapping).reconciled;
   }
 
   function inferLineTotalField(table, mapping, unitField, totalField, reconciledSummaryRows) {
@@ -541,6 +664,26 @@
     return overrides;
   }
 
+  function decodeTextWorkbook(buffer) {
+    if (typeof TextDecoder === "undefined") return null;
+    var bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+    var encoding = "utf-8";
+    if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) encoding = "utf-16le";
+    else if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) encoding = "utf-16be";
+    else {
+      try {
+        return new TextDecoder("utf-8", { fatal: true }).decode(bytes).replace(/^\ufeff/, "");
+      } catch (error) {
+        encoding = "gb18030";
+      }
+    }
+    try {
+      return new TextDecoder(encoding, { fatal: true }).decode(bytes).replace(/^\ufeff/, "");
+    } catch (error) {
+      return null;
+    }
+  }
+
   function aggregate(table, mapping, overrides) {
     overrides = overrides || {};
     var headerWeightUnit = detectWeightUnit(headerFor(table, mapping, "totalWeight") || headerFor(table, mapping, "unitWeight"));
@@ -562,6 +705,8 @@
       weightUnit: false,
       currency: false,
       dimensionUnit: false,
+      numericFormat: false,
+      summaryRows: false,
       weightMeaning: weightMeaningAmbiguous && !mappingConfirmed,
       volumeMeaning: volumeMeaningAmbiguous && !mappingConfirmed
     };
@@ -569,8 +714,13 @@
     var skippedSummaryRows = 0;
     var negativeValuesSkipped = 0;
     var subtotalMismatchCount = 0;
+    var ambiguousNumericValues = 0;
     var items = [];
-    var reconciledSummaryRows = findReconciledSummaryRows(table, mapping);
+    var summaryAnalysis = analyzeSummaryRows(table, mapping);
+    var reconciledSummaryRows = summaryAnalysis.reconciled;
+    var ambiguousSummaryRows = summaryAnalysis.ambiguous;
+    var ambiguousSummaryRowCount = Object.keys(ambiguousSummaryRows).length;
+    pending.summaryRows = ambiguousSummaryRowCount > 0;
 
     table.rows.forEach(function (rowEntry, rowOffset) {
       var row = rowCells(rowEntry);
@@ -580,17 +730,33 @@
       if (!hasAnyMappedValue(row, mapping)) return;
       var product = textValue(valueAt(row, mapping, "product"));
       var sku = textValue(valueAt(row, mapping, "sku"));
-      var quantity = numeric(valueAt(row, mapping, "qty"));
-      var cartons = numeric(valueAt(row, mapping, "cartons"));
-      var unitWeight = numeric(valueAt(row, mapping, "unitWeight"));
-      var directWeight = numeric(valueAt(row, mapping, "totalWeight"));
-      var unitVolume = numeric(valueAt(row, mapping, "unitVolume"));
-      var directVolume = numeric(valueAt(row, mapping, "totalVolume"));
-      var unitPrice = numeric(valueAt(row, mapping, "unitPrice"));
-      var directAmount = numeric(valueAt(row, mapping, "amount"));
-      var length = numeric(valueAt(row, mapping, "length"));
-      var width = numeric(valueAt(row, mapping, "width"));
-      var height = numeric(valueAt(row, mapping, "height"));
+      var numericFields = {
+        quantity: numericDetails(valueAt(row, mapping, "qty")),
+        cartons: numericDetails(valueAt(row, mapping, "cartons")),
+        unitWeight: numericDetails(valueAt(row, mapping, "unitWeight")),
+        directWeight: numericDetails(valueAt(row, mapping, "totalWeight")),
+        unitVolume: numericDetails(valueAt(row, mapping, "unitVolume")),
+        directVolume: numericDetails(valueAt(row, mapping, "totalVolume")),
+        unitPrice: numericDetails(valueAt(row, mapping, "unitPrice")),
+        directAmount: numericDetails(valueAt(row, mapping, "amount")),
+        length: numericDetails(valueAt(row, mapping, "length")),
+        width: numericDetails(valueAt(row, mapping, "width")),
+        height: numericDetails(valueAt(row, mapping, "height"))
+      };
+      Object.keys(numericFields).forEach(function (key) {
+        if (numericFields[key].ambiguous) ambiguousNumericValues += 1;
+      });
+      var quantity = numericFields.quantity.value;
+      var cartons = numericFields.cartons.value;
+      var unitWeight = numericFields.unitWeight.value;
+      var directWeight = numericFields.directWeight.value;
+      var unitVolume = numericFields.unitVolume.value;
+      var directVolume = numericFields.directVolume.value;
+      var unitPrice = numericFields.unitPrice.value;
+      var directAmount = numericFields.directAmount.value;
+      var length = numericFields.length.value;
+      var width = numericFields.width.value;
+      var height = numericFields.height.value;
 
       if (isMarkedSummaryRow(row, mapping) || reconciledSummaryRows[rowOffset] || (!product && !sku && quantity == null && cartons == null)) {
         skippedSummaryRows += 1;
@@ -653,7 +819,7 @@
         totals.amounts[currencyKey] = (totals.amounts[currencyKey] || 0) + computedAmount;
         present.amount = true;
       }
-      var uniqueKey = normalize(sku || product);
+      var uniqueKey = normalizeProductKey(sku || product);
       if (uniqueKey) unique[uniqueKey] = true;
       items.push({
         row: sourceRow,
@@ -681,6 +847,11 @@
     if (pending.volumeUnit) warnings.push("volume_unit_pending");
     if (pending.currency) warnings.push("currency_pending");
     if (pending.dimensionUnit) warnings.push("dimension_unit_pending");
+    if (ambiguousNumericValues) {
+      pending.numericFormat = true;
+      warnings.push("numeric_format_pending");
+    }
+    if (ambiguousSummaryRowCount) warnings.push("summary_rows_pending");
     if (pending.weightMeaning) warnings.push("weight_meaning_pending");
     if (pending.volumeMeaning) warnings.push("volume_meaning_pending");
     if (table.truncatedRows) warnings.push("rows_truncated");
@@ -709,8 +880,12 @@
       skippedSummaryRows: skippedSummaryRows,
       negativeValuesSkipped: negativeValuesSkipped,
       subtotalMismatchCount: subtotalMismatchCount,
+      ambiguousNumericValues: ambiguousNumericValues,
+      ambiguousSummaryRows: ambiguousSummaryRowCount,
       warningCounts: {
         summary_rows_skipped: skippedSummaryRows,
+        summary_rows_pending: ambiguousSummaryRowCount,
+        numeric_format_pending: ambiguousNumericValues,
         negative_values_skipped: negativeValuesSkipped,
         subtotal_mismatch: subtotalMismatchCount
       },
@@ -749,8 +924,9 @@
     return {
       parse: function (buffer, XLSX, fileName, sheetName) {
         session.fileName = fileName || "order.xlsx";
-        session.workbook = XLSX.read(buffer, {
-          type: "array",
+        var textWorkbook = /\.(?:csv|tsv|txt)$/i.test(session.fileName) ? decodeTextWorkbook(buffer) : null;
+        session.workbook = XLSX.read(textWorkbook == null ? buffer : textWorkbook, {
+          type: textWorkbook == null ? "array" : "string",
           cellDates: false,
           // Retain formula provenance so a one-item workbook can distinguish
           // two cached SUM cells from an otherwise identical continuation row.
@@ -779,6 +955,7 @@
     MAX_ROWS: MAX_ROWS,
     MAX_COLUMNS: MAX_COLUMNS,
     XLSX_URL: XLSX_URL,
+    normalizeProductKey: normalizeProductKey,
     createSession: createSession
   };
   scope.JabbarOrderWorkerCore = core;

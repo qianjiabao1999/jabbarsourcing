@@ -6,9 +6,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-175";
-const UI_VERSION = "ui-20260719d";
-const ORDER_VERSION = "order-20260719a";
+const CSS_VERSION = "apple-176";
+const UI_VERSION = "ui-20260719e";
+const ORDER_VERSION = "order-20260719b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
   zh: "社媒账号",
@@ -547,8 +547,8 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
   const EXPECTED_LANGUAGE_MATRIX_LASTMOD = {
     home: "2026-07-19",
-    calculator: "2026-07-18",
-    inquiry: "2026-07-18"
+    calculator: "2026-07-19",
+    inquiry: "2026-07-19"
   };
   const EXPECTED_LEGAL_LASTMOD = {
     [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-19",
@@ -655,6 +655,8 @@ for (const removedToken of ["contact-speed-dial", "initContactSpeedDial", "ui-se
 assert(javascript.includes("sharedObserver.observe(section)"), "site-enhancements.js: homepage sections must still be observed without being hidden");
 assert(javascript.includes('createElement("li", "shipment-ticker-item num-mono")'), "site-enhancements.js: dynamic shipment item must explicitly use num-mono");
 assert(javascript.includes('ticker.classList.add("is-ready")'), "site-enhancements.js: valid shipment data must opt into the visible state");
+assert.match(javascript, /data-shipments-enabled[\s\S]*!== "true"[\s\S]*is-unavailable[\s\S]*return;/, "site-enhancements.js: disabled shipment data must stop before fetching");
+assert.doesNotMatch(javascript, /cache:\s*["']no-store["']/, "site-enhancements.js: versioned shipment data must use normal browser caching");
 assert(!javascript.includes("ja:"), "site-enhancements.js: Japanese labels must not return");
 for (const token of [
   "initCalculatorInquiryBridge", "calculator-inquiry-cta", "jabbarCalcResult", "calculator_result",
@@ -890,8 +892,7 @@ for (const removedToken of ["data-order-wechat", "shareToWeChat", "navigator.sha
 assert.doesNotMatch(orderAnalyzer, /WeChat|微信/, "calculator-order-analyzer.js: removed WeChat instructions remain");
 assert.equal(count(orderAnalyzer, /toolLabel:/g), LOCALES.length, "calculator-order-analyzer.js: localized tool label count");
 assert.doesNotMatch(orderAnalyzer, /fillText\(["']Jabbar · 体积工具["']/, "calculator-order-analyzer.js: exported report still hardcodes the Chinese tool label");
-assert.match(orderAnalyzer, /fillText\(this\.copy\.toolLabel, startX, 92\)/, "calculator-order-analyzer.js: first export header is not localized");
-assert.match(orderAnalyzer, /fillText\(this\.copy\.toolLabel, startX, 155\)/, "calculator-order-analyzer.js: paged export header is not localized");
+assert.match(orderAnalyzer, /Analyzer\.prototype\.drawUhdReport[\s\S]*fillText\(this\.copy\.toolLabel, startX, 155\)/, "calculator-order-analyzer.js: 4K export header is not localized");
 assert.match(orderAnalyzer, /var MAX_FILE_BYTES = 50 \* 1024 \* 1024;/, "calculator-order-analyzer.js: file limit must be 50 MB");
 assert.match(orderAnalyzer, /var WORKER_TIMEOUT_MS = 60000;/, "calculator-order-analyzer.js: Worker timeout must be 60 seconds");
 for (const token of [
@@ -905,7 +906,7 @@ assert.match(orderAnalyzer, /Math\.ceil\(\(value - CONTAINER_EPSILON_CBM\) \/ CO
 assert.match(orderAnalyzer, /remaining >= CONTAINER_CAPACITY_CBM - CONTAINER_EPSILON_CBM[\s\S]*\? 100/, "calculator-order-analyzer.js: full containers must receive 100% before the remainder");
 assert.doesNotMatch(orderAnalyzer, /value\s*\/\s*\(count\s*\*\s*(?:68|CONTAINER_CAPACITY_CBM)\)\s*\*\s*100/, "calculator-order-analyzer.js: multi-container load must not be averaged across all containers");
 assert.match(orderAnalyzer, /Analyzer\.prototype\.renderContainer[\s\S]*var loads = this\.visibleContainerLoads\(estimate, MAX_CONTAINER_BARS\)/, "calculator-order-analyzer.js: page SVG must use the shared per-container loads");
-assert.equal(count(orderAnalyzer, /drawContainerLoadBars\(/g), 2, "calculator-order-analyzer.js: both PNG report paths must share per-container bars");
+assert.equal(count(orderAnalyzer, /drawContainerLoadBars\(/g), 1, "calculator-order-analyzer.js: the active 4K report must share per-container bars");
 for (const token of ["xlsx.full.min.js?v=0.20.3", "MAX_ROWS", "unitWeight", "unitVolume", "amount"])
   assert(orderWorker.includes(token), `calculator-order-worker.js: missing ${token}`);
 assert.match(orderWorker, /var MAX_ROWS = 10000;/, "calculator-order-worker.js: row limit must be 10,000");
@@ -936,6 +937,15 @@ shipments.forEach((shipment, index) => {
 const packageJson = JSON.parse(await load("package.json"));
 assert.match(packageJson.scripts["build:css"], /--browserslist/, "package.json: CSS build must honor browser targets");
 assert(Array.isArray(packageJson.browserslist) && packageJson.browserslist.includes("Chrome >= 90"), "package.json: legacy browser targets missing");
+assert.match(css, /--brand-teal-rgb:\s*15,\s*118,\s*110/, "styles.css: shared brand teal RGB token missing");
+assert.doesNotMatch(css, /rgba\(15,\s*118,\s*110,/, "styles.css: hardcoded brand teal rgba remains");
+for (const selector of [".site-nav-quote", ".calculator-button", ".order-analyzer__actions button"]) {
+  const rule = cssRuleBody(css, selector);
+  assert.match(rule, /background-color:\s*#0f6ba8/, `styles.css: ${selector} gradient fallback missing`);
+  assert.match(rule, /linear-gradient\(135deg,\s*#0f6ba8,\s*#0f766e\)/, `styles.css: ${selector} primary gradient missing`);
+}
+assert.doesNotMatch(css, /\.contact-link \.contact-value\s*\{\s*font-size:\s*9\.5px/, "styles.css: obsolete 9.5px contact value override remains");
+assert.doesNotMatch(css, /\.site-footer \.contact-link\[aria-label\*="Gmail"\] \.contact-value\s*\{\s*font-size:\s*9\.5px/, "styles.css: obsolete 9.5px Gmail footer override remains");
 const minifiedCss = await load("styles.min.css");
 assert.doesNotMatch(minifiedCss, /(?:width|height)\s*[<>]=?|[<>]=?\s*(?:width|height)/, "styles.min.css: Media Queries Level 4 range syntax remains");
 assert.match(minifiedCss, /\(max-width:/, "styles.min.css: legacy max-width media queries missing");

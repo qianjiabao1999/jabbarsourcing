@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-175";
-const UI_VERSION = "ui-20260719d";
+const CSS_VERSION = "apple-176";
+const UI_VERSION = "ui-20260719e";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -1440,21 +1440,13 @@ async function interactionChecks(browserType) {
   await page.waitForTimeout(20);
   assert.equal(await page.locator(".whatsapp-qr-card").evaluate((element) => element.hidden), true, "QR card did not close on Escape");
 
-  await page.locator(".shipment-ticker").scrollIntoViewIfNeeded();
-  await page.waitForFunction((count) => document.querySelectorAll(".shipment-ticker-item").length === count, VALID_SHIPMENTS.length * 2);
-  const shipmentFirst = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  await page.waitForTimeout(180);
-  const shipmentSecond = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  assert(shipmentSecond < shipmentFirst, `LTR shipment ticker direction is wrong: ${shipmentFirst} -> ${shipmentSecond}`);
-  await page.locator(".shipment-ticker-rail").hover();
-  await page.waitForTimeout(80);
-  assert.equal(await page.locator(".shipment-ticker").evaluate((element) => element.classList.contains("is-paused")), true, "shipment ticker did not enter paused state");
-  const shipmentPausedStart = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  await page.waitForTimeout(180);
-  const shipmentPausedEnd = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  assert(Math.abs(shipmentPausedEnd - shipmentPausedStart) < 0.25, `shipment ticker did not pause: ${shipmentPausedStart} -> ${shipmentPausedEnd}`);
-  await page.mouse.move(0, 0);
-  await page.waitForTimeout(30);
+  const disabledShipment = await page.locator(".shipment-ticker").evaluate((element) => ({
+    enabled: element.querySelector(".shipment-ticker-rail")?.getAttribute("data-shipments-enabled"),
+    unavailable: element.classList.contains("is-unavailable"),
+    display: getComputedStyle(element).display,
+    items: element.querySelectorAll(".shipment-ticker-item").length
+  }));
+  assert.deepEqual(disabledShipment, { enabled: "false", unavailable: true, display: "none", items: 1 }, "placeholder shipment ticker must remain disabled and hidden");
 
   await page.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; window.scrollTo(0, 0); });
   await page.waitForFunction(() => {
@@ -1482,7 +1474,7 @@ async function interactionChecks(browserType) {
   assert.equal(await page.locator(".company-metric-card strong[aria-label]").count(), 0, "company metrics still rely on aria-label");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.waitForTimeout(40);
-  assert.equal(await page.locator(".shipment-ticker.is-static").count(), 1, "live reduced-motion change did not stop shipment ticker");
+  assert.equal(await page.locator(".shipment-ticker.is-unavailable").count(), 1, "live reduced-motion change exposed disabled placeholder shipments");
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.waitForTimeout(180);
 
@@ -1755,13 +1747,14 @@ async function accessibilityFallbackChecks(browserType) {
   await mockValidShipments(reduced);
   const page = await reduced.newPage();
   await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction((count) => document.querySelectorAll(".shipment-ticker-item").length === count, VALID_SHIPMENTS.length * 2);
+  await page.waitForFunction(() => document.querySelector(".shipment-ticker")?.classList.contains("is-unavailable"));
   await page.waitForFunction(() => document.querySelectorAll('.gallery-frame[data-gallery-clone="true"]').length > 0);
   assert.equal(await page.locator(".ui-section-reveal").count(), 0, "reduced motion still hides sections for reveal");
   assert.equal(await page.locator(".service-country-marquee, .service-country-toggle, .service-country-item").count(), 0, "removed country strip exists in reduced-motion mode");
-  assert.equal(await page.locator(".shipment-ticker.is-static").count(), 1, "reduced motion shipment ticker is not static");
+  assert.equal(await page.locator(".shipment-ticker.is-unavailable").count(), 1, "reduced motion exposed disabled placeholder shipments");
+  assert.equal(await page.locator(".shipment-ticker").evaluate((element) => getComputedStyle(element).display), "none", "reduced motion placeholder shipment ticker is visible");
   assert.equal(await page.locator(".shipment-ticker-track").evaluate((element) => getComputedStyle(element).transform), "none", "reduced motion shipment ticker still transforms");
-  assert.equal(await page.locator(".shipment-ticker-list").nth(1).evaluate((element) => getComputedStyle(element).display), "none", "reduced motion duplicate shipment list is visible");
+  assert.equal(await page.locator(".shipment-ticker-list").count(), 1, "reduced motion created a duplicate placeholder shipment list");
   const reducedGallery = await page.locator(".sourcing-gallery .gallery-track").evaluateAll((tracks) => tracks.map((track) => ({
     animationName: getComputedStyle(track).animationName,
     transform: getComputedStyle(track).transform,
@@ -1822,12 +1815,10 @@ async function rtlMotionCheck(browserType) {
   await page.goto(`${BASE_URL}/ar/`, { waitUntil: "domcontentloaded" });
   await page.locator(".company-intro").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelector(".company-intro")?.classList.contains("is-visible"));
-  await page.locator(".shipment-ticker").scrollIntoViewIfNeeded();
-  await page.waitForFunction((count) => document.querySelectorAll(".shipment-ticker-item").length === count, VALID_SHIPMENTS.length * 2);
-  const shipmentFirst = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  await page.waitForTimeout(180);
-  const shipmentSecond = await page.locator(".shipment-ticker-track").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41);
-  assert(shipmentSecond > shipmentFirst, `RTL shipment ticker must run in the opposite direction: ${shipmentFirst} -> ${shipmentSecond}`);
+  await page.waitForFunction(() => document.querySelector(".shipment-ticker")?.classList.contains("is-unavailable"));
+  assert.equal(await page.locator("html").getAttribute("dir"), "rtl", "Arabic page direction changed");
+  assert.equal(await page.locator(".shipment-ticker").evaluate((element) => getComputedStyle(element).display), "none", "Arabic placeholder shipment ticker is visible");
+  assert.equal(await page.locator(".shipment-ticker-list").count(), 1, "Arabic page created a duplicate placeholder shipment list");
   await context.close();
 }
 

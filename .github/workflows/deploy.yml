@@ -62,6 +62,7 @@ jobs:
           npm run qa:ui
           npm run qa:analytics-consent
           npm run qa:calculator-order
+          npm run qa:order-resilience
           npm run qa:container-allocation
 
       - name: Install Worker verification dependencies
@@ -104,6 +105,7 @@ jobs:
             --include='/support.html' \
             --include='/assets/' \
             --exclude='/assets/social-source/' \
+            --exclude='/assets/gallery/*.jpg' \
             --include='/assets/***' \
             --include='/calculator/' \
             --include='/calculator/index.html' \
@@ -208,6 +210,7 @@ jobs:
           test "$(find _site -type f -name '*.html' | wc -l)" -eq 35
 
           test ! -e _site/assets/social-source
+          test -z "$(find _site/assets/gallery -maxdepth 1 -type f -name '*.jpg' -print)"
           test ! -e _site/styles.css
           unexpected_css="$(find _site -type f -name '*.css' ! -path '_site/styles.min.css' -print)"
           test -z "$unexpected_css"

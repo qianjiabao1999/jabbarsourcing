@@ -501,6 +501,11 @@
     var track = ticker.querySelector(".shipment-ticker-track");
     if (!rail || !track) return;
 
+    if (rail.getAttribute("data-shipments-enabled") !== "true") {
+      ticker.classList.add("is-unavailable");
+      return;
+    }
+
     var source = rail.getAttribute("data-shipments-source") || "/shipments.json";
     var field = "city_" + lang;
     var locale = document.documentElement.lang || lang || "en";
@@ -658,7 +663,7 @@
       syncReducedState();
     }
 
-    fetch(source, { credentials: "same-origin", cache: "no-store" }).then(function (response) {
+    fetch(source, { credentials: "same-origin" }).then(function (response) {
       if (!response.ok) throw new Error("Shipment data unavailable");
       return response.json();
     }).then(function (data) {

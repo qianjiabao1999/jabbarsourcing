@@ -19,7 +19,7 @@ assert.match(source, /Math\.ceil\(\(value - CONTAINER_EPSILON_CBM\) \/ CONTAINER
 assert.match(source, /remaining >= CONTAINER_CAPACITY_CBM - CONTAINER_EPSILON_CBM[\s\S]*\? 100/, "full containers must receive 100% before the remainder");
 assert.doesNotMatch(source, /value\s*\/\s*\(count\s*\*\s*(?:68|CONTAINER_CAPACITY_CBM)\)\s*\*\s*100/, "multi-container load must not be averaged across all containers");
 assert.match(source, /Analyzer\.prototype\.renderContainer[\s\S]*var loads = this\.visibleContainerLoads\(estimate, MAX_CONTAINER_BARS\)/, "page SVG must use the shared per-container loads");
-assert.equal(count(/drawContainerLoadBars\(/g), 2, "both PNG report paths must share per-container bars");
+assert.equal(count(/drawContainerLoadBars\(/g), 1, "the single 4K PNG overview path must use per-container bars");
 assert.equal(count(/data-container-load=/g), 1, "browser allocation hook count");
 
 for (const token of [

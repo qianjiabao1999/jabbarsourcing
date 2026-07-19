@@ -40,6 +40,7 @@
       pending: "该询盘正在处理中，请几秒后重试。",
       conflict: "内容已更改，请重新提交。",
       rateLimit: "提交过于频繁，请稍后重试。",
+      retryAfterUnit: "秒",
       genericError: "安全提交暂时不可用。请稍后重试，或通过页脚联系方式联系我们。"
     },
     en: {
@@ -52,6 +53,7 @@
       pending: "This inquiry is already being processed. Try again in a few seconds.",
       conflict: "The content changed. Please submit again.",
       rateLimit: "Too many attempts. Please try again later.",
+      retryAfterUnit: "sec",
       genericError: "Secure submission is temporarily unavailable. Try again later or contact us through the page footer."
     },
     es: {
@@ -64,6 +66,7 @@
       pending: "Esta solicitud ya se está procesando. Inténtalo de nuevo en unos segundos.",
       conflict: "El contenido ha cambiado. Vuelve a enviar la solicitud.",
       rateLimit: "Demasiados intentos. Inténtalo de nuevo más tarde.",
+      retryAfterUnit: "s",
       genericError: "El envío seguro no está disponible temporalmente. Inténtalo más tarde o contáctanos desde el pie de página."
     },
     ar: {
@@ -76,6 +79,7 @@
       pending: "هذا الطلب قيد المعالجة بالفعل. حاول مجددًا بعد بضع ثوانٍ.",
       conflict: "تغيّر المحتوى. يرجى إرسال الطلب مجددًا.",
       rateLimit: "محاولات كثيرة جدًا. حاول مجددًا لاحقًا.",
+      retryAfterUnit: "ث",
       genericError: "الإرسال الآمن غير متاح مؤقتًا. حاول لاحقًا أو تواصل معنا عبر تذييل الصفحة."
     },
     fr: {
@@ -88,6 +92,7 @@
       pending: "Cette demande est déjà en cours de traitement. Réessayez dans quelques secondes.",
       conflict: "Le contenu a changé. Veuillez renvoyer la demande.",
       rateLimit: "Trop de tentatives. Veuillez réessayer plus tard.",
+      retryAfterUnit: "s",
       genericError: "L’envoi sécurisé est temporairement indisponible. Réessayez plus tard ou contactez-nous via le pied de page."
     },
     pt: {
@@ -100,6 +105,7 @@
       pending: "Esta solicitação já está sendo processada. Tente novamente em alguns segundos.",
       conflict: "O conteúdo mudou. Envie a solicitação novamente.",
       rateLimit: "Muitas tentativas. Tente novamente mais tarde.",
+      retryAfterUnit: "s",
       genericError: "O envio seguro está temporariamente indisponível. Tente mais tarde ou fale conosco pelo rodapé da página."
     },
     ru: {
@@ -112,6 +118,7 @@
       pending: "Этот запрос уже обрабатывается. Повторите попытку через несколько секунд.",
       conflict: "Содержимое изменилось. Отправьте запрос еще раз.",
       rateLimit: "Слишком много попыток. Повторите попытку позже.",
+      retryAfterUnit: "с",
       genericError: "Безопасная отправка временно недоступна. Повторите попытку позже или свяжитесь с нами через контакты внизу страницы."
     },
     de: {
@@ -124,6 +131,7 @@
       pending: "Diese Anfrage wird bereits bearbeitet. Versuchen Sie es in einigen Sekunden erneut.",
       conflict: "Der Inhalt hat sich geändert. Bitte senden Sie die Anfrage erneut.",
       rateLimit: "Zu viele Versuche. Bitte versuchen Sie es später erneut.",
+      retryAfterUnit: "Sek.",
       genericError: "Sicheres Senden ist vorübergehend nicht verfügbar. Versuchen Sie es später erneut oder kontaktieren Sie uns über die Fußzeile."
     },
     it: {
@@ -136,6 +144,7 @@
       pending: "Questa richiesta è già in elaborazione. Riprova tra qualche secondo.",
       conflict: "Il contenuto è cambiato. Invia di nuovo la richiesta.",
       rateLimit: "Troppi tentativi. Riprova più tardi.",
+      retryAfterUnit: "s",
       genericError: "L’invio sicuro è temporaneamente non disponibile. Riprova più tardi o contattaci dal piè di pagina."
     },
     tr: {
@@ -148,6 +157,7 @@
       pending: "Bu talep zaten işleniyor. Birkaç saniye sonra tekrar deneyin.",
       conflict: "İçerik değişti. Lütfen tekrar gönderin.",
       rateLimit: "Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.",
+      retryAfterUnit: "sn",
       genericError: "Güvenli gönderim geçici olarak kullanılamıyor. Daha sonra tekrar deneyin veya sayfa alt bilgisinden bize ulaşın."
     }
   };
@@ -171,6 +181,12 @@
 
   function parseResponse(response) {
     return response.json().catch(function () { return {}; });
+  }
+
+  function formatRetryAfter(value, unit) {
+    var seconds = typeof value === "string" ? value.trim() : "";
+    if (!/^\d+$/.test(seconds)) return "";
+    return " (\u2068" + seconds + "\u2069 " + unit + ")";
   }
 
   function normalizeAttributionValue(value, maximum) {
@@ -570,7 +586,7 @@
         resetTurnstile();
         if (response.status === 409 && body.error === "submission_in_progress") {
           var pendingRetryAfter = response.headers.get("Retry-After");
-          setStatus(messages.pending + (pendingRetryAfter ? " (" + pendingRetryAfter + "s)" : ""), "pending");
+          setStatus(messages.pending + formatRetryAfter(pendingRetryAfter, messages.retryAfterUnit), "pending");
           return;
         }
         if (response.status === 409 && body.error === "submission_id_conflict") {
@@ -584,7 +600,7 @@
         }
         if (response.status === 429) {
           var retryAfter = response.headers.get("Retry-After");
-          setStatus(messages.rateLimit + (retryAfter ? " (" + retryAfter + "s)" : ""), "error");
+          setStatus(messages.rateLimit + formatRetryAfter(retryAfter, messages.retryAfterUnit), "error");
           return;
         }
         setStatus(messages.genericError, "error");

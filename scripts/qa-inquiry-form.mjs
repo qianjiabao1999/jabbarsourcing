@@ -202,13 +202,15 @@ function assertInquiryEvent(event, status, scope) {
 
 const indexGuardPage = await context.newPage();
 await indexGuardPage.goto(
-  `${BASE_URL}/en/inquiry/index.html?utm_source=index_guard`,
+  `${BASE_URL}/en/inquiry/`,
   { waitUntil: "domcontentloaded" },
 );
 await indexGuardPage.waitForFunction(() => typeof window.jabbarCaptureAttribution === "function");
-const indexGuardAttribution = await indexGuardPage.evaluate(() =>
-  JSON.parse(sessionStorage.getItem("jabbarAttributionV1") || "{}"),
-);
+const indexGuardAttribution = await indexGuardPage.evaluate(() => {
+  sessionStorage.removeItem("jabbarAttributionV1");
+  history.replaceState(null, "", "/en/inquiry/index.html?utm_source=index_guard");
+  return window.jabbarCaptureAttribution();
+});
 assert(
   indexGuardAttribution.landing_path === "/en/inquiry/",
   "Explicit index.html entry must normalize to the canonical directory landing path",
@@ -433,7 +435,8 @@ apiResponses.push(
 const beforePending = apiPayloads.length;
 const beforePendingEvents = inquiryEvents.length;
 await clickDirect();
-await page.waitForFunction(() => document.querySelector(".inquiry-status")?.textContent.includes("5s"));
+await page.waitForFunction(() => document.querySelector(".inquiry-status")?.textContent.includes("\u20685\u2069 秒"));
+assert(await page.locator(".inquiry-status").evaluate((status) => status.textContent.includes("\u20685\u2069 秒")), "409 pending response must localize and bidi-isolate Retry-After seconds");
 assert((await analyticsEvents("inquiry_submit")).length === beforePendingEvents, "409 pending response must not emit inquiry_submit");
 const pendingId = apiPayloads[beforePending].submissionId;
 await page.waitForFunction(() => !document.querySelector(".js-inquiry-direct")?.disabled);

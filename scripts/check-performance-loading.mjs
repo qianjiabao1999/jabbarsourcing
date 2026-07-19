@@ -6,7 +6,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const ORDER_VERSION = "order-20260719a";
+const ORDER_VERSION = "order-20260719b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const load = (file) => readFile(resolve(ROOT, file), "utf8");
@@ -16,6 +16,9 @@ const imageTags = (html) => html.match(/<img\b[^>]*>/gi) || [];
 for (const locale of LOCALES) {
   const file = localePath(locale);
   const html = await load(file);
+  const shipmentRail = html.match(/<div\b[^>]*class="[^"]*shipment-ticker-rail[^"]*"[^>]*>/i)?.[0] || "";
+  assert.equal(attribute(shipmentRail, "data-shipments-enabled"), "false", `${file}: placeholder shipment feed must remain explicitly disabled`);
+  assert.match(attribute(shipmentRail, "data-shipments-source"), /^\/shipments\.json\?v=shipments-/, `${file}: shipment source must keep a cache version`);
   const images = imageTags(html);
   const navigationMarks = images.filter((tag) => /jabbar-sourcing-mark-transparent\.webp\?v=nav-20260719/.test(tag));
   assert(navigationMarks.length >= 2, `${file}: optimized navigation/brand mark references missing`);
@@ -67,5 +70,6 @@ assert.match(loader, new RegExp(`order-${ORDER_VERSION.replace(/^order-/, "")}`)
 
 const deployWorkflow = await load(".github/workflows/deploy.yml");
 assert.match(deployWorkflow, /--exclude='\/assets\/social-source\/'/, "deploy.yml: social source archive must not be published");
+assert.match(deployWorkflow, /--exclude='\/assets\/gallery\/\*\.jpg'/, "deploy.yml: unreferenced full-size gallery JPG originals must not be published");
 
-console.log("Performance loading guards passed: 10 homepages, 10 calculators, deferred order analyzer, social-source excluded.");
+console.log("Performance loading guards passed: 10 homepages, 10 calculators, deferred order analyzer, disabled placeholder shipments, source archives excluded.");

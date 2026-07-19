@@ -9,9 +9,9 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-19";
-const CSS_VERSION = "apple-175";
+const CSS_VERSION = "apple-176";
 const CONSENT_VERSION = "consent-20260719b";
-const JS_VERSION = "inquiry-20260719a";
+const JS_VERSION = "inquiry-20260719b";
 const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
 const PAGES = [
@@ -135,6 +135,9 @@ function checkSharedJavascript(source) {
     if (!/sendingLabel\s*:/.test(messageBlock[1])) {
       fail(scope, `${locale} messages must include sendingLabel`);
     }
+    if (!/retryAfterUnit\s*:/.test(messageBlock[1])) {
+      fail(scope, `${locale} messages must include retryAfterUnit`);
+    }
     if (!/success\s*:\s*[^\n]*24/.test(messageBlock[1])) {
       fail(scope, `${locale} success message must promise a reply within 24 hours`);
     }
@@ -169,6 +172,7 @@ function checkSharedJavascript(source) {
     ["bounded submit duration", "boundedDuration"],
     ["duration upper bound", "Math.min(60000"],
     ["canonical success event", 'trackEvent("inquiry_submit"'],
+    ["localized retry-after formatter", "formatRetryAfter"],
   ];
   for (const [label, fragment] of requiredSourceFragments) {
     if (!source.includes(fragment)) fail(scope, `missing ${label}`);
@@ -212,6 +216,9 @@ function checkSharedJavascript(source) {
   }
   if (source.includes('trackEvent("inquiry_submit_success"')) {
     fail(scope, "inquiry_submit must remain the sole canonical success event");
+  }
+  if (/retryAfter\s*\+\s*["']s["']/.test(source)) {
+    fail(scope, "Retry-After unit must not be hardcoded in English");
   }
 }
 

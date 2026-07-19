@@ -7,10 +7,14 @@ import { chromium } from "playwright";
 
 const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/, "");
 const OUTPUT_DIR = process.env.QA_ORDER_OUTPUT_DIR || "/tmp/jabbar-order-analyzer-qa";
-const REAL_WORKBOOK = process.env.ORDER_WORKBOOK || "/Users/jabbar/Downloads/订单SHD-260713-0003明细.xlsx";
-const SUMMARY_WORKBOOK = process.env.SUMMARY_ORDER_WORKBOOK || "/Users/jabbar/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files/wxid_svlu2ime3h3l12_c4b7/msg/file/2026-07/Biiabaa01.xlsx";
-const BARCODE_WORKBOOK = process.env.BARCODE_ORDER_WORKBOOK || "/Users/jabbar/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files/wxid_svlu2ime3h3l12_c4b7/msg/file/2026-07/Ant 整件85件.xlsx";
+// Optional private workbooks may be supplied explicitly for local exploratory
+// QA. CI and the default command rely only on deterministic sanitized fixtures.
+const REAL_WORKBOOK = process.env.ORDER_WORKBOOK || "";
+const SUMMARY_WORKBOOK = process.env.SUMMARY_ORDER_WORKBOOK || "";
+const BARCODE_WORKBOOK = process.env.BARCODE_ORDER_WORKBOOK || "";
 const FIXTURE_NAME = "qa-order-analyzer-190-products.xlsx";
+const UTF8_CSV_FIXTURE = Buffer.from("商品名称,数量,金额\r\n茶杯,2,20\r\n", "utf8");
+const GB18030_CSV_FIXTURE = Buffer.from("c9ccc6b7c3fbb3c62ccafdc1bf2cbdf0b6ee0d0ab2e8b1ad2c322c32300d0a", "hex");
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const LOCALIZED_SUMMARY_PHRASES = [
   "订单总计（共1款）",
@@ -122,10 +126,10 @@ async function createAuditEdgeFixtures(browser) {
   await page.setContent("<!doctype html><html><head></head><body></body></html>");
   await page.addScriptTag({ url: `${BASE_URL}/assets/vendor/xlsx.full.min.js?v=0.20.3` });
   const fixtures = await page.evaluate((localizedSummaryPhrases) => {
-    function workbookBase64(rows, sheetName) {
+    function workbookBase64(rows, sheetName, bookType = "xlsx") {
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), sheetName);
-      return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
+      return XLSX.write(workbook, { type: "base64", bookType, compression: true });
     }
     function formulaWorkbookBase64(rows, sheetName, formulas) {
       const workbook = XLSX.utils.book_new();
@@ -205,7 +209,40 @@ async function createAuditEdgeFixtures(browser) {
       imageHeaders: workbookBase64([
         ["商品编号", "商品图片", "Product Image", "商品名称", "数量", "金额"],
         ["IMG-001", "photo-a.jpg", "photo-b.jpg", "真实商品名称", 1, 10]
-      ], "图片列")
+      ], "图片列"),
+      segmentedSummaries: workbookBase64([
+        ["商品名称", "数量", "金额", "总重量（kg）", "总体积（m³）"],
+        ["分段商品 A", 2, 20, 4, 0.2],
+        ["分段商品 B", 3, 30, 6, 0.3],
+        ["", 5, 50, 10, 0.5],
+        ["分段商品 C", 1, 10, 2, 0.1],
+        ["分段商品 D", 2, 20, 4, 0.2],
+        ["", 3, 30, 6, 0.3],
+        ["", 8, 80, 16, 0.8]
+      ], "分段无标签小计与总计"),
+      localeNumbers: workbookBase64([
+        ["Product", "Quantity", "Amount EUR", "Total Weight (kg)", "Total Volume (m3)"],
+        ["Locale product", "2,5", "EUR 30", "1.234,56", "0,5"],
+        ["Scientific product", "1E3", "EUR 2,5", "2.5", "1e-3"]
+      ], "Locale numbers"),
+      ambiguousComma: workbookBase64([
+        ["Product", "Quantity", "Amount CNY"],
+        ["Ambiguous grouping", "1,234", "CNY 1,234"]
+      ], "Ambiguous comma"),
+      ambiguousDot: workbookBase64([
+        ["Product", "Quantity", "Amount EUR"],
+        ["Ambiguous dot grouping", "1.234", "EUR 1.234"]
+      ], "Ambiguous dot"),
+      normalizedProducts: workbookBase64([
+        ["Product", "Quantity", "Amount CNY"],
+        ["Café Mug", 1, 10],
+        ["Cafe-Mug", 1, 10],
+        ["CAFE mug", 1, 10]
+      ], "Normalized product keys"),
+      legacyXls: workbookBase64([
+        ["Product", "Quantity", "Amount USD", "Total Weight (kg)", "Total Volume (m3)"],
+        ["Legacy XLS product", 2, 30, 4, 0.2]
+      ], "Legacy XLS", "xls")
     };
   }, LOCALIZED_SUMMARY_PHRASES);
   await context.close();
@@ -991,6 +1028,9 @@ try {
   near(payload.result.metrics.amounts[0].value, 40, 1e-8, "exact-match continuation without formula fixture: amount");
   assert.equal(payload.result.skippedSummaryRows, 0, "exact-match continuation without formula fixture: normal row was skipped");
   assert(payload.result.items.some((item) => item.row === 3), "exact-match continuation without formula fixture: continuation disappeared");
+  assert.equal(payload.result.pending.summaryRows, true, "exact-match continuation without formula fixture: ambiguity was not marked pending");
+  assert(payload.result.warnings.includes("summary_rows_pending"), "exact-match continuation without formula fixture: ambiguity warning missing");
+  assert.equal(await page.locator("[data-order-export]").isDisabled(), true, "exact-match continuation without formula fixture: ambiguous result was exportable");
 
   payload = await uploadWorkbook(page, {
     name: "qa-repeated-unlabeled-summary-rows.xlsx",
@@ -1009,6 +1049,9 @@ try {
   assertMetrics(payload, { productRows: 3, uniqueProducts: 2, quantity: 10, weight: 1004, volume: 1, amount: 100 }, "mismatched unlabeled row fixture", true);
   assert.equal(payload.result.skippedSummaryRows, 0, "mismatched unlabeled row fixture: non-total row was excluded");
   assert(payload.result.items.some((item) => item.row === 4), "mismatched unlabeled row fixture: non-total row disappeared");
+  assert.equal(payload.result.pending.summaryRows, true, "mismatched unlabeled row fixture: summary-like mismatch was not marked pending");
+  assert(payload.result.warnings.includes("summary_rows_pending"), "mismatched unlabeled row fixture: ambiguity warning missing");
+  assert.equal(await page.locator("[data-order-export]").isDisabled(), true, "mismatched unlabeled row fixture: ambiguous result was exportable");
 
   payload = await uploadWorkbook(page, {
     name: "qa-localized-summary-rows.xlsx",
@@ -1029,6 +1072,80 @@ try {
   assert.equal(payload.mapping.product, 3, "product image column stole product-name mapping");
   assert.equal(payload.result.items[0].product, "真实商品名称", "image filename leaked into product name");
   assert.equal(payload.headers.some((header) => /商品图片|Product Image/i.test(header.label)), false, "image-only headers were not filtered");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-segmented-unlabeled-subtotals.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.segmentedSummaries
+  });
+  assertMetrics(payload, { productRows: 4, uniqueProducts: 4, quantity: 8, weight: 16, volume: 0.8, amount: 80, currency: "CNY" }, "segmented subtotal fixture", true);
+  assert.equal(payload.result.skippedSummaryRows, 3, "segmented subtotal fixture: inline and grand totals were not all excluded");
+  assert.equal(payload.result.pending.summaryRows, false, "segmented subtotal fixture: reconciled inline totals remained pending");
+  assert.equal(payload.result.warningCounts.summary_rows_pending, 0, "segmented subtotal fixture: false summary ambiguity count");
+  assert.equal(await page.locator("[data-order-export]").isEnabled(), true, "segmented subtotal fixture: safe result was not exportable");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-locale-numbers.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.localeNumbers
+  });
+  assertMetrics(payload, { productRows: 2, uniqueProducts: 2, quantity: 1002.5, weight: 1237.06, volume: 0.501, amount: 32.5, currency: "EUR" }, "locale numeric fixture", true);
+  assert.equal(payload.result.pending.numericFormat, false, "locale numeric fixture: valid decimal comma was marked ambiguous");
+  assert.equal(payload.result.warnings.includes("numeric_format_pending"), false, "locale numeric fixture: false numeric ambiguity warning");
+  assert.equal(await page.locator("[data-order-export]").isEnabled(), true, "locale numeric fixture: valid locale numbers blocked export");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-ambiguous-comma-number.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.ambiguousComma
+  });
+  near(payload.result.metrics.quantity, 1234, 1e-8, "ambiguous comma fixture: provisional quantity");
+  near(payload.result.metrics.amounts[0].value, 1234, 1e-8, "ambiguous comma fixture: provisional amount");
+  assert.equal(payload.result.pending.numericFormat, true, "ambiguous comma fixture: pending flag missing");
+  assert.equal(payload.result.ambiguousNumericValues, 2, "ambiguous comma fixture: ambiguous value count");
+  assert(payload.result.warnings.includes("numeric_format_pending"), "ambiguous comma fixture: warning missing");
+  assert.equal(await page.locator("[data-order-export]").isDisabled(), true, "ambiguous comma fixture: provisional result was exportable");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-ambiguous-dot-number.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.ambiguousDot
+  });
+  near(payload.result.metrics.quantity, 1234, 1e-8, "ambiguous dot fixture: provisional quantity");
+  near(payload.result.metrics.amounts[0].value, 1234, 1e-8, "ambiguous dot fixture: provisional amount");
+  assert.equal(payload.result.pending.numericFormat, true, "ambiguous dot fixture: pending flag missing");
+  assert.equal(payload.result.ambiguousNumericValues, 2, "ambiguous dot fixture: ambiguous value count");
+  assert(payload.result.warnings.includes("numeric_format_pending"), "ambiguous dot fixture: warning missing");
+  assert.equal(await page.locator("[data-order-export]").isDisabled(), true, "ambiguous dot fixture: provisional result was exportable");
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-normalized-product-keys.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: auditEdgeFixtures.normalizedProducts
+  });
+  assert.equal(payload.result.metrics.productRows, 3, "normalized product key fixture: product rows");
+  assert.equal(payload.result.metrics.uniqueProducts, 1, "normalized product key fixture: punctuation/accent variants did not merge");
+
+  for (const csvCase of [
+    { name: "qa-utf8-order.csv", buffer: UTF8_CSV_FIXTURE },
+    { name: "qa-gb18030-order.csv", buffer: GB18030_CSV_FIXTURE }
+  ]) {
+    payload = await uploadWorkbook(page, { name: csvCase.name, mimeType: "text/csv", buffer: csvCase.buffer });
+    assert.equal(payload.result.metrics.productRows, 1, `${csvCase.name}: product rows`);
+    assert.equal(payload.result.items[0].product, "茶杯", `${csvCase.name}: decoded product name`);
+    near(payload.result.metrics.quantity, 2, 1e-8, `${csvCase.name}: quantity`);
+    near(payload.result.metrics.amounts[0].value, 20, 1e-8, `${csvCase.name}: amount`);
+    assert.equal(await page.locator("[data-order-export]").isEnabled(), true, `${csvCase.name}: valid CSV blocked export`);
+  }
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-legacy-order.xls",
+    mimeType: "application/vnd.ms-excel",
+    buffer: auditEdgeFixtures.legacyXls
+  });
+  assertMetrics(payload, { productRows: 1, uniqueProducts: 1, quantity: 2, weight: 4, volume: 0.2, amount: 30, currency: "USD" }, "legacy XLS fixture", true);
+  assert.equal(payload.result.items[0].product, "Legacy XLS product", "legacy XLS fixture: product name");
+  assert.equal(await page.locator("[data-order-export]").isEnabled(), true, "legacy XLS fixture: valid workbook blocked export");
 
   payload = await uploadWorkbook(page, {
     name: "qa-summary-row-and-header-units.xlsx",
@@ -1105,36 +1222,33 @@ try {
   assert.equal(payload.result.warnings.includes("columns_truncated"), false, "inflated used-range fixture: false column-limit warning");
   assert.equal(await page.locator("[data-order-export]").isEnabled(), true, "inflated used-range fixture: export was falsely blocked");
 
-  let hasSummaryWorkbook = true;
-  try { await access(SUMMARY_WORKBOOK); } catch { hasSummaryWorkbook = false; }
-  if (hasSummaryWorkbook) {
+  if (SUMMARY_WORKBOOK) {
+    await access(SUMMARY_WORKBOOK);
     payload = await uploadWorkbook(page, SUMMARY_WORKBOOK);
-    assertMetrics(payload, { productRows: 20, uniqueProducts: 20, quantity: 1051, weight: 190.6698, volume: 1.20376, amount: 1890.98 }, "Biiabaa01 workbook");
-    assert.equal(payload.result.skippedSummaryRows, 1, "Biiabaa01: skipped summary row count");
-    assert.equal(payload.result.items.some((item) => item.row === 22), false, "Biiabaa01: row 22 remained in details");
-    assert.equal(payload.overrides.weightUnit, "kg", "Biiabaa01: kg header was not detected");
-    assert.equal(payload.overrides.volumeUnit, "m3", "Biiabaa01: m³ header was not detected");
-    assert.equal(payload.overrides.dimensionUnit, "cm", "Biiabaa01: cm headers were not detected");
-    await page.locator("[data-order-analyzer]").screenshot({ path: `${OUTPUT_DIR}/biiabaa01-mobile-390.png` });
+    assertMetrics(payload, { productRows: 20, uniqueProducts: 20, quantity: 1051, weight: 190.6698, volume: 1.20376, amount: 1890.98 }, "optional summary workbook");
+    assert.equal(payload.result.skippedSummaryRows, 1, "optional summary workbook: skipped summary row count");
+    assert.equal(payload.result.items.some((item) => item.row === 22), false, "optional summary workbook: row 22 remained in details");
+    assert.equal(payload.overrides.weightUnit, "kg", "optional summary workbook: kg header was not detected");
+    assert.equal(payload.overrides.volumeUnit, "m3", "optional summary workbook: m³ header was not detected");
+    assert.equal(payload.overrides.dimensionUnit, "cm", "optional summary workbook: cm headers were not detected");
+    await page.locator("[data-order-analyzer]").screenshot({ path: `${OUTPUT_DIR}/optional-summary-workbook-mobile-390.png` });
   }
 
-  let hasBarcodeWorkbook = true;
-  try { await access(BARCODE_WORKBOOK); } catch { hasBarcodeWorkbook = false; }
-  if (hasBarcodeWorkbook) {
+  if (BARCODE_WORKBOOK) {
+    await access(BARCODE_WORKBOOK);
     payload = await uploadWorkbook(page, BARCODE_WORKBOOK);
-    assert.equal(payload.mapping.sku, 0, "Ant workbook: 商品编号 was not retained as SKU");
-    assert.equal(payload.mapping.product, 8, "Ant workbook: 商品名称 column was not selected");
-    assert.equal(payload.mapping.qty, 12, "Ant workbook: 辅助数量 stole the real 数量 column");
-    assert.equal(payload.result.items[0].sku, "59984", "Ant workbook: first SKU");
-    assert.equal(payload.result.items[0].product, "812-12个衣夹", "Ant workbook: barcode leaked into first product name");
-    assert.equal(payload.result.items[0].quantity, 192, "Ant workbook: first quantity came from 辅助数量");
-    assert.equal(payload.result.metrics.quantity, 13071, "Ant workbook: total quantity");
-    assert(payload.result.items.every((item) => !/^\d{6,}$/.test(item.product)), "Ant workbook: a barcode remained in product names");
+    assert.equal(payload.mapping.sku, 0, "optional barcode workbook: 商品编号 was not retained as SKU");
+    assert.equal(payload.mapping.product, 8, "optional barcode workbook: 商品名称 column was not selected");
+    assert.equal(payload.mapping.qty, 12, "optional barcode workbook: 辅助数量 stole the real 数量 column");
+    assert.equal(payload.result.items[0].sku, "59984", "optional barcode workbook: first SKU");
+    assert.equal(payload.result.items[0].product, "812-12个衣夹", "optional barcode workbook: barcode leaked into first product name");
+    assert.equal(payload.result.items[0].quantity, 192, "optional barcode workbook: first quantity came from 辅助数量");
+    assert.equal(payload.result.metrics.quantity, 13071, "optional barcode workbook: total quantity");
+    assert(payload.result.items.every((item) => !/^\d{6,}$/.test(item.product)), "optional barcode workbook: a barcode remained in product names");
   }
 
-  let hasRealWorkbook = true;
-  try { await access(REAL_WORKBOOK); } catch { hasRealWorkbook = false; }
-  if (hasRealWorkbook) {
+  if (REAL_WORKBOOK) {
+    await access(REAL_WORKBOOK);
     await page.setViewportSize({ width: 1280, height: 900 });
     payload = await uploadWorkbook(page, REAL_WORKBOOK);
     payload = await confirmUnits(page);
@@ -1274,7 +1388,7 @@ try {
     multiFile: { files: 3, combinedRows: 6, combinedQuantity: 12, pngFiles: 1, minPngWidth: 3840 },
     genericBatchConfirmation: { files: 2, confirmedSequentially: true, exportEnabled: true, pending: false },
     busyRaceProtection: { rejectedDirectParse: true, rejectedDrop: true, firstBatchPreserved: true },
-    realWorkbook: realExport ? { path: REAL_WORKBOOK, pngPages: realExport.pageCount } : { skipped: true, reason: "file not found" },
+    optionalPrivateWorkbook: realExport ? { tested: true, pngPages: realExport.pageCount } : { tested: false },
     screenshots: OUTPUT_DIR
   }, null, 2));
 } finally {
