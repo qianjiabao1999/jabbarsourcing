@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-178";
-const UI_VERSION = "ui-20260719h";
+const CSS_VERSION = "apple-179";
+const UI_VERSION = "ui-20260720a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -217,6 +217,7 @@ async function pageState(page) {
         cbm: document.querySelectorAll(".cbm-visual").length,
         floatingContacts: document.querySelectorAll(".contact-speed-dial, .contact-speed-dial-option, .contact-speed-dial-main").length,
         conversionBars: document.querySelectorAll(".mobile-conversion-bar").length,
+        backToTopControls: document.querySelectorAll(".site-footer-backtop").length,
         qrCards: document.querySelectorAll(".whatsapp-qr-card").length,
         toolPills: document.querySelectorAll(".site-nav-tool-pill").length,
         socialPills: document.querySelectorAll(".site-nav-social-pill").length,
@@ -545,6 +546,7 @@ function assertNoFloatingControls(state, scope) {
   assert.equal(state.counts.floatingContacts, 0, `${scope}: floating contact controls remain`);
   assert.equal(state.counts.conversionBars, 0, `${scope}: mobile conversion bar remains`);
   assert.equal(state.rects.conversionBar, null, `${scope}: mobile conversion bar is rendered`);
+  assert.equal(state.counts.backToTopControls, 0, `${scope}: retired back-to-top control returned`);
   assert.equal(state.counts.removedAiScripts, 0, `${scope}: removed AI script returned`);
   assert.equal(state.counts.removedAiLaunchers, 0, `${scope}: removed AI launcher returned`);
 }
@@ -1223,18 +1225,12 @@ async function footerToolsChecks(browserType) {
     await page.goto(`${BASE_URL}${testCase.from}`, { waitUntil: "domcontentloaded" });
     const tools = page.locator(".site-footer-tools");
     const language = page.locator(".site-footer-language-select");
-    const backToTop = page.locator(".site-footer-backtop");
     await tools.waitFor({ state: "visible" });
     assert.equal(await tools.count(), 1, `${testCase.scope}: footer tools count`);
     assert.equal(await language.count(), 1, `${testCase.scope}: language select count`);
-    assert.equal(await backToTop.count(), 1, `${testCase.scope}: back-to-top count`);
+    assert.equal(await page.locator(".site-footer-backtop").count(), 0, `${testCase.scope}: retired back-to-top control returned`);
     const position = await tools.evaluate((element) => getComputedStyle(element).position);
     assert(!["fixed", "sticky"].includes(position), `${testCase.scope}: footer tools must remain in document flow (${position})`);
-
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await page.waitForFunction(() => window.scrollY > 40);
-    await backToTop.click();
-    await page.waitForFunction(() => window.scrollY <= 1);
 
     const navigation = page.waitForURL(`${BASE_URL}${testCase.destination}`);
     await language.selectOption(testCase.locale);
@@ -1489,7 +1485,7 @@ async function interactionChecks(browserType) {
   const page = await desktop.newPage();
   const errors = collectErrors(page);
   await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
-  assert.equal(await page.locator(".contact-speed-dial, .mobile-conversion-bar").count(), 0, "removed floating controls still exist on desktop");
+  assert.equal(await page.locator(".contact-speed-dial, .mobile-conversion-bar, .site-footer-backtop").count(), 0, "removed floating controls still exist on desktop");
   await page.locator('.site-nav-links a[href="#social-accounts"]').click();
   await page.waitForFunction(() => location.hash === "#social-accounts");
   await page.waitForFunction(() => {
@@ -1641,7 +1637,7 @@ async function interactionChecks(browserType) {
   const mobilePage = await mobile.newPage();
   const mobileErrors = collectErrors(mobilePage);
   await mobilePage.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
-  assert.equal(await mobilePage.locator(".contact-speed-dial, .mobile-conversion-bar").count(), 0, "removed floating controls still exist on mobile");
+  assert.equal(await mobilePage.locator(".contact-speed-dial, .mobile-conversion-bar, .site-footer-backtop").count(), 0, "removed floating controls still exist on mobile");
   const languageMenu = mobilePage.locator(".site-nav-language");
   const languageSummary = languageMenu.locator(":scope > summary");
   const mobileMenu = mobilePage.locator(".site-nav-mobile-menu");
@@ -1950,7 +1946,7 @@ async function calculatorAnalyticsChecks(browserType) {
   await blockAnalytics(context);
   const page = await context.newPage();
   await page.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
-  assert.equal(await page.locator(".contact-speed-dial, .mobile-conversion-bar").count(), 0, "removed floating controls remain on calculator");
+  assert.equal(await page.locator(".contact-speed-dial, .mobile-conversion-bar, .site-footer-backtop").count(), 0, "removed floating controls remain on calculator");
 
   await page.locator('[data-calculator-mode="excel"]').click();
   const analyzerMount = page.locator("[data-order-analyzer]");

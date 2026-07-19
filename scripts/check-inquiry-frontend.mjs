@@ -9,7 +9,7 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-19";
-const CSS_VERSION = "apple-178";
+const CSS_VERSION = "apple-179";
 const CONSENT_VERSION = "consent-20260719c";
 const JS_VERSION = "inquiry-20260719c";
 

@@ -6,8 +6,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-178";
-const UI_VERSION = "ui-20260719h";
+const CSS_VERSION = "apple-179";
+const UI_VERSION = "ui-20260720a";
 const ORDER_VERSION = "order-20260719c";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
@@ -96,11 +96,15 @@ const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.ht
 const HOME_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale) }));
 const CALCULATOR_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "calculator/") }));
 const INQUIRY_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "inquiry/") }));
+const WEBSITE_PRIVACY_PAGES = LOCALES.map((locale) => ({
+  locale,
+  file: locale === "zh" ? "website-privacy-policy.html" : `${locale}/website-privacy-policy.html`
+}));
 const NAV_PAGES = [...HOME_PAGES, ...CALCULATOR_PAGES, ...INQUIRY_PAGES];
 const COMPANY_FOOTER_PAGES = [
   ...NAV_PAGES,
+  ...WEBSITE_PRIVACY_PAGES,
   { locale: "zh", file: "privacy-policy.html" },
-  { locale: "zh", file: "website-privacy-policy.html" },
   { locale: "en", file: "support.html" }
 ];
 const TELEGRAM_PAGES = [...HOME_PAGES, ...INQUIRY_PAGES, { file: "privacy-policy.html" }, { file: "website-privacy-policy.html" }, { file: "support.html" }];
@@ -432,7 +436,7 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   if (locale === "ar") assert.match(html, /<html[^>]+lang="ar"[^>]+dir="rtl"/, `${file}: Arabic RTL root missing`);
 }
 
-assert.equal(COMPANY_FOOTER_PAGES.length, 33, "company footer page count");
+assert.equal(COMPANY_FOOTER_PAGES.length, 42, "company footer page count");
 for (const { locale, file } of COMPANY_FOOTER_PAGES) {
   const html = await load(file);
   assert.equal(countClass(html, "site-footer-company"), 1, `${file}: legal company footer count`);
@@ -526,6 +530,9 @@ for (const file of EXTRA_PAGES) {
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing QR enhancement`);
   assert.equal(countClass(html, "site-nav-team") + countClass(html, "site-nav-mobile-team") + countClass(html, "site-nav-social-pill"), 0, `${file}: unexpected social-account navigation entry`);
+  if (file === "404.html") {
+    assert.doesNotMatch(html, /href="https:\/\/wa\.me\//, `${file}: direct WhatsApp contact entry returned`);
+  }
 }
 
 assert.equal(TELEGRAM_PAGES.length, 23, "Telegram page count");
@@ -685,6 +692,7 @@ for (const token of ["initCalculatorPrefillNotice", "calculator-prefill-notice",
   assert(footerJavascript.includes(token), `site-footer-tools.js: missing ${token}`);
 }
 assert.equal(count(footerJavascript, /:\s*\[[^\n]+\]/g), LOCALES.length, "site-footer-tools.js: localized label count");
+assert(!footerJavascript.includes("site-footer-backtop"), "site-footer-tools.js: retired back-to-top control returned");
 
 const homeJavascript = await load("assets/site-home-enhancements.js");
 for (const locale of LOCALES) {
@@ -822,7 +830,7 @@ for (const token of [
 }
 assert.doesNotMatch(css, /\.legal-content ul\s*\{[^}]*padding-left\s*:/s, "styles.css: legal list must use logical padding");
 assert.match(css, /\.site-nav-links \.site-nav-quote-desktop[\s\S]*?order:\s*0\s*!important/, "styles.css: desktop quote must keep its middle navigation position");
-for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "has-mobile-conversion-bar", ".ui-section-reveal"]) {
+for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "has-mobile-conversion-bar", ".ui-section-reveal", ".site-footer-backtop"]) {
   assert(!css.includes(removedToken), `styles.css: removed floating control styles remain (${removedToken})`);
 }
 for (const removedToken of [".service-country-marquee", ".service-country-toggle", ".service-country-item", ".service-country-track"]) {

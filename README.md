@@ -105,10 +105,9 @@ python3 -m http.server 4173
 npm run qa:inquiry
 ```
 
-To use Tawk.to:
-
-1. Create a Tawk.to property.
-2. Add the provided embed snippet before `</body>` in the HTML pages where chat should appear.
+Do not embed Tawk.to or another persistent floating chat launcher. Decision D1
+reserves persistent direct-contact entry points for the sticky navigation Free
+Quote action and the normal footer contact links.
 
 ## Archived UI decisions
 
@@ -120,16 +119,18 @@ cleanup or enhancement pass:
 - the mobile bottom conversion bar
 - the country flag ticker and its pause control
 - the inquiry page's four-channel send panel
+- every back-to-top control
 
-The only permitted contextual exception is a temporary WhatsApp fallback shown
+The only permitted contact-entry exception is a temporary WhatsApp fallback shown
 after Turnstile itself fails to load or run. It is not a floating control and it
 must disappear when the security check recovers or the form enters another
 state.
 
-The footer language selector and back-to-top control are deliberate replacements
-for any floating utilities. Both are inline in the page footer. The language
-selector keeps buyers on the equivalent home, inquiry, calculator, or website
-privacy-policy surface whenever that localized surface exists.
+The footer language selector is the only retained footer utility. It stays
+inline in the page footer and keeps buyers on the equivalent home, inquiry,
+calculator, or website privacy-policy surface whenever that localized surface
+exists. Back-to-top controls are retired rather than reintroduced in another
+non-floating form.
 
 ## JavaScript performance budgets
 

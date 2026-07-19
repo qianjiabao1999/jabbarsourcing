@@ -2,7 +2,7 @@
 
 Independent Cloudflare Worker for direct website inquiry submission.
 
-It does not replace the existing WhatsApp, Gmail, WeChat, or Telegram fallback buttons. It sends validated website inquiries to the existing public contact mailbox:
+It does not replace the normal contact links in the site footer. It sends validated website inquiries to the existing public contact mailbox:
 
 `qianjiabao1999@gmail.com`
 
@@ -70,5 +70,5 @@ The Workers Rate Limiting bindings are coarse abuse controls rather than exact g
 3. Run `npm run deploy:dry`.
 4. Run `npm run deploy`.
 5. Add the returned Worker endpoint and public Turnstile sitekey to all 10 inquiry pages.
-6. Keep the existing four contact channels as fallbacks.
+6. Keep the normal footer contact links available without restoring the retired inquiry-page four-channel panel.
 7. Run local and live Playwright tests before announcing the form as available.

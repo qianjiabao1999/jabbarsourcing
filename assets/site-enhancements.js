@@ -1268,7 +1268,7 @@
   function initFooterUtilities() {
     if (document.querySelector('script[data-footer-utilities]')) return;
     var script = document.createElement("script");
-    script.src = "/assets/site-footer-tools.js?v=footer-20260719a";
+    script.src = "/assets/site-footer-tools.js?v=footer-20260720a";
     script.async = true;
     script.setAttribute("data-footer-utilities", "");
     document.head.appendChild(script);

@@ -31,14 +31,16 @@ and active on the configured `www.jabbarsourcing.com/*` route. A live read-only
 check on 2026-07-19 returned Cloudflare response headers and all five exact
 managed values from this Worker on `https://www.jabbarsourcing.com/`.
 
-The Cloudflare account plan has **not** been confirmed. Do not describe the
-account as Workers Paid. Until the site owner confirms the plan, the Free-plan
-daily request limit and fail-closed route behavior remain an open operational
-risk because static HTML and asset requests all pass through this route.
+On 2026-07-20 the site owner confirmed that the account is **Workers Paid** and
+that the Worker intentionally covers every public path on the
+`www.jabbarsourcing.com/*` route. The earlier Free-plan quota uncertainty is
+closed. Static HTML and asset requests still pass through this Worker, so paid
+billing status, route ownership, and a known-good deployment remain operational
+dependencies.
 
-This record does not authorize changing the route, the production compatibility
-date, or migrating the policy to Transform Rules. Those require a separately
-approved and tested change.
+This record does not authorize changing the route or production compatibility
+date. Migrating the policy to Transform Rules is an optional future
+optimization, not a required remediation.
 
 ## Local verification
 
@@ -58,7 +60,7 @@ with response headers as described below.
 
 The current deployment was performed out of band. For any later deployment:
 
-1. Confirm the Cloudflare account plan and request allowance.
+1. Confirm the Workers Paid subscription remains active for the intended account.
 2. Confirm in the Cloudflare dashboard that the existing route is still exactly
    `www.jabbarsourcing.com/*` and that no broader pattern conflicts with it.
 3. Confirm `www.jabbarsourcing.com` still resolves to the intended Pages/origin
@@ -89,6 +91,11 @@ if rollback is needed.
 
 ## Operational risks and rollback
 
+- The intentional `www.jabbarsourcing.com/*` full-site route processes every
+  HTML and asset request on the `www` hostname. Workers Paid closes the former
+  Free-plan daily-quota concern, but Worker runtime, billing/plan, or route
+  failures can affect the whole `www` site; keep the documented route-disable
+  rollback ready.
 - `X-Frame-Options: SAMEORIGIN` blocks legitimate embedding by other origins.
 - The Permissions Policy disables device capabilities. Update it before adding
   a feature that genuinely needs one of those capabilities.

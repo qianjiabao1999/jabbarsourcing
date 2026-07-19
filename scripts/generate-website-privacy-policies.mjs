@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ORIGIN = "https://www.jabbarsourcing.com";
 const CONSENT_VERSION = "consent-20260719c";
-const UI_VERSION = "ui-20260719h";
+const UI_VERSION = "ui-20260720a";
 
 const routes = {
   zh: { lang: "zh-CN", hreflang: "zh-Hans", path: "/website-privacy-policy.html", home: "/" },
@@ -245,7 +245,7 @@ function page(locale) {
 ${alternateLinks()}
     <link rel="icon" href="/assets/favicon.png?v=jabbar-5" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
-    <link rel="stylesheet" href="/styles.min.css?v=apple-178" />
+    <link rel="stylesheet" href="/styles.min.css?v=apple-179" />
     <script src="/assets/analytics-consent.js?v=${CONSENT_VERSION}" defer></script>
     <script src="/script.js?v=apple-154" defer></script>
   </head>
