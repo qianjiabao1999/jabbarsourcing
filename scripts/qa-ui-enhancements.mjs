@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-176";
+const CSS_VERSION = "apple-177";
 const UI_VERSION = "ui-20260719e";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -212,6 +212,7 @@ async function pageState(page) {
       },
       sectionCodes: Array.from(document.querySelectorAll(".section-code"), (element) => normalizeText(element.textContent)),
       sectionCodeDirections: Array.from(document.querySelectorAll(".section-code"), (element) => getComputedStyle(element).direction),
+      galleryBlockShadows: Array.from(document.querySelectorAll(".sourcing-gallery .gallery-block"), (element) => getComputedStyle(element).boxShadow),
       header: {
         socialBeforeTool: Boolean(socialPill && toolPill && (socialPill.compareDocumentPosition(toolPill) & Node.DOCUMENT_POSITION_FOLLOWING)),
         socialText: normalizeText(socialPill?.textContent),
@@ -325,6 +326,22 @@ function isMonoFamily(value) {
   return /ui-monospace|SF Mono|Cascadia Mono|Consolas|monospace/i.test(value);
 }
 
+function splitShadowLayers(value) {
+  const layers = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    if (value[index] === "(") depth += 1;
+    else if (value[index] === ")") depth = Math.max(0, depth - 1);
+    else if (value[index] === "," && depth === 0) {
+      layers.push(value.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  layers.push(value.slice(start).trim());
+  return layers.filter(Boolean);
+}
+
 function assertHomeVisualSignature(state, scope, locale) {
   const expectedCodes = HOME_SECTION_CODES[locale].map((label) => `Jabbar · ${label}`);
   assert.equal(state.counts.sectionCodes, expectedCodes.length, `${scope}: section code count`);
@@ -346,6 +363,11 @@ function assertHomeVisualSignature(state, scope, locale) {
   assert(isMonoFamily(state.fonts.stamp), `${scope}: trust stamp is not monospaced: ${state.fonts.stamp}`);
   assert(isMonoFamily(state.fonts.shipment), `${scope}: shipment row is not monospaced: ${state.fonts.shipment}`);
   assert(!isMonoFamily(state.fonts.body), `${scope}: body copy inherited the monospaced font: ${state.fonts.body}`);
+  assert.equal(state.galleryBlockShadows.length, 2, `${scope}: gallery shell count`);
+  state.galleryBlockShadows.forEach((shadow, index) => {
+    const outerLayers = splitShadowLayers(shadow).filter((layer) => !/\binset\b/i.test(layer));
+    assert.deepEqual(outerLayers, [], `${scope}: gallery shell ${index + 1} still has an outer shadow (${shadow})`);
+  });
 }
 
 function assertCalculatorVisualSignature(state, scope, locale, expectedResultState = "empty") {

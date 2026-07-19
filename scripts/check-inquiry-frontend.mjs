@@ -9,7 +9,7 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-19";
-const CSS_VERSION = "apple-176";
+const CSS_VERSION = "apple-177";
 const CONSENT_VERSION = "consent-20260719b";
 const JS_VERSION = "inquiry-20260719b";
 const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";

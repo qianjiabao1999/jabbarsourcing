@@ -6,7 +6,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-176";
+const CSS_VERSION = "apple-177";
 const UI_VERSION = "ui-20260719e";
 const ORDER_VERSION = "order-20260719b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
@@ -812,6 +812,10 @@ const galleryLoopRule = cssRuleBody(css, ".gallery-track.is-gallery-loop-ready")
 assert.match(galleryLoopRule, /galleryMarquee var\(--gallery-loop-duration,\s*48s\) linear infinite/, "styles.css: desktop gallery loop must move continuously");
 assert.match(css, /@keyframes galleryMarquee\s*\{[\s\S]*var\(--gallery-loop-distance,\s*0px\)/, "styles.css: gallery loop must use the measured duplicate-set distance");
 assert.match(css, /@media \(min-width:\s*768px\)\s*\{[\s\S]*?\.sourcing-gallery \.gallery-rail\s*\{[^}]*scroll-snap-type:\s*none\s*;[^}]*scroll-padding-inline:\s*0\s*;/, "styles.css: desktop gallery must not snap against the marquee transform");
+const gallerySurfaceRule = Array.from(css.matchAll(/(?:^|\n)\.sourcing-gallery \.gallery-block\s*\{([^}]*)\}/gm), (match) => match[1])
+  .find((body) => /background-image:/.test(body)) || "";
+assert.match(gallerySurfaceRule, /box-shadow:\s*inset\s+0\s+1px\s+0\s+rgba\(255,\s*255,\s*255,\s*0\.98\)\s*;/, "styles.css: gallery shell must retain only its inset highlight");
+assert.doesNotMatch(gallerySurfaceRule, /0\s+18px\s+42px/, "styles.css: gallery shell outer shadow returned");
 assert(css.includes(".social-platform-groups .section-heading"), "styles.css: social heading centering missing");
 const partnershipRule = cssRuleBody(css, ".hero-brand-partnership");
 assert.match(partnershipRule, /--partnership-logo-size:\s*clamp\(124px,\s*13vw,\s*190px\)\s*;/, "styles.css: desktop joint logos must share the Jabbar logo size");
