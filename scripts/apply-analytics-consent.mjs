@@ -16,7 +16,9 @@ const targets = [
 ];
 
 const googleTag = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-C6X14RZHNZ"></script>';
-const replacementTag = '<script src="/assets/analytics-consent.js?v=consent-20260719a" defer></script>';
+const CONSENT_VERSION = "consent-20260719b";
+const replacementTag = `<script src="/assets/analytics-consent.js?v=${CONSENT_VERSION}" defer></script>`;
+const consentTagPattern = /^[ \t]*<script src="\/assets\/analytics-consent\.js\?v=consent-[^"]+" defer><\/script>[ \t]*(?:\r?\n)?/gm;
 
 function scriptEndAfter(source, start) {
   const end = source.indexOf("</script>", start);
@@ -25,10 +27,7 @@ function scriptEndAfter(source, start) {
 }
 
 function normalizeConsentPlacement(source, relativePath) {
-  const withoutConsent = source.replace(
-    /^[ \t]*<script src="\/assets\/analytics-consent\.js\?v=consent-20260719a" defer><\/script>[ \t]*(?:\r?\n)?/gm,
-    ""
-  );
+  const withoutConsent = source.replace(consentTagPattern, "");
   const stylesheet = withoutConsent.match(/^[ \t]*<link rel="stylesheet" href="[^"]*styles\.min\.css\?v=[^"]+" \/>\s*$/m);
   if (!stylesheet || stylesheet.index === undefined) {
     throw new Error(`${relativePath}: versioned stylesheet link not found`);
@@ -43,7 +42,7 @@ function normalizeConsentPlacement(source, relativePath) {
 function migrateFile(relativePath) {
   const filePath = path.join(root, relativePath);
   const source = fs.readFileSync(filePath, "utf8");
-  if (source.includes(replacementTag) && !source.includes(googleTag)) {
+  if (/\/assets\/analytics-consent\.js\?v=consent-[^"]+/.test(source) && !source.includes(googleTag)) {
     const normalized = normalizeConsentPlacement(source, relativePath);
     if (normalized === source) return false;
     fs.writeFileSync(filePath, normalized);

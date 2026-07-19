@@ -14,7 +14,8 @@ const expectedPages = [
   "website-privacy-policy.html",
   "support.html"
 ];
-const consentReference = '<script src="/assets/analytics-consent.js?v=consent-20260719a" defer></script>';
+const CONSENT_VERSION = "consent-20260719b";
+const consentReference = `<script src="/assets/analytics-consent.js?v=${CONSENT_VERSION}" defer></script>`;
 const failures = [];
 
 for (const relativePath of expectedPages) {
@@ -36,6 +37,9 @@ for (const relativePath of expectedPages) {
   if (/gtag\(["']config["']\s*,\s*["']G-C6X14RZHNZ/.test(source)) {
     failures.push(`${relativePath}: direct gtag configuration remains in HTML`);
   }
+  if (source.includes("jabbar-analytics-settings")) {
+    failures.push(`${relativePath}: legacy floating privacy-settings control remains`);
+  }
 }
 
 const consentSource = fs.readFileSync(path.join(root, "assets/analytics-consent.js"), "utf8");
@@ -46,7 +50,11 @@ for (const language of ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "t
 }
 for (const requiredToken of [
   'var STORAGE_KEY = "jabbar.analyticsConsent.v1"',
+  'var SESSION_DEFER_KEY = "jabbar.analyticsConsent.deferred"',
   'if (consentState === "granted") loadAnalytics()',
+  'window.setTimeout(loadAnalytics, 0)',
+  'setSessionDeferred(true)',
+  'target.closest("[data-analytics-consent-open]")',
   'window.jabbarTrack = track',
   'window.jabbarAnalyticsConsent =',
   'privacyLink.href = "/website-privacy-policy.html"',
@@ -56,6 +64,24 @@ for (const requiredToken of [
   if (!consentSource.includes(requiredToken)) {
     failures.push(`assets/analytics-consent.js: missing consent gate token ${requiredToken}`);
   }
+}
+if (consentSource.includes("jabbar-analytics-settings")) {
+  failures.push("assets/analytics-consent.js: legacy floating privacy-settings control remains");
+}
+if (!/function setPanelOpen\(isOpen\)\s*{\s*if \(!panel\) return;\s*panel\.hidden = !isOpen;\s*}/m.test(consentSource)) {
+  failures.push("assets/analytics-consent.js: panel visibility is not independent from an optional settings control");
+}
+
+for (const stylesheet of ["styles.css", "styles.min.css"]) {
+  const stylesheetSource = fs.readFileSync(path.join(root, stylesheet), "utf8");
+  if (stylesheetSource.includes("jabbar-analytics-settings")) {
+    failures.push(`${stylesheet}: legacy floating privacy-settings selector remains`);
+  }
+}
+
+const websitePrivacy = fs.readFileSync(path.join(root, "website-privacy-policy.html"), "utf8");
+if ((websitePrivacy.match(/<button\b[^>]*\bdata-analytics-consent-open\b[^>]*>/gi) || []).length !== 1) {
+  failures.push("website-privacy-policy.html: expected one non-floating analytics-consent opener");
 }
 
 if (failures.length) {

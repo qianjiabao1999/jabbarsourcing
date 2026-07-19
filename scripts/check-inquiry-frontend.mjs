@@ -9,7 +9,8 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-19";
-const CSS_VERSION = "apple-174";
+const CSS_VERSION = "apple-175";
+const CONSENT_VERSION = "consent-20260719b";
 const JS_VERSION = "inquiry-20260719a";
 const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
@@ -497,12 +498,16 @@ if (!websitePrivacy.includes('<link rel="canonical" href="https://www.jabbarsour
 if (!websitePrivacy.includes("Google Analytics 4") ||
     !websitePrivacy.includes("first landing-page path") ||
     !websitePrivacy.includes("product reference URL") ||
-    !websitePrivacy.includes("Privacy settings")) {
+    !websitePrivacy.includes("Analytics settings")) {
   fail("website-privacy-policy.html", "website inquiry, attribution, or consent disclosure is incomplete");
 }
-if ((websitePrivacy.match(/\/assets\/analytics-consent\.js\?v=consent-20260719a/g) || []).length !== 1 ||
+if ((websitePrivacy.match(new RegExp(`/assets/analytics-consent\\.js\\?v=${CONSENT_VERSION}`, "g")) || []).length !== 1 ||
     /<script[^>]+(?:googletagmanager\.com|clarity\.ms)/i.test(websitePrivacy)) {
   fail("website-privacy-policy.html", "analytics must load only through the shared consent controller");
+}
+if ((websitePrivacy.match(/data-analytics-consent-open/g) || []).length !== 1 ||
+    /id=["']jabbar-analytics-settings["']/.test(websitePrivacy)) {
+  fail("website-privacy-policy.html", "must provide one in-page analytics control and no floating privacy-settings control");
 }
 if ((appPrivacy.match(/\bid="website-inquiries"/g) || []).length !== 1 ||
     !appPrivacy.includes('href="/website-privacy-policy.html#website-inquiries"') ||

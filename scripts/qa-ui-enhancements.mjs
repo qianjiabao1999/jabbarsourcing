@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-174";
+const CSS_VERSION = "apple-175";
 const UI_VERSION = "ui-20260719d";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -163,6 +163,7 @@ async function pageState(page) {
       return element ? getComputedStyle(element).fontFamily : "";
     };
     const toolPill = document.querySelector(".site-nav-tool-pill");
+    const socialPill = document.querySelector(".site-nav-social-pill");
     const quoteLink = window.innerWidth >= 1280
       ? document.querySelector(".site-nav-quote-desktop, .site-nav-return-home")
       : document.querySelector(".site-nav-quote-action, .site-nav-return-home");
@@ -190,6 +191,7 @@ async function pageState(page) {
         conversionBars: document.querySelectorAll(".mobile-conversion-bar").length,
         qrCards: document.querySelectorAll(".whatsapp-qr-card").length,
         toolPills: document.querySelectorAll(".site-nav-tool-pill").length,
+        socialPills: document.querySelectorAll(".site-nav-social-pill").length,
         quoteLinks: document.querySelectorAll(".site-nav-quote").length,
         desktopTeamLinks: document.querySelectorAll(".site-nav-links .site-nav-team").length,
         footerContactPills: document.querySelectorAll(".site-footer .contact-actions .contact-link").length,
@@ -211,6 +213,13 @@ async function pageState(page) {
       sectionCodes: Array.from(document.querySelectorAll(".section-code"), (element) => normalizeText(element.textContent)),
       sectionCodeDirections: Array.from(document.querySelectorAll(".section-code"), (element) => getComputedStyle(element).direction),
       header: {
+        socialBeforeTool: Boolean(socialPill && toolPill && (socialPill.compareDocumentPosition(toolPill) & Node.DOCUMENT_POSITION_FOLLOWING)),
+        socialText: normalizeText(socialPill?.textContent),
+        socialAriaLabel: socialPill?.getAttribute("aria-label") || "",
+        socialCompactLabel: socialPill?.getAttribute("data-compact-label") || "",
+        social: styleSnapshotElement(socialPill),
+        socialBefore: styleSnapshotElement(socialPill, "::before"),
+        socialAfter: styleSnapshotElement(socialPill, "::after"),
         toolBeforeQuote: Boolean(toolPill && quoteLink && (toolPill.compareDocumentPosition(quoteLink) & Node.DOCUMENT_POSITION_FOLLOWING)),
         toolText: normalizeText(toolPill?.textContent),
         quoteText: normalizeText(quoteLink?.textContent),
@@ -289,9 +298,11 @@ async function pageState(page) {
         header: rect(".site-nav"),
         brand: rect(".site-nav-brand"),
         navLinks: rect(".site-nav-links"),
+        socialPill: rect(".site-nav-social-pill"),
         toolPill: rect(".site-nav-tool-pill"),
         quoteLink: quoteLink ? { ...elementRect(quoteLink), ...styleSnapshotElement(quoteLink) } : null,
         language: rect(".site-nav-language"),
+        mobileMenu: rect(".site-nav-mobile-menu"),
         desktopTeamLink: rect(".site-nav-links .site-nav-team"),
         conversionBar: rect(".mobile-conversion-bar"),
         social: rect("#social-accounts"),
@@ -386,7 +397,12 @@ function rectanglesOverlap(first, second) {
 
 function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   assert.equal(state.counts.toolPills, 1, `${scope}: tool pill count`);
+  assert.equal(state.counts.socialPills, 1, `${scope}: social pill count`);
   assert([1, 2].includes(state.counts.quoteLinks), `${scope}: quote link count ${state.counts.quoteLinks}`);
+  assert(state.header.socialBeforeTool, `${scope}: social pill must precede the volume tool in the DOM`);
+  assert(state.header.socialText, `${scope}: social pill has no localized label`);
+  assert.equal(state.header.socialAriaLabel, state.header.socialText, `${scope}: social pill accessible label differs from its full localized label`);
+  assert(state.header.socialCompactLabel, `${scope}: social pill has no compact localized label`);
   if (!desktop || state.counts.quoteLinks === 1) {
     assert(state.header.toolBeforeQuote, `${scope}: tool pill must precede the responsive quote link in the DOM`);
   }
@@ -405,6 +421,36 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   assert(state.header.toolBefore.height >= 12, `${scope}: tool pill container height ${state.header.toolBefore.height}`);
   assert(state.header.toolBefore.borderLeftWidth >= 1, `${scope}: tool pill container border missing`);
   assert.notEqual(state.header.toolBefore.backgroundImage, "none", `${scope}: tool pill container ribs/background missing`);
+
+  if (state.width < 1280) {
+    assertVisibleRect(state.rects.socialPill, `${scope}: responsive social pill`);
+    assert(state.rects.socialPill.left >= -1 && state.rects.socialPill.right <= state.width + 1, `${scope}: social pill is outside the viewport`);
+    assert(Number(state.header.social.order) < Number(state.header.tool.order), `${scope}: social pill visual order ${state.header.social.order} is not before tool ${state.header.tool.order}`);
+    const socialToolGap = state.direction === "rtl"
+      ? state.rects.socialPill.left - state.rects.toolPill.right
+      : state.rects.toolPill.left - state.rects.socialPill.right;
+    assert(socialToolGap >= -1 && socialToolGap <= 28, `${scope}: social/tool visual gap ${socialToolGap}px is not adjacent or RTL-mirrored`);
+
+    const visibleControls = [
+      ["brand", state.rects.brand],
+      ["social pill", state.rects.socialPill],
+      ["tool pill", state.rects.toolPill],
+      ["quote", state.rects.quoteLink],
+      ["language", state.rects.language],
+      ["menu", state.rects.mobileMenu]
+    ].filter(([, rect]) => rect && rect.display !== "none" && rect.visibility !== "hidden" && rect.opacity >= 0.99);
+    for (let first = 0; first < visibleControls.length; first += 1) {
+      for (let second = first + 1; second < visibleControls.length; second += 1) {
+        assert(
+          !rectanglesOverlap(visibleControls[first][1], visibleControls[second][1]),
+          `${scope}: ${visibleControls[first][0]} overlaps ${visibleControls[second][0]}`
+        );
+      }
+    }
+  } else {
+    assert(state.header.social, `${scope}: desktop social pill style missing`);
+    assert.equal(state.header.social.display, "none", `${scope}: responsive social pill remains visible at ${state.width}px`);
+  }
 
   if (desktop) {
     assertVisibleRect(state.rects.navLinks, `${scope}: desktop navigation links`);
@@ -450,9 +496,9 @@ function assertNoFloatingControls(state, scope) {
   assert.equal(state.counts.removedAiLaunchers, 0, `${scope}: removed AI launcher returned`);
 }
 
-function assertMobileMenuTrimmed(state, scope, { teamLinks = 1 } = {}) {
+function assertMobileMenuTrimmed(state, scope) {
   assert.equal(state.mobileMenu.calculatorLinks, 0, `${scope}: calculator link remains in mobile menu`);
-  assert.equal(state.mobileMenu.teamLinks, teamLinks, `${scope}: mobile team-member link count`);
+  assert.equal(state.mobileMenu.teamLinks, 0, `${scope}: social account remains inside the mobile menu`);
 }
 
 function assertFooterLocationContract(state, scope, { mobile }) {
@@ -1280,7 +1326,7 @@ async function inquiryMatrix(browserType) {
     assertShared(state, scope);
     assertHeaderNavigation(state, scope, { desktop: true });
     assertNoFloatingControls(state, scope);
-    assertMobileMenuTrimmed(state, scope, { teamLinks: 1 });
+    assertMobileMenuTrimmed(state, scope);
     assertPageTelegram(state, scope);
     assertDesktopFooter(state, scope, { contacts: true });
     assert.equal(state.counts.progress, 0, `${scope}: short inquiry page must not have progress bar`);
@@ -1289,7 +1335,9 @@ async function inquiryMatrix(browserType) {
     assert.equal(await page.locator(".site-nav-return-home").count(), 1, `${scope}: top return-home control count`);
     assert.equal(await page.locator(".site-nav-return-home").getAttribute("href"), "../", `${scope}: top return-home target`);
     assert.equal(await page.locator(".site-nav-mobile-home").count(), 0, `${scope}: duplicate return-home mobile item remains`);
-    assert.equal(await page.locator(".site-nav-mobile-team").count(), 1, `${scope}: mobile team-member item missing`);
+    assert.equal(await page.locator(".site-nav-mobile-team").count(), 0, `${scope}: social account remains inside the mobile menu`);
+    assert.equal(await page.locator(".site-nav-social-pill").count(), 1, `${scope}: responsive social pill count`);
+    assert.equal(await page.locator(".site-nav-social-pill").getAttribute("href"), "../#social-accounts", `${scope}: responsive social pill target`);
     if (item.locale === "en") {
       const productField = page.locator('.inquiry-form [name="product"]');
       await productField.focus();
@@ -1309,28 +1357,33 @@ async function inquiryMatrix(browserType) {
 }
 
 async function mobileHeaderMatrix(browserType) {
-  assert.equal(HEADER_PAGES.length, 30, "mobile header matrix must cover all 30 localized pages");
-  const context = await browserType.newContext({
-    viewport: { width: 390, height: 844 },
-    screen: { width: 390, height: 844 },
-    isMobile: true,
-    hasTouch: true
-  });
-  await blockAnalytics(context);
-  const page = await context.newPage();
-  const errors = collectErrors(page);
-  for (const item of HEADER_PAGES) {
-    await page.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
-    await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
-    const scope = `${item.locale} ${item.type} header 390x844`;
-    const state = await pageState(page);
-    assertShared(state, scope);
-    assertHeaderNavigation(state, scope);
-    assertNoFloatingControls(state, scope);
-    assertMobileMenuTrimmed(state, scope, { teamLinks: 1 });
-    assert.equal(errors.length, 0, `${scope}: console errors ${errors.splice(0).join(" | ")}`);
+  assert.equal(HEADER_PAGES.length, 30, "responsive header matrix must cover all 30 localized pages");
+  for (const width of [360, 390, 430, 1279]) {
+    const touch = width <= 430;
+    const context = await browserType.newContext({
+      viewport: { width, height: 844 },
+      screen: { width, height: 844 },
+      isMobile: touch,
+      hasTouch: touch
+    });
+    await blockAnalytics(context);
+    const page = await context.newPage();
+    const errors = collectErrors(page);
+    for (const item of HEADER_PAGES) {
+      await page.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
+      await page.locator(".site-nav-social-pill").waitFor({ state: "visible" });
+      await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
+      const scope = `${item.locale} ${item.type} header ${width}x844`;
+      const state = await pageState(page);
+      assertShared(state, scope);
+      assertHeaderNavigation(state, scope);
+      assertNoFloatingControls(state, scope);
+      assertMobileMenuTrimmed(state, scope);
+      if (item.rtl) assert.equal(state.direction, "rtl", `${scope}: Arabic direction`);
+      assert.equal(errors.length, 0, `${scope}: console errors ${errors.splice(0).join(" | ")}`);
+    }
+    await context.close();
   }
-  await context.close();
 }
 
 async function interactionChecks(browserType) {
@@ -1530,7 +1583,8 @@ async function interactionChecks(browserType) {
 
   await mobileSummary.click();
   assert.equal(await mobilePage.locator('.site-nav-mobile-panel a[href*="calculator"], .site-nav-mobile-panel a[href="./"]').count(), 0, "removed calculator/home links remain in mobile menu");
-  assert.equal(await mobilePage.locator('.site-nav-mobile-panel a[href*="#social-accounts"]').count(), 1, "social-account link is missing from the mobile menu");
+  assert.equal(await mobilePage.locator('.site-nav-mobile-panel a[href*="#social-accounts"]').count(), 0, "social-account link remains duplicated in the mobile menu");
+  assert.equal(await mobilePage.locator('.site-nav-social-pill[href*="#social-accounts"]').count(), 1, "top-level social-account pill is missing");
   await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-menu-trimmed-390x844.png` });
   await mobileMenu.locator('.site-nav-mobile-panel a[href="#contact"]').click();
   assert.equal(await mobileMenu.getAttribute("open") !== null, false, "mobile navigation link did not close the menu");

@@ -4,13 +4,13 @@
   if (window.jabbarAnalyticsConsent) return;
 
   var STORAGE_KEY = "jabbar.analyticsConsent.v1";
+  var SESSION_DEFER_KEY = "jabbar.analyticsConsent.deferred";
   var GOOGLE_ID = "G-C6X14RZHNZ";
   var CLARITY_ID = "xgsjhmd527";
   var VALID_STATES = { granted: true, denied: true };
   var queuedEvents = [];
   var analyticsLoaded = false;
   var panel = null;
-  var settingsButton = null;
 
   var messages = {
     "zh": {
@@ -19,7 +19,6 @@
       accept: "同意分析",
       reject: "拒绝",
       later: "稍后决定",
-      settings: "隐私设置",
       privacy: "查看隐私政策",
       dialogLabel: "网站分析偏好"
     },
@@ -29,7 +28,6 @@
       accept: "Allow analytics",
       reject: "Decline",
       later: "Decide later",
-      settings: "Privacy settings",
       privacy: "View privacy policy",
       dialogLabel: "Website analytics preferences"
     },
@@ -39,7 +37,6 @@
       accept: "Permitir análisis",
       reject: "Rechazar",
       later: "Decidir después",
-      settings: "Privacidad",
       privacy: "Ver política de privacidad",
       dialogLabel: "Preferencias de análisis del sitio"
     },
@@ -49,7 +46,6 @@
       accept: "السماح بالتحليلات",
       reject: "رفض",
       later: "القرار لاحقًا",
-      settings: "إعدادات الخصوصية",
       privacy: "عرض سياسة الخصوصية",
       dialogLabel: "تفضيلات تحليلات الموقع"
     },
@@ -59,7 +55,6 @@
       accept: "Autoriser l’analyse",
       reject: "Refuser",
       later: "Décider plus tard",
-      settings: "Confidentialité",
       privacy: "Voir la politique de confidentialité",
       dialogLabel: "Préférences d’analyse du site"
     },
@@ -69,7 +64,6 @@
       accept: "Permitir análise",
       reject: "Recusar",
       later: "Decidir depois",
-      settings: "Privacidade",
       privacy: "Ver política de privacidade",
       dialogLabel: "Preferências de análise do site"
     },
@@ -79,7 +73,6 @@
       accept: "Разрешить аналитику",
       reject: "Отклонить",
       later: "Решить позже",
-      settings: "Настройки приватности",
       privacy: "Политика конфиденциальности",
       dialogLabel: "Настройки аналитики сайта"
     },
@@ -89,7 +82,6 @@
       accept: "Analyse erlauben",
       reject: "Ablehnen",
       later: "Später entscheiden",
-      settings: "Datenschutz",
       privacy: "Datenschutzerklärung ansehen",
       dialogLabel: "Analyse-Einstellungen der Website"
     },
@@ -99,7 +91,6 @@
       accept: "Consenti analisi",
       reject: "Rifiuta",
       later: "Decidi più tardi",
-      settings: "Impostazioni privacy",
       privacy: "Vedi informativa sulla privacy",
       dialogLabel: "Preferenze di analisi del sito"
     },
@@ -109,7 +100,6 @@
       accept: "Analize izin ver",
       reject: "Reddet",
       later: "Daha sonra karar ver",
-      settings: "Gizlilik ayarları",
       privacy: "Gizlilik politikasını görüntüle",
       dialogLabel: "Site analiz tercihleri"
     }
@@ -136,6 +126,21 @@
   function storeState(value) {
     try {
       window.localStorage.setItem(STORAGE_KEY, value);
+    } catch (error) {}
+  }
+
+  function readSessionDeferred() {
+    try {
+      return window.sessionStorage.getItem(SESSION_DEFER_KEY) === "1";
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function setSessionDeferred(isDeferred) {
+    try {
+      if (isDeferred) window.sessionStorage.setItem(SESSION_DEFER_KEY, "1");
+      else window.sessionStorage.removeItem(SESSION_DEFER_KEY);
     } catch (error) {}
   }
 
@@ -173,32 +178,35 @@
 
   function loadAnalytics() {
     if (analyticsLoaded || consentState !== "granted") return;
-    analyticsLoaded = true;
+    try {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = window.gtag || function () {
+        window.dataLayer.push(arguments);
+      };
+      window.gtag("js", new Date());
+      window.gtag("config", GOOGLE_ID, { anonymize_ip: true });
+      appendExternalScript(
+        "jabbar-google-analytics",
+        "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(GOOGLE_ID)
+      );
 
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = window.gtag || function () {
-      window.dataLayer.push(arguments);
-    };
-    window.gtag("js", new Date());
-    window.gtag("config", GOOGLE_ID, { anonymize_ip: true });
-    appendExternalScript(
-      "jabbar-google-analytics",
-      "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(GOOGLE_ID)
-    );
+      window.clarity = window.clarity || function () {
+        (window.clarity.q = window.clarity.q || []).push(arguments);
+      };
+      appendExternalScript(
+        "jabbar-microsoft-clarity",
+        "https://www.clarity.ms/tag/" + encodeURIComponent(CLARITY_ID)
+      );
+      window.clarity("consentv2", {
+        ad_Storage: "denied",
+        analytics_Storage: "granted"
+      });
 
-    window.clarity = window.clarity || function () {
-      (window.clarity.q = window.clarity.q || []).push(arguments);
-    };
-    appendExternalScript(
-      "jabbar-microsoft-clarity",
-      "https://www.clarity.ms/tag/" + encodeURIComponent(CLARITY_ID)
-    );
-    window.clarity("consentv2", {
-      ad_Storage: "denied",
-      analytics_Storage: "granted"
-    });
-
-    flushQueuedEvents();
+      analyticsLoaded = true;
+      flushQueuedEvents();
+    } catch (error) {
+      analyticsLoaded = false;
+    }
   }
 
   function clearKnownAnalyticsCookies() {
@@ -224,30 +232,33 @@
   }
 
   function setPanelOpen(isOpen) {
-    if (!panel || !settingsButton) return;
+    if (!panel) return;
     panel.hidden = !isOpen;
-    settingsButton.hidden = isOpen;
-    settingsButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
   }
 
   function accept() {
     consentState = "granted";
-    storeState(consentState);
     setPanelOpen(false);
-    loadAnalytics();
+    setSessionDeferred(false);
+    storeState(consentState);
+    window.setTimeout(loadAnalytics, 0);
   }
 
   function reject() {
     var requiresReload = analyticsLoaded;
     consentState = "denied";
     queuedEvents.length = 0;
-    storeState(consentState);
-    clearKnownAnalyticsCookies();
     setPanelOpen(false);
+    setSessionDeferred(false);
+    storeState(consentState);
+    try {
+      clearKnownAnalyticsCookies();
+    } catch (error) {}
     if (requiresReload) window.location.reload();
   }
 
   function decideLater() {
+    setSessionDeferred(true);
     setPanelOpen(false);
   }
 
@@ -272,19 +283,18 @@
     style.id = "jabbar-analytics-consent-style";
     style.textContent = [
       "#jabbar-analytics-consent{position:fixed;z-index:2147483000;left:50%;bottom:max(14px,env(safe-area-inset-bottom));width:min(760px,calc(100% - 28px));transform:translateX(-50%);font-family:DM Sans,Arial,sans-serif;color:#17243a}",
-      "#jabbar-analytics-consent[hidden],#jabbar-analytics-settings[hidden]{display:none!important}",
+      "#jabbar-analytics-consent[hidden]{display:none!important}",
       ".jabbar-consent-card{border:1px solid rgba(15,118,110,.2);border-radius:20px;background:rgba(255,255,255,.98);box-shadow:0 6px 18px rgba(20,51,86,.08);padding:18px 20px;backdrop-filter:blur(16px)}",
       ".jabbar-consent-title{margin:0 0 6px;font-size:18px;line-height:1.35;font-weight:750;color:#12334d}",
       ".jabbar-consent-body{margin:0;font-size:14px;line-height:1.6;color:#43546a}",
       ".jabbar-consent-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:15px}",
-      ".jabbar-consent-actions button,.jabbar-consent-actions a,#jabbar-analytics-settings{min-height:42px;border-radius:999px;padding:9px 16px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}",
+      ".jabbar-consent-actions button,.jabbar-consent-actions a{min-height:42px;border-radius:999px;padding:9px 16px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}",
       ".jabbar-consent-accept{border:1px solid transparent;background:linear-gradient(135deg,#147ca6,#0f766e);color:#fff}",
       ".jabbar-consent-reject,.jabbar-consent-later{border:1px solid rgba(40,79,112,.2);background:#f6fafc;color:#24445f}",
       ".jabbar-consent-privacy{display:inline-flex;align-items:center;color:#116d77}",
-      "#jabbar-analytics-settings{position:fixed;z-index:2147482999;left:14px;bottom:max(14px,env(safe-area-inset-bottom));border:1px solid rgba(15,118,110,.22);background:rgba(255,255,255,.96);color:#15566b;box-shadow:0 3px 10px rgba(20,51,86,.06)}",
-      ".jabbar-consent-actions button:focus-visible,.jabbar-consent-actions a:focus-visible,#jabbar-analytics-settings:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}",
+      ".jabbar-consent-actions button:focus-visible,.jabbar-consent-actions a:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}",
       "@media(max-width:560px){.jabbar-consent-card{padding:16px;border-radius:18px}.jabbar-consent-title{font-size:17px}.jabbar-consent-body{font-size:13px}.jabbar-consent-actions{display:grid;grid-template-columns:1fr 1fr}.jabbar-consent-actions button{width:100%}.jabbar-consent-privacy{grid-column:1/-1;justify-content:center}.jabbar-consent-later{grid-column:1/-1}}",
-      "@media(prefers-reduced-motion:reduce){#jabbar-analytics-consent,#jabbar-analytics-settings{scroll-behavior:auto}}"
+      "@media(prefers-reduced-motion:reduce){#jabbar-analytics-consent{scroll-behavior:auto}}"
     ].join("");
     document.head.appendChild(style);
   }
@@ -315,26 +325,33 @@
     var privacyLink = addTextElement(actions, "a", "jabbar-consent-privacy", copy.privacy);
     privacyLink.href = "/website-privacy-policy.html";
 
-    settingsButton = addButton(document.body, "", copy.settings, function () {
+    document.body.appendChild(panel);
+
+    document.addEventListener("click", function (event) {
+      var target = event.target;
+      if (!target || typeof target.closest !== "function") return;
+      var opener = target.closest("[data-analytics-consent-open]");
+      if (!opener) return;
+      event.preventDefault();
+      setSessionDeferred(false);
       setPanelOpen(true);
     });
-    settingsButton.id = "jabbar-analytics-settings";
-    settingsButton.setAttribute("aria-controls", panel.id);
-    settingsButton.setAttribute("aria-expanded", "false");
-    document.body.appendChild(panel);
 
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && !panel.hidden) decideLater();
     });
 
-    setPanelOpen(!consentState);
+    setPanelOpen(!consentState && !readSessionDeferred());
   }
 
   window.jabbarTrack = track;
   window.jabbarAnalyticsConsent = {
     accept: accept,
     reject: reject,
-    open: function () { setPanelOpen(true); },
+    open: function () {
+      setSessionDeferred(false);
+      setPanelOpen(true);
+    },
     getState: function () { return consentState; }
   };
 

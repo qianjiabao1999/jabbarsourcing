@@ -6,7 +6,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-174";
+const CSS_VERSION = "apple-175";
 const UI_VERSION = "ui-20260719d";
 const ORDER_VERSION = "order-20260719a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
@@ -21,6 +21,18 @@ const SOCIAL_ACCOUNT_NAV_LABELS = {
   de: "Social-Media-Konten",
   it: "Account social",
   tr: "Sosyal Medya Hesapları"
+};
+const SOCIAL_ACCOUNT_COMPACT_LABELS = {
+  zh: "社媒账号",
+  en: "Social",
+  es: "Social",
+  ar: "تواصل",
+  fr: "Social",
+  pt: "Social",
+  ru: "Соцсети",
+  de: "Social",
+  it: "Social",
+  tr: "Sosyal"
 };
 const SECTION_CODES = {
   zh: ["Jabbar · 团队", "Jabbar · 图库", "Jabbar · 服务", "Jabbar · 流程", "Jabbar · 客户评价", "Jabbar · 常见问题", "Jabbar · 社交账号"],
@@ -463,11 +475,8 @@ for (const { locale, file } of INQUIRY_PAGES) {
   assert.equal(returnLinks.length, 1, `${file}: top return-home link count`);
   assert.equal(attribute(returnLinks[0][0], "href"), "../", `${file}: top return-home target`);
   assert.equal(countClass(html, "site-nav-mobile-home"), 0, `${file}: duplicate return-home item remains in mobile menu`);
-  assert.deepEqual(
-    textsForClass(html, "a", "site-nav-mobile-team"),
-    [SOCIAL_ACCOUNT_NAV_LABELS[locale]],
-    `${file}: mobile social-account label`,
-  );
+  assert.equal(countClass(html, "site-nav-mobile-team"), 0, `${file}: social account remains inside mobile menu`);
+  assert.deepEqual(textsForClass(html, "a", "site-nav-social-pill"), [SOCIAL_ACCOUNT_NAV_LABELS[locale]], `${file}: mobile social pill label`);
 }
 
 assert.equal(NAV_PAGES.length, 30, "site navigation page count");
@@ -477,14 +486,21 @@ for (const { locale, file } of NAV_PAGES) {
   assert.deepEqual(textsForClass(html, "a", "site-nav-brand"), ["Jabbar Sourcing"], `${file}: header brand name`);
   const desktopSocialAccountLabels = textsForClass(html, "a", "site-nav-team");
   assert.deepEqual(desktopSocialAccountLabels, [SOCIAL_ACCOUNT_NAV_LABELS[locale]], `${file}: desktop social-account label`);
+  const desktopSocialAccountLinks = tagsWithClass(html, "a", "site-nav-team");
+  const socialPillLinks = tagsWithClass(html, "a", "site-nav-social-pill");
+  assert.equal(socialPillLinks.length, 1, `${file}: site-nav-social-pill count`);
+  assert.equal(attribute(socialPillLinks[0][0], "href"), attribute(desktopSocialAccountLinks[0][0], "href"), `${file}: social destinations differ`);
+  assert.equal(decodeEntities(attribute(socialPillLinks[0][0], "aria-label")), SOCIAL_ACCOUNT_NAV_LABELS[locale], `${file}: social pill accessible label`);
+  assert.equal(decodeEntities(attribute(socialPillLinks[0][0], "data-compact-label")), SOCIAL_ACCOUNT_COMPACT_LABELS[locale], `${file}: social pill compact label`);
   const toolLinks = tagsWithClass(html, "a", "site-nav-tool-pill");
   assert.equal(toolLinks.length, 1, `${file}: site-nav-tool-pill count`);
   assert(attribute(toolLinks[0][0], "href"), `${file}: site-nav-tool-pill href missing`);
+  assert(html.indexOf(socialPillLinks[0][0]) < html.indexOf(toolLinks[0][0]), `${file}: social pill must precede volume tool`);
   const mobilePanels = regionsForClass(html, "nav", "site-nav-mobile-panel");
   assert.equal(mobilePanels.length, 1, `${file}: mobile navigation panel count`);
   assert.doesNotMatch(mobilePanels[0], /href="(?:\.\/|[^\"]*calculator\/?)"/, `${file}: calculator link remains in mobile navigation`);
-  const mobileSocialAccountLabels = textsForClass(mobilePanels[0], "a", "site-nav-mobile-team");
-  assert.deepEqual(mobileSocialAccountLabels, [SOCIAL_ACCOUNT_NAV_LABELS[locale]], `${file}: mobile social-account label`);
+  assert.equal(countClass(mobilePanels[0], "site-nav-mobile-team"), 0, `${file}: social account remains in mobile navigation`);
+  assert.doesNotMatch(mobilePanels[0], /href="[^"]*#social-accounts"/, `${file}: duplicate social destination remains in mobile navigation`);
   if (!INQUIRY_PAGES.some((page) => page.file === file)) {
     const desktopQuote = tagsWithClass(html, "a", "site-nav-quote-desktop");
     const actionQuote = tagsWithClass(html, "a", "site-nav-quote-action");
@@ -493,15 +509,15 @@ for (const { locale, file } of NAV_PAGES) {
     assert.equal(attribute(desktopQuote[0][0], "href"), attribute(actionQuote[0][0], "href"), `${file}: quote destinations differ`);
     assert.equal(decodeText(desktopQuote[0][0]), decodeText(actionQuote[0][0]), `${file}: quote labels differ`);
   }
-  existingSocialAccountNavLinkCount += desktopSocialAccountLabels.length + mobileSocialAccountLabels.length;
+  existingSocialAccountNavLinkCount += desktopSocialAccountLabels.length + socialPillLinks.length;
 }
-assert.equal(existingSocialAccountNavLinkCount, 60, "desktop/mobile social-account navigation link count");
+assert.equal(existingSocialAccountNavLinkCount, 60, "desktop/mobile-pill social-account navigation link count");
 
 for (const file of EXTRA_PAGES) {
   const html = await load(file);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing QR enhancement`);
-  assert.equal(countClass(html, "site-nav-team") + countClass(html, "site-nav-mobile-team"), 0, `${file}: unexpected social-account navigation entry`);
+  assert.equal(countClass(html, "site-nav-team") + countClass(html, "site-nav-mobile-team") + countClass(html, "site-nav-social-pill"), 0, `${file}: unexpected social-account navigation entry`);
 }
 
 assert.equal(TELEGRAM_PAGES.length, 23, "Telegram page count");

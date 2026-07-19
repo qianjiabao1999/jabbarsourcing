@@ -519,8 +519,10 @@ for (const viewport of [
         ? panel.width - parseFloat(panelStyle.paddingLeft) - parseFloat(panelStyle.paddingRight)
         : 0;
       const status = document.querySelector(".inquiry-status");
-      const mobileNavigation = document.querySelector(".site-nav-mobile-panel")?.getBoundingClientRect();
       const turnstile = document.querySelector(".js-inquiry-turnstile")?.getBoundingClientRect();
+      const socialPill = document.querySelector(".site-nav-social-pill");
+      const socialPillRect = socialPill?.getBoundingClientRect();
+      const toolPillRect = document.querySelector(".site-nav-tool-pill")?.getBoundingClientRect();
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         directWidth: direct?.width || 0,
@@ -545,11 +547,16 @@ for (const viewport of [
         returnHomeHref: document.querySelector(".site-nav-return-home")?.getAttribute("href") || "",
         duplicateMobileHomeCount: document.querySelectorAll(".site-nav-mobile-home").length,
         mobileTeamCount: document.querySelectorAll(".site-nav-mobile-team").length,
-        mobileTeamHref: document.querySelector(".site-nav-mobile-team")?.getAttribute("href") || "",
+        socialPillCount: document.querySelectorAll(".site-nav-social-pill").length,
+        socialPillHref: socialPill?.getAttribute("href") || "",
+        socialPillAriaLabel: socialPill?.getAttribute("aria-label") || "",
+        socialPillDisplay: socialPill ? getComputedStyle(socialPill).display : "",
+        socialPillLeft: socialPillRect?.left ?? 0,
+        socialPillRight: socialPillRect?.right ?? 0,
+        toolPillLeft: toolPillRect?.left ?? 0,
+        toolPillRight: toolPillRect?.right ?? 0,
         brokenImages: Array.from(document.images).filter((image) => image.complete && image.naturalWidth === 0).length,
-        dir: document.documentElement.dir || "ltr",
-        mobileNavigationLeft: mobileNavigation?.left ?? 0,
-        mobileNavigationRight: mobileNavigation?.right ?? 0
+        dir: document.documentElement.dir || "ltr"
       };
     }, ORDER_DETAIL_FIELDS);
     assert(metrics.overflow <= 1, `${item.locale} ${viewport.name} has horizontal overflow: ${metrics.overflow}px`);
@@ -567,13 +574,18 @@ for (const viewport of [
     assert(metrics.submitEnabledAfterToken, `${item.locale} ${viewport.name} token callback did not enable submit`);
     assert(metrics.returnHomeCount === 1 && metrics.returnHomeHref === "../", `${item.locale} ${viewport.name} top Return Home control regressed`);
     assert(metrics.duplicateMobileHomeCount === 0, `${item.locale} ${viewport.name} duplicate Return Home remains in mobile menu`);
-    assert(metrics.mobileTeamCount === 1 && metrics.mobileTeamHref === "../#social-accounts", `${item.locale} ${viewport.name} team-member mobile link is missing`);
+    assert(metrics.mobileTeamCount === 0, `${item.locale} ${viewport.name} social account remains inside the mobile menu`);
+    assert(metrics.socialPillCount === 1 && metrics.socialPillHref === "../#social-accounts", `${item.locale} ${viewport.name} responsive social pill target regressed`);
+    assert(metrics.socialPillAriaLabel.length > 0, `${item.locale} ${viewport.name} responsive social pill has no accessible label`);
     assert(metrics.brokenImages === 0, `${item.locale} ${viewport.name} has ${metrics.brokenImages} broken loaded images`);
     if (viewport.name !== "desktop") {
-      assert(
-        metrics.mobileNavigationLeft >= -1 && metrics.mobileNavigationRight <= viewport.width + 1,
-        `${item.locale} mobile navigation is outside the viewport: ${metrics.mobileNavigationLeft}..${metrics.mobileNavigationRight}`
-      );
+      assert(metrics.socialPillDisplay !== "none", `${item.locale} ${viewport.name} responsive social pill is hidden`);
+      const socialToolGap = metrics.dir === "rtl"
+        ? metrics.socialPillLeft - metrics.toolPillRight
+        : metrics.toolPillLeft - metrics.socialPillRight;
+      assert(socialToolGap >= -1 && socialToolGap <= 28, `${item.locale} ${viewport.name} social/tool visual gap ${socialToolGap}px is not adjacent or RTL-mirrored`);
+    } else {
+      assert(metrics.socialPillDisplay === "none", `${item.locale} desktop responsive social pill remains visible`);
     }
     if (item.rtl) assert(metrics.dir === "rtl", "Arabic inquiry page must remain RTL");
   }
