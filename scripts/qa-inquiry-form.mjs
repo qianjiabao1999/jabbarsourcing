@@ -696,11 +696,16 @@ await page.goto(`${BASE_URL}/404.html`, { waitUntil: "domcontentloaded" });
 const notFoundCtas = await page.locator(".not-found-actions .inquiry-entry-button").evaluateAll((buttons) =>
   buttons.map((button) => {
     const style = getComputedStyle(button);
-    return { height: button.getBoundingClientRect().height, fontSize: parseFloat(style.fontSize) };
+    return {
+      height: button.getBoundingClientRect().height,
+      fontSize: parseFloat(style.fontSize),
+      href: button.getAttribute("href")
+    };
   })
 );
-assert(notFoundCtas.length === 2, "404 must retain its two recovery actions");
+assert(notFoundCtas.length === 1 && notFoundCtas[0].href === "/en/", "404 must retain only its homepage recovery action");
 assert(notFoundCtas.every((cta) => cta.height >= 44 && cta.fontSize >= 15), "404 mobile actions must remain at least 44px high with 15px text");
+assert(await page.locator('.not-found-actions a[href*="wa.me"]').count() === 0, "404 must not restore a direct WhatsApp contact entry");
 
 assert(consoleErrors.length === 0, `Browser console errors: ${consoleErrors.join(" | ")}`);
 
