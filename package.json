@@ -19,6 +19,8 @@
     "qa:order-resilience": "node scripts/qa-order-analyzer-resilience.mjs",
     "qa:container-allocation": "node scripts/qa-container-allocation.mjs",
     "qa:analytics-consent": "node scripts/qa-analytics-consent.mjs",
+    "qa:browser-matrix": "node scripts/qa-browser-matrix.mjs",
+    "qa:android-device": "node scripts/qa-android-device.mjs",
     "test:worker": "npm --prefix cloudflare/inquiry-api test",
     "verify:worker": "npm --prefix cloudflare/inquiry-api run types:check && npm --prefix cloudflare/inquiry-api run typecheck && npm --prefix cloudflare/inquiry-api test && npm --prefix cloudflare/inquiry-api run deploy:dry",
     "test:security-headers": "npm --prefix cloudflare/site-response-headers test",

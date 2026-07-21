@@ -17,7 +17,7 @@ const targets = [
 ];
 
 const googleTag = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-C6X14RZHNZ"></script>';
-const CONSENT_VERSION = "consent-20260720a";
+const CONSENT_VERSION = "consent-20260722a";
 const replacementTag = `<script src="/assets/analytics-consent.js?v=${CONSENT_VERSION}" defer></script>`;
 const consentTagPattern = /^[ \t]*<script src="\/assets\/analytics-consent\.js\?v=consent-[^"]+" defer><\/script>[ \t]*(?:\r?\n)?/gm;
 

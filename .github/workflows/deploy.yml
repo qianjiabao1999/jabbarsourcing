@@ -36,7 +36,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium webkit
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Run frontend static checks
         run: npm test
@@ -61,6 +61,7 @@ jobs:
           npm run qa:inquiry
           npm run qa:ui
           npm run qa:analytics-consent
+          npm run qa:browser-matrix
           npm run qa:calculator-order
           npm run qa:order-resilience
           npm run qa:container-allocation
@@ -96,6 +97,8 @@ jobs:
             --include='/index.html' \
             --include='/privacy-policy.html' \
             --include='/website-privacy-policy.html' \
+            --include='/api/' \
+            --include='/api/consent-region' \
             --include='/robots.txt' \
             --include='/script.js' \
             --include='/shipments.json' \
@@ -210,6 +213,7 @@ jobs:
           done
           test -f _site/calculator/index.html
           test -f _site/inquiry/index.html
+          test "$(tr -d '\r\n' < _site/api/consent-region)" = '{"policy":"strict","gpc":false}'
           test -f _site/.well-known/apple-app-site-association
           test -f _site/assets/site-enhancements.js
           test -f _site/assets/inquiry-form.js

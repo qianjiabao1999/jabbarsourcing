@@ -6,13 +6,22 @@ import { chromium } from "playwright";
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const STORAGE_KEY = "jabbar.analyticsConsent.v1";
 const SESSION_DEFER_KEY = "jabbar.analyticsConsent.deferred";
-const POLICY_VERSION = "2026-07-19";
+const POLICY_VERSION = "2026-07-22";
 const ANALYTICS_REQUEST = /^https:\/\/(www\.googletagmanager\.com|www\.clarity\.ms)\//;
 const WECHAT_USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.60 NetType/WIFI Language/zh_CN";
 
 const browser = await chromium.launch({ headless: true });
 
-async function createMobileContext({ abortAnalytics = false, failLocalStorage = false } = {}) {
+async function createMobileContext({
+  abortAnalytics = false,
+  failLocalStorage = false,
+  regionPolicy = "strict",
+  regionGpc = false,
+  regionStatus = 200,
+  regionBody = null,
+  regionDelayMs = 0,
+  navigatorGpc = false,
+} = {}) {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
     userAgent: WECHAT_USER_AGENT,
@@ -21,6 +30,20 @@ async function createMobileContext({ abortAnalytics = false, failLocalStorage = 
     deviceScaleFactor: 3,
   });
   const analyticsRequests = [];
+
+  await context.route("**/api/consent-region", async (route) => {
+    if (regionDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, regionDelayMs));
+    if (regionStatus !== 200) {
+      await route.fulfill({ status: regionStatus, contentType: "application/json", body: "{}" });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json; charset=utf-8",
+      headers: { "Cache-Control": "no-store, max-age=0" },
+      body: regionBody ?? JSON.stringify({ policy: regionPolicy, gpc: regionGpc }),
+    });
+  });
 
   await context.route(ANALYTICS_REQUEST, async (route) => {
     analyticsRequests.push(route.request().url());
@@ -43,12 +66,21 @@ async function createMobileContext({ abortAnalytics = false, failLocalStorage = 
     }, STORAGE_KEY);
   }
 
+  if (navigatorGpc) {
+    await context.addInitScript(() => {
+      Object.defineProperty(window.navigator, "globalPrivacyControl", {
+        configurable: true,
+        value: true,
+      });
+    });
+  }
+
   return { context, analyticsRequests };
 }
 
 async function gotoAndWait(page, path) {
   await page.goto(`${BASE_URL}${path}`, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => Boolean(window.jabbarAnalyticsConsent));
+  await page.waitForFunction(() => window.jabbarAnalyticsConsent?.isRegionResolved?.());
   await page.waitForTimeout(50);
 }
 
@@ -392,5 +424,75 @@ async function showAutomaticPanelOnFirstScroll(page, label) {
   await context.close();
 }
 
+// Outside the strict region group, analytics stays denied and the automatic
+// panel is suppressed. The non-floating privacy-page control still lets a user
+// make an explicit choice.
+{
+  const { context, analyticsRequests } = await createMobileContext({ regionPolicy: "quiet-denied" });
+  const page = await context.newPage();
+  await gotoAndWait(page, "/en/");
+  await page.waitForFunction(() => window.jabbarAnalyticsConsent.getRegionPolicy() === "quiet-denied"
+    && window.jabbarAnalyticsConsent.getState() === "denied");
+  await page.mouse.wheel(0, 260);
+  await page.waitForTimeout(1900);
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "quiet-denied region showed an automatic panel");
+  assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), null, "quiet-denied region stored an inferred choice");
+  assert.equal(analyticsRequests.length, 0, "quiet-denied region loaded analytics without explicit consent");
+
+  await gotoAndWait(page, "/en/website-privacy-policy.html");
+  await page.locator("[data-analytics-consent-open]").tap();
+  assert.equal(await page.locator(".jabbar-consent-accept").isEnabled(), true, "quiet-denied region disabled an explicit opt-in");
+  await page.locator(".jabbar-consent-accept").tap();
+  await page.waitForFunction(() => document.querySelectorAll("#jabbar-google-analytics, #jabbar-microsoft-clarity").length === 2);
+  assert.equal((await storedConsent(page))?.state, "granted", "quiet-denied region did not store explicit consent");
+  assert.equal(analyticsRequests.length >= 2, true, "quiet-denied explicit consent did not load analytics");
+  await context.close();
+}
+
+// Header-only and navigator-only Global Privacy Control each override a stored
+// grant, prevent analytics and disable the allow action.
+for (const gpcCase of [
+  { label: "Sec-GPC", regionGpc: true, navigatorGpc: false },
+  { label: "navigator GPC", regionGpc: false, navigatorGpc: true },
+]) {
+  const { context, analyticsRequests } = await createMobileContext({
+    regionPolicy: "quiet-denied",
+    regionGpc: gpcCase.regionGpc,
+    navigatorGpc: gpcCase.navigatorGpc,
+  });
+  await context.addInitScript(({ key, policy }) => {
+    localStorage.setItem(key, JSON.stringify({ state: "granted", at: Date.now(), policy }));
+  }, { key: STORAGE_KEY, policy: POLICY_VERSION });
+  const page = await context.newPage();
+  await gotoAndWait(page, "/en/website-privacy-policy.html");
+  await page.waitForFunction(() => window.jabbarAnalyticsConsent.isGlobalPrivacyControlActive());
+  assert.equal(await page.evaluate(() => window.jabbarAnalyticsConsent.getState()), "denied", `${gpcCase.label} did not override a stored grant`);
+  assert.equal(analyticsRequests.length, 0, `${gpcCase.label} allowed analytics to load`);
+  await page.locator("[data-analytics-consent-open]").tap();
+  assert.equal(await page.locator(".jabbar-consent-accept").isDisabled(), true, `${gpcCase.label} did not disable the allow action`);
+  assert.match(await page.locator(".jabbar-consent-body").innerText(), /Global Privacy Control|GPC/, `${gpcCase.label} explanation is missing`);
+  assert.equal(await page.locator(".jabbar-consent-reject").evaluate((element) => document.activeElement === element), true, `${gpcCase.label} panel did not focus the available reject action`);
+  await context.close();
+}
+
+// Non-200, malformed and late endpoint results all fail closed to strict.
+for (const failureCase of [
+  { label: "non-200 endpoint", options: { regionStatus: 503 } },
+  { label: "malformed endpoint", options: { regionBody: "{" } },
+  { label: "timed-out endpoint", options: { regionPolicy: "quiet-denied", regionDelayMs: 1800 } },
+]) {
+  const { context, analyticsRequests } = await createMobileContext(failureCase.options);
+  const page = await context.newPage();
+  await gotoAndWait(page, "/en/");
+  assert.equal(await page.evaluate(() => window.jabbarAnalyticsConsent.getRegionPolicy()), "strict", `${failureCase.label} did not fail closed`);
+  await showAutomaticPanelOnFirstScroll(page, failureCase.label);
+  if (failureCase.options.regionDelayMs) {
+    await page.waitForTimeout(failureCase.options.regionDelayMs);
+    assert.equal(await page.evaluate(() => window.jabbarAnalyticsConsent.getRegionPolicy()), "strict", "late response changed the settled strict policy");
+  }
+  assert.equal(analyticsRequests.length, 0, `${failureCase.label} loaded analytics`);
+  await context.close();
+}
+
 await browser.close();
-console.log("Analytics consent browser QA passed: desktop click, MicroMessenger tap, pending-event replay/clear, 30-day later expiry, JSON migration, Consent Mode order, localized privacy control, blocked analytics, and localStorage failure.");
+console.log("Analytics consent browser QA passed: strict/quiet-denied geography, header and navigator GPC, non-200/malformed/late fail-closed endpoints, desktop click, MicroMessenger tap, pending-event replay/clear, 30-day later expiry, JSON migration, Consent Mode order, localized privacy control, blocked analytics, and localStorage failure.");

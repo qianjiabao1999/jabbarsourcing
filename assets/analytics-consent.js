@@ -5,28 +5,38 @@
 
   var STORAGE_KEY = "jabbar.analyticsConsent.v1";
   var SESSION_DEFER_KEY = "jabbar.analyticsConsent.deferred";
-  var POLICY_VERSION = "2026-07-19";
+  var POLICY_VERSION = "2026-07-22";
   var CONSENT_TTL_MS = 365 * 24 * 60 * 60 * 1000;
   var DECISION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
   var AUTO_PROMPT_DELAY_MS = 1800;
+  var REGION_TIMEOUT_MS = 1200;
+  var REGION_ENDPOINT = "/api/consent-region";
   var GOOGLE_ID = "G-C6X14RZHNZ";
   var CLARITY_ID = "xgsjhmd527";
   var VALID_STATES = { granted: true, denied: true, later: true };
+  var VALID_REGION_POLICIES = { strict: true, "quiet-denied": true };
   var queuedEvents = [];
   var analyticsLoaded = false;
   var panel = null;
   var primaryAction = null;
+  var rejectAction = null;
+  var bodyText = null;
   var lastFocusedElement = null;
   var autoPromptTimer = 0;
   var autoPromptInputEventsInstalled = false;
   var autoPromptTriggered = false;
   var inquiryForm = null;
   var inquiryFormFocused = false;
+  var regionPolicy = "strict";
+  var regionResolved = false;
+  var gpcActive = navigatorGlobalPrivacyControl();
+  var userDecisionMade = false;
 
   var messages = {
     "zh": {
       title: "分析与隐私",
       body: "只有在您同意后，我们才会加载 Google Analytics 和 Microsoft Clarity，用于了解网站使用情况并改进体验。拒绝不会影响网站功能。",
+      gpcBody: "您的浏览器已发送 Global Privacy Control (GPC) 信号。我们已关闭 Google Analytics 和 Microsoft Clarity；只要该信号保持开启，“同意分析”就不可用。",
       accept: "同意分析",
       reject: "拒绝",
       later: "稍后决定",
@@ -36,6 +46,7 @@
     "en": {
       title: "Analytics and privacy",
       body: "We load Google Analytics and Microsoft Clarity only after you agree. They help us understand website use and improve the experience. Declining will not affect site features.",
+      gpcBody: "Your browser sent a Global Privacy Control (GPC) signal. Google Analytics and Microsoft Clarity are disabled, and analytics cannot be enabled while that signal remains active.",
       accept: "Allow analytics",
       reject: "Decline",
       later: "Decide later",
@@ -45,6 +56,7 @@
     "es": {
       title: "Análisis y privacidad",
       body: "Solo cargamos Google Analytics y Microsoft Clarity después de que usted lo acepte. Nos ayudan a comprender el uso del sitio y mejorar la experiencia. Rechazarlos no afecta las funciones del sitio.",
+      gpcBody: "Su navegador ha enviado una señal Global Privacy Control (GPC). Google Analytics y Microsoft Clarity están desactivados y no pueden habilitarse mientras la señal permanezca activa.",
       accept: "Permitir análisis",
       reject: "Rechazar",
       later: "Decidir después",
@@ -54,6 +66,7 @@
     "ar": {
       title: "التحليلات والخصوصية",
       body: "لن نحمّل Google Analytics وMicrosoft Clarity إلا بعد موافقتك. يساعداننا على فهم استخدام الموقع وتحسين التجربة، ولن يؤثر الرفض في وظائف الموقع.",
+      gpcBody: "أرسل متصفحك إشارة Global Privacy Control (GPC). تم تعطيل Google Analytics وMicrosoft Clarity، ولا يمكن تفعيل التحليلات ما دامت الإشارة نشطة.",
       accept: "السماح بالتحليلات",
       reject: "رفض",
       later: "القرار لاحقًا",
@@ -63,6 +76,7 @@
     "fr": {
       title: "Analyse et confidentialité",
       body: "Nous chargeons Google Analytics et Microsoft Clarity uniquement après votre accord. Ils nous aident à comprendre l’utilisation du site et à améliorer l’expérience. Refuser n’affecte pas les fonctions du site.",
+      gpcBody: "Votre navigateur a envoyé un signal Global Privacy Control (GPC). Google Analytics et Microsoft Clarity sont désactivés et ne peuvent pas être activés tant que ce signal reste actif.",
       accept: "Autoriser l’analyse",
       reject: "Refuser",
       later: "Décider plus tard",
@@ -72,6 +86,7 @@
     "pt": {
       title: "Análise e privacidade",
       body: "Só carregamos o Google Analytics e o Microsoft Clarity depois da sua autorização. Eles ajudam-nos a compreender a utilização do site e a melhorar a experiência. Recusar não afeta as funções do site.",
+      gpcBody: "O seu navegador enviou um sinal Global Privacy Control (GPC). O Google Analytics e o Microsoft Clarity estão desativados e não podem ser ativados enquanto o sinal permanecer ativo.",
       accept: "Permitir análise",
       reject: "Recusar",
       later: "Decidir depois",
@@ -81,6 +96,7 @@
     "ru": {
       title: "Аналитика и конфиденциальность",
       body: "Мы загружаем Google Analytics и Microsoft Clarity только после вашего согласия. Они помогают понять, как используется сайт, и улучшить его. Отказ не влияет на функции сайта.",
+      gpcBody: "Браузер передал сигнал Global Privacy Control (GPC). Google Analytics и Microsoft Clarity отключены и не могут быть включены, пока этот сигнал активен.",
       accept: "Разрешить аналитику",
       reject: "Отклонить",
       later: "Решить позже",
@@ -90,6 +106,7 @@
     "de": {
       title: "Analyse und Datenschutz",
       body: "Wir laden Google Analytics und Microsoft Clarity erst nach Ihrer Zustimmung. Damit verstehen wir die Nutzung der Website und verbessern das Erlebnis. Eine Ablehnung beeinträchtigt keine Funktionen.",
+      gpcBody: "Ihr Browser hat ein Global-Privacy-Control-Signal (GPC) gesendet. Google Analytics und Microsoft Clarity sind deaktiviert und können nicht aktiviert werden, solange dieses Signal aktiv bleibt.",
       accept: "Analyse erlauben",
       reject: "Ablehnen",
       later: "Später entscheiden",
@@ -99,6 +116,7 @@
     "it": {
       title: "Analisi e privacy",
       body: "Carichiamo Google Analytics e Microsoft Clarity solo dopo il tuo consenso. Ci aiutano a capire l’uso del sito e a migliorare l’esperienza. Il rifiuto non influisce sulle funzioni del sito.",
+      gpcBody: "Il browser ha inviato un segnale Global Privacy Control (GPC). Google Analytics e Microsoft Clarity sono disattivati e non possono essere attivati finché il segnale resta attivo.",
       accept: "Consenti analisi",
       reject: "Rifiuta",
       later: "Decidi più tardi",
@@ -108,6 +126,7 @@
     "tr": {
       title: "Analiz ve gizlilik",
       body: "Google Analytics ve Microsoft Clarity yalnızca onayınızdan sonra yüklenir. Site kullanımını anlamamıza ve deneyimi geliştirmemize yardımcı olurlar. Reddetmeniz site işlevlerini etkilemez.",
+      gpcBody: "Tarayıcınız Global Privacy Control (GPC) sinyali gönderdi. Google Analytics ve Microsoft Clarity devre dışıdır ve bu sinyal etkin kaldığı sürece açılamaz.",
       accept: "Analize izin ver",
       reject: "Reddet",
       later: "Daha sonra karar ver",
@@ -123,7 +142,99 @@
   }
 
   var copy = messages[languageKey()];
-  var consentState = readStoredState();
+  var storedConsentState = readStoredState();
+  var consentState = storedConsentState;
+
+  function navigatorGlobalPrivacyControl() {
+    try {
+      return window.navigator.globalPrivacyControl === true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function resolveRegionPolicy() {
+    return new Promise(function (resolve) {
+      var settled = false;
+      var timer = window.setTimeout(function () {
+        finish({ policy: "strict", gpc: false });
+      }, REGION_TIMEOUT_MS);
+
+      function finish(value) {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        resolve(value);
+      }
+
+      try {
+        window.fetch(REGION_ENDPOINT, {
+          method: "GET",
+          credentials: "omit",
+          cache: "no-store",
+          referrerPolicy: "no-referrer",
+          headers: { Accept: "application/json" }
+        }).then(function (response) {
+          if (!response.ok) throw new Error("consent region unavailable");
+          return response.json();
+        }).then(function (value) {
+          if (!value || !VALID_REGION_POLICIES[value.policy] || typeof value.gpc !== "boolean") {
+            throw new Error("invalid consent region response");
+          }
+          finish({ policy: value.policy, gpc: value.gpc });
+        }).catch(function () {
+          finish({ policy: "strict", gpc: false });
+        });
+      } catch (error) {
+        finish({ policy: "strict", gpc: false });
+      }
+    });
+  }
+
+  function updatePanelForGlobalPrivacyControl() {
+    if (!panel || !bodyText || !primaryAction) return;
+    bodyText.textContent = gpcActive ? copy.gpcBody : copy.body;
+    primaryAction.disabled = gpcActive;
+    primaryAction.setAttribute("aria-disabled", gpcActive ? "true" : "false");
+    if (gpcActive) panel.setAttribute("data-gpc-active", "true");
+    else panel.removeAttribute("data-gpc-active");
+  }
+
+  function applyRegionPolicy(value) {
+    regionPolicy = VALID_REGION_POLICIES[value.policy] ? value.policy : "strict";
+    gpcActive = gpcActive || value.gpc === true;
+    regionResolved = true;
+    updatePanelForGlobalPrivacyControl();
+
+    if (gpcActive) {
+      consentState = "denied";
+      queuedEvents.length = 0;
+      clearAutomaticPromptTriggers();
+      clearKnownAnalyticsCookies();
+      return;
+    }
+
+    if (userDecisionMade) {
+      if (consentState === "granted") window.setTimeout(loadAnalytics, 0);
+      return;
+    }
+
+    if (storedConsentState) {
+      consentState = storedConsentState;
+      if (consentState === "granted") window.setTimeout(loadAnalytics, 0);
+      return;
+    }
+
+    if (regionPolicy === "quiet-denied") {
+      consentState = "denied";
+      queuedEvents.length = 0;
+      clearAutomaticPromptTriggers();
+      return;
+    }
+
+    consentState = null;
+    installAutomaticPrompt();
+  }
 
   function readStoredState() {
     try {
@@ -176,7 +287,7 @@
   }
 
   function isActionBlocked() {
-    return consentState === "denied";
+    return gpcActive || consentState === "denied";
   }
 
   function queueEvent(eventName, params) {
@@ -213,7 +324,7 @@
   }
 
   function loadAnalytics() {
-    if (analyticsLoaded || consentState !== "granted") return;
+    if (analyticsLoaded || !regionResolved || gpcActive || consentState !== "granted") return;
     try {
       window.dataLayer = window.dataLayer || [];
       window.gtag = window.gtag || function () {
@@ -294,7 +405,7 @@
     panel.hidden = !isOpen;
     if (isOpen && shouldFocus) {
       lastFocusedElement = document.activeElement;
-      focusWithoutScroll(primaryAction);
+      focusWithoutScroll(primaryAction && !primaryAction.disabled ? primaryAction : rejectAction);
     } else if (!isOpen && lastFocusedElement && typeof lastFocusedElement.focus === "function") {
       focusWithoutScroll(lastFocusedElement);
       lastFocusedElement = null;
@@ -315,7 +426,8 @@
   }
 
   function canShowAutomaticPanel() {
-    return !isTerminalConsentState(consentState) && !readSessionDeferred() && !inquiryFormFocused;
+    return regionResolved && regionPolicy === "strict" && !gpcActive
+      && !isTerminalConsentState(consentState) && !readSessionDeferred() && !inquiryFormFocused;
   }
 
   function maybeShowAutomaticPanel() {
@@ -373,7 +485,8 @@
   }
 
   function installAutomaticPrompt() {
-    if (isTerminalConsentState(consentState) || readSessionDeferred()) return;
+    if (!regionResolved || regionPolicy !== "strict" || gpcActive
+      || isTerminalConsentState(consentState) || readSessionDeferred()) return;
     autoPromptTimer = window.setTimeout(triggerAutomaticPanel, AUTO_PROMPT_DELAY_MS);
     window.addEventListener("wheel", handleAutomaticScrollIntent, { passive: true });
     window.addEventListener("touchmove", handleAutomaticScrollIntent, { passive: true });
@@ -382,16 +495,24 @@
   }
 
   function accept() {
+    if (gpcActive) {
+      consentState = "denied";
+      queuedEvents.length = 0;
+      updatePanelForGlobalPrivacyControl();
+      return;
+    }
+    userDecisionMade = true;
     consentState = "granted";
     clearAutomaticPromptTriggers();
     setPanelOpen(false);
     setSessionDeferred(false);
     storeState(consentState);
-    window.setTimeout(loadAnalytics, 0);
+    if (regionResolved) window.setTimeout(loadAnalytics, 0);
   }
 
   function reject() {
     var requiresReload = analyticsLoaded;
+    userDecisionMade = true;
     consentState = "denied";
     clearAutomaticPromptTriggers();
     queuedEvents.length = 0;
@@ -413,6 +534,7 @@
   }
 
   function decideLater() {
+    userDecisionMade = true;
     consentState = "later";
     clearAutomaticPromptTriggers();
     storeState(consentState);
@@ -449,6 +571,7 @@
       ".jabbar-consent-actions button,.jabbar-consent-actions a{min-height:42px;border-radius:999px;padding:9px 16px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}",
       ".jabbar-consent-accept{border:1px solid transparent;background-color:#0f766e;background-image:linear-gradient(135deg,#147ca6,#0f766e);color:#fff}",
       ".jabbar-consent-reject,.jabbar-consent-later{border:1px solid rgba(40,79,112,.2);background:#f6fafc;color:#24445f}",
+      ".jabbar-consent-actions button:disabled{cursor:not-allowed;opacity:.58;filter:saturate(.45)}",
       ".jabbar-consent-privacy{display:inline-flex;align-items:center;color:#116d77}",
       ".jabbar-consent-actions button:focus-visible,.jabbar-consent-actions a:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}",
       "@media(max-width:560px){.jabbar-consent-card{padding:16px;border-radius:18px}.jabbar-consent-title{font-size:17px}.jabbar-consent-body{font-size:13px}.jabbar-consent-actions{display:grid;grid-template-columns:1fr 1fr}.jabbar-consent-actions button{width:100%}.jabbar-consent-privacy{grid-column:1/-1;justify-content:center}.jabbar-consent-later{grid-column:1/-1}}",
@@ -473,13 +596,13 @@
     card.className = "jabbar-consent-card";
     panel.appendChild(card);
     addTextElement(card, "h2", "jabbar-consent-title", copy.title);
-    addTextElement(card, "p", "jabbar-consent-body", copy.body);
+    bodyText = addTextElement(card, "p", "jabbar-consent-body", copy.body);
 
     var actions = document.createElement("div");
     actions.className = "jabbar-consent-actions";
     card.appendChild(actions);
     primaryAction = addButton(actions, "jabbar-consent-accept", copy.accept, accept);
-    addButton(actions, "jabbar-consent-reject", copy.reject, reject);
+    rejectAction = addButton(actions, "jabbar-consent-reject", copy.reject, reject);
     addButton(actions, "jabbar-consent-later", copy.later, decideLater);
 
     var privacyLink = addTextElement(actions, "a", "jabbar-consent-privacy", copy.privacy);
@@ -488,6 +611,7 @@
       : "/" + languageKey() + "/website-privacy-policy.html";
 
     document.body.appendChild(panel);
+    updatePanelForGlobalPrivacyControl();
 
     document.addEventListener("click", function (event) {
       var target = event.target;
@@ -504,7 +628,6 @@
     });
 
     installInquiryFormGuard();
-    installAutomaticPrompt();
   }
 
   window.jabbarTrack = track;
@@ -515,13 +638,20 @@
       setSessionDeferred(false);
       setPanelOpen(true, true);
     },
-    getState: function () { return consentState; }
+    getState: function () { return consentState; },
+    getRegionPolicy: function () { return regionPolicy; },
+    isRegionResolved: function () { return regionResolved; },
+    isGlobalPrivacyControlActive: function () { return gpcActive; }
   };
 
-  if (consentState === "granted") loadAnalytics();
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", renderControls, { once: true });
-  } else {
+  function initialize() {
     renderControls();
+    resolveRegionPolicy().then(applyRegionPolicy);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize, { once: true });
+  } else {
+    initialize();
   }
 })();

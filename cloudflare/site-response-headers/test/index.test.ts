@@ -1,7 +1,14 @@
 import { SELF } from "cloudflare:test";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { SECURITY_HEADERS, withSecurityHeaders } from "../src/index";
+import {
+  CONSENT_REGION_PATH,
+  SECURITY_HEADERS,
+  consentRegionPolicy,
+  consentRegionResponse,
+  hasGlobalPrivacyControl,
+  withSecurityHeaders,
+} from "../src/index";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -96,6 +103,86 @@ describe("withSecurityHeaders", () => {
     expect(response.headers.get("Cache-Control")).toBe("public, max-age=120");
     expect(response.headers.get("X-Origin-Header")).toBe("entrypoint-kept");
     expect(await response.text()).toBe("origin:/assets/example.css");
+    for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+      expect(response.headers.get(name)).toBe(value);
+    }
+  });
+});
+
+describe("consent region policy", () => {
+  it("keeps EEA, United Kingdom and Switzerland on explicit opt-in", () => {
+    for (const country of ["DE", "FR", "IS", "LI", "NO", "GB", "CH"]) {
+      expect(consentRegionPolicy(country)).toBe("strict");
+    }
+    expect(consentRegionPolicy("GF", true)).toBe("strict");
+    expect(consentRegionPolicy("US", true)).toBe("strict");
+  });
+
+  it("suppresses the automatic prompt without enabling analytics elsewhere", () => {
+    for (const country of ["US", "BR", "CN", "NG", "KE", "AE"]) {
+      expect(consentRegionPolicy(country)).toBe("quiet-denied");
+    }
+  });
+
+  it("fails closed for unknown, Tor and malformed country values", () => {
+    for (const country of [undefined, "", "XX", "T1", "usa", "1"]) {
+      expect(consentRegionPolicy(country)).toBe("strict");
+    }
+  });
+
+  it("recognizes only the active Global Privacy Control signal", () => {
+    expect(hasGlobalPrivacyControl(new Request("https://example.com", {
+      headers: { "Sec-GPC": "1" },
+    }))).toBe(true);
+    expect(hasGlobalPrivacyControl(new Request("https://example.com", {
+      headers: { "Sec-GPC": "0" },
+    }))).toBe(false);
+    expect(hasGlobalPrivacyControl(new Request("https://example.com"))).toBe(false);
+  });
+
+  it("returns only a coarse no-store policy and never exposes the country", async () => {
+    const response = consentRegionResponse("DE", true);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store, max-age=0");
+    expect(response.headers.get("CDN-Cache-Control")).toBe("no-store");
+    expect(response.headers.get("Cloudflare-CDN-Cache-Control")).toBe("no-store");
+    expect(response.headers.get("Pragma")).toBe("no-cache");
+    expect(response.headers.get("X-Robots-Tag")).toBe("noindex, nofollow");
+    expect(await response.json()).toEqual({ policy: "strict", gpc: true });
+    expect(await consentRegionResponse("US", false).json()).toEqual({
+      policy: "quiet-denied",
+      gpc: false,
+    });
+    expect(JSON.stringify(await consentRegionResponse("DE", false).json())).not.toContain("DE");
+  });
+
+  it("prioritizes Cloudflare's EU signal over a non-list country code", async () => {
+    expect(await consentRegionResponse("GF", false, "GET", true).json()).toEqual({
+      policy: "strict",
+      gpc: false,
+    });
+  });
+
+  it("supports HEAD and rejects mutating methods", async () => {
+    const head = consentRegionResponse("DE", false, "HEAD");
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe("");
+
+    const post = consentRegionResponse("DE", false, "POST");
+    expect(post.status).toBe(405);
+    expect(post.headers.get("Allow")).toBe("GET, HEAD");
+  });
+
+  it("serves the fail-closed endpoint without fetching the origin", async () => {
+    const originFetch = vi.fn(async () => new Response("origin"));
+    vi.stubGlobal("fetch", originFetch);
+
+    const response = await SELF.fetch(`https://www.jabbarsourcing.com${CONSENT_REGION_PATH}`);
+
+    expect(originFetch).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ policy: "strict", gpc: false });
     for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
       expect(response.headers.get(name)).toBe(value);
     }

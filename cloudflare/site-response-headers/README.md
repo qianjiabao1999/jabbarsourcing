@@ -4,6 +4,33 @@ This Cloudflare Worker transparently fetches the existing origin response for
 `www.jabbarsourcing.com/*`, keeps its status, status text, body stream, and
 existing headers, then sets a small conservative security-header policy.
 
+It also serves the same-origin `GET /api/consent-region` endpoint used by the
+analytics consent controller. The endpoint prioritizes Cloudflare's
+`request.cf.isEUCountry` signal, then reads the coarse `request.cf.country`
+value at the edge, and returns only one of two modes:
+
+- `strict`: EEA, United Kingdom, Switzerland, unknown location, Tor, or an
+  invalid/missing country signal. Analytics stays off and the opt-in panel may
+  appear automatically.
+- `quiet-denied`: all other valid two-letter country codes. Analytics still
+  stays off, but the panel does not interrupt the page. A visitor can make an
+  explicit choice from the non-floating control on the website privacy page.
+
+The JSON response does not contain the country code, IP address, city,
+coordinates, region or timezone. It is not written to cookies, browser storage,
+KV, a database, invocation logs or traces. Observability is intentionally
+disabled for this full-site Worker so sampled request metadata cannot retain
+the inferred country. `Sec-GPC: 1` is returned only as a boolean so the frontend
+can keep analytics disabled when Global Privacy Control is active. The endpoint
+is designed for same-origin use and does not grant cross-origin access. It uses
+`Cache-Control`, `CDN-Cache-Control` and
+`Cloudflare-CDN-Cache-Control` `no-store` directives, and preserves the site's
+`geolocation=()` Permissions Policy because no browser GPS permission is used.
+The Pages artifact also carries a static strict-mode response at the same path;
+this Worker intercepts it before origin fetch and replaces it with the live
+edge decision. Direct-origin access therefore fails closed instead of returning
+a 404.
+
 It does not change the apex host (`jabbarsourcing.com`) and it does not add a
 Content Security Policy.
 
@@ -79,10 +106,17 @@ responses:
 curl -sS -D - -o /dev/null https://www.jabbarsourcing.com/
 curl -sS -D - -o /dev/null https://www.jabbarsourcing.com/en/
 curl -sS -D - -o /dev/null https://www.jabbarsourcing.com/does-not-exist
+curl -sS -D - https://www.jabbarsourcing.com/api/consent-region
+curl -sS -D - -H 'Sec-GPC: 1' https://www.jabbarsourcing.com/api/consent-region
 ```
 
 Also submit a real inquiry only when that end-to-end test has been separately
 authorized; this Worker is intended to leave request methods and bodies intact.
+
+When the consent frontend and this Worker change together, deploy the Worker
+first and the static frontend second. The frontend treats a missing, slow,
+non-200 or malformed endpoint response as `strict`, so either deployment order
+fails closed and never enables analytics automatically.
 
 For each representative response, verify status, `Cache-Control`, content type,
 origin headers, and the five values in the table above. Record the deployment ID
@@ -108,6 +142,12 @@ if rollback is needed.
   exception path or synthesize a different origin response.
 - The five managed headers replace any conflicting values from the origin. All
   other origin headers are retained.
+- IP-derived country signals can be wrong because of VPNs, proxies, Tor, mobile
+  networks or travel. They are used only to decide whether an opt-in prompt may
+  appear automatically, never to infer legal residence or grant consent.
+- Invocation logs and traces are intentionally disabled because this Worker
+  processes the full site and reads an inferred country signal. Re-enabling
+  observability requires a privacy-retention review and an updated public notice.
 
 To roll back the Worker behavior, first use the Cloudflare dashboard deployment
 history to restore the last known-good deployment. If the Worker itself is the

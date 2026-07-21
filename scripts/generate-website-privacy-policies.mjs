@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ORIGIN = "https://www.jabbarsourcing.com";
-const CONSENT_VERSION = "consent-20260720a";
+const CONSENT_VERSION = "consent-20260722a";
 const UI_VERSION = "ui-20260720a";
 
 const routes = {
@@ -30,6 +30,7 @@ const copy = {
     updated: "Last updated: July 22, 2026",
     intro: "This notice explains how Zhejiang Haoduobao Brand Management Co., Ltd. handles personal information submitted through the Jabbar Sourcing website.",
     settings: "Analytics settings",
+    regionalAnalytics: "Cloudflare uses the country code inferred from the network request only to decide whether the analytics choice panel should appear automatically. The page receives only that coarse decision, not the country code, and we do not store the location. In the EEA, United Kingdom and Switzerland, or when the location is unknown, Tor-based or unavailable, analytics stays off and the panel may appear automatically. In other regions analytics also stays off by default, but the panel does not open automatically; you can make a choice below. If your browser sends a Global Privacy Control (GPC) signal, analytics remains disabled.",
     sections: [
       ["Who is responsible", ["The data controller and personal information handler is Zhejiang Haoduobao Brand Management Co., Ltd. Jabbar Sourcing Team is the company’s sourcing service team for international buyers. Contact us at Building 3, No. 219 Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, China; telephone {{phone}}; email {{email}}."]],
       ["Information we collect", ["When you submit an inquiry, we collect the product requirements, product reference URL, category, expected quantity, budget, destination market, contact details, name or company, and notes that you choose to provide.", "For source attribution, the inquiry email may also contain the first landing-page path, external referrer hostname, and length-limited UTM source, medium, campaign, term and content values from the URL. Cloudflare may process the IP address, browser information and network-security signals to prevent abuse."]],
@@ -48,6 +49,7 @@ const copy = {
     updated: "Última actualización: 22 de julio de 2026",
     intro: "Este aviso explica cómo Zhejiang Haoduobao Brand Management Co., Ltd. trata la información personal enviada a través del sitio web de Jabbar Sourcing.",
     settings: "Configuración de análisis",
+    regionalAnalytics: "Cloudflare usa el código de país deducido de la solicitud de red únicamente para decidir si el panel de preferencias de análisis debe mostrarse automáticamente. La página recibe solo esa decisión general, no el código de país, y no guardamos la ubicación. En el EEE, Reino Unido y Suiza, o cuando la ubicación es desconocida, procede de Tor o no está disponible, los análisis permanecen desactivados y el panel puede aparecer automáticamente. En otras regiones también están desactivados de forma predeterminada, pero el panel no se abre automáticamente; puede elegir abajo. Si el navegador envía una señal Global Privacy Control (GPC), los análisis permanecen desactivados.",
     sections: [
       ["Responsable del tratamiento", ["El responsable del tratamiento y de la información personal es Zhejiang Haoduobao Brand Management Co., Ltd. Jabbar Sourcing Team es el equipo de servicios de compra de la empresa para compradores internacionales. Contacto: Edificio 3, n.º 219 de Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, China; teléfono {{phone}}; correo {{email}}."]],
       ["Información que recopilamos", ["Al enviar una consulta, recopilamos los requisitos del producto, la URL de referencia, la categoría, la cantidad prevista, el presupuesto, el mercado de destino, los datos de contacto, el nombre o la empresa y las notas que decida proporcionar.", "Para atribuir el origen, el correo de la consulta puede incluir la ruta de la primera página visitada, el dominio del sitio remitente y los valores UTM source, medium, campaign, term y content de longitud limitada. Cloudflare puede tratar la dirección IP, la información del navegador y señales de seguridad de red para impedir abusos."]],
@@ -66,6 +68,7 @@ const copy = {
     updated: "آخر تحديث: 22 يوليو 2026",
     intro: "يوضح هذا الإشعار كيفية معالجة Zhejiang Haoduobao Brand Management Co., Ltd. للمعلومات الشخصية المقدمة عبر موقع Jabbar Sourcing.",
     settings: "إعدادات التحليلات",
+    regionalAnalytics: "تستخدم Cloudflare رمز البلد المستنتج من طلب الشبكة فقط لتحديد ما إذا كان ينبغي عرض لوحة خيارات التحليلات تلقائياً. لا تتلقى الصفحة سوى هذا القرار العام، ولا تتلقى رمز البلد، ولا نخزّن الموقع. في المنطقة الاقتصادية الأوروبية والمملكة المتحدة وسويسرا، أو عندما يكون الموقع غير معروف أو عبر Tor أو غير متاح، تبقى التحليلات معطلة وقد تظهر اللوحة تلقائياً. وفي المناطق الأخرى تبقى التحليلات معطلة افتراضياً أيضاً، لكن اللوحة لا تُفتح تلقائياً ويمكنك الاختيار أدناه. وإذا أرسل المتصفح إشارة Global Privacy Control (GPC)، فستظل التحليلات معطلة.",
     sections: [
       ["الجهة المسؤولة", ["المتحكم في البيانات ومعالج المعلومات الشخصية هو Zhejiang Haoduobao Brand Management Co., Ltd. وفريق Jabbar Sourcing هو فريق خدمات التوريد للمشترين الدوليين. العنوان: المبنى 3، رقم 219 طريق Sufu، بلدة Suxi، ييوو، جينهوا، تشجيانغ، الصين؛ الهاتف {{phone}}؛ البريد {{email}}."]],
       ["المعلومات التي نجمعها", ["عند إرسال استفسار، نجمع متطلبات المنتج ورابط المرجع والفئة والكمية المتوقعة والميزانية وسوق الوجهة وبيانات الاتصال والاسم أو الشركة والملاحظات التي تختار تقديمها.", "ولمعرفة مصدر الاستفسار، قد يتضمن البريد مسار أول صفحة دخول واسم نطاق الموقع المُحيل وقيم UTM source وmedium وcampaign وterm وcontent محدودة الطول. وقد تعالج Cloudflare عنوان IP ومعلومات المتصفح وإشارات أمن الشبكة لمنع إساءة الاستخدام."]],
@@ -84,6 +87,7 @@ const copy = {
     updated: "Dernière mise à jour : 22 juillet 2026",
     intro: "Cet avis explique comment Zhejiang Haoduobao Brand Management Co., Ltd. traite les informations personnelles transmises sur le site Jabbar Sourcing.",
     settings: "Paramètres d’analyse",
+    regionalAnalytics: "Cloudflare utilise le code pays déduit de la requête réseau uniquement pour déterminer si le panneau de choix analytique doit s’afficher automatiquement. La page ne reçoit que cette décision générale, pas le code pays, et nous ne conservons pas la localisation. Dans l’EEE, au Royaume-Uni et en Suisse, ou si la localisation est inconnue, issue de Tor ou indisponible, l’analyse reste désactivée et le panneau peut s’afficher automatiquement. Dans les autres régions, l’analyse reste également désactivée par défaut, mais le panneau ne s’ouvre pas automatiquement ; vous pouvez choisir ci-dessous. Si le navigateur envoie un signal Global Privacy Control (GPC), l’analyse reste désactivée.",
     sections: [
       ["Responsable du traitement", ["Le responsable du traitement des données et informations personnelles est Zhejiang Haoduobao Brand Management Co., Ltd. Jabbar Sourcing Team est l’équipe de services d’approvisionnement de la société pour les acheteurs internationaux. Adresse : bâtiment 3, 219 Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, Chine ; téléphone {{phone}} ; e-mail {{email}}."]],
       ["Informations collectées", ["Lorsque vous envoyez une demande, nous collectons les besoins produit, l’URL de référence, la catégorie, la quantité prévue, le budget, le marché de destination, les coordonnées, le nom ou la société et les notes que vous choisissez de fournir.", "Pour l’attribution de la source, l’e-mail peut inclure le chemin de la première page, le domaine référent et les valeurs UTM source, medium, campaign, term et content de longueur limitée. Cloudflare peut traiter l’adresse IP, les informations du navigateur et les signaux de sécurité réseau afin de prévenir les abus."]],
@@ -102,6 +106,7 @@ const copy = {
     updated: "Última atualização: 22 de julho de 2026",
     intro: "Este aviso explica como a Zhejiang Haoduobao Brand Management Co., Ltd. trata as informações pessoais enviadas pelo site da Jabbar Sourcing.",
     settings: "Definições de análise",
+    regionalAnalytics: "A Cloudflare utiliza o código do país inferido do pedido de rede apenas para decidir se o painel de escolha de análise deve aparecer automaticamente. A página recebe somente essa decisão geral, não o código do país, e não guardamos a localização. No EEE, Reino Unido e Suíça, ou quando a localização é desconhecida, proveniente de Tor ou indisponível, a análise permanece desativada e o painel pode aparecer automaticamente. Noutras regiões, a análise também permanece desativada por predefinição, mas o painel não abre automaticamente; pode escolher abaixo. Se o navegador enviar um sinal Global Privacy Control (GPC), a análise permanece desativada.",
     sections: [
       ["Responsável pelo tratamento", ["O responsável pelos dados e informações pessoais é Zhejiang Haoduobao Brand Management Co., Ltd. A Jabbar Sourcing Team é a equipa de serviços de compras da empresa para compradores internacionais. Endereço: Edifício 3, n.º 219 Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, China; telefone {{phone}}; e-mail {{email}}."]],
       ["Informações recolhidas", ["Ao enviar um pedido, recolhemos requisitos do produto, URL de referência, categoria, quantidade prevista, orçamento, mercado de destino, contactos, nome ou empresa e notas que decidir fornecer.", "Para atribuição da origem, o e-mail pode incluir o caminho da primeira página visitada, o domínio de referência e valores UTM source, medium, campaign, term e content com comprimento limitado. A Cloudflare pode tratar o endereço IP, informações do navegador e sinais de segurança de rede para prevenir abusos."]],
@@ -120,6 +125,7 @@ const copy = {
     updated: "Последнее обновление: 22 июля 2026 г.",
     intro: "В этом уведомлении описано, как Zhejiang Haoduobao Brand Management Co., Ltd. обрабатывает персональные данные, отправленные через сайт Jabbar Sourcing.",
     settings: "Настройки аналитики",
+    regionalAnalytics: "Cloudflare использует код страны, определённый по сетевому запросу, только для решения, следует ли автоматически показывать панель выбора аналитики. Страница получает лишь это общее решение, но не код страны; местоположение мы не сохраняем. В ЕЭЗ, Великобритании и Швейцарии, а также при неизвестном местоположении, Tor или сбое определения аналитика остаётся отключённой, а панель может появиться автоматически. В других регионах аналитика также отключена по умолчанию, но панель не открывается автоматически; сделать выбор можно ниже. Если браузер передаёт сигнал Global Privacy Control (GPC), аналитика остаётся отключённой.",
     sections: [
       ["Ответственное лицо", ["Оператором данных и обработчиком персональной информации является Zhejiang Haoduobao Brand Management Co., Ltd. Jabbar Sourcing Team является службой закупок компании для зарубежных покупателей. Адрес: Building 3, No. 219 Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, China; телефон {{phone}}; электронная почта {{email}}."]],
       ["Какие данные мы собираем", ["При отправке запроса мы получаем требования к товару, ссылку на товар, категорию, предполагаемое количество, бюджет, рынок назначения, контактные данные, имя или название компании и примечания, которые вы укажете.", "Для определения источника письмо может включать путь первой страницы, домен направившего сайта и ограниченные по длине значения UTM source, medium, campaign, term и content. Cloudflare может обрабатывать IP-адрес, сведения о браузере и сигналы сетевой безопасности для предотвращения злоупотреблений."]],
@@ -138,6 +144,7 @@ const copy = {
     updated: "Letzte Aktualisierung: 22. Juli 2026",
     intro: "Dieser Hinweis erläutert, wie Zhejiang Haoduobao Brand Management Co., Ltd. personenbezogene Daten verarbeitet, die über die Jabbar-Sourcing-Website übermittelt werden.",
     settings: "Analyse-Einstellungen",
+    regionalAnalytics: "Cloudflare verwendet den aus der Netzwerkanfrage abgeleiteten Ländercode ausschließlich, um zu entscheiden, ob das Auswahlfenster für Analysen automatisch erscheinen soll. Die Seite erhält nur diese grobe Entscheidung, nicht den Ländercode; wir speichern den Standort nicht. Im EWR, im Vereinigten Königreich und in der Schweiz sowie bei unbekanntem Standort, Tor oder fehlgeschlagener Ermittlung bleibt die Analyse deaktiviert und das Fenster kann automatisch erscheinen. In anderen Regionen bleibt die Analyse ebenfalls standardmäßig deaktiviert, das Fenster öffnet sich jedoch nicht automatisch; unten können Sie wählen. Sendet der Browser ein Global-Privacy-Control-Signal (GPC), bleibt die Analyse deaktiviert.",
     sections: [
       ["Verantwortlicher", ["Verantwortlicher für Daten und personenbezogene Informationen ist Zhejiang Haoduobao Brand Management Co., Ltd. Das Jabbar Sourcing Team ist der Beschaffungsservice des Unternehmens für internationale Käufer. Anschrift: Gebäude 3, Nr. 219 Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, China; Telefon {{phone}}; E-Mail {{email}}."]],
       ["Erhobene Informationen", ["Bei einer Anfrage erheben wir Produktanforderungen, Referenz-URL, Kategorie, voraussichtliche Menge, Budget, Zielmarkt, Kontaktdaten, Name oder Unternehmen und freiwillige Hinweise.", "Zur Quellenzuordnung kann die E-Mail den Pfad der ersten Zielseite, den Hostnamen der verweisenden Website und längenbegrenzte UTM-Werte source, medium, campaign, term und content enthalten. Cloudflare kann IP-Adresse, Browserinformationen und Netzwerksicherheitssignale zur Missbrauchsabwehr verarbeiten."]],
@@ -156,6 +163,7 @@ const copy = {
     updated: "Ultimo aggiornamento: 22 luglio 2026",
     intro: "Questa informativa spiega come Zhejiang Haoduobao Brand Management Co., Ltd. tratta i dati personali inviati tramite il sito Jabbar Sourcing.",
     settings: "Preferenze di analisi",
+    regionalAnalytics: "Cloudflare usa il codice Paese dedotto dalla richiesta di rete solo per decidere se il pannello delle preferenze di analisi debba apparire automaticamente. La pagina riceve soltanto questa decisione generale, non il codice Paese, e non conserviamo la posizione. Nel SEE, nel Regno Unito e in Svizzera, oppure quando la posizione è sconosciuta, proviene da Tor o non è disponibile, l’analisi resta disattivata e il pannello può apparire automaticamente. Nelle altre regioni l’analisi resta comunque disattivata per impostazione predefinita, ma il pannello non si apre automaticamente; puoi scegliere qui sotto. Se il browser invia un segnale Global Privacy Control (GPC), l’analisi resta disattivata.",
     sections: [
       ["Titolare del trattamento", ["Il titolare dei dati e delle informazioni personali è Zhejiang Haoduobao Brand Management Co., Ltd. Jabbar Sourcing Team è il servizio di approvvigionamento dell’azienda per acquirenti internazionali. Indirizzo: Edificio 3, n. 219 Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, Cina; telefono {{phone}}; e-mail {{email}}."]],
       ["Dati raccolti", ["Quando invii una richiesta raccogliamo requisiti del prodotto, URL di riferimento, categoria, quantità prevista, budget, mercato di destinazione, recapiti, nome o azienda e note che scegli di fornire.", "Per attribuire la provenienza, l’e-mail può includere il percorso della prima pagina, il dominio referente e i valori UTM source, medium, campaign, term e content con lunghezza limitata. Cloudflare può trattare indirizzo IP, dati del browser e segnali di sicurezza di rete per impedire abusi."]],
@@ -174,6 +182,7 @@ const copy = {
     updated: "Son güncelleme: 22 Temmuz 2026",
     intro: "Bu bildirim, Zhejiang Haoduobao Brand Management Co., Ltd. şirketinin Jabbar Sourcing web sitesi üzerinden gönderilen kişisel bilgileri nasıl işlediğini açıklar.",
     settings: "Analiz tercihleri",
+    regionalAnalytics: "Cloudflare, ağ isteğinden çıkarılan ülke kodunu yalnızca analiz tercih panelinin otomatik gösterilip gösterilmeyeceğine karar vermek için kullanır. Sayfa ülke kodunu değil, yalnızca bu genel kararı alır ve konumu saklamayız. AEA, Birleşik Krallık ve İsviçre’de ya da konum bilinmediğinde, Tor üzerinden geldiğinde veya belirlenemediğinde analiz kapalı kalır ve panel otomatik görünebilir. Diğer bölgelerde de analiz varsayılan olarak kapalıdır, ancak panel otomatik açılmaz; aşağıdan seçim yapabilirsiniz. Tarayıcı Global Privacy Control (GPC) sinyali gönderirse analiz kapalı kalır.",
     sections: [
       ["Sorumlu kuruluş", ["Veri sorumlusu ve kişisel bilgi işleyicisi Zhejiang Haoduobao Brand Management Co., Ltd.’dir. Jabbar Sourcing Team, şirketin uluslararası alıcılara yönelik tedarik hizmeti ekibidir. Adres: Bina 3, No. 219 Sufu Road, Suxi Town, Yiwu, Jinhua, Zhejiang, Çin; telefon {{phone}}; e-posta {{email}}."]],
       ["Topladığımız bilgiler", ["Talep gönderdiğinizde ürün gereksinimleri, referans URL’si, kategori, beklenen miktar, bütçe, hedef pazar, iletişim bilgileri, ad veya şirket ve vermeyi seçtiğiniz notları toplarız.", "Kaynak ilişkilendirmesi için e-posta ilk açılış sayfası yolunu, yönlendiren alan adını ve uzunluğu sınırlı UTM source, medium, campaign, term ve content değerlerini içerebilir. Cloudflare kötüye kullanımı önlemek için IP adresi, tarayıcı bilgisi ve ağ güvenliği sinyallerini işleyebilir."]],
@@ -216,12 +225,17 @@ function footerFor(locale) {
 function page(locale) {
   const route = routes[locale];
   const value = copy[locale];
-  const sectionMarkup = value.sections.map(([heading, paragraphs], index) => [
-    `        <section${index === 0 ? ' id="website-inquiries"' : ""}>`,
-    `          <h2>${heading}</h2>`,
-    ...paragraphs.map((paragraph) => `          <p>${contactMarkup(paragraph)}</p>`),
-    "        </section>"
-  ].join("\n")).join("\n");
+  const sectionMarkup = value.sections.map(([heading, paragraphs], index) => {
+    const localizedParagraphs = index === 4
+      ? [...paragraphs, value.regionalAnalytics]
+      : paragraphs;
+    return [
+      `        <section${index === 0 ? ' id="website-inquiries"' : ""}>`,
+      `          <h2>${heading}</h2>`,
+      ...localizedParagraphs.map((paragraph) => `          <p>${contactMarkup(paragraph)}</p>`),
+      "        </section>"
+    ].join("\n");
+  }).join("\n");
 
   return `<!doctype html>
 <html lang="${route.lang}"${route.dir ? ` dir="${route.dir}"` : ""}>

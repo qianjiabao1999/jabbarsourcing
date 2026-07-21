@@ -105,6 +105,32 @@ python3 -m http.server 4173
 npm run qa:inquiry
 ```
 
+Analytics stays disabled until an explicit Allow choice. The full-site response
+Worker exposes a same-origin, non-cached `/api/consent-region` result so EEA,
+United Kingdom, Switzerland, unknown and Tor traffic can receive the automatic
+opt-in prompt while other regions remain quietly denied. Global Privacy Control
+keeps analytics disabled in every region. The page never requests browser GPS
+permission and never stores the inferred country.
+
+The published static origin includes `/api/consent-region` as a strict-mode
+fallback. Cloudflare overrides that exact path at the edge; if the Worker is
+missing or bypassed, the fallback still keeps analytics off and avoids a noisy
+404 in local static previews.
+
+Cross-browser and device-profile checks:
+
+```bash
+python3 -m http.server 4173
+npm run qa:browser-matrix
+npm run qa:android-device
+```
+
+`qa:browser-matrix` covers real desktop Firefox plus simulated Pixel, Galaxy and
+WeChat browser profiles. It does not claim real-device coverage.
+`qa:android-device` uses Playwright's experimental ADB connection and prints an
+explicit `SKIP` when no authorized Android device or debuggable WeChat WebView
+is available.
+
 Do not embed Tawk.to or another persistent floating chat launcher. Decision D1
 reserves persistent direct-contact entry points for the sticky navigation Free
 Quote action and the normal footer contact links.

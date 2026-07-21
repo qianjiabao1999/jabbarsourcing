@@ -15,7 +15,7 @@ const expectedPages = [
   "support.html",
   ...locales.filter(Boolean).map((locale) => `${locale}/website-privacy-policy.html`)
 ];
-const CONSENT_VERSION = "consent-20260720a";
+const CONSENT_VERSION = "consent-20260722a";
 const consentReference = `<script src="/assets/analytics-consent.js?v=${CONSENT_VERSION}" defer></script>`;
 const failures = [];
 
@@ -44,6 +44,10 @@ for (const relativePath of expectedPages) {
 }
 
 const consentSource = fs.readFileSync(path.join(root, "assets/analytics-consent.js"), "utf8");
+const staticRegionFallback = fs.readFileSync(path.join(root, "api/consent-region"), "utf8").trim();
+if (staticRegionFallback !== '{"policy":"strict","gpc":false}') {
+  failures.push("api/consent-region: static-origin fallback must remain strict and GPC-neutral");
+}
 for (const language of ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"]) {
   if (!consentSource.includes(`"${language}": {`)) {
     failures.push(`assets/analytics-consent.js: missing ${language} copy`);
@@ -52,7 +56,6 @@ for (const language of ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "t
 for (const requiredToken of [
   'var STORAGE_KEY = "jabbar.analyticsConsent.v1"',
   'var SESSION_DEFER_KEY = "jabbar.analyticsConsent.deferred"',
-  'if (consentState === "granted") loadAnalytics()',
   'window.setTimeout(loadAnalytics, 0)',
   'function isActionBlocked() {',
   'function queueEvent(eventName, params) {',
@@ -61,10 +64,13 @@ for (const requiredToken of [
   'target.closest("[data-analytics-consent-open]")',
   'window.jabbarTrack = track',
   'window.jabbarAnalyticsConsent =',
-  'var POLICY_VERSION = "2026-07-19"',
+  'var POLICY_VERSION = "2026-07-22"',
   "var CONSENT_TTL_MS = 365 * 24 * 60 * 60 * 1000",
   "var DECISION_TTL_MS = 30 * 24 * 60 * 60 * 1000",
   "var AUTO_PROMPT_DELAY_MS = 1800",
+  "var REGION_TIMEOUT_MS = 1200",
+  'var REGION_ENDPOINT = "/api/consent-region"',
+  'var VALID_REGION_POLICIES = { strict: true, "quiet-denied": true }',
   "JSON.stringify({",
   'window.gtag("consent", "default"',
   'window.gtag("consent", "update"',
@@ -76,6 +82,15 @@ for (const requiredToken of [
   'window.addEventListener("touchmove", handleAutomaticScrollIntent',
   'document.addEventListener("keydown", handleAutomaticScrollIntent)',
   "setPanelOpen(true, false)",
+  'credentials: "omit"',
+  'cache: "no-store"',
+  'referrerPolicy: "no-referrer"',
+  'finish({ policy: "strict", gpc: false })',
+  'if (regionPolicy === "quiet-denied") {',
+  'getRegionPolicy: function () { return regionPolicy; }',
+  'isRegionResolved: function () { return regionResolved; }',
+  'isGlobalPrivacyControlActive: function () { return gpcActive; }',
+  'window.navigator.globalPrivacyControl === true',
   'background-color:#0f766e',
   'privacyLink.href = languageKey() === "zh"',
   '"https://www.googletagmanager.com/gtag/js?id="',
@@ -87,6 +102,15 @@ for (const requiredToken of [
 }
 if (consentSource.includes("jabbar-analytics-settings")) {
   failures.push("assets/analytics-consent.js: legacy floating privacy-settings control remains");
+}
+if (/navigator\.geolocation|permissions\.query\([^)]*geolocation/.test(consentSource)) {
+  failures.push("assets/analytics-consent.js: browser GPS/location permission must not be used for consent routing");
+}
+if (/localStorage[^\n]*(?:country|regionPolicy)|sessionStorage[^\n]*(?:country|regionPolicy)/i.test(consentSource)) {
+  failures.push("assets/analytics-consent.js: inferred country or region policy must remain in page memory only");
+}
+if (!consentSource.includes('if (analyticsLoaded || !regionResolved || gpcActive || consentState !== "granted") return;')) {
+  failures.push("assets/analytics-consent.js: analytics may load before region resolution, during GPC, or without explicit consent");
 }
 if (!/function setPanelOpen\(isOpen, shouldFocus\)\s*{[\s\S]*?panel\.hidden = !isOpen;/m.test(consentSource)) {
   failures.push("assets/analytics-consent.js: panel visibility is not independent from an optional settings control");
@@ -147,6 +171,9 @@ for (const route of policyRoutes) {
   }
   if (!source.includes(route.later)) {
     failures.push(`${route.file}: 30-day Decide later retention disclosure is missing`);
+  }
+  if (!source.includes("GPC") || !source.includes("Cloudflare")) {
+    failures.push(`${route.file}: coarse region routing or Global Privacy Control disclosure is missing`);
   }
   if (!source.includes('href="weixin://"') || source.includes("#wechat-modal") || source.includes("js-contact-modal-open")) {
     failures.push(`${route.file}: footer WeChat action is missing or points to a nonexistent modal`);
