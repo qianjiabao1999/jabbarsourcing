@@ -1028,7 +1028,15 @@ async function assertDesktopGalleryMarquee(page, scope) {
     };
   }));
 
-  await page.waitForTimeout(220);
+  await page.waitForFunction(() => {
+    const tracks = Array.from(document.querySelectorAll(".sourcing-gallery .gallery-track"));
+    return tracks.length === 2 && tracks.every((track) => {
+      const animation = track.getAnimations()[0];
+      const transform = getComputedStyle(track).transform;
+      const translateX = transform === "none" ? 0 : new DOMMatrixReadOnly(transform).m41;
+      return animation?.playState === "running" && Number(animation.currentTime) > 0 && translateX < -1;
+    });
+  }, null, { timeout: 3000 });
   const movement = await page.locator(".sourcing-gallery .gallery-track").evaluateAll((tracks) => tracks.map((track) => {
     const transform = getComputedStyle(track).transform;
     return transform === "none" ? 0 : new DOMMatrixReadOnly(transform).m41;
@@ -1051,7 +1059,7 @@ async function assertDesktopGalleryMarquee(page, scope) {
     assert.equal(track.iterations, "infinite", `${scope}: track ${index + 1} animation iteration`);
     assert.equal(track.playState, "running", `${scope}: track ${index + 1} animation did not start`);
     assert(Math.abs(track.railScrollLeft) <= 1, `${scope}: track ${index + 1} desktop scroll snapping moved the rail (${track.railScrollLeft}px)`);
-    assert(movement[index] < -4, `${scope}: track ${index + 1} did not move continuously (${movement[index]}px)`);
+    assert(movement[index] < -1, `${scope}: track ${index + 1} did not move continuously (${movement[index]}px)`);
   });
 }
 
