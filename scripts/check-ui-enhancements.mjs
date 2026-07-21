@@ -6,9 +6,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-180";
-const UI_VERSION = "ui-20260720a";
-const ORDER_VERSION = "order-20260722a";
+const CSS_VERSION = "apple-181";
+const UI_VERSION = "ui-20260722a";
+const ORDER_VERSION = "order-20260722b";
+const CONTAINER_VERSION = "container-20260722a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
   zh: "社媒账号",
@@ -122,6 +123,12 @@ assert.equal(testimonialProofAsset.subarray(8, 12).toString("ascii"), "WEBP", "t
 for (const file of ["assets/testimonial-boyner-480.webp", "assets/testimonial-boyner-720.webp"]) {
   const asset = await readFile(resolve(ROOT, file));
   assert(asset.byteLength > 10_000, `${file}: responsive proof asset is unexpectedly empty`);
+  assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
+  assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
+}
+for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722.webp"]) {
+  const asset = await readFile(resolve(ROOT, file));
+  assert(asset.byteLength > 20_000, `${file}: container visual asset is unexpectedly empty`);
   assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
   assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
 }
@@ -381,6 +388,7 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.doesNotMatch(html, /ai-sourcing-assistant\.js|JABBAR_AI_ASSISTANT_ENDPOINT/, `${file}: removed AI bootstrap must not return`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
+  assert.match(html, new RegExp(`container-visual\\.js\\?v=${CONTAINER_VERSION}`), `${file}: missing shared 3D container visual`);
   assert.match(html, new RegExp(`calculator-order-loader\\.js\\?v=${ORDER_VERSION}`), `${file}: missing deferred Excel order loader`);
   assert.doesNotMatch(html, /<script[^>]+src="\/assets\/calculator-order-analyzer\.js/i, `${file}: Excel order analyzer must not load directly`);
   assert.equal(count(html, /data-order-analyzer/g), 1, `${file}: Excel order analyzer mount count`);
@@ -389,8 +397,8 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   }
   assert.equal(count(html, /calculator-whatsapp|data-whatsapp|wa\.me\/8618658925544/g), 0, `${file}: calculator WhatsApp result action remains`);
   assert.equal(count(html, /class="cbm-visual"/g), 1, `${file}: static CBM visual count`);
-  assert.equal(count(html, /<svg[^>]+aria-labelledby="cbmVizTitle"/g), 1, `${file}: static CBM SVG count`);
-  assert.equal(count(html, /id="cbmFill"/g), 1, `${file}: static CBM fill count`);
+  assert.equal(count(html, /<svg[^>]+aria-labelledby="cbmVizTitle"/g), 0, `${file}: obsolete handcrafted CBM SVG returned`);
+  assert.match(html, /<div class="cbm-visual" data-result-detail hidden style="display: none"><\/div>/, `${file}: CBM visual mount must start empty`);
   assert.deepEqual(textsForClass(html, "p", "section-code"), [CALCULATOR_SECTION_CODES[locale]], `${file}: calculator section code`);
   assert.equal(countClass(html, "section-rule"), 1, `${file}: calculator section rule count`);
   assert.match(html, /class="calculator-results is-empty"[^>]+data-result-state="empty"/, `${file}: calculator initial result state`);
@@ -401,36 +409,19 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   for (const token of ["setResultState", "resetResult", "'empty'", "'invalid'", "'ready'"]) {
     assert(html.includes(token), `${file}: missing calculator result state token ${token}`);
   }
-  assert(tagsWithClass(html, "line", "cbm-dimension-line").length >= 3, `${file}: CBM dimension line count`);
-  const capTag = tagById(html, "cbmCap");
-  const percentageTag = tagById(html, "cbmPct");
-  const fillTag = tagById(html, "cbmFill");
-  assert(hasClass(capTag, "num-mono"), `${file}: CBM capacity label is not monospaced`);
   assert.doesNotMatch(html, /20GP|20英尺|28\s*(?:CBM|立方米)|["']twenty["']\s*:/, `${file}: legacy 20GP calculator example remains`);
-  assert.match(
-    html,
-    locale === "zh"
-      ? /id="cbmCap"[^>]*>40英尺高柜 · 0\.0 \/ 68 立方米<\//
-      : /id="cbmCap"[^>]*>40HQ · 0\.0 \/ 68 CBM<\//,
-    `${file}: default container example must be 40HQ`,
-  );
-  assert(hasClass(percentageTag, "num-mono"), `${file}: CBM percentage is not monospaced`);
   for (const dataName of ["data-per-cbm", "data-total-cbm", "data-buffer-cbm", "data-weight-total"]) {
     assert(hasClass(tagWithAttribute(html, "strong", dataName), "num-mono"), `${file}: ${dataName} is not monospaced`);
   }
   assert.match(html, /function\s+setTextWithMonoNumbers\s*\(element,\s*value\)/, `${file}: dynamic numeric wrapper helper missing`);
   assert.match(html, /setTextWithMonoNumbers\(out\.container,\s*container\)/, `${file}: dynamic container numbers are not wrapped`);
   assert.match(html, /setTextWithMonoNumbers\(out\.summary,\s*container\s*\+/, `${file}: dynamic summary numbers are not wrapped`);
-  assert(Number(attribute(capTag, "y")) < Number(attribute(fillTag, "y")), `${file}: capacity label must sit above the container`);
   assert.equal(count(html, /window\.renderCbmVisual\(total\)/g), 1, `${file}: CBM visual hook count`);
   assert.equal(count(html, /["']jabbar:calc-result["']/g), 1, `${file}: calculator result bridge event count`);
   for (const detailField of ["message", "product", "quantity", "totalCbm", "bufferedCbm", "container"]) {
     assert.match(html, new RegExp(`${detailField}:`), `${file}: calculator result event missing ${detailField}`);
   }
   assert.doesNotMatch(html, /aria-hidden="false"/, `${file}: CBM visual must not use aria-hidden=false`);
-  assert.doesNotMatch(fillTag, /\sfill=/, `${file}: CBM fill color must come from CSS`);
-  assert.doesNotMatch(tagById(html, "cbmRibs"), /\sstroke=/, `${file}: CBM rib color must come from CSS`);
-  assert.doesNotMatch(percentageTag, /\sfill=/, `${file}: CBM percentage color must come from CSS`);
   assert.equal(count(html, /["']calculator_calculate["']/g), 0, `${file}: duplicate calculator event must not return`);
   assert.equal(count(html, /mobile-conversion-bar/g), 0, `${file}: calculator must not include mobile conversion bar`);
   if (locale === "ar") assert.match(html, /<html[^>]+lang="ar"[^>]+dir="rtl"/, `${file}: Arabic RTL root missing`);
@@ -656,7 +647,7 @@ for (const removedLabel of ["showAllAccounts", "showFewerAccounts", "allPlatform
   assert.equal(count(javascript, new RegExp(`${removedLabel}:`, "g")), 0, `site-enhancements.js: removed ${removedLabel} label returned`);
 }
 for (const token of [
-  "renderCbmVisual", "site-scroll-progress",
+  "site-scroll-progress",
   "faq-quick-tags", "whatsapp-qr.svg", "prefers-reduced-motion",
   "initTrustStamps", "initHomeUtilities", "site-home-enhancements.js", "data-home-utilities",
   "initAnalyticsEvents", "contact_whatsapp"
@@ -683,6 +674,24 @@ for (const token of [
 ]) {
   assert(javascript.includes(token), `site-enhancements.js: missing round 8 behavior ${token}`);
 }
+
+const containerJavascript = await load("assets/container-visual.js");
+for (const locale of LOCALES) {
+  assert.match(containerJavascript, new RegExp(`\\n\\s*${locale}: \\{`), `container-visual.js: missing ${locale} labels`);
+}
+for (const token of [
+  "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722.webp",
+  "CONTAINER_CAPACITY_CBM", "CONTAINER_EPSILON_CBM", "MAX_VISIBLE_CONTAINERS",
+  "data-container-count", "data-container-load", "data-container-index",
+  'role", "progressbar', "aria-valuenow", "cbm-container-visual", "cbm-container-fill",
+  "window.renderCbmVisual", "JabbarContainerVisual", CONTAINER_VERSION
+]) {
+  assert(containerJavascript.includes(token), `container-visual.js: missing ${token}`);
+}
+assert.match(containerJavascript, /Math\.ceil\(\(totalCbm - CONTAINER_EPSILON_CBM\) \/ CONTAINER_CAPACITY_CBM\)/, "container-visual.js: exact-capacity epsilon guard missing");
+assert.match(containerJavascript, /totalCbm - index \* CONTAINER_CAPACITY_CBM/, "container-visual.js: full-first load allocation missing");
+assert.doesNotMatch(containerJavascript, /<svg|createElement\(["']svg["']\)/, "container-visual.js: handcrafted SVG returned");
+assert(!containerJavascript.includes("ja:"), "container-visual.js: Japanese labels must not return");
 
 const footerJavascript = await load("assets/site-footer-tools.js");
 for (const locale of LOCALES) {
@@ -815,13 +824,13 @@ for (const token of [
   ".cbm-visual", ".site-scroll-progress",
   ".faq-quick-tags", ".whatsapp-qr-card", "prefers-reduced-motion",
   "--font-mono-stack", ".num-mono", ".section-code", ".section-rule", ".stamp-row",
-  ".shipment-ticker", ".cbm-dimension-line"
+  ".shipment-ticker", ".container-load-card__scene", ".container-load-card__shell"
 ]) {
   assert(css.includes(token), `styles.css: missing ${token}`);
 }
 for (const token of [
   ".calculator-inquiry-cta", ".inquiry-status-icon",
-  ".cbm-container-fill.is-full", ".cbm-container-ribs", ".field-label-marker", ".calculator-result-status",
+  ".cbm-container-fill", ".container-load-card.is-full", ".field-label-marker", ".calculator-result-status",
   ".calculator-secondary-button:disabled", ".hero-brand-partnership",
   ".calculator-mode-tabs", ".calculator-optional-details", ".calculator-optional-summary",
   ".calculator-optional-fields", ".social-platform-filters"
@@ -829,6 +838,13 @@ for (const token of [
   assert(css.includes(token), `styles.css: missing round 8 style ${token}`);
 }
 assert.doesNotMatch(css, /\.legal-content ul\s*\{[^}]*padding-left\s*:/s, "styles.css: legal list must use logical padding");
+const containerReleaseMarker = "/* 2026-07-22 release: realistic container loading cards and shadow-free language control. */";
+const containerReleaseIndex = css.indexOf(containerReleaseMarker);
+assert(containerReleaseIndex >= 0, "styles.css: 3D container release block missing");
+const containerReleaseCss = css.slice(containerReleaseIndex);
+assert.match(containerReleaseCss, /\.site-nav \.site-nav-language,[\s\S]*?box-shadow:\s*none\s*!important/, "styles.css: language shadow reset missing");
+assert.match(containerReleaseCss, /\.container-load-card__scene\s*\{[\s\S]*?aspect-ratio:\s*1280\s*\/\s*438/, "styles.css: 3D container scene ratio missing");
+assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?overflow:\s*hidden/, "styles.css: cargo clipping bay missing");
 assert.match(css, /\.site-nav-links \.site-nav-quote-desktop[\s\S]*?order:\s*0\s*!important/, "styles.css: desktop quote must keep its middle navigation position");
 for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "has-mobile-conversion-bar", ".ui-section-reveal", ".site-footer-backtop"]) {
   assert(!css.includes(removedToken), `styles.css: removed floating control styles remain (${removedToken})`);
@@ -956,7 +972,8 @@ for (const token of [
 assert.match(orderAnalyzer, /Math\.ceil\(\(value - CONTAINER_EPSILON_CBM\) \/ CONTAINER_CAPACITY_CBM\)/, "calculator-order-analyzer.js: container count must tolerate floating-point noise at exact-capacity boundaries");
 assert.match(orderAnalyzer, /remaining >= CONTAINER_CAPACITY_CBM - CONTAINER_EPSILON_CBM[\s\S]*\? 100/, "calculator-order-analyzer.js: full containers must receive 100% before the remainder");
 assert.doesNotMatch(orderAnalyzer, /value\s*\/\s*\(count\s*\*\s*(?:68|CONTAINER_CAPACITY_CBM)\)\s*\*\s*100/, "calculator-order-analyzer.js: multi-container load must not be averaged across all containers");
-assert.match(orderAnalyzer, /Analyzer\.prototype\.renderContainer[\s\S]*var loads = this\.visibleContainerLoads\(estimate, MAX_CONTAINER_BARS\)/, "calculator-order-analyzer.js: page SVG must use the shared per-container loads");
+assert.match(orderAnalyzer, /Analyzer\.prototype\.renderContainer[\s\S]*var loads = this\.visibleContainerLoads\(estimate, MAX_CONTAINER_BARS\)/, "calculator-order-analyzer.js: page cards must use the shared per-container loads");
+assert.match(orderAnalyzer, /builder\.createCard\(/, "calculator-order-analyzer.js: shared 3D card builder is not used");
 assert.equal(count(orderAnalyzer, /drawContainerLoadBars\(/g), 1, "calculator-order-analyzer.js: the active 4K report must share per-container bars");
 for (const token of ["xlsx.full.min.js?v=0.20.3", "MAX_ROWS", "unitWeight", "unitVolume", "amount"])
   assert(orderWorker.includes(token), `calculator-order-worker.js: missing ${token}`);

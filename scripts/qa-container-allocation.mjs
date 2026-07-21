@@ -47,7 +47,8 @@ try {
         count: Number(visual?.getAttribute("data-container-count")),
         loads: Array.from(visual?.querySelectorAll("[data-container-load]") || [], (node) => Number(node.getAttribute("data-container-load"))),
         indexes: Array.from(visual?.querySelectorAll("[data-container-index]") || [], (node) => Number(node.getAttribute("data-container-index"))),
-        labels: Array.from(visual?.querySelectorAll("title") || [], (node) => node.textContent || "")
+        labels: Array.from(visual?.querySelectorAll("[role='progressbar']") || [], (node) => node.getAttribute("aria-label") || ""),
+        ariaNow: Array.from(visual?.querySelectorAll("[role='progressbar']") || [], (node) => Number(node.getAttribute("aria-valuenow")))
       };
     }, testCase);
     assert.equal(state.count, testCase.count, `${testCase.name}: quick container count`);
@@ -55,6 +56,7 @@ try {
     assert.deepEqual(state.indexes, testCase.loads.map((_, index) => index), `${testCase.name}: quick rendered allocation order`);
     testCase.loads.forEach((expected, index) => {
       near(state.loads[index], expected, 1e-8, `${testCase.name}: quick rendered load ${index + 1}`);
+      near(state.ariaNow[index], expected, 1e-8, `${testCase.name}: quick aria load ${index + 1}`);
       assert(state.labels[index].includes(`${Math.round(expected)}%`), `${testCase.name}: quick accessible label misses ${Math.round(expected)}%`);
     });
   }
@@ -65,6 +67,7 @@ try {
     visual.hidden = false;
     visual.style.display = "grid";
   });
+  await page.waitForFunction(() => Array.from(document.querySelectorAll(".cbm-visual .container-load-card__shell, .cbm-visual .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1280));
   await page.locator(".cbm-visual").screenshot({ path: `${OUTPUT_DIR}/quick-container-allocation-90-cbm.png` });
 
   const excelTab = page.locator('[data-calculator-mode="excel"]');
@@ -100,7 +103,8 @@ try {
         indexes: estimate.loadIndexes,
         domLoads: Array.from(visual.querySelectorAll("[data-container-load]"), (node) => Number(node.getAttribute("data-container-load"))),
         domIndexes: Array.from(visual.querySelectorAll("[data-container-index]"), (node) => Number(node.getAttribute("data-container-index"))),
-        ariaLabel: visual.querySelector("svg")?.getAttribute("aria-label") || ""
+        ariaLabels: Array.from(visual.querySelectorAll("[role='progressbar']"), (node) => node.getAttribute("aria-label") || ""),
+        ariaNow: Array.from(visual.querySelectorAll("[role='progressbar']"), (node) => Number(node.getAttribute("aria-valuenow")))
       };
     }, testCase);
     assert.equal(state.count, testCase.count, `${testCase.name}: container count`);
@@ -111,7 +115,8 @@ try {
     testCase.loads.forEach((expected, index) => {
       near(state.loads[index], expected, 1e-8, `${testCase.name}: calculated load ${index + 1}`);
       near(state.domLoads[index], expected, 1e-8, `${testCase.name}: rendered load ${index + 1}`);
-      assert(state.ariaLabel.includes(`${Math.round(expected)}%`), `${testCase.name}: accessible label misses ${Math.round(expected)}%`);
+      near(state.ariaNow[index], expected, 1e-8, `${testCase.name}: rendered aria load ${index + 1}`);
+      assert(state.ariaLabels[index].includes(`${Math.round(expected)}%`), `${testCase.name}: accessible label misses ${Math.round(expected)}%`);
     });
   }
 

@@ -7127,17 +7127,6 @@ html.gallery-ready .gallery-track {
   margin-inline-end: auto;
 }
 
-.cbm-dimension-line {
-  stroke: #185fa5;
-  stroke-width: 1.25;
-  vector-effect: non-scaling-stroke;
-}
-
-.cbm-visual text.num-mono {
-  font-family: var(--font-mono-stack);
-  font-variant-numeric: tabular-nums;
-}
-
 @media (max-width: 1180px) {
   #services .company-intro-layout.company-intro-metrics-layout {
     grid-template-columns: 1fr !important;
@@ -8501,9 +8490,6 @@ html[lang="ar"] .section-code {
 :root {
   --brand-teal: #0f766e;
   --brand-teal-rgb: 15, 118, 110;
-  --brand-orange: #ef9f27;
-  --cbm-fill: #5dcaa5;
-  --cbm-ink: #04342c;
 }
 
 .cbm-visual {
@@ -8515,13 +8501,6 @@ html[lang="ar"] .section-code {
   border: 1px solid rgba(15, 107, 168, 0.12);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.58);
-}
-
-.cbm-visual svg {
-  width: 100%;
-  max-width: 420px;
-  display: block;
-  margin: 0 auto;
 }
 
 .cbm-container-visual {
@@ -9109,23 +9088,6 @@ html[lang="ar"] .section-code {
   .order-analyzer__mapping button {
     transition: none;
   }
-}
-
-.cbm-container-fill {
-  fill: var(--cbm-fill);
-  transition: width 0.4s ease;
-}
-
-.cbm-container-fill.is-full {
-  fill: var(--brand-orange);
-}
-
-.cbm-container-ribs {
-  stroke: var(--brand-teal);
-}
-
-.cbm-container-percentage {
-  fill: var(--cbm-ink);
 }
 
 .site-scroll-progress {
@@ -12387,4 +12349,246 @@ main > #team.team {
     max-width: 132px;
   }
 
+}
+
+/* 2026-07-22 release: realistic container loading cards and shadow-free language control. */
+.site-nav .site-nav-language,
+.site-nav .site-nav-language:hover,
+.site-nav .site-nav-language > summary {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+.cbm-visual {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+  padding: 14px;
+  border-color: rgba(15, 107, 168, 0.15);
+  border-radius: 22px;
+  background-color: #f8fbfd;
+  box-shadow: none;
+}
+
+.cbm-container-visual.container-load-card {
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+  padding: 13px 14px 12px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 107, 168, 0.16);
+  border-radius: 20px;
+  background-color: #ffffff;
+  box-shadow: none;
+}
+
+.cbm-container-visual.container-load-card.is-full {
+  border-color: rgba(217, 119, 6, 0.42);
+  background-color: #fffbeb;
+}
+
+.container-load-card__meta,
+.container-load-card__footer,
+.order-analyzer__container-head,
+.order-analyzer__container-summary {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.container-load-card__identity {
+  color: #0f4c5c;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.cbm-container-percentage {
+  color: #0f766e;
+  font: 900 clamp(20px, 2.25vw, 28px)/1 var(--font-mono-stack);
+  font-variant-numeric: tabular-nums;
+}
+
+.container-load-card.is-full .cbm-container-percentage {
+  color: #b45309;
+}
+
+.container-load-card__scene {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1280 / 438;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 12px;
+  background-color: #edf5f7;
+}
+
+.container-load-card__shell {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.container-load-card__bay {
+  position: absolute;
+  z-index: 2;
+  top: 22%;
+  right: 13.4%;
+  bottom: 14%;
+  left: 4.1%;
+  overflow: hidden;
+}
+
+.cbm-container-fill.container-load-card__cargo-clip {
+  position: absolute;
+  inset: 0 auto 0 0;
+  max-width: 100%;
+  overflow: hidden;
+  transition: width 0.4s ease;
+}
+
+.container-load-card__cargo {
+  position: absolute;
+  inset: 0 auto 0 0;
+  max-width: none;
+  height: 100%;
+  display: block;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+}
+
+.cbm-container-capacity {
+  min-width: 0;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 760;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.container-load-card__state {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  color: #0f665f;
+  border: 1px solid rgba(var(--brand-teal-rgb), 0.22);
+  border-radius: 999px;
+  background-color: #ecfdf5;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.container-load-card.is-full .container-load-card__state {
+  color: #92400e;
+  border-color: rgba(217, 119, 6, 0.28);
+  background-color: #fef3c7;
+}
+
+.order-analyzer__container {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background-color: #f8fbfd;
+  box-shadow: none;
+}
+
+.order-analyzer__container-title {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.order-analyzer__container-volume {
+  flex: 0 0 auto;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.order-analyzer__container-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+}
+
+.order-analyzer__container-summary {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.order-analyzer__container-summary strong {
+  font-weight: 900;
+}
+
+.order-analyzer__container-pending {
+  color: #b45309;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.order-analyzer__container-fallback {
+  margin: 0;
+  padding: 14px;
+  color: #0f172a;
+  border: 1px solid rgba(15, 107, 168, 0.16);
+  border-radius: 16px;
+  background-color: #ffffff;
+  font: 800 14px/1.5 var(--font-mono-stack);
+}
+
+@media (max-width: 560px) {
+  .cbm-visual,
+  .order-analyzer__container-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cbm-visual {
+    padding: 9px;
+    border-radius: 18px;
+  }
+
+  .cbm-container-visual.container-load-card {
+    padding: 11px 10px 10px;
+    border-radius: 17px;
+  }
+
+  .container-load-card__meta,
+  .container-load-card__footer,
+  .order-analyzer__container-head,
+  .order-analyzer__container-summary {
+    gap: 8px;
+  }
+
+  .cbm-container-percentage {
+    font-size: 21px;
+  }
+
+  .cbm-container-capacity {
+    font-size: 10px;
+  }
+
+  .container-load-card__state {
+    padding-inline: 6px;
+    font-size: 9px;
+  }
+
+  .order-analyzer__container {
+    padding: 11px;
+    border-radius: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cbm-container-fill.container-load-card__cargo-clip {
+    transition: none;
+  }
 }

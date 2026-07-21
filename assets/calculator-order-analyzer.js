@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260722a";
+  var VERSION = "order-20260722b";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   // Main-thread parsing is an emergency compatibility path. Keep its memory
   // ceiling well below the Worker limit so older mobile browsers stay usable.
@@ -1879,30 +1879,41 @@
 
   Analyzer.prototype.renderContainer = function (estimate) {
     var loads = this.visibleContainerLoads(estimate, MAX_CONTAINER_BARS);
-    var rowHeight = 48;
-    var contentHeight = Math.max(190, 92 + loads.length * rowHeight);
-    var rows = loads.map(function (entry, rowIndex) {
-      var y = 52 + rowIndex * rowHeight;
+    var header = element("div", "order-analyzer__container-head");
+    header.appendChild(element("strong", "order-analyzer__container-title", this.copy.containerTitle));
+    header.appendChild(element("span", "num-mono order-analyzer__container-volume", estimate.volume == null ? "—" : this.formatNumber(estimate.volume, 3) + " m³"));
+
+    var grid = element("div", "order-analyzer__container-grid");
+    var builder = window.JabbarContainerVisual;
+    loads.forEach(function (entry, position) {
       var safePct = Math.max(0, Math.min(100, entry.percent || 0));
-      var fillWidth = Math.round(270 * safePct / 100);
-      return [
-        '<g data-container-load="' + safePct + '" data-container-index="' + entry.index + '">',
-        '<text x="28" y="' + (y + 23) + '" font-size="13" font-family="ui-monospace,Consolas,monospace" fill="#475569">#' + (entry.index + 1) + '</text>',
-        '<rect x="64" y="' + y + '" width="284" height="34" rx="5" fill="#f8fafc" stroke="#475569" stroke-width="3"/>',
-        '<rect x="71" y="' + (y + 7) + '" width="' + fillWidth + '" height="20" rx="2" fill="#5DCAA5"/>',
-        '<text x="206" y="' + (y + 24) + '" text-anchor="middle" font-size="16" font-weight="900" fill="#04342C">' + Math.round(safePct) + '%</text>',
-        '</g>'
-      ].join("");
-    }).join("");
-    this.containerVisual.innerHTML = [
-      '<svg viewBox="0 0 420 ' + contentHeight + '" role="img" dir="ltr" style="direction:ltr" aria-label="' + this.copy.containerTitle.replace(/"/g, "&quot;") + ': ' + loads.map(function (entry) { return Math.round(entry.percent) + "%"; }).join(", ") + '">',
-      '<text x="28" y="30" font-size="15" font-weight="800" fill="#0f172a">' + this.copy.containerTitle + '</text>',
-      '<text x="392" y="30" text-anchor="end" font-size="14" font-family="ui-monospace,Consolas,monospace" fill="#475569">' + (estimate.volume == null ? "—" : this.formatNumber(estimate.volume, 3) + " m³") + '</text>',
-      rows,
-      '<text x="28" y="' + (contentHeight - 18) + '" font-size="16" font-weight="850" fill="#0f172a">' + estimate.label + '</text>',
-      estimate.pending ? '<text x="392" y="' + (contentHeight - 18) + '" text-anchor="end" font-size="11" fill="#b45309">' + this.copy.provisional + '</text>' : "",
-      "</svg>"
-    ].join("");
+      var loadedVolume = Math.min(CONTAINER_CAPACITY_CBM, Math.max(0, Number(estimate.volume || 0) - entry.index * CONTAINER_CAPACITY_CBM));
+      var capacityText = this.copy.fortyHq + " " + (entry.index + 1) + "/" + estimate.count + " · " + this.formatNumber(loadedVolume, 1) + " / " + CONTAINER_CAPACITY_CBM + " m³";
+      if (builder && typeof builder.createCard === "function") {
+        grid.appendChild(builder.createCard({
+          percentage: safePct,
+          index: entry.index,
+          capacityText: capacityText,
+          title: this.copy.containerTitle,
+          primary: position === 0
+        }));
+        return;
+      }
+      var fallback = element("p", "order-analyzer__container-fallback", "#" + (entry.index + 1) + " · " + Math.round(safePct) + "% · " + capacityText);
+      fallback.dir = "ltr";
+      fallback.setAttribute("data-container-load", String(safePct));
+      fallback.setAttribute("data-container-index", String(entry.index));
+      fallback.setAttribute("role", "progressbar");
+      fallback.setAttribute("aria-valuemin", "0");
+      fallback.setAttribute("aria-valuemax", "100");
+      fallback.setAttribute("aria-valuenow", String(safePct));
+      grid.appendChild(fallback);
+    }, this);
+
+    var footer = element("div", "order-analyzer__container-summary");
+    footer.appendChild(element("strong", "", estimate.label));
+    if (estimate.pending) footer.appendChild(element("span", "order-analyzer__container-pending", this.copy.provisional));
+    this.containerVisual.replaceChildren(header, grid, footer);
   };
 
   Analyzer.prototype.renderResult = function (payload) {

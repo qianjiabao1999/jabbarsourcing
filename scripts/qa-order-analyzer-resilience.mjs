@@ -12,7 +12,7 @@ const source = await readFile(path.join(root, "assets/calculator-order-analyzer.
 assert(!source.includes("Analyzer.prototype.createReportPages"), "dead paginated report builder returned");
 assert(!source.includes("Analyzer.prototype.drawReportPage"), "dead paginated report painter returned");
 assert(source.includes("var MAIN_THREAD_FALLBACK_MAX_BYTES = 8 * 1024 * 1024"), "safe fallback limit changed");
-assert(source.includes('dir="ltr" style="direction:ltr"'), "container SVG must isolate itself from page RTL");
+assert(source.includes('fallback.dir = "ltr"'), "container fallback must isolate itself from page RTL");
 
 const contentTypes = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".webp": "image/webp", ".png": "image/png", ".svg": "image/svg+xml" };
 const server = createServer(async (request, response) => {
@@ -68,7 +68,9 @@ try {
       uniqueProducts: combined.result.metrics.uniqueProducts,
       status: instance.status.textContent,
       bdiCount: instance.root.querySelectorAll("bdi[dir='ltr']").length,
-      svgDirection: instance.root.querySelector(".order-analyzer__container svg")?.getAttribute("dir"),
+      pageDirection: getComputedStyle(document.documentElement).direction,
+      cardDirection: getComputedStyle(instance.root.querySelector(".order-analyzer__container .container-load-card")).direction,
+      sceneDirection: instance.root.querySelector(".order-analyzer__container .container-load-card__scene")?.getAttribute("dir"),
       exportLabel: instance.exportButton.textContent,
       fallbackMax: qa.mainThreadFallbackMaxBytes
     };
@@ -82,7 +84,8 @@ try {
   assert.equal(result.uniqueProducts, 1, "cross-file product normalization differs from worker semantics");
   assert.match(result.status, /2 of 3 files/, "partial-success status is missing");
   assert(result.bdiCount >= 3, "visible currency values are not direction-isolated");
-  assert.equal(result.svgDirection, "ltr", "RTL inheritance can still corrupt the container SVG");
+  assert.equal(result.cardDirection, result.pageDirection, "container labels no longer inherit the page reading direction");
+  assert.equal(result.sceneDirection, "ltr", "RTL inheritance can still corrupt the physical container scene");
   assert.match(result.exportLabel, /4K PNG overview/i, "export still promises a complete paginated result");
   assert.equal(result.fallbackMax, 8 * 1024 * 1024, "main-thread fallback limit is not exposed to QA");
 

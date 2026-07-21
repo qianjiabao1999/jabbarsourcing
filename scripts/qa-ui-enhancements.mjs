@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-180";
-const UI_VERSION = "ui-20260720a";
+const CSS_VERSION = "apple-181";
+const UI_VERSION = "ui-20260722a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -142,6 +142,11 @@ function collectErrors(page) {
   return errors;
 }
 
+function near(actual, expected, tolerance, label) {
+  assert(Number.isFinite(actual), `${label}: expected a finite number, got ${actual}`);
+  assert(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} != ${expected} (±${tolerance})`);
+}
+
 async function pageState(page) {
   return page.evaluate(() => {
     const normalizeText = (value) => String(value || "").replace(/\s+/g, " ").trim();
@@ -197,8 +202,7 @@ async function pageState(page) {
       : document.querySelector(".site-nav-quote-action, .site-nav-return-home");
     const calculatorPage = document.querySelector(".calculator-page");
     const blueprint = calculatorPage ? getComputedStyle(calculatorPage) : null;
-    const cap = document.querySelector("#cbmCap");
-    const fill = document.querySelector("#cbmFill");
+    const primaryContainer = document.querySelector(".cbm-visual [data-container-load]");
     return {
       title: document.title,
       width: window.innerWidth,
@@ -232,7 +236,9 @@ async function pageState(page) {
         shipmentItems: document.querySelectorAll(".shipment-ticker-item").length,
         metricNumbers: document.querySelectorAll(".company-metric-number.num-mono").length,
         reviewNumbers: document.querySelectorAll(".testimonial-order-meta .num-mono").length,
-        dimensionLines: document.querySelectorAll(".cbm-dimension-line").length,
+        containerCards: document.querySelectorAll(".cbm-visual .container-load-card").length,
+        containerShells: document.querySelectorAll(".cbm-visual .container-load-card__shell").length,
+        containerCargoLayers: document.querySelectorAll(".cbm-visual .container-load-card__cargo").length,
         jointBrandLockups: document.querySelectorAll(".hero-brand-partnership").length,
         companyAboutBlocks: document.querySelectorAll(".company-about").length,
         companyIdentityBlocks: document.querySelectorAll(".company-identity").length,
@@ -257,7 +263,9 @@ async function pageState(page) {
         tool: styleSnapshot(".site-nav-tool-pill"),
         toolBefore: styleSnapshot(".site-nav-tool-pill", "::before"),
         quote: styleSnapshotElement(quoteLink),
-        desktopTeam: styleSnapshot(".site-nav-links .site-nav-team")
+        desktopTeam: styleSnapshot(".site-nav-links .site-nav-team"),
+        language: styleSnapshot(".site-nav-language"),
+        languageSummary: styleSnapshot(".site-nav-language > summary")
       },
       mobileMenu: {
         calculatorLinks: document.querySelectorAll('.site-nav-mobile-panel a[href*="calculator"], .site-nav-mobile-panel a[href="./"]').length,
@@ -320,8 +328,13 @@ async function pageState(page) {
         resultStatusHidden: document.querySelector("[data-result-status]")?.hidden ?? null,
         hiddenDetails: document.querySelectorAll("[data-result-detail][hidden]").length,
         copyDisabled: document.querySelector("[data-copy-result]")?.disabled ?? null,
-        capY: Number(cap?.getAttribute("y")),
-        fillY: Number(fill?.getAttribute("y")),
+        primaryLoad: Number(primaryContainer?.getAttribute("data-container-load")),
+        primaryRole: primaryContainer?.getAttribute("role") || "",
+        primaryAriaNow: Number(primaryContainer?.getAttribute("aria-valuenow")),
+        primaryCardDirection: primaryContainer ? getComputedStyle(primaryContainer).direction : "",
+        primarySceneDirection: primaryContainer?.querySelector(".container-load-card__scene")?.getAttribute("dir") || "",
+        shellAsset: document.querySelector(".container-load-card__shell")?.getAttribute("src") || "",
+        cargoAsset: document.querySelector(".container-load-card__cargo")?.getAttribute("src") || "",
         blueprintImage: blueprint?.backgroundImage || "",
         blueprintSize: blueprint?.backgroundSize || ""
       },
@@ -416,8 +429,21 @@ function assertCalculatorVisualSignature(state, scope, locale, expectedResultSta
     assert.equal(state.calculator.hiddenDetails, 3, `${scope}: initial calculator details must stay hidden`);
     assert.equal(state.calculator.copyDisabled, true, `${scope}: copy result must start disabled`);
   }
-  assert(state.counts.dimensionLines >= 3, `${scope}: dimension line count ${state.counts.dimensionLines}`);
-  assert(state.calculator.capY < state.calculator.fillY, `${scope}: capacity annotation is not above the container`);
+  assert.equal(state.counts.containerCards, 1, `${scope}: initial container card count`);
+  assert.equal(state.counts.containerShells, 1, `${scope}: initial 3D shell count`);
+  assert.equal(state.counts.containerCargoLayers, 1, `${scope}: initial cargo layer count`);
+  assert.equal(state.calculator.primaryRole, "progressbar", `${scope}: container progress semantics missing`);
+  assert.equal(state.calculator.primaryCardDirection, locale === "ar" ? "rtl" : "ltr", `${scope}: localized container card direction`);
+  assert.equal(state.calculator.primarySceneDirection, "ltr", `${scope}: physical container scene direction`);
+  if (expectedResultState === "ready") {
+    assert(state.calculator.primaryLoad > 0 && state.calculator.primaryLoad <= 100, `${scope}: ready container load ${state.calculator.primaryLoad}`);
+    near(state.calculator.primaryAriaNow, state.calculator.primaryLoad, 1e-8, `${scope}: ready container aria value`);
+  } else {
+    assert.equal(state.calculator.primaryLoad, 0, `${scope}: initial container load`);
+    assert.equal(state.calculator.primaryAriaNow, 0, `${scope}: initial container aria value`);
+  }
+  assert.match(state.calculator.shellAsset, /container-40hq-shell-20260722\.webp$/, `${scope}: 3D shell asset`);
+  assert.match(state.calculator.cargoAsset, /container-cargo-stack-20260722\.webp$/, `${scope}: cargo asset`);
   assert.match(state.calculator.blueprintImage, /linear-gradient/i, `${scope}: blueprint grid missing`);
   assert.match(state.calculator.blueprintSize, /24px\s+24px/, `${scope}: blueprint grid size ${state.calculator.blueprintSize}`);
   assert(isMonoFamily(state.fonts.calculator), `${scope}: calculator values are not monospaced: ${state.fonts.calculator}`);
@@ -535,6 +561,8 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
     assert(state.rects.navLinks, `${scope}: mobile navigation links are missing from the DOM`);
     assert.equal(state.rects.navLinks.display, "none", `${scope}: desktop navigation links remain visible on mobile`);
   }
+  assert.equal(state.header.language.boxShadow, "none", `${scope}: language control still has a shadow`);
+  assert.equal(state.header.languageSummary.boxShadow, "none", `${scope}: language summary still has a shadow`);
 }
 
 function assertPageTelegram(state, scope) {
@@ -1349,24 +1377,24 @@ async function calculatorMatrix(browserType) {
   const cases = [
     {
       qty: 5,
-      containers: [{ pct: "7%", cap: "40英尺高柜 1/1 · 5.0 / 68 立方米", fill: "rgb(93, 202, 165)", full: false, width: "20" }]
+      containers: [{ pct: "7%", cap: "40英尺高柜 1/1 · 5.0 / 68 立方米", load: 5 / 68 * 100, full: false }]
     },
     {
       qty: 40,
-      containers: [{ pct: "59%", cap: "40英尺高柜 1/1 · 40.0 / 68 立方米", fill: "rgb(93, 202, 165)", full: false, width: "162" }]
+      containers: [{ pct: "59%", cap: "40英尺高柜 1/1 · 40.0 / 68 立方米", load: 40 / 68 * 100, full: false }]
     },
     {
       qty: 70,
       containers: [
-        { pct: "100%", cap: "40英尺高柜 1/2 · 68.0 / 68 立方米", fill: "rgb(239, 159, 39)", full: true, width: "276" },
-        { pct: "3%", cap: "40英尺高柜 2/2 · 2.0 / 68 立方米", fill: "rgb(93, 202, 165)", full: false, width: "8" }
+        { pct: "100%", cap: "40英尺高柜 1/2 · 68.0 / 68 立方米", load: 100, full: true },
+        { pct: "3%", cap: "40英尺高柜 2/2 · 2.0 / 68 立方米", load: 2 / 68 * 100, full: false }
       ]
     },
     {
       qty: 90,
       containers: [
-        { pct: "100%", cap: "40英尺高柜 1/2 · 68.0 / 68 立方米", fill: "rgb(239, 159, 39)", full: true, width: "276" },
-        { pct: "32%", cap: "40英尺高柜 2/2 · 22.0 / 68 立方米", fill: "rgb(93, 202, 165)", full: false, width: "89" }
+        { pct: "100%", cap: "40英尺高柜 1/2 · 68.0 / 68 立方米", load: 100, full: true },
+        { pct: "32%", cap: "40英尺高柜 2/2 · 22.0 / 68 立方米", load: 22 / 68 * 100, full: false }
       ]
     }
   ];
@@ -1380,16 +1408,22 @@ async function calculatorMatrix(browserType) {
     assert.equal(await page.locator("[data-copy-result]").isDisabled(), false, `${testCase.qty} CBM copy result remains disabled`);
     const visuals = page.locator(".cbm-container-visual");
     assert.equal(await visuals.count(), testCase.containers.length, `${testCase.qty} CBM rendered container count`);
+    await page.waitForFunction(() => Array.from(document.querySelectorAll(".cbm-visual .container-load-card__shell, .cbm-visual .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1280));
     for (let index = 0; index < testCase.containers.length; index += 1) {
       const expected = testCase.containers[index];
       const card = visuals.nth(index);
       assert.equal(await card.locator(".cbm-container-percentage").textContent(), expected.pct, `${testCase.qty} CBM container ${index + 1} percentage`);
       assert.equal(await card.locator(".cbm-container-capacity").textContent(), expected.cap, `${testCase.qty} CBM container ${index + 1} capacity`);
-      assert.equal(await card.locator(".cbm-container-fill").evaluate((element) => getComputedStyle(element).fill), expected.fill, `${testCase.qty} CBM container ${index + 1} fill color`);
       assert.equal(await card.locator(".cbm-container-fill").evaluate((element) => element.classList.contains("is-full")), expected.full, `${testCase.qty} CBM container ${index + 1} full class`);
-      assert.equal(await card.locator(".cbm-container-fill").getAttribute("width"), expected.width, `${testCase.qty} CBM container ${index + 1} fill width`);
-      const accessibleTitle = await card.locator("title").textContent();
+      near(Number(await card.getAttribute("data-container-load")), expected.load, 1e-8, `${testCase.qty} CBM container ${index + 1} load`);
+      near(Number(await card.getAttribute("aria-valuenow")), expected.load, 1e-8, `${testCase.qty} CBM container ${index + 1} aria load`);
+      // Browsers serialize CSS percentage widths with fewer decimals than the
+      // precise allocation stored in data/ARIA attributes.
+      near(Number.parseFloat(await card.locator(".cbm-container-fill").evaluate((element) => element.style.width)), expected.load, 1e-4, `${testCase.qty} CBM container ${index + 1} cargo width`);
+      const accessibleTitle = await card.getAttribute("aria-label");
       assert(accessibleTitle.includes(expected.pct) && accessibleTitle.includes(expected.cap), `${testCase.qty} CBM container ${index + 1} accessible title is stale: ${accessibleTitle}`);
+      assert.equal(await card.locator(".container-load-card__shell").evaluate((image) => image.naturalWidth), 1280, `${testCase.qty} CBM container ${index + 1} shell asset`);
+      assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => image.naturalWidth), 1280, `${testCase.qty} CBM container ${index + 1} cargo asset`);
     }
   }
   await page.locator(".calculator-results").screenshot({ path: `${OUTPUT_DIR}/calculator-visual-1280x900.png` });
@@ -1494,6 +1528,10 @@ async function interactionChecks(browserType) {
   const errors = collectErrors(page);
   await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
   assert.equal(await page.locator(".contact-speed-dial, .mobile-conversion-bar, .site-footer-backtop").count(), 0, "removed floating controls still exist on desktop");
+  const desktopLanguage = page.locator(".site-nav-language");
+  await desktopLanguage.hover();
+  assert.equal(await desktopLanguage.evaluate((element) => getComputedStyle(element).boxShadow), "none", "desktop language hover shadow returned");
+  assert.equal(await desktopLanguage.locator(":scope > summary").evaluate((element) => getComputedStyle(element).boxShadow), "none", "desktop language summary hover shadow returned");
   await page.locator('.site-nav-links a[href="#social-accounts"]').click();
   await page.waitForFunction(() => location.hash === "#social-accounts");
   await page.waitForFunction(() => {
@@ -1670,6 +1708,8 @@ async function interactionChecks(browserType) {
   assert.equal(await mobileSummary.evaluate((summary) => document.activeElement === summary), true, "Escape did not restore focus to the mobile navigation summary");
 
   await languageSummary.click();
+  assert.equal(await languageMenu.evaluate((element) => getComputedStyle(element).boxShadow), "none", "mobile language control shadow returned after touch");
+  assert.equal(await languageSummary.evaluate((element) => getComputedStyle(element).boxShadow), "none", "mobile language summary shadow returned after touch");
   await mobilePage.evaluate(() => document.body.dispatchEvent(new MouseEvent("click", { bubbles: true })));
   assert.equal(await languageMenu.getAttribute("open") !== null, false, "outside click did not close the language navigation");
 
