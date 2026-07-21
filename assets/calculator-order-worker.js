@@ -6,7 +6,7 @@
 (function (scope) {
   "use strict";
 
-  var VERSION = "order-20260719c";
+  var VERSION = "order-20260722a";
   var MAX_ROWS = 10000;
   var MAX_COLUMNS = 100;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
@@ -287,7 +287,16 @@
   function createMapping(headers) {
     var mapping = {};
     var scores = {};
+    var ambiguousPieceCount = null;
+    var explicitQuantity = null;
     headers.forEach(function (header) {
+      var normalizedHeader = normalize(header.label);
+      if (["件数", "件數"].indexOf(normalizedHeader) !== -1 && !ambiguousPieceCount) {
+        ambiguousPieceCount = header;
+      }
+      if (["数量", "數量", "商品数量", "商品數量", "采购数量", "採購數量", "订购数量", "訂購數量"].indexOf(normalizedHeader) !== -1) {
+        if (!explicitQuantity || normalizedHeader.length > normalize(explicitQuantity.label).length) explicitQuantity = header;
+      }
       var match = matchHeaderDetail(header.label);
       if (!match || match.key === "image") return;
       if (mapping[match.key] == null || match.score > scores[match.key]) {
@@ -295,6 +304,13 @@
         scores[match.key] = match.score;
       }
     });
+    // In Chinese packing lists, 件数 commonly represents the carton count
+    // while 数量 is the product-unit quantity. Keep legacy 件数-only sheets
+    // mapped as quantity, but disambiguate when both headers are present.
+    if (ambiguousPieceCount && explicitQuantity && ambiguousPieceCount.index !== explicitQuantity.index) {
+      mapping.qty = explicitQuantity.index;
+      if (mapping.cartons == null) mapping.cartons = ambiguousPieceCount.index;
+    }
     return mapping;
   }
 

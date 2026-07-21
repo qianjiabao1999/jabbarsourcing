@@ -6,9 +6,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-179";
+const CSS_VERSION = "apple-180";
 const UI_VERSION = "ui-20260720a";
-const ORDER_VERSION = "order-20260719c";
+const ORDER_VERSION = "order-20260722a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
   zh: "社媒账号",
@@ -917,7 +917,7 @@ assert.match(reviewQuoteRule, /background-color:\s*#0f6ba8\s*;/, "styles.css: re
 assert.match(reviewQuoteRule, /background-image:\s*linear-gradient/, "styles.css: review quote CTA gradient missing");
 assert.doesNotMatch(reviewQuoteRule, /position:\s*fixed/, "styles.css: review quote CTA must remain inline");
 for (const token of [
-  ".calculator-order-upload", ".order-analyzer__dropzone", ".order-analyzer__mapping",
+  ".calculator-order-upload", ".order-analyzer__dropzone", ".order-analyzer__clear-files", ".order-analyzer__mapping",
   ".order-analyzer__metrics", ".order-analyzer__actions", ".order-analyzer__table"
 ]) {
   assert(css.includes(token), `styles.css: missing ${token}`);
@@ -927,12 +927,13 @@ const orderAnalyzer = await load("assets/calculator-order-analyzer.js");
 const orderWorker = await load("assets/calculator-order-worker.js");
 for (const token of [
   "data-order-export", "toBlob", "JABBAR_ORDER_ANALYZER_QA",
-  "order_file_selected", "order_parse_success", "order_parse_error",
+  "order_file_selected", "order_parse_success", "order_parse_error", "order_files_cleared",
   "order_export_png", "order_export_error", "data-order-inquiry",
-  "ORDER_INQUIRY_LABELS", "jabbarCalcResult", "calculator_inquiry"
+  "ORDER_INQUIRY_LABELS", "jabbarCalcResult", "calculator_inquiry", "data-order-clear", "clearSelection"
 ])
   assert(orderAnalyzer.includes(token), `calculator-order-analyzer.js: missing ${token}`);
 assert.equal(count(orderAnalyzer, /^\s{4}(?:zh|en|es|ar|fr|pt|ru|de|it|tr):\s+".*"[,]?$/gm), LOCALES.length, "calculator-order-analyzer.js: localized order inquiry label count");
+assert.equal(count(orderAnalyzer, /^\s{4}"(?:zh|en|es|ar|fr|pt|ru|de|it|tr)":\s+".*"[,]?$/gm), LOCALES.length, "calculator-order-analyzer.js: localized clear-files label count");
 assert.equal(count(orderAnalyzer, /setAttribute\("data-order-inquiry"/g), 1, "calculator-order-analyzer.js: duplicate order inquiry CTA");
 assert.match(orderAnalyzer, /this\.lang === "zh" \? "\/inquiry\/" : "\/" \+ this\.lang \+ "\/inquiry\/"/, "calculator-order-analyzer.js: localized inquiry path missing");
 for (const removedToken of ["data-order-wechat", "shareToWeChat", "navigator.share"]) {
@@ -944,6 +945,7 @@ assert.doesNotMatch(orderAnalyzer, /fillText\(["']Jabbar · 体积工具["']/, "
 assert.match(orderAnalyzer, /Analyzer\.prototype\.drawUhdReport[\s\S]*fillText\(this\.copy\.toolLabel, startX, 155\)/, "calculator-order-analyzer.js: 4K export header is not localized");
 assert.match(orderAnalyzer, /var MAX_FILE_BYTES = 50 \* 1024 \* 1024;/, "calculator-order-analyzer.js: file limit must be 50 MB");
 assert.match(orderAnalyzer, /var WORKER_TIMEOUT_MS = 60000;/, "calculator-order-analyzer.js: Worker timeout must be 60 seconds");
+assert.match(orderWorker, /ambiguousPieceCount[\s\S]*explicitQuantity[\s\S]*mapping\.qty = explicitQuantity\.index[\s\S]*mapping\.cartons = ambiguousPieceCount\.index/, "calculator-order-worker.js: 件数/数量 disambiguation missing");
 for (const token of [
   "CONTAINER_CAPACITY_CBM", "CONTAINER_EPSILON_CBM", "MAX_CONTAINER_BARS",
   "loads", "loadIndexes", "visibleContainerLoads", "drawContainerLoadBars",

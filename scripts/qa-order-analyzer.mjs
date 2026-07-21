@@ -12,6 +12,7 @@ const OUTPUT_DIR = process.env.QA_ORDER_OUTPUT_DIR || "/tmp/jabbar-order-analyze
 const REAL_WORKBOOK = process.env.ORDER_WORKBOOK || "";
 const SUMMARY_WORKBOOK = process.env.SUMMARY_ORDER_WORKBOOK || "";
 const BARCODE_WORKBOOK = process.env.BARCODE_ORDER_WORKBOOK || "";
+const PACKING_LIST_WORKBOOK = process.env.PACKING_LIST_WORKBOOK || "";
 const FIXTURE_NAME = "qa-order-analyzer-190-products.xlsx";
 const UTF8_CSV_FIXTURE = Buffer.from("商品名称,数量,金额\r\n茶杯,2,20\r\n", "utf8");
 const GB18030_CSV_FIXTURE = Buffer.from("c9ccc6b7c3fbb3c62ccafdc1bf2cbdf0b6ee0d0ab2e8b1ad2c322c32300d0a", "hex");
@@ -270,6 +271,43 @@ async function createNegativeFixture(browser) {
   });
   await context.close();
   return Buffer.from(base64, "base64");
+}
+
+async function createCartonQuantityFixtures(browser) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.setContent("<!doctype html><html><head></head><body></body></html>");
+  await page.addScriptTag({ url: `${BASE_URL}/assets/vendor/xlsx.full.min.js?v=0.20.3` });
+  const fixtures = await page.evaluate(() => {
+    function workbookBase64(rows, sheetName, formulas = {}) {
+      const workbook = XLSX.utils.book_new();
+      const sheet = XLSX.utils.aoa_to_sheet(rows);
+      for (const [cell, formula] of Object.entries(formulas)) sheet[cell].f = formula;
+      XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+      return XLSX.write(workbook, { type: "base64", bookType: "xlsx", compression: true });
+    }
+    const packingHeaders = [
+      "箱号", "箱号备注", "件数", "商品编号", "图片", "商品名称", "规格", "外语商品名称", "辅助数量", "单位关系",
+      "数量", "商品条码", "箱长", "箱宽", "箱高", "材质", "单价", "金额", "总体积（m³）", "总重量（kg）"
+    ];
+    return {
+      packing: workbookBase64([
+        packingHeaders,
+        [10, "", 1, "SKU-A", "", "商品 A", "", "", "", "", 40, "", "", "", "", "", 2, 80, 68, 100],
+        [10, "", "", "SKU-B", "", "商品 B", "", "", "", "", 60, "", "", "", "", "", 1, 60, 22, 50],
+        [11, "", 1, "SKU-C", "", "商品 C", "", "", "", "", 20, "", "", "", "", "", 3, 60, 0, 25],
+        ["合计", "", 2, "", "", "", "", "", "", "", 120, "", "", "", "", "", "", 200, 90, 175]
+      ], "装箱清单", {
+        C5: "SUM(C2:C4)", K5: "SUM(K2:K4)", R5: "SUM(R2:R4)", S5: "SUM(S2:S4)", T5: "SUM(T2:T4)"
+      }),
+      pieceOnly: workbookBase64([
+        ["商品名称", "件数", "金额"],
+        ["仅件数商品", 3, 30]
+      ], "普通订单")
+    };
+  });
+  await context.close();
+  return Object.fromEntries(Object.entries(fixtures).map(([key, value]) => [key, Buffer.from(value, "base64")]));
 }
 
 async function createSummaryFixture(browser) {
@@ -562,6 +600,7 @@ function assertMetrics(payload, expected, label, confirmed = false) {
   assert.equal(metrics.productRows, expected.productRows, `${label}: product rows`);
   assert.equal(metrics.uniqueProducts, expected.uniqueProducts, `${label}: unique products`);
   near(metrics.quantity, expected.quantity, 1e-8, `${label}: quantity`);
+  if (Object.prototype.hasOwnProperty.call(expected, "cartons")) near(metrics.cartons, expected.cartons, 1e-8, `${label}: cartons`);
   near(metrics.weight, expected.weight, 1e-6, `${label}: weight`);
   near(metrics.volume, expected.volume, 1e-9, `${label}: volume`);
   assert.equal(metrics.amounts.length, 1, `${label}: amount group count`);
@@ -633,12 +672,14 @@ async function assertNoOverflow(page, label) {
 const browser = await chromium.launch({ headless: true });
 let realExport = null;
 let fixtureExport = null;
+let packingListTested = false;
 try {
   const fixture = await createFixture(browser);
   const usdHeaderFixture = await createUsdHeaderFixture(browser);
   const barcodeFixtures = await createBarcodeFixtures(browser);
   const auditEdgeFixtures = await createAuditEdgeFixtures(browser);
   const negativeFixture = await createNegativeFixture(browser);
+  const cartonQuantityFixtures = await createCartonQuantityFixtures(browser);
   const summaryFixture = await createSummaryFixture(browser);
   const continuationFixture = await createContinuationFixture(browser);
   const allQuantityOneFixture = await createAllQuantityOneFixture(browser);
@@ -711,6 +752,47 @@ try {
   await page.locator("[data-order-analyzer]").screenshot({ path: `${OUTPUT_DIR}/fixture-desktop-1280.png` });
 
   fixtureExport = await captureExport(page, 1, "fixture export");
+
+  const packingFixtureFile = {
+    name: "qa-cartons-and-quantity.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: cartonQuantityFixtures.packing
+  };
+  payload = await uploadWorkbook(page, packingFixtureFile);
+  assert.equal(payload.mapping.cartons, 2, "packing fixture: 件数 was not mapped to cartons");
+  assert.equal(payload.mapping.qty, 10, "packing fixture: 数量 was not mapped to quantity");
+  assertMetrics(payload, { productRows: 3, uniqueProducts: 3, quantity: 120, cartons: 2, weight: 175, volume: 90, amount: 200 }, "packing fixture", true);
+  assert.equal(payload.result.skippedSummaryRows, 1, "packing fixture: trailing total was not skipped exactly once");
+  assert.equal(payload.result.subtotalMismatchCount, 0, "packing fixture: quantity mapping caused subtotal mismatches");
+  const containerLoads = await page.locator("[data-order-results] [data-container-load]").evaluateAll((nodes) => nodes.map((node) => Number(node.getAttribute("data-container-load"))));
+  assert.equal(containerLoads.length, 2, "packing fixture: 90 CBM did not render two containers");
+  near(containerLoads[0], 100, 1e-8, "packing fixture: first container load");
+  near(containerLoads[1], 22 / 68 * 100, 1e-8, "packing fixture: second container load");
+  assert.equal(await page.locator("[data-order-clear]").isVisible(), true, "clear selected files button is not visible after upload");
+  await page.locator("[data-order-clear]").click();
+  const clearedState = await page.evaluate(() => ({
+    fileValue: document.querySelector("[data-order-file]")?.value || "",
+    fileMeta: document.querySelector(".order-analyzer__file-meta")?.textContent || "",
+    status: document.querySelector("[data-order-status]")?.textContent || "",
+    clearHidden: document.querySelector("[data-order-clear]")?.hidden,
+    resultsHidden: document.querySelector("[data-order-results]")?.hidden,
+    fileListHidden: document.querySelector("[data-order-file-list]")?.hidden,
+    payload: document.querySelector("[data-order-analyzer]")?.__jabbarOrderAnalyzer?.payload || null
+  }));
+  assert.deepEqual(clearedState, {
+    fileValue: "", fileMeta: "", status: "", clearHidden: true, resultsHidden: true, fileListHidden: true, payload: null
+  }, "clear selected files did not fully reset the analyzer");
+  payload = await uploadWorkbook(page, packingFixtureFile);
+  assertMetrics(payload, { productRows: 3, uniqueProducts: 3, quantity: 120, cartons: 2, weight: 175, volume: 90, amount: 200 }, "same-name packing fixture reupload", true);
+
+  payload = await uploadWorkbook(page, {
+    name: "qa-piece-count-only.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: cartonQuantityFixtures.pieceOnly
+  });
+  assert.equal(payload.mapping.qty, 1, "件数-only fixture no longer maps to quantity");
+  assert.equal(payload.mapping.cartons, undefined, "件数-only fixture was silently reclassified as cartons");
+  near(payload.result.metrics.quantity, 3, 1e-8, "件数-only fixture quantity");
 
   assert.equal(await page.locator("[data-order-file]").getAttribute("multiple"), "", "multi-file input is not enabled");
   const multiUpload = await uploadWorkbooks(page, multiFileFixtures);
@@ -1264,6 +1346,20 @@ try {
     assert(payload.result.items.every((item) => !/^\d{6,}$/.test(item.product)), "optional barcode workbook: a barcode remained in product names");
   }
 
+  if (PACKING_LIST_WORKBOOK) {
+    await access(PACKING_LIST_WORKBOOK);
+    payload = await uploadWorkbook(page, PACKING_LIST_WORKBOOK);
+    assert.equal(payload.mapping.cartons, 2, "packing-list workbook: 件数 column");
+    assert.equal(payload.mapping.qty, 10, "packing-list workbook: 数量 column");
+    assertMetrics(payload, {
+      productRows: 2663, uniqueProducts: 2619, quantity: 171063, cartons: 565,
+      weight: 13359.5862, volume: 74.8881445148, amount: 314205.65, currency: "CNY"
+    }, "packing-list workbook", true);
+    assert.equal(payload.result.skippedSummaryRows, 1, "packing-list workbook: trailing total row");
+    assert.equal(payload.result.subtotalMismatchCount, 0, "packing-list workbook: subtotal mismatches");
+    packingListTested = true;
+  }
+
   if (REAL_WORKBOOK) {
     await access(REAL_WORKBOOK);
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -1405,6 +1501,7 @@ try {
     multiFile: { files: 3, combinedRows: 6, combinedQuantity: 12, pngFiles: 1, minPngWidth: 3840 },
     genericBatchConfirmation: { files: 2, confirmedSequentially: true, exportEnabled: true, pending: false },
     busyRaceProtection: { rejectedDirectParse: true, rejectedDrop: true, firstBatchPreserved: true },
+    cartonQuantity: { mappedSeparately: true, clearAndSameNameReupload: true, packingListTested },
     optionalPrivateWorkbook: realExport ? { tested: true, pngPages: realExport.pageCount } : { tested: false },
     screenshots: OUTPUT_DIR
   }, null, 2));

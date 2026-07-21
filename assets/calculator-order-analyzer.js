@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260719c";
+  var VERSION = "order-20260722a";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   // Main-thread parsing is an emergency compatibility path. Keep its memory
   // ceiling well below the Worker limit so older mobile browsers stay usable.
@@ -806,7 +806,21 @@
     it: { dropLead: "Trascina fino a 10 file Excel o selezionali", dropHint: ".xlsx, .xls, .xlsm o .csv · fino a 10 file · 50 MB ciascuno", selectedFiles: "File selezionati", tooManyFiles: "Seleziona al massimo 10 file.", parsingBatch: "Lettura locale del file {current} di {total}…", fileCollection: "Raccolta file", fileReady: "Pronto", combinedReady: "Sono stati analizzati e uniti {total} file. Seleziona un file per vederne i dettagli.", combinedReport: "RIEPILOGO ORDINI COMBINATO", combinedFile: "{total} file", exportPreparing: "Preparazione di un’unica immagine PNG 4K senza perdita…", exportDone: "L’immagine PNG 4K senza perdita è stata scaricata." },
     tr: { dropLead: "En fazla 10 Excel dosyasını bırakın veya seçin", dropHint: ".xlsx, .xls, .xlsm veya .csv · en fazla 10 dosya · her biri 50 MB", selectedFiles: "Seçilen dosyalar", tooManyFiles: "En fazla 10 dosya seçin.", parsingBatch: "{total} dosyadan {current}. dosya yerel olarak okunuyor…", fileCollection: "Dosya koleksiyonu", fileReady: "Hazır", combinedReady: "{total} dosya analiz edilip birleştirildi. Ayrıntıları görmek için bir dosya seçin.", combinedReport: "BİRLEŞİK SİPARİŞ ÖZETİ", combinedFile: "{total} dosya", exportPreparing: "Tek bir kayıpsız 4K PNG hazırlanıyor…", exportDone: "Kayıpsız 4K PNG indirildi." }
   };
-  Object.keys(BATCH_COPY).forEach(function (code) { Object.assign(LOCALES[code], BATCH_COPY[code]); });
+  var CLEAR_FILES_COPY = {
+    "en": "Remove selected files",
+    "zh": "删除已选文件",
+    "es": "Quitar archivos seleccionados",
+    "ar": "إزالة الملفات المحددة",
+    "fr": "Supprimer les fichiers sélectionnés",
+    "pt": "Remover arquivos selecionados",
+    "ru": "Удалить выбранные файлы",
+    "de": "Ausgewählte Dateien entfernen",
+    "it": "Rimuovi i file selezionati",
+    "tr": "Seçili dosyaları kaldır"
+  };
+  Object.keys(BATCH_COPY).forEach(function (code) {
+    Object.assign(LOCALES[code], BATCH_COPY[code], { clearFiles: CLEAR_FILES_COPY[code] });
+  });
 
   var ANALYZER_COPY = {
     en: {
@@ -1062,6 +1076,11 @@
     this.fileMeta = element("span", "order-analyzer__file-meta", "");
     dropzone.appendChild(this.fileMeta);
     upload.appendChild(dropzone);
+    this.clearButton = element("button", "order-analyzer__clear-files", t.clearFiles);
+    this.clearButton.type = "button";
+    this.clearButton.hidden = true;
+    this.clearButton.setAttribute("data-order-clear", "");
+    upload.appendChild(this.clearButton);
     this.root.appendChild(upload);
     this.status = element("p", "order-analyzer__status", "");
     this.status.setAttribute("data-order-status", "");
@@ -1169,6 +1188,7 @@
       if (self.busy) return;
       if (event.dataTransfer.files.length) self.parseFiles(Array.from(event.dataTransfer.files), "drop");
     });
+    this.clearButton.addEventListener("click", function () { self.clearSelection(); });
     this.sheetSelect.addEventListener("change", function () { self.selectSheet(self.sheetSelect.value); });
     this.applyButton.addEventListener("click", function () { self.applyMapping(); });
     this.mappingGrid.addEventListener("change", function (event) {
@@ -1194,6 +1214,7 @@
     this.busy = Boolean(busy);
     this.root.setAttribute("aria-busy", busy ? "true" : "false");
     this.fileInput.disabled = Boolean(busy);
+    this.clearButton.disabled = Boolean(busy);
     this.applyButton.disabled = Boolean(busy);
     if (busy) {
       this.exportButton.disabled = true;
@@ -1292,6 +1313,9 @@
     // retry the Worker in case a transient load/network failure has recovered.
     this.preferFallback = false;
     this.fileInput.value = "";
+    this.fileMeta.textContent = "";
+    this.setStatus("", false);
+    this.clearButton.hidden = true;
     this.currentFile = null;
     this.currentFiles = [];
     this.fileEntries = [];
@@ -1308,12 +1332,27 @@
     this.exportButton.disabled = true;
     this.fileList.hidden = true;
     this.fileList.innerHTML = "";
+    this.mappingGrid.innerHTML = "";
+    this.headerMeta.textContent = "";
+    this.sheetSelect.innerHTML = "";
+    this.metrics.innerHTML = "";
+    this.warningList.innerHTML = "";
+    this.containerVisual.innerHTML = "";
+    this.tableWrap.innerHTML = "";
     qa.lastResult = null;
     qa.combinedResult = null;
     qa.fileResults = [];
     qa.fileFailures = [];
     qa.exportPageCount = 0;
     qa.lastError = "";
+  };
+
+  Analyzer.prototype.clearSelection = function () {
+    if (this.busy) return;
+    var fileCount = this.currentFiles.length;
+    this.resetAnalysis();
+    trackEvent("order_files_cleared", { file_count: fileCount });
+    this.fileInput.focus();
   };
 
   Analyzer.prototype.parseOneFile = async function (file) {
@@ -1496,6 +1535,7 @@
     }
     this.currentFiles = files.slice();
     this.fileMeta.textContent = (files.length === 1 ? this.copy.selectedFile : this.copy.selectedFiles) + ": " + (files.length === 1 ? files[0].name + " · " + (files[0].size / 1024 / 1024).toFixed(2) + " MB" : files.length);
+    this.clearButton.hidden = false;
     if (files.length > MAX_FILES) {
       qa.lastError = "too_many_files:" + MAX_FILES;
       this.deliveryBlocked = this.copy.tooManyFiles;
