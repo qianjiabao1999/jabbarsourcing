@@ -15,7 +15,7 @@ const expectedPages = [
   "support.html",
   ...locales.filter(Boolean).map((locale) => `${locale}/website-privacy-policy.html`)
 ];
-const CONSENT_VERSION = "consent-20260719c";
+const CONSENT_VERSION = "consent-20260720a";
 const consentReference = `<script src="/assets/analytics-consent.js?v=${CONSENT_VERSION}" defer></script>`;
 const failures = [];
 
@@ -54,12 +54,16 @@ for (const requiredToken of [
   'var SESSION_DEFER_KEY = "jabbar.analyticsConsent.deferred"',
   'if (consentState === "granted") loadAnalytics()',
   'window.setTimeout(loadAnalytics, 0)',
+  'function isActionBlocked() {',
+  'function queueEvent(eventName, params) {',
+  'function flushQueuedEvents()',
   'setSessionDeferred(true)',
   'target.closest("[data-analytics-consent-open]")',
   'window.jabbarTrack = track',
   'window.jabbarAnalyticsConsent =',
   'var POLICY_VERSION = "2026-07-19"',
   "var CONSENT_TTL_MS = 365 * 24 * 60 * 60 * 1000",
+  "var DECISION_TTL_MS = 30 * 24 * 60 * 60 * 1000",
   "var AUTO_PROMPT_DELAY_MS = 1800",
   "JSON.stringify({",
   'window.gtag("consent", "default"',
@@ -108,16 +112,16 @@ if ((websitePrivacy.match(/<button\b[^>]*\bdata-analytics-consent-open\b[^>]*>/g
 }
 
 const policyRoutes = [
-  { locale: "zh", file: "website-privacy-policy.html", lang: "zh-CN", canonical: "/website-privacy-policy.html" },
-  { locale: "en", file: "en/website-privacy-policy.html", lang: "en", canonical: "/en/website-privacy-policy.html" },
-  { locale: "es", file: "es/website-privacy-policy.html", lang: "es", canonical: "/es/website-privacy-policy.html" },
-  { locale: "ar", file: "ar/website-privacy-policy.html", lang: "ar", canonical: "/ar/website-privacy-policy.html", rtl: true },
-  { locale: "fr", file: "fr/website-privacy-policy.html", lang: "fr", canonical: "/fr/website-privacy-policy.html" },
-  { locale: "pt", file: "pt/website-privacy-policy.html", lang: "pt", canonical: "/pt/website-privacy-policy.html" },
-  { locale: "ru", file: "ru/website-privacy-policy.html", lang: "ru", canonical: "/ru/website-privacy-policy.html" },
-  { locale: "de", file: "de/website-privacy-policy.html", lang: "de", canonical: "/de/website-privacy-policy.html" },
-  { locale: "it", file: "it/website-privacy-policy.html", lang: "it", canonical: "/it/website-privacy-policy.html" },
-  { locale: "tr", file: "tr/website-privacy-policy.html", lang: "tr", canonical: "/tr/website-privacy-policy.html" }
+  { locale: "zh", file: "website-privacy-policy.html", lang: "zh-CN", canonical: "/website-privacy-policy.html", later: "稍后决定”选择最长保存 30 天" },
+  { locale: "en", file: "en/website-privacy-policy.html", lang: "en", canonical: "/en/website-privacy-policy.html", later: "Decide later choice is stored for up to 30 days" },
+  { locale: "es", file: "es/website-privacy-policy.html", lang: "es", canonical: "/es/website-privacy-policy.html", later: "Decidir más tarde se guarda durante un máximo de 30 días" },
+  { locale: "ar", file: "ar/website-privacy-policy.html", lang: "ar", canonical: "/ar/website-privacy-policy.html", rtl: true, later: "القرار لاحقاً» لمدة تصل إلى 30 يوماً" },
+  { locale: "fr", file: "fr/website-privacy-policy.html", lang: "fr", canonical: "/fr/website-privacy-policy.html", later: "Décider plus tard est conservé pendant 30 jours au maximum" },
+  { locale: "pt", file: "pt/website-privacy-policy.html", lang: "pt", canonical: "/pt/website-privacy-policy.html", later: "Decidir mais tarde é guardada por até 30 dias" },
+  { locale: "ru", file: "ru/website-privacy-policy.html", lang: "ru", canonical: "/ru/website-privacy-policy.html", later: "Решить позже» хранится не более 30 дней" },
+  { locale: "de", file: "de/website-privacy-policy.html", lang: "de", canonical: "/de/website-privacy-policy.html", later: "Später entscheiden wird höchstens 30 Tage gespeichert" },
+  { locale: "it", file: "it/website-privacy-policy.html", lang: "it", canonical: "/it/website-privacy-policy.html", later: "Decidi più tardi viene conservata per un massimo di 30 giorni" },
+  { locale: "tr", file: "tr/website-privacy-policy.html", lang: "tr", canonical: "/tr/website-privacy-policy.html", later: "Daha sonra karar ver seçimi en fazla 30 gün saklanır" }
 ];
 
 for (const route of policyRoutes) {
@@ -137,6 +141,12 @@ for (const route of policyRoutes) {
   }
   if (!source.includes("12")) {
     failures.push(`${route.file}: local analytics-preference retention disclosure is missing`);
+  }
+  if (!source.includes("Cloudflare Workers") || !source.includes("7")) {
+    failures.push(`${route.file}: structured Workers Logs retention disclosure is missing`);
+  }
+  if (!source.includes(route.later)) {
+    failures.push(`${route.file}: 30-day Decide later retention disclosure is missing`);
   }
   if (!source.includes('href="weixin://"') || source.includes("#wechat-modal") || source.includes("js-contact-modal-open")) {
     failures.push(`${route.file}: footer WeChat action is missing or points to a nonexistent modal`);
@@ -159,8 +169,16 @@ const consentJsIndex = consentSource.indexOf('window.gtag("js", new Date())');
 if (consentDefaultIndex < 0 || consentJsIndex < 0 || consentDefaultIndex > consentJsIndex) {
   failures.push("assets/analytics-consent.js: Consent Mode default must be set before gtag js");
 }
-if (!/if \(consentState !== "granted" \|\| !eventName\) return;/.test(consentSource)) {
-  failures.push("assets/analytics-consent.js: pre-consent events must be discarded instead of replayed");
+if (!consentSource.includes('if (!eventName || isActionBlocked()) return;')
+  || !consentSource.includes('if (consentState === "granted" && typeof window.gtag === "function") {')) {
+  failures.push("assets/analytics-consent.js: pre-consent event path must block denied only and queue otherwise");
+}
+if (!consentSource.includes("if (queuedEvents.length >= 40) queuedEvents.shift();")
+  || consentSource.includes("queuedEvents.length >= 40) return")) {
+  failures.push("assets/analytics-consent.js: full pending queue must evict the oldest event instead of the newest conversion");
+}
+if (/if \(consentState !== "granted" \|\| !eventName\) return;/.test(consentSource)) {
+  failures.push("assets/analytics-consent.js: old pre-consent discard path still present");
 }
 
 if (failures.length) {

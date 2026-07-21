@@ -5,7 +5,7 @@ import {
   runDurableObjectAlarm,
   runInDurableObject,
 } from "cloudflare:test";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { handleRequest, type InquiryIdempotency } from "../src/index";
 
 const ALLOWED_ORIGIN = "https://www.jabbarsourcing.com";
@@ -143,7 +143,7 @@ function createEnv(options: MockOptions = {}): {
     ALLOWED_HOSTNAMES: "www.jabbarsourcing.com,jabbarsourcing.com",
     INQUIRY_RECIPIENT: RECIPIENT,
     INQUIRY_FROM: SENDER,
-    PRIVACY_VERSION: "2026-07-19",
+    PRIVACY_VERSION: "2026-07-22",
   } satisfies Env;
 
   return {
@@ -170,7 +170,7 @@ function validPayload(overrides: Record<string, unknown> = {}): Record<string, u
     locale: "en",
     sourcePath: "/en/inquiry/",
     privacyAcknowledged: true,
-    privacyVersion: "2026-07-19",
+    privacyVersion: "2026-07-22",
     submissionId: "8f86cdd2-fcb8-4b39-9cc1-04ef23780243",
     turnstileToken: "test-turnstile-token",
     attribution: {
@@ -324,6 +324,130 @@ describe("inquiry Worker security regressions", () => {
     expect(context.turnstileCalls[0]?.body.idempotency_key).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     );
+  });
+
+  it("emits one consent-independent success metric without logging arbitrary UTM values", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const context = createEnv();
+      const payload = validPayload({
+        attribution: {
+          ...(validPayload().attribution as Record<string, unknown>),
+          utm_campaign: "buyer@example.com",
+          utm_term: "+1 202 555 0147",
+          utm_content: "Private buyer name",
+        },
+      });
+
+      const response = await handleRequest(inquiryRequest(payload), context.env);
+      expect(response.status).toBe(201);
+      const responseBody = await response.clone().json() as { requestId: string };
+
+      const successEvents = logSpy.mock.calls
+        .map(([message]) => message)
+        .filter((message): message is Record<string, unknown> => Boolean(message) && typeof message === "object")
+        .filter((event) => event.event === "inquiry_submit" && event.response_status === 201);
+      expect(successEvents).toHaveLength(1);
+      expect(successEvents[0]).toMatchObject({
+        response_status: 201,
+        locale: "en",
+        utm_source: "google",
+        utm_medium: "cpc",
+        utm_campaign_present: true,
+        utm_term_present: true,
+        utm_content_present: true,
+      });
+      expect(Object.keys(successEvents[0] ?? {}).sort()).toEqual([
+        "duration_ms",
+        "event",
+        "locale",
+        "response_status",
+        "utm_campaign_present",
+        "utm_content_present",
+        "utm_medium",
+        "utm_source",
+        "utm_term_present",
+      ]);
+      const serializedEvent = JSON.stringify(successEvents[0]);
+      expect(serializedEvent).not.toContain("buyer@example.com");
+      expect(serializedEvent).not.toContain("202_555_0147");
+      expect(serializedEvent).not.toContain("private_buyer_name");
+      expect(serializedEvent).not.toContain(CLIENT_IP);
+      expect(serializedEvent).not.toContain("test-turnstile-token");
+      expect(serializedEvent).not.toContain(responseBody.requestId);
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  it("collapses unrecognized UTM source and medium values without leaking their text", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const context = createEnv();
+      const payload = validPayload({
+        submissionId: "6b49c197-e576-44fd-878e-00e6068415e3",
+        attribution: {
+          ...(validPayload().attribution as Record<string, unknown>),
+          utm_source: "private-buyer@example.com",
+          utm_medium: "+1 202 555 0147",
+        },
+      });
+
+      expect((await handleRequest(inquiryRequest(payload), context.env)).status).toBe(201);
+      const successEvent = logSpy.mock.calls
+        .map(([message]) => message)
+        .find((message): message is Record<string, unknown> =>
+          Boolean(message) && typeof message === "object" && message.event === "inquiry_submit");
+      expect(successEvent).toMatchObject({ utm_source: "other", utm_medium: "other" });
+      expect(JSON.stringify(successEvent)).not.toContain("private-buyer");
+      expect(JSON.stringify(successEvent)).not.toContain("202_555_0147");
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  it("emits exactly one structured success metric when delivery is accepted with status 202", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const context = createEnv();
+      const idempotencyStub = {
+        async getStatus() {
+          return { state: "missing" } as const;
+        },
+        async begin(requestId: string) {
+          return {
+            state: "acquired",
+            requestId,
+            claimId: "0cda79bc-0677-4b88-b3b0-89c62806aa5b",
+          } as const;
+        },
+        async markSent() {
+          throw new Error("simulated state write failure");
+        },
+        async markFailed() {
+          return true;
+        },
+      };
+      context.env.INQUIRY_IDEMPOTENCY = {
+        getByName() {
+          return idempotencyStub;
+        },
+      } as unknown as Env["INQUIRY_IDEMPOTENCY"];
+
+      const response = await handleRequest(inquiryRequest(validPayload()), context.env);
+      expect(response.status).toBe(202);
+      await expect(response.json()).resolves.toMatchObject({ ok: true, status: "accepted" });
+      const successEvents = logSpy.mock.calls
+        .map(([message]) => message)
+        .filter((message): message is Record<string, unknown> =>
+          Boolean(message) && typeof message === "object" && message.event === "inquiry_submit");
+      expect(successEvents).toHaveLength(1);
+      expect(successEvents[0]).toMatchObject({ response_status: 202, locale: "en" });
+    } finally {
+      errorSpy.mockRestore();
+      logSpy.mockRestore();
+    }
   });
 
   it("accepts the website privacy page as a safe attribution landing path", async () => {
@@ -495,7 +619,29 @@ describe("inquiry Worker security regressions", () => {
     expect(context.email.sent[0]?.text).toContain("Landing page: /en/inquiry/");
   });
 
-  it("keeps the 7/18 cached page compatible while the 7/19 page rollout propagates", async () => {
+  it("keeps the 7/19 cached page compatible while the 7/22 page rollout propagates", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const context = createEnv();
+      const response = await handleRequest(
+        inquiryRequest(validPayload({ privacyVersion: "2026-07-19" })),
+        context.env,
+      );
+
+      expect(response.status).toBe(201);
+      expect(context.email.sent).toHaveLength(1);
+      expect(context.email.sent[0]?.text).toContain("Privacy notice version: 2026-07-19");
+      expect(context.email.sent[0]?.text).toContain("Product reference URL: https://www.alibaba.com/product-detail/example-123.html");
+      expect(logSpy.mock.calls.some(([message]) =>
+        Boolean(message) && typeof message === "object" &&
+          (message as Record<string, unknown>).event === "inquiry_submit"),
+      ).toBe(false);
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  it("keeps the 7/18 cached page compatible while older caches expire", async () => {
     const context = createEnv();
     const response = await handleRequest(
       inquiryRequest(validPayload({ privacyVersion: "2026-07-18" })),
@@ -506,6 +652,26 @@ describe("inquiry Worker security regressions", () => {
     expect(context.email.sent).toHaveLength(1);
     expect(context.email.sent[0]?.text).toContain("Privacy notice version: 2026-07-18");
     expect(context.email.sent[0]?.text).toContain("Product reference URL: https://www.alibaba.com/product-detail/example-123.html");
+  });
+
+  it("rejects cached privacy versions after the documented compatibility deadline", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-22T00:00:00Z"));
+    try {
+      const context = createEnv();
+      const response = await handleRequest(
+        inquiryRequest(validPayload({ privacyVersion: "2026-07-19" })),
+        context.env,
+      );
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({ error: "invalid_privacy_version" });
+      expect(context.trace).toEqual(["edge"]);
+      expect(context.turnstileCalls).toHaveLength(0);
+      expect(context.email.attempts).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it.each(["referenceUrl", "attribution"])(
@@ -668,26 +834,35 @@ describe("inquiry Worker security regressions", () => {
   });
 
   it("returns the original result for a repeated submission and sends one email", async () => {
-    const context = createEnv();
-    const payload = validPayload();
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const context = createEnv();
+      const payload = validPayload();
 
-    const first = await handleRequest(inquiryRequest(payload), context.env);
-    expect(first.status).toBe(201);
-    const firstBody = (await first.json()) as { requestId: string };
+      const first = await handleRequest(inquiryRequest(payload), context.env);
+      expect(first.status).toBe(201);
+      const firstBody = (await first.json()) as { requestId: string };
 
-    const duplicate = await handleRequest(inquiryRequest(payload), context.env);
-    expect(duplicate.status).toBe(200);
-    await expect(duplicate.json()).resolves.toEqual({
-      ok: true,
-      requestId: firstBody.requestId,
-      duplicate: true,
-    });
+      const duplicate = await handleRequest(inquiryRequest(payload), context.env);
+      expect(duplicate.status).toBe(200);
+      await expect(duplicate.json()).resolves.toEqual({
+        ok: true,
+        requestId: firstBody.requestId,
+        duplicate: true,
+      });
 
-    expect(context.email.attempts).toBe(1);
-    expect(context.email.sent).toHaveLength(1);
-    expect(context.turnstileCalls).toHaveLength(1);
-    expect(context.edgeRateLimit.keys).toHaveLength(2);
-    expect(context.contactRateLimit.keys).toHaveLength(1);
+      expect(context.email.attempts).toBe(1);
+      expect(context.email.sent).toHaveLength(1);
+      expect(context.turnstileCalls).toHaveLength(1);
+      expect(context.edgeRateLimit.keys).toHaveLength(2);
+      expect(context.contactRateLimit.keys).toHaveLength(1);
+      expect(logSpy.mock.calls.filter(([message]) =>
+        Boolean(message) && typeof message === "object" &&
+          (message as Record<string, unknown>).event === "inquiry_submit"),
+      ).toHaveLength(1);
+    } finally {
+      logSpy.mockRestore();
+    }
   });
 
   it("rejects changed content that reuses an existing submission ID", async () => {

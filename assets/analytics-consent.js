@@ -7,10 +7,11 @@
   var SESSION_DEFER_KEY = "jabbar.analyticsConsent.deferred";
   var POLICY_VERSION = "2026-07-19";
   var CONSENT_TTL_MS = 365 * 24 * 60 * 60 * 1000;
+  var DECISION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
   var AUTO_PROMPT_DELAY_MS = 1800;
   var GOOGLE_ID = "G-C6X14RZHNZ";
   var CLARITY_ID = "xgsjhmd527";
-  var VALID_STATES = { granted: true, denied: true };
+  var VALID_STATES = { granted: true, denied: true, later: true };
   var queuedEvents = [];
   var analyticsLoaded = false;
   var panel = null;
@@ -134,7 +135,8 @@
       }
       var record = JSON.parse(value);
       if (!record || !VALID_STATES[record.state] || typeof record.at !== "number") return null;
-      if (record.policy !== POLICY_VERSION || Date.now() - record.at > CONSENT_TTL_MS || record.at > Date.now() + 60000) {
+      var stateTtl = record.state === "later" ? DECISION_TTL_MS : CONSENT_TTL_MS;
+      if (record.policy !== POLICY_VERSION || Date.now() - record.at > stateTtl || record.at > Date.now() + 60000) {
         window.localStorage.removeItem(STORAGE_KEY);
         return null;
       }
@@ -169,14 +171,23 @@
     } catch (error) {}
   }
 
+  function isTerminalConsentState(state) {
+    return state === "granted" || state === "denied" || state === "later";
+  }
+
+  function isActionBlocked() {
+    return consentState === "denied";
+  }
+
   function queueEvent(eventName, params) {
-    if (!eventName || queuedEvents.length >= 40) return;
+    if (!eventName) return;
+    if (queuedEvents.length >= 40) queuedEvents.shift();
     queuedEvents.push([eventName, params || {}]);
   }
 
   function track(eventName, params) {
-    if (consentState !== "granted" || !eventName) return;
-    if (typeof window.gtag === "function") {
+    if (!eventName || isActionBlocked()) return;
+    if (consentState === "granted" && typeof window.gtag === "function") {
       window.gtag("event", eventName, params || {});
       return;
     }
@@ -304,7 +315,7 @@
   }
 
   function canShowAutomaticPanel() {
-    return !consentState && !readSessionDeferred() && !inquiryFormFocused;
+    return !isTerminalConsentState(consentState) && !readSessionDeferred() && !inquiryFormFocused;
   }
 
   function maybeShowAutomaticPanel() {
@@ -362,7 +373,7 @@
   }
 
   function installAutomaticPrompt() {
-    if (consentState || readSessionDeferred()) return;
+    if (isTerminalConsentState(consentState) || readSessionDeferred()) return;
     autoPromptTimer = window.setTimeout(triggerAutomaticPanel, AUTO_PROMPT_DELAY_MS);
     window.addEventListener("wheel", handleAutomaticScrollIntent, { passive: true });
     window.addEventListener("touchmove", handleAutomaticScrollIntent, { passive: true });
@@ -402,7 +413,9 @@
   }
 
   function decideLater() {
+    consentState = "later";
     clearAutomaticPromptTriggers();
+    storeState(consentState);
     setSessionDeferred(true);
     setPanelOpen(false);
   }

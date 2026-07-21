@@ -663,6 +663,8 @@ for (const viewport of [
     mentionsAnalytics: document.querySelector("#website-inquiries")?.textContent.includes("Google Analytics 4") || false,
     mentionsAttribution: document.querySelector("#website-inquiries")?.textContent.includes("first landing-page path") || false,
     mentionsReferenceUrl: document.querySelector("#website-inquiries")?.textContent.includes("product reference URL") || false,
+    mentionsWorkersLogs: document.querySelector("#website-inquiries")?.textContent.includes("Cloudflare Workers Logs") || false,
+    mentionsDecisionRetention: document.querySelector("#website-inquiries")?.textContent.includes("Decide later choice is stored for up to 30 days") || false,
     updatedDate: document.querySelector(".legal-hero p")?.textContent || "",
     title: document.title
   }));
@@ -671,7 +673,9 @@ for (const viewport of [
   assert(privacyMetrics.mentionsAnalytics, "Privacy policy must disclose analytics processing");
   assert(privacyMetrics.mentionsAttribution, "Privacy policy must disclose first-touch inquiry attribution");
   assert(privacyMetrics.mentionsReferenceUrl, "Privacy policy must disclose the product reference URL field");
-  assert(privacyMetrics.updatedDate.includes("July 19, 2026"), "Privacy policy must display the current disclosure date");
+  assert(privacyMetrics.mentionsWorkersLogs, "Privacy policy must disclose the structured Workers Logs metric");
+  assert(privacyMetrics.mentionsDecisionRetention, "Privacy policy must disclose the 30-day Decide later retention");
+  assert(privacyMetrics.updatedDate.includes("July 22, 2026"), "Privacy policy must display the current disclosure date");
   assert(privacyMetrics.title === "Jabbar Sourcing Website Inquiry Privacy Notice", "Privacy page title must cover public website inquiries");
 
   await page.goto(`${BASE_URL}/privacy-policy.html#website-inquiries`, { waitUntil: "domcontentloaded" });
@@ -692,6 +696,36 @@ for (const viewport of [
 }
 
 await page.setViewportSize({ width: 390, height: 844 });
+for (const policy of [
+  {
+    locale: "en",
+    path: "/en/website-privacy-policy.html",
+    date: "July 22, 2026",
+    later: "Decide later choice is stored for up to 30 days",
+    rtl: false
+  },
+  {
+    locale: "ar",
+    path: "/ar/website-privacy-policy.html",
+    date: "22 يوليو 2026",
+    later: "القرار لاحقاً» لمدة تصل إلى 30 يوماً",
+    rtl: true
+  }
+]) {
+  await page.goto(`${BASE_URL}${policy.path}`, { waitUntil: "domcontentloaded" });
+  const metrics = await page.evaluate(() => ({
+    overflow: document.documentElement.scrollWidth - window.innerWidth,
+    direction: getComputedStyle(document.documentElement).direction,
+    date: document.querySelector(".legal-hero p")?.textContent || "",
+    copy: document.querySelector(".legal-content")?.textContent || ""
+  }));
+  assert(metrics.overflow <= 1, `${policy.locale} privacy mobile has horizontal overflow: ${metrics.overflow}px`);
+  assert(metrics.date.includes(policy.date), `${policy.locale} privacy page has the wrong disclosure date`);
+  assert(metrics.copy.includes("Cloudflare Workers"), `${policy.locale} privacy page is missing Workers Logs disclosure`);
+  assert(metrics.copy.includes(policy.later), `${policy.locale} privacy page is missing 30-day Decide later retention`);
+  assert((metrics.direction === "rtl") === policy.rtl, `${policy.locale} privacy page direction regressed`);
+}
+
 await page.goto(`${BASE_URL}/404.html`, { waitUntil: "domcontentloaded" });
 const notFoundCtas = await page.locator(".not-found-actions .inquiry-entry-button").evaluateAll((buttons) =>
   buttons.map((button) => {

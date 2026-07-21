@@ -78,8 +78,8 @@ async function showAutomaticPanelOnFirstScroll(page, label) {
   await waitForAutomaticPanel(page, label, 1000);
 }
 
-// Decide later is session-scoped, does not load analytics, and can be reopened
-// only from the in-page privacy-policy control.
+// Decide later is persisted as a terminal state (30 days), does not load analytics,
+// and can be reopened only from the in-page privacy-policy control.
 {
   const { context, analyticsRequests } = await createMobileContext();
   const page = await context.newPage();
@@ -98,8 +98,11 @@ async function showAutomaticPanelOnFirstScroll(page, label) {
 
   await page.locator(".jabbar-consent-later").tap();
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "decide-later action did not close the panel");
-  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_DEFER_KEY), "1", "decide-later action was not scoped to the current session");
-  assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), null, "decide-later action stored a permanent choice");
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_DEFER_KEY), "1", "decide-later action was not scoped to session defer");
+  const laterRecord = await storedConsent(page);
+  assert.equal(laterRecord?.state, "later", "decide-later action did not persist terminal state");
+  assert.equal(laterRecord?.policy, POLICY_VERSION, "decide-later action stored the wrong policy version");
+  assert.equal(typeof laterRecord?.at, "number", "decide-later action did not store a numeric timestamp");
   assert.equal(analyticsRequests.length, 0, "decide-later action loaded analytics");
   await assertNoFloatingSettings(page, "decide later");
 
@@ -165,7 +168,8 @@ async function showAutomaticPanelOnFirstScroll(page, label) {
   await waitForAutomaticPanel(page, "second inquiry focusout recovery", 800);
 
   await page.locator(".jabbar-consent-later").tap();
-  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_DEFER_KEY), "1", "explicit decide-later action did not remain session-scoped");
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_DEFER_KEY), "1", "explicit decide-later action was not scoped to session defer");
+  assert.deepEqual(await storedConsent(page), { state: "later", at: (await storedConsent(page)).at, policy: POLICY_VERSION }, "explicit decide-later action was not persisted");
   await context.close();
 }
 
@@ -177,6 +181,12 @@ async function showAutomaticPanelOnFirstScroll(page, label) {
   await gotoAndWait(page, "/");
 
   await showAutomaticPanelOnFirstScroll(page, "MicroMessenger first visit");
+  await page.evaluate(() => window.jabbarTrack("qa_before_consent_accept", { source: "qa" }));
+  assert.equal(
+    await page.evaluate(() => (window.dataLayer || []).some((entry) => entry?.[0] === "event" && entry?.[1] === "qa_before_consent_accept")),
+    false,
+    "pending event entered dataLayer before consent",
+  );
   await page.locator(".jabbar-consent-accept").tap();
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "MicroMessenger tap did not close the consent panel immediately");
   assert.equal(await page.evaluate(() => window.jabbarAnalyticsConsent.getState()), "granted", "MicroMessenger tap did not update in-memory consent");
@@ -194,6 +204,11 @@ async function showAutomaticPanelOnFirstScroll(page, label) {
     const jsStart = calls.findIndex((entry) => entry[0] === "js");
     return consentDefault >= 0 && jsStart >= 0 && consentDefault < jsStart;
   }), true, "Consent Mode default was not recorded before gtag js");
+  assert.equal(
+    await page.evaluate(() => (window.dataLayer || []).filter((entry) => entry?.[0] === "event" && entry?.[1] === "qa_before_consent_accept").length),
+    1,
+    "pending event was not replayed exactly once after consent",
+  );
 
   await page.evaluate(() => window.jabbarTrack("qa_after_consent", { source: "qa" }));
   assert.equal(
@@ -201,6 +216,45 @@ async function showAutomaticPanelOnFirstScroll(page, label) {
     true,
     "post-consent event did not enter dataLayer",
   );
+  await context.close();
+}
+
+// A pending event rejected on the same page must be cleared permanently. If the
+// user explicitly reopens preferences and grants later, the rejected event must
+// not be replayed.
+{
+  const { context } = await createMobileContext();
+  const page = await context.newPage();
+  await gotoAndWait(page, "/en/");
+  await page.evaluate(() => window.jabbarTrack("qa_rejected_pending", { source: "qa" }));
+  await showAutomaticPanelOnFirstScroll(page, "pending rejection");
+  await page.locator(".jabbar-consent-reject").tap();
+  await page.evaluate(() => window.jabbarAnalyticsConsent.open());
+  await page.locator(".jabbar-consent-accept").tap();
+  await page.waitForFunction(() => document.querySelectorAll("#jabbar-google-analytics, #jabbar-microsoft-clarity").length === 2);
+  assert.equal(
+    await page.evaluate(() => (window.dataLayer || []).some((entry) => entry?.[0] === "event" && entry?.[1] === "qa_rejected_pending")),
+    false,
+    "rejected pending event was replayed after a later grant",
+  );
+  await context.close();
+}
+
+// Restricted WebViews can also reject persistence for decide-later. The action
+// must still close the panel and remain effective for the current page.
+{
+  const { context, analyticsRequests } = await createMobileContext({ failLocalStorage: true });
+  const page = await context.newPage();
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(String(error)));
+  await gotoAndWait(page, "/en/");
+  await showAutomaticPanelOnFirstScroll(page, "restricted WebView decide later");
+  await page.locator(".jabbar-consent-later").tap();
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "localStorage failure kept decide-later panel open");
+  assert.equal(await page.evaluate(() => window.jabbarAnalyticsConsent.getState()), "later", "localStorage failure prevented in-memory decide-later state");
+  assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), null, "localStorage failure unexpectedly persisted decide-later");
+  assert.equal(analyticsRequests.length, 0, "localStorage failure loaded analytics after decide-later");
+  assert.deepEqual(pageErrors, [], "localStorage failure caused a decide-later page exception");
   await context.close();
 }
 
@@ -310,5 +364,33 @@ async function showAutomaticPanelOnFirstScroll(page, label) {
   await context.close();
 }
 
+// Decide-later records remain terminal for 30 days, then expire and ask again
+// in a fresh session without relying on the session defer marker.
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await context.addInitScript(({ key, policy }) => {
+    localStorage.setItem(key, JSON.stringify({ state: "later", at: Date.now() - 29 * 24 * 60 * 60 * 1000, policy }));
+  }, { key: STORAGE_KEY, policy: POLICY_VERSION });
+  const page = await context.newPage();
+  await gotoAndWait(page, "/en/");
+  await page.mouse.wheel(0, 260);
+  await page.waitForTimeout(1900);
+  assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "29-day decide-later record reopened the automatic panel");
+  assert.equal((await storedConsent(page))?.state, "later", "29-day decide-later record was removed early");
+  await context.close();
+}
+
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await context.addInitScript(({ key, policy }) => {
+    localStorage.setItem(key, JSON.stringify({ state: "later", at: Date.now() - 31 * 24 * 60 * 60 * 1000, policy }));
+  }, { key: STORAGE_KEY, policy: POLICY_VERSION });
+  const page = await context.newPage();
+  await gotoAndWait(page, "/en/");
+  await showAutomaticPanelOnFirstScroll(page, "expired decide-later record");
+  assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), null, "31-day decide-later record was not removed");
+  await context.close();
+}
+
 await browser.close();
-console.log("Analytics consent browser QA passed: desktop click, MicroMessenger tap, JSON expiry/migration, Consent Mode order, accept/reject/later, localized privacy control, blocked analytics, and localStorage failure.");
+console.log("Analytics consent browser QA passed: desktop click, MicroMessenger tap, pending-event replay/clear, 30-day later expiry, JSON migration, Consent Mode order, localized privacy control, blocked analytics, and localStorage failure.");

@@ -562,10 +562,10 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
   };
   const EXPECTED_LEGAL_LASTMOD = {
     [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-19",
-    [`${PUBLIC_ORIGIN}/website-privacy-policy.html`]: "2026-07-19",
+    [`${PUBLIC_ORIGIN}/website-privacy-policy.html`]: "2026-07-22",
     ...Object.fromEntries(LOCALES.filter((locale) => locale !== "zh").map((locale) => [
       `${PUBLIC_ORIGIN}/${locale}/website-privacy-policy.html`,
-      "2026-07-19"
+      "2026-07-22"
     ])),
     [`${PUBLIC_ORIGIN}/support.html`]: "2026-07-12"
   };

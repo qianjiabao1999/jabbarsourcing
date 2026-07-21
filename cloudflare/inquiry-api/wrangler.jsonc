@@ -62,7 +62,7 @@
     "ALLOWED_HOSTNAMES": "www.jabbarsourcing.com,jabbarsourcing.com",
     "INQUIRY_RECIPIENT": "qianjiabao1999@gmail.com",
     "INQUIRY_FROM": "inquiry@jabbarsourcing.com",
-    "PRIVACY_VERSION": "2026-07-19"
+    "PRIVACY_VERSION": "2026-07-22"
   },
   "observability": {
     "enabled": true,

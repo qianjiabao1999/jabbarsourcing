@@ -8,9 +8,9 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
-const PRIVACY_VERSION = "2026-07-19";
+const PRIVACY_VERSION = "2026-07-22";
 const CSS_VERSION = "apple-179";
-const CONSENT_VERSION = "consent-20260719c";
+const CONSENT_VERSION = "consent-20260720a";
 const JS_VERSION = "inquiry-20260719c";
 
 const PAGES = [
@@ -539,7 +539,10 @@ if (!websitePrivacy.includes('<link rel="canonical" href="https://www.jabbarsour
 if (!websitePrivacy.includes("Google Analytics 4") ||
     !websitePrivacy.includes("first landing-page path") ||
     !websitePrivacy.includes("product reference URL") ||
-    !websitePrivacy.includes("Analytics settings")) {
+    !websitePrivacy.includes("Analytics settings") ||
+    !websitePrivacy.includes("July 22, 2026") ||
+    !websitePrivacy.includes("Cloudflare Workers Logs") ||
+    !websitePrivacy.includes("Decide later choice is stored for up to 30 days")) {
   fail("website-privacy-policy.html", "website inquiry, attribution, or consent disclosure is incomplete");
 }
 if ((websitePrivacy.match(new RegExp(`/assets/analytics-consent\\.js\\?v=${CONSENT_VERSION}`, "g")) || []).length !== 1 ||

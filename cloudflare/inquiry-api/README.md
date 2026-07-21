@@ -9,7 +9,11 @@ It does not replace the normal contact links in the site footer. It sends valida
 ## Security contract
 
 - Accepts only the 10 retained inquiry-page paths and locales.
-- Requires the current privacy acknowledgement and notice version.
+- Requires the current privacy acknowledgement and notice version. During the
+  atomic 2026-07-22 rollout it also accepts complete cached 2026-07-19 and
+  2026-07-18 payloads, plus only the exact reduced 2026-07-12 legacy shape,
+  through 2026-08-21 UTC. The Worker rejects those cached versions after that
+  deadline, and this compatibility code should be removed in the next release.
 - Rejects unlisted browser origins.
 - Caps JSON request bodies at 16 KiB, requires the exact JSON media type, and rejects unknown fields.
 - Verifies Turnstile through the separately deployed stock Turnstile Spin Worker using a service binding.
@@ -20,7 +24,10 @@ It does not replace the normal contact links in the site footer. It sends valida
 - Recovers an interrupted `pending` submission after a 10-minute lease while preserving the original request ID.
 - Gives every lease a separate claim ID so a stale Worker cannot overwrite a newer delivery state.
 - Sends through a restricted Cloudflare Email binding to one Gmail destination.
-- Does not persist inquiry bodies, names, contacts, tokens, or IP addresses in KV, D1, Durable Objects, or logs.
+- Does not persist inquiry bodies, names, contacts, tokens, or IP addresses in
+  KV, D1, or Durable Objects and does not explicitly write them to custom
+  application logs. Cloudflare may process request metadata under its platform
+  policies, as disclosed in the website privacy notice.
 - Keeps only random request and lease-claim IDs, a SHA-256 fingerprint that includes the random submission ID, timestamps, and `pending`/`sent`/`failed` delivery state.
 - Treats this state as expired after 24 hours and schedules an alarm to remove it; cleanup failures are explicitly rescheduled.
 - Does not accept attachments.
@@ -62,6 +69,27 @@ npm run deploy:dry
 The test suite uses the Cloudflare Workers Vitest pool, a real local Durable Object, and mock external bindings. It never sends a real email.
 
 The Workers Rate Limiting bindings are coarse abuse controls rather than exact global counters. Add a Cloudflare WAF rate-limiting rule before public launch for an additional account-level edge control.
+
+## Consent-independent submission measurement
+
+Every successful new delivery submitted under the current 2026-07-22 notice
+emits exactly one structured `inquiry_submit`
+Worker log after email delivery. This gives the operational funnel a
+server-side denominator that does not depend on browser analytics consent.
+Both normal `201 sent` responses and the rare `202 accepted` state use the same
+path and include `response_status`, locale, duration, allowlisted UTM source and
+medium categories, plus presence flags for campaign, term, and content.
+
+The metric deliberately excludes product requirements, company/name, contact
+details, notes, reference URLs, Turnstile tokens, and IP addresses. Source and
+medium are lower-cased and emitted only when they match small fixed allowlists;
+other values collapse to `other`. Campaign, term, and content values are never
+logged—the metric records only whether each was present. The production
+Wrangler configuration keeps Workers Logs enabled at a `1.0` head sampling
+rate. Duplicate idempotent `200`
+responses are not counted as new submissions. On the Workers Paid plan these
+operational logs are retained by Cloudflare for up to 7 days; the website
+privacy notice discloses the same limit and excluded fields.
 
 ## Production deployment order
 

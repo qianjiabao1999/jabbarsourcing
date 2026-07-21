@@ -44,7 +44,7 @@
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
     <link rel="manifest" href="site.webmanifest?v=jabbar-5" />
     <link rel="stylesheet" href="styles.min.css?v=apple-179" />
-    <script src="/assets/analytics-consent.js?v=consent-20260719c" defer></script>
+    <script src="/assets/analytics-consent.js?v=consent-20260720a" defer></script>
     <script src="script.js?v=apple-154" defer></script>
     <script>
       window.jabbarTrack = function (eventName, params) {
@@ -84,7 +84,7 @@
         <div class="container-wide legal-hero-inner">
           <span class="section-kicker light">Jabbar Sourcing</span>
           <h1>网站询盘隐私说明<br /><span>Website Inquiry Privacy Notice</span></h1>
-          <p>更新日期：2026 年 7 月 19 日 / Last updated: July 19, 2026</p>
+          <p>更新日期：2026 年 7 月 22 日 / Last updated: July 22, 2026</p>
         </div>
       </section>
 
@@ -116,7 +116,8 @@
             仅在你明确选择“允许分析”后，网站才会加载 Google Analytics 4 和 Microsoft Clarity，
             用于了解页面使用情况、排查性能和交互问题。选择拒绝不会影响网站核心功能或询盘提交；
             你可以通过本隐私政策页下方的非悬浮“分析设置”按钮随时改变选择。
-            你的分析选择、选择时间和本政策版本只保存在本设备的浏览器本地存储中，最长保存 12 个月；
+            你的“允许”或“拒绝”选择、选择时间和本政策版本只保存在本设备的浏览器本地存储中，最长保存 12 个月；
+            “稍后决定”选择最长保存 30 天；
             这条偏好记录不会发送到我们的服务器。
             为判断询盘来源，直接提交的询盘邮件还会包含首次进入本站的页面路径、外部来源网站的域名，以及网址中受长度限制的
             UTM source、medium、campaign、term 和 content 参数；这些来源字段不属于用户填写的询盘表单正文或联系方式。
@@ -127,6 +128,9 @@
           <p>
             询盘接口不会保存你的原始询盘正文、联系方式、Turnstile token 或 IP 地址。接口仅保存随机请求编号、
             租约编号、包含随机请求编号的 SHA-256 指纹、发送状态和时间信息，并在 24 小时后逻辑过期和安排删除。
+            每次成功提交后，Cloudflare Workers Logs 会保存 1 条结构化运营指标，最长 7 天，仅含响应状态、语种、
+            处理耗时、白名单内的 UTM source/medium 分类，以及 campaign、term、content 是否存在的标记；
+            不保存原始 UTM 文本，也不含表单正文、联系方式、姓名或公司、产品参考链接、备注、Turnstile token 或 IP 地址。
             普通询盘 Gmail 邮件在最后一次有效沟通后通常保留不超过 24 个月，并通过人工复核清理；
             如果询盘形成报价、订单、合同或付款记录，相关记录会按照履行交易、会计、税务和适用法律义务所需期限另行保存。
             我们不会在未经你选择的情况下把询盘信息用于营销。
@@ -174,6 +178,9 @@
             “Allow analytics,” so that we can understand page use and diagnose performance or interaction issues.
             Choosing “Reject” does not affect core website features or inquiry submission, and you can change
             your choice at any time with the non-floating “Analytics settings” button below on this privacy page.
+            Your Allow or Reject choice, its time, and this notice’s policy version are stored only in this browser
+            on your device for up to 12 months; a Decide later choice is stored for up to 30 days. This preference
+            record is not sent to our server.
             For source attribution, a directly submitted inquiry email also includes the first landing-page path,
             the external referrer hostname, and length-limited UTM source, medium, campaign, term, and content
             parameters from the URL. These source fields are not fields entered in the inquiry form body or contact details.
@@ -187,6 +194,10 @@
             The inquiry API does not retain the raw inquiry, contact details, Turnstile token, or IP address.
             It keeps only random request and lease identifiers, a SHA-256 fingerprint derived with the random submission ID,
             delivery state, and timing data, which logically expire and are scheduled for deletion after 24 hours.
+            Cloudflare Workers Logs keeps one structured operational metric for each successful submission for up to
+            7 days, limited to response status, language, processing time, allowlisted UTM source and medium categories,
+            and presence flags for campaign, term, and content. It does not retain the original UTM text and excludes form
+            content, contact details, name or company, reference URLs, notes, the Turnstile token, and the IP address.
             Ordinary Gmail inquiry messages are generally kept for no more than 24 months after the last
             substantive communication and are removed through manual review. If an inquiry becomes a quotation,
             order, contract, or payment record, the relevant record is kept separately for the time needed to

@@ -8,9 +8,11 @@ const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 const PENDING_LEASE_MS = 10 * 60 * 1000;
 const IDEMPOTENCY_STORAGE_KEY = "submission";
 const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const CURRENT_PRIVACY_VERSION = "2026-07-19";
+const CURRENT_PRIVACY_VERSION = "2026-07-22";
+const PREVIOUS_PRIVACY_VERSION = "2026-07-19";
 const PREVIOUS_CACHED_PRIVACY_VERSION = "2026-07-18";
 const LEGACY_CACHED_PRIVACY_VERSION = "2026-07-12";
+const CACHED_PRIVACY_COMPATIBILITY_UNTIL = Date.parse("2026-08-21T23:59:59Z");
 
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"] as const;
 type Locale = (typeof LOCALES)[number];
@@ -487,13 +489,19 @@ function validatePayload(input: unknown, env: Env): InquiryPayload {
   const privacyVersion = readText(input, "privacyVersion", 20, true);
   const hasNewInquiryFields = Object.prototype.hasOwnProperty.call(input, "referenceUrl") ||
     Object.prototype.hasOwnProperty.call(input, "attribution");
+  const acceptsCachedPrivacyVersions = Date.now() <= CACHED_PRIVACY_COMPATIBILITY_UNTIL;
   const isCurrentPrivacyVersion = privacyVersion === env.PRIVACY_VERSION;
-  const isPreviousCachedPrivacyVersion = env.PRIVACY_VERSION === CURRENT_PRIVACY_VERSION &&
+  const isPreviousPrivacyVersion = acceptsCachedPrivacyVersions &&
+    env.PRIVACY_VERSION === CURRENT_PRIVACY_VERSION &&
+    privacyVersion === PREVIOUS_PRIVACY_VERSION;
+  const isPreviousCachedPrivacyVersion = acceptsCachedPrivacyVersions &&
+    env.PRIVACY_VERSION === CURRENT_PRIVACY_VERSION &&
     privacyVersion === PREVIOUS_CACHED_PRIVACY_VERSION;
-  const isStrictLegacyCachePayload = env.PRIVACY_VERSION === CURRENT_PRIVACY_VERSION &&
+  const isStrictLegacyCachePayload = acceptsCachedPrivacyVersions &&
+    env.PRIVACY_VERSION === CURRENT_PRIVACY_VERSION &&
     privacyVersion === LEGACY_CACHED_PRIVACY_VERSION &&
     !hasNewInquiryFields;
-  if (!isCurrentPrivacyVersion && !isPreviousCachedPrivacyVersion && !isStrictLegacyCachePayload) {
+  if (!isCurrentPrivacyVersion && !isPreviousPrivacyVersion && !isPreviousCachedPrivacyVersion && !isStrictLegacyCachePayload) {
     throw new HttpError(400, "invalid_privacy_version");
   }
 
@@ -651,6 +659,74 @@ function escapeHtml(value: string): string {
 
 function displayValue(value: string): string {
   return value || "Not provided";
+}
+
+function metricDimension(value: string): string {
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._~-]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 64);
+  return normalized || "(none)";
+}
+
+const SAFE_UTM_SOURCES = new Set([
+  "bing",
+  "direct",
+  "facebook",
+  "google",
+  "instagram",
+  "linkedin",
+  "newsletter",
+  "organic",
+  "referral",
+  "telegram",
+  "tiktok",
+  "wechat",
+  "whatsapp",
+  "youtube",
+]);
+
+const SAFE_UTM_MEDIA = new Set([
+  "affiliate",
+  "cpc",
+  "display",
+  "email",
+  "influencer",
+  "offline",
+  "organic",
+  "paid",
+  "paid_social",
+  "ppc",
+  "qr",
+  "referral",
+  "social",
+  "video",
+]);
+
+function allowlistedMetricDimension(value: string, allowlist: Set<string>): string {
+  const normalized = metricDimension(value);
+  if (normalized === "(none)") return normalized;
+  return allowlist.has(normalized) ? normalized : "other";
+}
+
+function logSuccessfulInquiry(
+  payload: InquiryPayload,
+  startedAt: number,
+  responseStatus: 201 | 202,
+): void {
+  console.log({
+    event: "inquiry_submit",
+    response_status: responseStatus,
+    locale: payload.locale,
+    utm_source: allowlistedMetricDimension(payload.attribution.utm_source, SAFE_UTM_SOURCES),
+    utm_medium: allowlistedMetricDimension(payload.attribution.utm_medium, SAFE_UTM_MEDIA),
+    utm_campaign_present: Boolean(payload.attribution.utm_campaign.trim()),
+    utm_term_present: Boolean(payload.attribution.utm_term.trim()),
+    utm_content_present: Boolean(payload.attribution.utm_content.trim()),
+    duration_ms: Date.now() - startedAt,
+  });
 }
 
 function buildEmailText(payload: InquiryPayload, requestId: string, receivedAt: string): string {
@@ -863,6 +939,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       throw error;
     }
 
+    let responseStatus: 201 | 202 = 201;
     try {
       const recorded = await idempotency.markSent(requestId, claimId);
       if (!recorded) throw new Error("idempotency state did not match");
@@ -875,25 +952,21 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
           ts: new Date().toISOString(),
         }),
       );
+      responseStatus = 202;
+    }
+
+    if (payload.privacyVersion === env.PRIVACY_VERSION) {
+      logSuccessfulInquiry(payload, startedAt, responseStatus);
+    }
+
+    if (responseStatus === 202) {
       return jsonResponse(
         { ok: true, requestId, status: "accepted" },
-        202,
+        responseStatus,
         allowedOrigin,
       );
     }
-
-    console.log(
-      JSON.stringify({
-        event: "inquiry_submit",
-        outcome: "sent",
-        request_id: requestId,
-        locale: payload.locale,
-        duration_ms: Date.now() - startedAt,
-        ts: new Date().toISOString(),
-      }),
-    );
-
-    return jsonResponse({ ok: true, requestId }, 201, allowedOrigin);
+    return jsonResponse({ ok: true, requestId }, responseStatus, allowedOrigin);
   } catch (error) {
     if (error instanceof HttpError) {
       console.log(
