@@ -84,9 +84,7 @@ async function strictConsentProof(page, networkState, label, useTap) {
   await page.goto(`${BASE_URL}/en/website-privacy-policy.html`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => window.jabbarAnalyticsConsent?.isRegionResolved?.());
   await activate(page.locator("[data-analytics-consent-open]"), useTap);
-  const reloaded = page.waitForNavigation({ waitUntil: "domcontentloaded" });
   await activate(page.locator(".jabbar-consent-reject"), useTap);
-  await reloaded;
   await page.waitForFunction(() => window.jabbarAnalyticsConsent?.isRegionResolved?.()
     && window.jabbarAnalyticsConsent.getState() === "denied");
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, `${label}: reject did not close the panel`);
