@@ -83,12 +83,14 @@ async function strictConsentProof(page, networkState, label, useTap) {
 
   await page.goto(`${BASE_URL}/en/website-privacy-policy.html`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => window.jabbarAnalyticsConsent?.isRegionResolved?.());
+  await page.waitForFunction(() => document.querySelectorAll("#jabbar-google-analytics, #jabbar-microsoft-clarity").length === 2);
   await activate(page.locator("[data-analytics-consent-open]"), useTap);
+  const reload = page.waitForNavigation({ waitUntil: "domcontentloaded" });
   await activate(page.locator(".jabbar-consent-reject"), useTap);
+  await reload;
   await page.waitForFunction(() => window.jabbarAnalyticsConsent?.isRegionResolved?.()
     && window.jabbarAnalyticsConsent.getState() === "denied");
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, `${label}: reject did not close the panel`);
-  assert.equal(await page.evaluate(() => window.jabbarAnalyticsConsent.getState()), "denied", `${label}: reject did not update consent state`);
 }
 
 async function gpcProof(page, networkState, label, useTap) {
