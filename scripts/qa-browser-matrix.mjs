@@ -161,9 +161,16 @@ async function interactionProof(page, label, useTap) {
   const firstFaq = page.locator(".faq-item").first();
   const firstFaqButton = page.locator(".faq-quick-tag").first();
   await activate(firstFaqButton, useTap);
+  await page.waitForFunction(() => {
+    const firstItem = document.querySelector(".faq-item");
+    const firstButton = document.querySelector(".faq-quick-tag");
+    return firstItem?.open
+      && !firstItem.hidden
+      && document.querySelectorAll(".faq-item[open]").length === 1
+      && firstButton?.getAttribute("aria-expanded") === "true";
+  });
   assert.equal(await firstFaq.getAttribute("open"), "", `${label}: FAQ did not open`);
   assert.equal(await page.locator(".faq-item[open]").count(), 1, `${label}: FAQ opened more than one answer`);
-  await page.waitForFunction(() => document.querySelector(".faq-quick-tag")?.getAttribute("aria-expanded") === "true");
   assert.equal(await firstFaqButton.getAttribute("aria-expanded"), "true", `${label}: FAQ button state did not update`);
 
   await page.goto(`${BASE_URL}/en/calculator/`, { waitUntil: "domcontentloaded" });
