@@ -11,3 +11,5 @@ node_modules/
 .wrangler/
 *.cpuprofile
 assets/social-source/
+test-results/
+assets/gallery/*.jpg
