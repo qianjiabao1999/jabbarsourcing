@@ -7,7 +7,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-184";
+const CSS_VERSION = "apple-185";
 const UI_VERSION = "ui-20260722a";
 const ORDER_VERSION = "order-20260722c";
 const CONTAINER_VERSION = "container-20260722e";
