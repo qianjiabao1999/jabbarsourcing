@@ -3906,6 +3906,17 @@ html.gallery-ready .gallery-track {
   min-width: 0;
 }
 
+.site-footer-brand::before {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 44px;
+  background: url("assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719") center/contain no-repeat;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+
 .site-footer-brand strong {
   color: #fff;
   font-size: 20px;
