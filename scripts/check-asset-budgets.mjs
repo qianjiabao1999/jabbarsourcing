@@ -16,7 +16,7 @@ const BUDGETS = {
 
 const IMAGE_BUDGETS = {
   "assets/container-40hq-shell-20260722.webp": 180 * 1024,
-  "assets/container-cargo-stack-20260722d.webp": 320 * 1024,
+  "assets/container-cargo-stack-20260722e.webp": 320 * 1024,
 };
 
 const results = [];

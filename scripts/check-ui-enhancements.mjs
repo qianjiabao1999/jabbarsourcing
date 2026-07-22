@@ -7,10 +7,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-183";
+const CSS_VERSION = "apple-184";
 const UI_VERSION = "ui-20260722a";
 const ORDER_VERSION = "order-20260722c";
-const CONTAINER_VERSION = "container-20260722d";
+const CONTAINER_VERSION = "container-20260722e";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
   zh: "社媒账号",
@@ -127,16 +127,16 @@ for (const file of ["assets/testimonial-boyner-480.webp", "assets/testimonial-bo
   assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
   assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
 }
-for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722d.webp"]) {
+for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722e.webp"]) {
   const asset = await readFile(resolve(ROOT, file));
   assert(asset.byteLength > 20_000, `${file}: container visual asset is unexpectedly empty`);
   assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
   assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
 }
-const cargoAsset = await readFile(resolve(ROOT, "assets/container-cargo-stack-20260722d.webp"));
+const cargoAsset = await readFile(resolve(ROOT, "assets/container-cargo-stack-20260722e.webp"));
 assert.equal(
   createHash("sha256").update(cargoAsset).digest("hex"),
-  "c047d896a74b9b6707b0fd1ee77c59c86894a32db112530b2283f85de6a66d71",
+  "f0b2574615a34fe19b5b17bf57bdf20172f095ddc3b61c78a0072d240b268383",
   "container cargo asset changed; visually approve a replacement before updating this hash",
 );
 for (const file of ["assets/vendor/lucide-trash-2.svg", "assets/vendor/LUCIDE-LICENSE.txt"]) {
@@ -691,7 +691,7 @@ for (const locale of LOCALES) {
   assert.match(containerJavascript, new RegExp(`\\n\\s*${locale}: \\{`), `container-visual.js: missing ${locale} labels`);
 }
 for (const token of [
-  "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722d.webp",
+  "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722e.webp",
   "CONTAINER_CAPACITY_CBM", "CONTAINER_EPSILON_CBM", "MAX_VISIBLE_CONTAINERS",
   "data-container-count", "data-container-load", "data-container-index",
   'role", "progressbar', "aria-valuenow", "cbm-container-visual", "cbm-container-fill",
@@ -857,7 +857,7 @@ const containerReleaseCss = css.slice(containerReleaseIndex);
 assert.match(containerReleaseCss, /\.site-nav \.site-nav-language,[\s\S]*?box-shadow:\s*none\s*!important/, "styles.css: language shadow reset missing");
 assert.match(containerReleaseCss, /\.container-load-card__scene\s*\{[\s\S]*?aspect-ratio:\s*1280\s*\/\s*438/, "styles.css: 3D container scene ratio missing");
 assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?overflow:\s*hidden/, "styles.css: cargo clipping bay missing");
-assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?aspect-ratio:\s*1056\s*\/\s*342/, "styles.css: cargo bay must match the undistorted asset ratio");
+assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?aspect-ratio:\s*2005\s*\/\s*662/, "styles.css: cargo bay must match the undistorted asset ratio");
 assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?clip-path:\s*none/, "styles.css: cargo asset must carry its own perspective without a second clipping transform");
 assert.match(containerReleaseCss, /\.container-load-card__cargo\s*\{[\s\S]*?object-fit:\s*contain/, "styles.css: cargo must not be stretched");
 assert.match(containerReleaseCss, /\.container-load-card__cargo\s*\{[\s\S]*?height:\s*auto/, "styles.css: cargo height must preserve its natural aspect ratio");

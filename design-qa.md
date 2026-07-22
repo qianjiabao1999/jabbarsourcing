@@ -2,63 +2,72 @@
 
 ## Comparison target
 
-- 用户指出变形的参考图：`/var/folders/j9/0c_cr92n7lq8zk387c94gsn80000gn/T/codex-clipboard-d7cde502-983c-42f4-85fb-500c672f22eb.png`。
-- 最终浏览器实现：`/tmp/jabbar-container-allocation-qa/container-allocation-110-percent.png`。
-- 同视图并排对比：`/tmp/jabbar-container-fix/container-before-after-comparison-d.png`。
-- 真实工作簿结果：`/tmp/jabbar-order-analyzer-qa/packing-container-branded-1280.png`。
+- Source visual truth: `/var/folders/j9/0c_cr92n7lq8zk387c94gsn80000gn/T/codex-clipboard-d7cde502-983c-42f4-85fb-500c672f22eb.png`，`1070 × 1230`。
+- Browser-rendered implementation: `/tmp/jabbar-order-analyzer-qa/packing-container-branded-1280.png`，`500 × 602`。
+- Mobile implementation: `/tmp/jabbar-order-analyzer-qa/packing-container-branded-390.png`，`274 × 434`。
+- In-app Browser interaction evidence: `/tmp/jabbar-container-perfect/in-app-calculator-74-8.png`，`906 × 920`。
+- Full-view side-by-side comparison: `/tmp/jabbar-container-perfect/container-before-after-final-e.png`，`1000 × 652`。
+- Focused first-cabinet comparison: `/tmp/jabbar-container-perfect/container-first-cabinet-focus-e.png`，`1520 × 380`。
 
-## Verified state
+## State and normalization
 
-- 真实工作簿：`吕总2店565件.xlsx`，`565` 箱、`74.8881445148 m³`。
-- 装柜分配：第一柜 `100%`；第二柜 `10.1296242865%`，不平均分摊。
-- 最终货箱素材：`assets/container-cargo-stack-20260722d.webp`，`1056 × 342`，`50,556 bytes`。
-- SHA-256：`c047d896a74b9b6707b0fd1ee77c59c86894a32db112530b2283f85de6a66d71`。
-- 浏览器渲染宽高比与素材天然宽高比一致；`object-fit: contain`、`height: auto`、`opacity: 1`、`transform: none`。
+- Source and implementation show the same `74.888 m³` state: first cabinet `100%`, second cabinet about `10%`.
+- Real workbook: `吕总2店565件.xlsx`，`565` cartons，`74.8881445148 m³`；precise allocation is `100% + 10.1296242865%`.
+- Desktop CSS viewport: `1280 × 900`；mobile CSS viewport: `390 × 844`；device scale factor: `1`.
+- Full comparison normalizes both sides to `500px` width. The focused comparison crops the same first-cabinet state and scales both regions to `760 × 380`.
+- Final cargo asset: `assets/container-cargo-stack-20260722e.webp`，`2005 × 662`，`213,106 bytes`.
+- Asset SHA-256: `f0b2574615a34fe19b5b17bf57bdf20172f095ddc3b61c78a0072d240b268383`.
+- CSS uses the identical `2005 / 662` aspect ratio with `height:auto`、`object-fit:contain`、`opacity:1` and `transform:none`.
 
 ## Comparison history
 
 ### Iteration 1 — blocked
 
-- 原素材把有效货箱内容横向压窄约 `25.8%`，单箱和好多宝 Logo 呈瘦高形。
-- 柜口与货物透视不一致，满柜仍留下不自然空隙。
-- 一排纸箱数量过多，手机端品牌标识缩成色块。
+- [P1] The original dense cargo layer compressed the effective carton wall horizontally by about `25.8%`; cartons and logos looked tall and narrow.
+- [P1] Too many columns made each carton and logo unreadable on mobile.
+- Fix attempted: replace the old pallet cargo with a lower-density generated cargo wall and preserve the natural browser aspect ratio.
 
 ### Iteration 2 — blocked
 
-- 浏览器不再二次拉伸，但货箱本身仍接近方形；用户明确判定“还是变形了”。
-- 自动截图只等待图片下载，没有等待异步解码，可能短暂截到空柜，不能作为视觉通过证据。
+- [P1] Browser stretching was removed, but the generated carton faces were still close to square and did not look physically natural.
+- Fix attempted: regenerate wider cartons and bake perspective into the raster asset.
 
-### Iteration 3 — passed
+### Iteration 3 — blocked
 
-- 重做为四层宽箱；右侧近景纸箱明显宽于高度，左侧随集装箱纵深自然收窄。
-- 透视直接写入透明货物素材，CSS 不再做第二次透视、拉伸或梯形裁切。
-- 满柜从上到下、从后端到前端连续填满；余量柜复用同一尺寸货箱，只裁切约 `10%` 的装载长度。
-- 去除木托盘，每个可见箱面保留好多宝 Logo；降低透明感，货物保持实体不透明。
-- QA 在图片完成异步解码并绘制两帧后截图，避免空柜假象。
+- [P1] Cartons were wider, but the post-production perspective transform exaggerated the left/right width difference; the user still saw deformation.
+- Fix: discard the transformed asset entirely. Generate a native-perspective carton scene with a long-lens, nearly orthographic camera instead of warping a flat grid.
+
+### Iteration 4 — passed
+
+- [P1 fixed] The final asset is a native mild-perspective `4 × 8` carton wall. Far and near cartons change size gradually; no carton is squeezed, stretched or melted.
+- [P1 fixed] An interim stacking order placed the semi-opaque container interior over the cartons and made the cargo look translucent. The shell was restored below the solid cargo layer; final `opacity` is `1` and the cartons are visually opaque.
+- [P2 fixed] Screenshot automation now waits for image decoding and two rendered frames, avoiding false empty-cabinet captures.
+- Post-fix evidence: both the full comparison and focused comparison show natural carton proportions, readable Haoduobao logos, continuous four-level fill, and unchanged carton scale in the remainder cabinet.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: 标题、百分比、容量和状态标签沿用现有字重与等宽数字；没有新增截断。
-- Spacing and layout rhythm: 卡片间距、圆角和内容顺序不变；只校正柜口内部图层。
-- Colors and visual tokens: 保留绿色柜体、橙色满载、青绿色余量与好多宝蓝红 Logo；无新增阴影。
-- Image quality: 纸箱轮廓清楚，箱面不横向压扁，透明边缘不覆盖柜门和框架。
-- Copy and content: `74.888 m³`、`100%`、`10%`、`40HQ` 和 10 语言文案保持正确。
-- Interaction and accessibility: 始终先装满当前柜再新增余量柜；ARIA 百分比与计算结果一致；reduced-motion 下关闭过渡。
-- Responsiveness: Chromium、WebKit、Firefox、桌面、`390px`、模拟 Pixel/Galaxy、Android/iOS 微信 WebView 和阿语 RTL 均无横向溢出；模拟测试不等同真实品牌机或真实微信客户端真机测试。
+- Fonts and typography: result heading, percentage, capacity, units and status labels retain the existing type scale, weight and monospaced numerals; no new wrapping or truncation was introduced.
+- Spacing and layout rhythm: card padding, radii, inter-card spacing and result order are unchanged; the fix is restricted to the cargo layer and its intrinsic geometry.
+- Colors and visual tokens: green container, orange full state, teal partial state and blue/red Haoduobao branding remain consistent; no new shadow or floating control was added.
+- Image quality and asset fidelity: the final raster contains real carton texture and official brand marks, has a transparent compositing background, no pallet, no visible chroma spill in the browser, no CSS stretch and no frame overlap.
+- Copy and content: `74.888 m³`、`100%`、`10%`、`40HQ` and the 10-language labels remain correct.
+- Icons: this component adds no new icon; existing navigation and result controls are unchanged.
+- Interaction and accessibility: the quick-calculator flow was exercised with `100 × 100 × 68 cm` and `110` cartons, producing `74.800 m³`, `100% + 10%`, enabled copy action and an inquiry link. Progressbar ARIA values match the calculated percentages, and reduced-motion disables the fill transition.
+- Responsiveness: Chromium, WebKit, Firefox, desktop, `390px`, simulated Pixel 5, Galaxy S9+, Android WeChat WebView, iOS WeChat WKWebView and Arabic RTL have no horizontal overflow or relevant console errors. These are simulated environments, not claims of physical-device testing.
 
 ## Findings
 
-- 无剩余 P0、P1、P2 视觉问题。
-- P3：极窄屏幕下箱面英文标识会自然缩小，但宽箱轮廓、好多宝蓝色识别和装载比例仍清楚。
+- No remaining P0, P1 or P2 visual findings.
+- P3: at very narrow widths the English line inside the carton logo naturally becomes small, but the blue Haoduobao mark, carton outline and load percentage remain clear.
 
 ## Implementation checklist
 
-- [x] 去除旧素材中的横向压缩。
-- [x] 满柜上下、前后连续填满并匹配柜体透视。
-- [x] 第二柜保持原尺寸纸箱，只按余量裁切。
-- [x] 货箱保持实体感，不使用木托盘。
-- [x] 每个可见箱面保留好多宝 Logo。
-- [x] 真实 Excel、10 语言、RTL、桌面、手机与浏览器矩阵复测。
-- [x] 截图前等待图片解码和浏览器绘制。
+- [x] Remove the transformed/deformed cargo asset.
+- [x] Use native mild perspective with four rows and eight columns.
+- [x] Fill the full cabinet continuously from floor to ceiling and back to front.
+- [x] Keep the second cabinet at the same carton scale and reveal only the remaining load width.
+- [x] Keep every visible carton branded with the Haoduobao logo and remove pallets.
+- [x] Verify the real Excel workbook, quick calculator interaction, 10 languages, RTL, desktop, mobile and browser matrix.
+- [x] Wait for image decode and paint before visual capture.
 
 final result: passed

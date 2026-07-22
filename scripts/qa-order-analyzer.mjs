@@ -692,6 +692,9 @@ try {
   assert(fixture.length > 1000, "runtime XLSX fixture is unexpectedly small");
 
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+  await context.addInitScript(() => {
+    window.localStorage.setItem("jabbar.analyticsConsent.v1", "denied");
+  });
   await blockAnalytics(context);
   const requests = [];
   context.on("request", (request) => requests.push({ url: request.url(), method: request.method() }));
@@ -1461,7 +1464,7 @@ try {
     assert.equal(payload.result.subtotalMismatchCount, 0, "packing-list workbook: subtotal mismatches");
     await page.waitForFunction(() => {
       const images = Array.from(document.querySelectorAll(".order-analyzer__container .container-load-card__cargo"));
-      return images.length === 2 && images.every((image) => image.complete && image.naturalWidth === 1056 && image.naturalHeight === 342);
+      return images.length === 2 && images.every((image) => image.complete && image.naturalWidth === 2005 && image.naturalHeight === 662);
     });
     await page.locator(".order-analyzer__container .container-load-card__cargo").evaluateAll(async (images) => {
       await Promise.all(images.map((image) => image.decode?.().catch(() => undefined)));
@@ -1474,12 +1477,13 @@ try {
     }));
     near(packingContainerState.loads[0], 100, 1e-8, "packing-list workbook: first container must be full");
     near(packingContainerState.loads[1], (74.8881445148 - 68) / 68 * 100, 1e-8, "packing-list workbook: second container remainder");
-    assert(packingContainerState.cargoSources.every((src) => /container-cargo-stack-20260722d\.webp$/.test(src)), "packing-list workbook: branded cargo asset missing");
+    assert(packingContainerState.cargoSources.every((src) => /container-cargo-stack-20260722e\.webp$/.test(src)), "packing-list workbook: branded cargo asset missing");
     assert(packingContainerState.overflow <= 1, `packing-list desktop overflow by ${packingContainerState.overflow}px`);
     await page.locator(".order-analyzer__container").screenshot({ path: `${OUTPUT_DIR}/packing-container-branded-1280.png` });
     await page.locator("[data-order-file-list]").screenshot({ path: `${OUTPUT_DIR}/packing-file-delete-desktop-1280.png` });
     await page.setViewportSize({ width: 390, height: 844 });
     await assertNoOverflow(page, "packing-list mobile 390");
+    await page.locator(".order-analyzer__container").screenshot({ path: `${OUTPUT_DIR}/packing-container-branded-390.png` });
     await page.locator("[data-order-file-list]").screenshot({ path: `${OUTPUT_DIR}/packing-file-delete-mobile-390.png` });
     await page.setViewportSize({ width: 1280, height: 900 });
     packingListTested = true;
