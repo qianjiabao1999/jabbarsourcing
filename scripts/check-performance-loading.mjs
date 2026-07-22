@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ORDER_VERSION = "order-20260722c";
-const CONTAINER_VERSION = "container-20260722b";
+const CONTAINER_VERSION = "container-20260722d";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const load = (file) => readFile(resolve(ROOT, file), "utf8");
@@ -77,7 +77,7 @@ assert.match(loader, new RegExp(`order-${ORDER_VERSION.replace(/^order-/, "")}`)
 
 const containerVisual = await load("assets/container-visual.js");
 assert.match(containerVisual, new RegExp(CONTAINER_VERSION), "container-visual.js: container version mismatch");
-for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722b.webp"]) {
+for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722d.webp"]) {
   const asset = await readFile(resolve(ROOT, file));
   assert(asset.byteLength > 20_000, `${file}: visual asset is unexpectedly empty`);
 }
@@ -85,7 +85,7 @@ for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/contain
 const deployWorkflow = await load(".github/workflows/deploy.yml");
 assert.match(deployWorkflow, /--exclude='\/assets\/social-source\/'/, "deploy.yml: social source archive must not be published");
 assert.match(deployWorkflow, /--exclude='\/assets\/gallery\/\*\.jpg'/, "deploy.yml: unreferenced full-size gallery JPG originals must not be published");
-for (const file of ["container-visual.js", "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722b.webp"]) {
+for (const file of ["container-visual.js", "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722d.webp"]) {
   assert.match(deployWorkflow, new RegExp(`test -f _site/assets/${file.replaceAll(".", "\\.")}`), `deploy.yml: ${file} artifact assertion missing`);
 }
 

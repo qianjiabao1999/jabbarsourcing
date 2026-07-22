@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-182";
+const CSS_VERSION = "apple-183";
 const UI_VERSION = "ui-20260722a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -443,7 +443,7 @@ function assertCalculatorVisualSignature(state, scope, locale, expectedResultSta
     assert.equal(state.calculator.primaryAriaNow, 0, `${scope}: initial container aria value`);
   }
   assert.match(state.calculator.shellAsset, /container-40hq-shell-20260722\.webp$/, `${scope}: 3D shell asset`);
-  assert.match(state.calculator.cargoAsset, /container-cargo-stack-20260722b\.webp$/, `${scope}: branded pallet-free cargo asset`);
+  assert.match(state.calculator.cargoAsset, /container-cargo-stack-20260722d\.webp$/, `${scope}: branded pallet-free cargo asset`);
   assert.match(state.calculator.blueprintImage, /linear-gradient/i, `${scope}: blueprint grid missing`);
   assert.match(state.calculator.blueprintSize, /24px\s+24px/, `${scope}: blueprint grid size ${state.calculator.blueprintSize}`);
   assert(isMonoFamily(state.fonts.calculator), `${scope}: calculator values are not monospaced: ${state.fonts.calculator}`);
@@ -1408,7 +1408,8 @@ async function calculatorMatrix(browserType) {
     assert.equal(await page.locator("[data-copy-result]").isDisabled(), false, `${testCase.qty} CBM copy result remains disabled`);
     const visuals = page.locator(".cbm-container-visual");
     assert.equal(await visuals.count(), testCase.containers.length, `${testCase.qty} CBM rendered container count`);
-    await page.waitForFunction(() => Array.from(document.querySelectorAll(".cbm-visual .container-load-card__shell, .cbm-visual .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1280));
+    await page.waitForFunction(() => Array.from(document.querySelectorAll(".cbm-visual .container-load-card__shell")).every((image) => image.complete && image.naturalWidth === 1280 && image.naturalHeight === 438)
+      && Array.from(document.querySelectorAll(".cbm-visual .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1056 && image.naturalHeight === 342));
     for (let index = 0; index < testCase.containers.length; index += 1) {
       const expected = testCase.containers[index];
       const card = visuals.nth(index);
@@ -1423,9 +1424,11 @@ async function calculatorMatrix(browserType) {
       const accessibleTitle = await card.getAttribute("aria-label");
       assert(accessibleTitle.includes(expected.pct) && accessibleTitle.includes(expected.cap), `${testCase.qty} CBM container ${index + 1} accessible title is stale: ${accessibleTitle}`);
       assert.equal(await card.locator(".container-load-card__shell").evaluate((image) => image.naturalWidth), 1280, `${testCase.qty} CBM container ${index + 1} shell asset`);
-      assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => image.naturalWidth), 1280, `${testCase.qty} CBM container ${index + 1} cargo asset`);
-      assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => image.naturalHeight), 372, `${testCase.qty} CBM container ${index + 1} cargo asset height`);
+      assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => image.naturalWidth), 1056, `${testCase.qty} CBM container ${index + 1} cargo asset`);
+      assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => image.naturalHeight), 342, `${testCase.qty} CBM container ${index + 1} cargo asset height`);
       assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => getComputedStyle(image).objectFit), "contain", `${testCase.qty} CBM container ${index + 1} cargo distortion guard`);
+      assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => getComputedStyle(image).opacity), "1", `${testCase.qty} CBM container ${index + 1} cargo solidity guard`);
+      assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => getComputedStyle(image).transform), "none", `${testCase.qty} CBM container ${index + 1} cargo transform guard`);
     }
   }
   await page.locator(".calculator-results").screenshot({ path: `${OUTPUT_DIR}/calculator-visual-1280x900.png` });

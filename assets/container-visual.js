@@ -6,7 +6,7 @@
   var CONTAINER_EPSILON_CBM = 0.000001;
   var MAX_VISIBLE_CONTAINERS = 12;
   var SHELL_ASSET = "/assets/container-40hq-shell-20260722.webp";
-  var CARGO_ASSET = "/assets/container-cargo-stack-20260722b.webp";
+  var CARGO_ASSET = "/assets/container-cargo-stack-20260722d.webp";
   var lang = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
   var labels = {
     zh: { title: "集装箱装载示意", forty: "40英尺高柜", unit: "立方米", full: "满载", loaded: "已装载" },
@@ -40,9 +40,10 @@
     element.className = className;
     element.src = src;
     element.alt = "";
-    element.width = 1280;
-    element.height = className.indexOf("cargo") !== -1 ? 372 : 438;
-    element.loading = "lazy";
+    var isCargo = className.indexOf("cargo") !== -1;
+    element.width = isCargo ? 1056 : 1280;
+    element.height = isCargo ? 342 : 438;
+    element.loading = isCargo ? "eager" : "lazy";
     element.decoding = "async";
     element.setAttribute("aria-hidden", "true");
     return element;
@@ -162,7 +163,7 @@
     capacity: CONTAINER_CAPACITY_CBM,
     createCard: createCard,
     renderCards: renderCards,
-    version: "container-20260722b"
+    version: "container-20260722d"
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initQuickCalculator, { once: true });

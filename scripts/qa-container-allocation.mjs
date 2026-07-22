@@ -14,6 +14,13 @@ function near(actual, expected, tolerance, label) {
   assert(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} != ${expected} (±${tolerance})`);
 }
 
+async function settleContainerImages(page, selector) {
+  await page.locator(`${selector} .container-load-card__cargo`).evaluateAll(async (images) => {
+    await Promise.all(images.map((image) => image.decode?.().catch(() => undefined)));
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
+}
+
 const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -67,7 +74,9 @@ try {
     visual.hidden = false;
     visual.style.display = "grid";
   });
-  await page.waitForFunction(() => Array.from(document.querySelectorAll(".cbm-visual .container-load-card__shell, .cbm-visual .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1280));
+  await page.waitForFunction(() => Array.from(document.querySelectorAll(".cbm-visual .container-load-card__shell")).every((image) => image.complete && image.naturalWidth === 1280 && image.naturalHeight === 438)
+    && Array.from(document.querySelectorAll(".cbm-visual .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1056 && image.naturalHeight === 342));
+  await settleContainerImages(page, ".cbm-visual");
   const cargoGeometry = await page.evaluate(() => Array.from(document.querySelectorAll(".cbm-visual [data-container-load]"), (card) => {
     const load = Number(card.getAttribute("data-container-load"));
     const bay = card.querySelector(".container-load-card__bay").getBoundingClientRect();
@@ -85,19 +94,24 @@ try {
       naturalWidth: cargo.naturalWidth,
       naturalHeight: cargo.naturalHeight,
       objectFit: style.objectFit,
+      opacity: style.opacity,
+      transform: style.transform,
       src: cargo.getAttribute("src") || ""
     };
   }));
   assert.equal(cargoGeometry.length, 2, "90 CBM must render two cargo scenes");
   cargoGeometry.forEach((geometry, index) => {
-    near(geometry.bayWidth / geometry.bayHeight, 1280 / 372, 0.03, `cargo ${index + 1}: bay aspect ratio`);
+    near(geometry.bayWidth / geometry.bayHeight, 1056 / 342, 0.03, `cargo ${index + 1}: bay aspect ratio`);
     near(geometry.clipWidth / geometry.bayWidth * 100, geometry.load, 0.2, `cargo ${index + 1}: clipped load width`);
     near(geometry.cargoWidth, geometry.bayWidth, 0.7, `cargo ${index + 1}: unscaled full cargo width`);
     near(geometry.cargoHeight, geometry.bayHeight, 0.7, `cargo ${index + 1}: cargo height`);
-    assert.equal(geometry.naturalWidth, 1280, `cargo ${index + 1}: natural width`);
-    assert.equal(geometry.naturalHeight, 372, `cargo ${index + 1}: natural height`);
+    near(geometry.cargoWidth / geometry.cargoHeight, geometry.naturalWidth / geometry.naturalHeight, 0.005, `cargo ${index + 1}: rendered aspect ratio`);
+    assert.equal(geometry.naturalWidth, 1056, `cargo ${index + 1}: natural width`);
+    assert.equal(geometry.naturalHeight, 342, `cargo ${index + 1}: natural height`);
     assert.equal(geometry.objectFit, "contain", `cargo ${index + 1}: cargo must not be stretched`);
-    assert.match(geometry.src, /container-cargo-stack-20260722b\.webp$/, `cargo ${index + 1}: branded pallet-free asset`);
+    assert.equal(geometry.opacity, "1", `cargo ${index + 1}: cargo must remain visually solid`);
+    assert.equal(geometry.transform, "none", `cargo ${index + 1}: cargo transform must remain disabled`);
+    assert.match(geometry.src, /container-cargo-stack-20260722d\.webp$/, `cargo ${index + 1}: branded pallet-free asset`);
   });
   await page.locator(".cbm-visual").screenshot({ path: `${OUTPUT_DIR}/quick-container-allocation-90-cbm.png` });
 
@@ -163,7 +177,11 @@ try {
     instance.renderContainer(instance.containerEstimate(74.8, false));
     instance.results.hidden = false;
   });
-  await page.waitForFunction(() => Array.from(document.querySelectorAll(".order-analyzer__container .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1280 && image.naturalHeight === 372));
+  await page.waitForFunction(() => {
+    const images = Array.from(document.querySelectorAll(".order-analyzer__container .container-load-card__cargo"));
+    return images.length === 2 && images.every((image) => image.complete && image.naturalWidth === 1056 && image.naturalHeight === 342);
+  });
+  await settleContainerImages(page, ".order-analyzer__container");
   const orderCargo = await page.evaluate(() => Array.from(document.querySelectorAll(".order-analyzer__container [data-container-load]"), (card) => {
     const bay = card.querySelector(".container-load-card__bay").getBoundingClientRect();
     const clip = card.querySelector(".container-load-card__cargo-clip").getBoundingClientRect();

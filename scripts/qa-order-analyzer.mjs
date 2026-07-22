@@ -1459,7 +1459,14 @@ try {
     }, "packing-list workbook", true);
     assert.equal(payload.result.skippedSummaryRows, 1, "packing-list workbook: trailing total row");
     assert.equal(payload.result.subtotalMismatchCount, 0, "packing-list workbook: subtotal mismatches");
-    await page.waitForFunction(() => Array.from(document.querySelectorAll(".order-analyzer__container .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1280 && image.naturalHeight === 372));
+    await page.waitForFunction(() => {
+      const images = Array.from(document.querySelectorAll(".order-analyzer__container .container-load-card__cargo"));
+      return images.length === 2 && images.every((image) => image.complete && image.naturalWidth === 1056 && image.naturalHeight === 342);
+    });
+    await page.locator(".order-analyzer__container .container-load-card__cargo").evaluateAll(async (images) => {
+      await Promise.all(images.map((image) => image.decode?.().catch(() => undefined)));
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    });
     const packingContainerState = await page.evaluate(() => ({
       loads: [...document.querySelectorAll(".order-analyzer__container [data-container-load]")].map((card) => Number(card.getAttribute("data-container-load"))),
       cargoSources: [...document.querySelectorAll(".order-analyzer__container .container-load-card__cargo")].map((image) => image.getAttribute("src") || ""),
@@ -1467,7 +1474,7 @@ try {
     }));
     near(packingContainerState.loads[0], 100, 1e-8, "packing-list workbook: first container must be full");
     near(packingContainerState.loads[1], (74.8881445148 - 68) / 68 * 100, 1e-8, "packing-list workbook: second container remainder");
-    assert(packingContainerState.cargoSources.every((src) => /container-cargo-stack-20260722b\.webp$/.test(src)), "packing-list workbook: branded cargo asset missing");
+    assert(packingContainerState.cargoSources.every((src) => /container-cargo-stack-20260722d\.webp$/.test(src)), "packing-list workbook: branded cargo asset missing");
     assert(packingContainerState.overflow <= 1, `packing-list desktop overflow by ${packingContainerState.overflow}px`);
     await page.locator(".order-analyzer__container").screenshot({ path: `${OUTPUT_DIR}/packing-container-branded-1280.png` });
     await page.locator("[data-order-file-list]").screenshot({ path: `${OUTPUT_DIR}/packing-file-delete-desktop-1280.png` });

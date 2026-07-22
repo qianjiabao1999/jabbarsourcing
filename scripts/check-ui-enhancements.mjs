@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-182";
+const CSS_VERSION = "apple-183";
 const UI_VERSION = "ui-20260722a";
 const ORDER_VERSION = "order-20260722c";
-const CONTAINER_VERSION = "container-20260722b";
+const CONTAINER_VERSION = "container-20260722d";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
   zh: "社媒账号",
@@ -126,12 +127,18 @@ for (const file of ["assets/testimonial-boyner-480.webp", "assets/testimonial-bo
   assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
   assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
 }
-for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722b.webp"]) {
+for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722d.webp"]) {
   const asset = await readFile(resolve(ROOT, file));
   assert(asset.byteLength > 20_000, `${file}: container visual asset is unexpectedly empty`);
   assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
   assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
 }
+const cargoAsset = await readFile(resolve(ROOT, "assets/container-cargo-stack-20260722d.webp"));
+assert.equal(
+  createHash("sha256").update(cargoAsset).digest("hex"),
+  "c047d896a74b9b6707b0fd1ee77c59c86894a32db112530b2283f85de6a66d71",
+  "container cargo asset changed; visually approve a replacement before updating this hash",
+);
 for (const file of ["assets/vendor/lucide-trash-2.svg", "assets/vendor/LUCIDE-LICENSE.txt"]) {
   const asset = await readFile(resolve(ROOT, file), "utf8");
   assert(asset.length > 100, `${file}: licensed delete-icon asset is unexpectedly empty`);
@@ -684,7 +691,7 @@ for (const locale of LOCALES) {
   assert.match(containerJavascript, new RegExp(`\\n\\s*${locale}: \\{`), `container-visual.js: missing ${locale} labels`);
 }
 for (const token of [
-  "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722b.webp",
+  "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722d.webp",
   "CONTAINER_CAPACITY_CBM", "CONTAINER_EPSILON_CBM", "MAX_VISIBLE_CONTAINERS",
   "data-container-count", "data-container-load", "data-container-index",
   'role", "progressbar', "aria-valuenow", "cbm-container-visual", "cbm-container-fill",
@@ -693,6 +700,7 @@ for (const token of [
   assert(containerJavascript.includes(token), `container-visual.js: missing ${token}`);
 }
 assert.match(containerJavascript, /Math\.ceil\(\(totalCbm - CONTAINER_EPSILON_CBM\) \/ CONTAINER_CAPACITY_CBM\)/, "container-visual.js: exact-capacity epsilon guard missing");
+assert.match(containerJavascript, /element\.loading\s*=\s*isCargo\s*\?\s*"eager"\s*:\s*"lazy"/, "container-visual.js: result cargo must load eagerly while the shell may stay lazy");
 assert.match(containerJavascript, /totalCbm - index \* CONTAINER_CAPACITY_CBM/, "container-visual.js: full-first load allocation missing");
 assert.doesNotMatch(containerJavascript, /<svg|createElement\(["']svg["']\)/, "container-visual.js: handcrafted SVG returned");
 assert(!containerJavascript.includes("ja:"), "container-visual.js: Japanese labels must not return");
@@ -849,8 +857,11 @@ const containerReleaseCss = css.slice(containerReleaseIndex);
 assert.match(containerReleaseCss, /\.site-nav \.site-nav-language,[\s\S]*?box-shadow:\s*none\s*!important/, "styles.css: language shadow reset missing");
 assert.match(containerReleaseCss, /\.container-load-card__scene\s*\{[\s\S]*?aspect-ratio:\s*1280\s*\/\s*438/, "styles.css: 3D container scene ratio missing");
 assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?overflow:\s*hidden/, "styles.css: cargo clipping bay missing");
-assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?aspect-ratio:\s*1280\s*\/\s*372/, "styles.css: cargo bay must match the asset ratio");
+assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?aspect-ratio:\s*1056\s*\/\s*342/, "styles.css: cargo bay must match the undistorted asset ratio");
+assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?clip-path:\s*none/, "styles.css: cargo asset must carry its own perspective without a second clipping transform");
 assert.match(containerReleaseCss, /\.container-load-card__cargo\s*\{[\s\S]*?object-fit:\s*contain/, "styles.css: cargo must not be stretched");
+assert.match(containerReleaseCss, /\.container-load-card__cargo\s*\{[\s\S]*?height:\s*auto/, "styles.css: cargo height must preserve its natural aspect ratio");
+assert.match(containerReleaseCss, /\.container-load-card__cargo\s*\{[\s\S]*?opacity:\s*1\s*;/, "styles.css: cargo must remain visually solid");
 assert.match(css, /\.site-nav-links \.site-nav-quote-desktop[\s\S]*?order:\s*0\s*!important/, "styles.css: desktop quote must keep its middle navigation position");
 for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "has-mobile-conversion-bar", ".ui-section-reveal", ".site-footer-backtop"]) {
   assert(!css.includes(removedToken), `styles.css: removed floating control styles remain (${removedToken})`);

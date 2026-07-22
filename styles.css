@@ -12493,11 +12493,12 @@ main > #team.team {
 .container-load-card__bay {
   position: absolute;
   z-index: 2;
-  top: 22%;
-  left: 4.1%;
+  top: 13%;
+  left: 5%;
   width: 82.5%;
-  aspect-ratio: 1280 / 372;
+  aspect-ratio: 1056 / 342;
   overflow: hidden;
+  clip-path: none;
 }
 
 .cbm-container-fill.container-load-card__cargo-clip {
@@ -12512,10 +12513,13 @@ main > #team.team {
   position: absolute;
   inset: 0 auto 0 0;
   max-width: none;
-  height: 100%;
+  height: auto;
   display: block;
   object-fit: contain;
   object-position: left top;
+  opacity: 1;
+  filter: saturate(1.06) contrast(1.04);
+  transform: none;
   pointer-events: none;
   user-select: none;
 }
