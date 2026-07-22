@@ -7271,7 +7271,7 @@ body {
   align-items: center !important;
   justify-content: center !important;
   gap: 7px !important;
-  min-height: 38px !important;
+  min-height: 44px !important;
   padding: 0 14px !important;
   border: 1px solid rgba(14, 116, 144, 0.2) !important;
   border-radius: 999px !important;
@@ -8123,13 +8123,13 @@ body {
   }
 
   .site-nav-quote {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 13px !important;
     font-size: 13px !important;
   }
 
   .site-nav .language-switch summary {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 12px !important;
   }
 }
@@ -8450,18 +8450,18 @@ html[lang="ar"] .section-code {
   }
 
   .site-nav-brand {
-    max-width: 34px !important;
+    max-width: 44px !important;
   }
 
   .site-nav-brand img {
-    width: 32px !important;
-    height: 32px !important;
+    width: 36px !important;
+    height: 36px !important;
     border-radius: 9px !important;
   }
 
   .site-nav-tool-pill,
   .site-nav-quote {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 10px !important;
     font-size: 12px !important;
   }
@@ -9528,7 +9528,7 @@ html[lang="ar"] .section-code {
   .site-nav-team,
   .site-nav-quote,
   .site-nav .language-switch summary {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 10px !important;
     font-size: 12px !important;
   }
@@ -9611,13 +9611,13 @@ html[lang="ar"] .section-code {
   }
 
   .site-nav-quote {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 13px !important;
     font-size: 13px !important;
   }
 
   .site-nav .language-switch summary {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 12px !important;
   }
 }
@@ -9774,7 +9774,7 @@ html[lang="ar"] .section-code {
 @media (max-width: 560px) {
   .site-nav-tool-pill {
     gap: 6px !important;
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 9px !important;
     font-size: 12px !important;
   }
@@ -11730,7 +11730,7 @@ main > #team.team {
   header.site-nav .site-nav-social-pill,
   header.site-nav .site-nav-tool-pill,
   header.site-nav .site-nav-quote {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 8px !important;
     font-size: 11.5px !important;
   }
@@ -11796,7 +11796,7 @@ main > #team.team {
   header.site-nav .site-nav-tool-pill,
   header.site-nav .site-nav-quote,
   header.site-nav .site-nav-language > summary {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 8px !important;
     font-size: 11.5px !important;
   }
