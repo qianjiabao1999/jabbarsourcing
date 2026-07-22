@@ -23,7 +23,9 @@ for (const locale of LOCALES) {
   assert.match(attribute(shipmentRail, "data-shipments-source"), /^\/shipments\.json\?v=shipments-/, `${file}: shipment source must keep a cache version`);
   const images = imageTags(html);
   const navigationMarks = images.filter((tag) => /jabbar-sourcing-mark-transparent\.webp\?v=nav-20260719/.test(tag));
-  assert(navigationMarks.length >= 2, `${file}: optimized navigation/brand mark references missing`);
+  const partnershipMarks = images.filter((tag) => /jabbar-sourcing-mark-transparent-hd\.webp\?v=brand-20260722hd1/.test(tag));
+  assert.equal(navigationMarks.length, 1, `${file}: lightweight navigation mark reference missing`);
+  assert.equal(partnershipMarks.length, 1, `${file}: high-density partnership mark reference missing`);
   assert.doesNotMatch(html, /jabbar-sourcing-mark-transparent\.png/, `${file}: unoptimized transparent brand mark returned`);
   const gallerySequence = images.filter((tag) => /assets\/gallery\/responsive\//.test(tag) && /\bfetchpriority=/.test(tag));
   assert.equal(gallerySequence.length, 13, `${file}: gallery sequence image count`);

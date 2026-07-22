@@ -257,8 +257,8 @@ function page(locale) {
     <title>${value.title}</title>
     <link rel="canonical" href="${ORIGIN}${route.path}" />
 ${alternateLinks()}
-    <link rel="icon" href="/assets/favicon.png?v=jabbar-5" type="image/png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=jabbar-5" sizes="180x180" />
+    <link rel="icon" href="/assets/favicon.png?v=jabbar-6" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="stylesheet" href="/styles.min.css?v=apple-184" />
     <script src="/assets/analytics-consent.js?v=${CONSENT_VERSION}" defer></script>
     <script src="/script.js?v=apple-154" defer></script>

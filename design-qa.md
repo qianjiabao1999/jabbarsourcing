@@ -71,3 +71,64 @@
 - [x] Wait for image decode and paint before visual capture.
 
 final result: passed
+
+---
+
+# Jabbar 高清透明 Logo 与网址图标 QA
+
+## Comparison target
+
+- 联名 Logo 视觉真值：`/var/folders/j9/0c_cr92n7lq8zk387c94gsn80000gn/T/codex-clipboard-36f993d1-6a2c-4dd5-a4fd-a29a09ac1b57.png`，`986 × 450`；它记录了 180px 源图被放大后的模糊状态。
+- 网址快捷图标视觉真值：`/Users/jabbar/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files/wxid_svlu2ime3h3l12_c4b7/temp/RWTemp/2026-07/9e20f478899dc29eb19741386f9343c8/f932976e182e050a2e6d047406a0b5a8.jpg`，`1298 × 1920`；底部 Jabbar Sourcing 图标带白色方形底。
+- 电脑端浏览器实现：`/tmp/jabbar-logo-page-desktop.png`，CSS viewport `1440 × 1000`，device scale factor `1`。
+- 手机端浏览器实现：`/tmp/jabbar-logo-page-mobile.png`，CSS viewport `390 × 844`，device scale factor `1`。
+- 同屏对比证据：`/tmp/jabbar-logo-qa/logo-before-after-comparison.png`，`1200 × 1040`。
+- 最终高清资产：`assets/jabbar-sourcing-mark-transparent-hd.webp`，`512 × 512`，`87,068 bytes`，透明通道范围 `0–255`。
+
+## State and normalization
+
+- 联名卡保持原有 Jabbar × Haoduobao 布局、卡片尺寸、边框、圆角、间距和背景，仅替换 Jabbar 图像源。
+- 桌面端 Jabbar 图实际渲染 `169.195 × 169.195 CSS px`；手机端实际渲染 `97.195 × 97.195 CSS px`。两者都从 512px 源图向下缩放，不再放大 180px 素材。
+- 对比板将原始联名卡截图和浏览器实拍分别放在等宽面板中；网址图标同时用 64px 浏览器近似尺寸和 120px 边缘检查尺寸显示。
+- 浏览器图标版本统一为 `jabbar-6`；联名高清图版本为 `brand-20260722hd1`。
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] 10 语言首页联名卡和 404 页共用 `180 × 180` 有损透明 WebP；Retina 桌面实际需要约 338–380 个物理像素，发生明显上采样和文字边缘发虚。
+- [P2] 浏览器快捷图标来自带白底的 512px PNG，出现在浅蓝色网址卡片上时形成突兀的白色方框。
+- Fix attempted: 以现有 `assets/app-icon-512.png` 无损品牌源为真值，只清理连通的外围白底，不重画人物、地球、字体或品牌轮廓。
+
+### Iteration 2 — passed
+
+- [P1 fixed] 10 语言联名卡及 404 页改用独立 512px 高清透明 WebP；导航仍使用轻量 180px 资源，避免给每个页面增加不必要的下载体积。
+- [P2 fixed] `32 / 64 / 180 / 192 / 512` PNG 与多尺寸 ICO 全部由同一透明 512px 主图生成，四角 alpha 均为 `0`，外围白色方框已移除。
+- [P2 fixed] Web App Manifest 的图标用途改为 `any`，避免把透明 Logo 当成必须铺满背景的 maskable 图标再次裁切。
+- Post-fix evidence: 电脑和手机浏览器截图中的人物、地球与 `JABBAR SOURCING TEAM` 边缘清晰，Logo 未裁切、未变形、未改变联名卡布局，控制台无 error/warning。
+
+## Required fidelity surfaces
+
+- Fonts and typography: 页面标题、导航、联名字号与行距未改；Logo 内 `JABBAR SOURCING TEAM` 使用原始品牌图中的字形，不由网页字体重建。
+- Spacing and layout rhythm: 联名卡两侧尺寸、外框、内边距、圆角、`×` 位置及手机端换算尺寸全部保持不变。
+- Colors and visual tokens: 海军蓝、白色、地球蓝以及好多宝蓝红色不变；未增加新阴影或浮动控件。
+- Image quality and asset fidelity: 最终图来自现有无损 512px 品牌源，未采用会改变人物身份的生成版本；外围背景透明，内部白色文字、圆环和描边完整保留，无透明白边光晕。
+- Copy and content: 公司名称、联名关系、页面文案和 Logo 内英文拼写均未改变。
+- Icons: favicon、Apple Touch Icon、Web App Manifest 图标和 ICO 使用同一品牌图，缓存版本同步升级。
+- Responsiveness: `1440 × 1000` 与 `390 × 844` 浏览器实拍均无裁切、变形或横向溢出；本次是自动化浏览器验证，不宣称真实设备快捷方式缓存已立即刷新。
+
+## Findings
+
+- No remaining P0, P1 or P2 visual findings.
+- P3: 已安装到手机桌面的旧快捷方式可能继续持有系统级图标缓存；重新添加快捷方式或等待系统刷新后才会显示 `jabbar-6`。
+
+## Implementation checklist
+
+- [x] 保留原始 Jabbar 人物和品牌字样，不使用生成式重绘版本。
+- [x] 去除只与外围背景连通的白色区域，保留 Logo 内所有白色内容。
+- [x] 为 10 语言首页和 404 页提供独立 512px 高清透明 WebP。
+- [x] 生成透明的 favicon、Apple Touch Icon、192px 和 512px Web App 图标及 ICO。
+- [x] 升级全站图标缓存版本，并增加静态性能与部署产物守卫。
+- [x] 完成电脑端、手机端、透明度、资源引用、控制台和全站静态回归验证。
+
+final result: passed
