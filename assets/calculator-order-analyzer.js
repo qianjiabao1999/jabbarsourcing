@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260722b";
+  var VERSION = "order-20260722c";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   // Main-thread parsing is an emergency compatibility path. Keep its memory
   // ceiling well below the Worker limit so older mobile browsers stay usable.
@@ -807,19 +807,22 @@
     tr: { dropLead: "En fazla 10 Excel dosyasını bırakın veya seçin", dropHint: ".xlsx, .xls, .xlsm veya .csv · en fazla 10 dosya · her biri 50 MB", selectedFiles: "Seçilen dosyalar", tooManyFiles: "En fazla 10 dosya seçin.", parsingBatch: "{total} dosyadan {current}. dosya yerel olarak okunuyor…", fileCollection: "Dosya koleksiyonu", fileReady: "Hazır", combinedReady: "{total} dosya analiz edilip birleştirildi. Ayrıntıları görmek için bir dosya seçin.", combinedReport: "BİRLEŞİK SİPARİŞ ÖZETİ", combinedFile: "{total} dosya", exportPreparing: "Tek bir kayıpsız 4K PNG hazırlanıyor…", exportDone: "Kayıpsız 4K PNG indirildi." }
   };
   var CLEAR_FILES_COPY = {
-    "en": "Remove selected files",
-    "zh": "删除已选文件",
-    "es": "Quitar archivos seleccionados",
-    "ar": "إزالة الملفات المحددة",
-    "fr": "Supprimer les fichiers sélectionnés",
-    "pt": "Remover arquivos selecionados",
-    "ru": "Удалить выбранные файлы",
-    "de": "Ausgewählte Dateien entfernen",
-    "it": "Rimuovi i file selezionati",
-    "tr": "Seçili dosyaları kaldır"
+    "en": ["Remove selected files", "Remove {file}"],
+    "zh": ["删除已选文件", "删除 {file}"],
+    "es": ["Quitar archivos seleccionados", "Quitar {file}"],
+    "ar": ["إزالة الملفات المحددة", "إزالة {file}"],
+    "fr": ["Supprimer les fichiers sélectionnés", "Supprimer {file}"],
+    "pt": ["Remover arquivos selecionados", "Remover {file}"],
+    "ru": ["Удалить выбранные файлы", "Удалить {file}"],
+    "de": ["Ausgewählte Dateien entfernen", "{file} entfernen"],
+    "it": ["Rimuovi i file selezionati", "Rimuovi {file}"],
+    "tr": ["Seçili dosyaları kaldır", "{file} dosyasını kaldır"]
   };
   Object.keys(BATCH_COPY).forEach(function (code) {
-    Object.assign(LOCALES[code], BATCH_COPY[code], { clearFiles: CLEAR_FILES_COPY[code] });
+    Object.assign(LOCALES[code], BATCH_COPY[code], {
+      clearFiles: CLEAR_FILES_COPY[code][0],
+      removeFile: CLEAR_FILES_COPY[code][1]
+    });
   });
 
   var ANALYZER_COPY = {
@@ -1215,6 +1218,9 @@
     this.root.setAttribute("aria-busy", busy ? "true" : "false");
     this.fileInput.disabled = Boolean(busy);
     this.clearButton.disabled = Boolean(busy);
+    this.fileList.querySelectorAll("[data-order-file-remove]").forEach(function (button) {
+      button.disabled = Boolean(busy);
+    });
     this.applyButton.disabled = Boolean(busy);
     if (busy) {
       this.exportButton.disabled = true;
@@ -1355,6 +1361,90 @@
     this.fileInput.focus();
   };
 
+  Analyzer.prototype.updateFileMeta = function () {
+    var files = this.currentFiles;
+    if (!files.length) {
+      this.fileMeta.textContent = "";
+      this.clearButton.hidden = true;
+      return;
+    }
+    this.fileMeta.textContent = (files.length === 1 ? this.copy.selectedFile : this.copy.selectedFiles) + ": "
+      + (files.length === 1 ? files[0].name + " · " + (files[0].size / 1024 / 1024).toFixed(2) + " MB" : files.length);
+    this.clearButton.hidden = false;
+  };
+
+  Analyzer.prototype.removeFile = function (entryIndex) {
+    if (this.busy || entryIndex < 0 || entryIndex >= this.fileEntries.length) return;
+    var fileCount = this.fileEntries.length;
+    var activeEntry = this.entryForResultIndex(this.activeFileIndex);
+    var removedEntry = this.fileEntries[entryIndex];
+    this.fileEntries.splice(entryIndex, 1);
+    this.currentFiles = this.fileEntries.map(function (entry) { return entry.file; });
+    // A FileList cannot be edited in place. Clear its stale picker value while
+    // retaining the remaining File objects in currentFiles/fileEntries.
+    this.fileInput.value = "";
+    trackEvent("order_file_removed", {
+      file_count: fileCount,
+      remaining_files: this.fileEntries.length,
+      file_state: removedEntry.errorMessage ? "error" : (removedEntry.payload ? "ready" : "pending")
+    });
+    if (!this.fileEntries.length) {
+      this.resetAnalysis();
+      this.fileInput.focus();
+      return;
+    }
+
+    this.fileResults = [];
+    this.fileEntries.forEach(function (entry) {
+      if (!entry.payload) {
+        entry.resultIndex = -1;
+        return;
+      }
+      entry.resultIndex = this.fileResults.length;
+      this.fileResults.push(entry.payload);
+    }, this);
+    qa.fileResults = this.fileResults.slice();
+    qa.fileFailures = this.fileEntries.reduce(function (failures, entry, index) {
+      if (entry.errorCode) failures.push({ index: index, code: entry.errorCode });
+      return failures;
+    }, []);
+    qa.lastError = qa.fileFailures.length ? this.fileEntries.find(function (entry) { return entry.errorCode; }).errorCode : "";
+    this.isBatchMode = this.fileEntries.length > 1;
+    this.mappingFileIndex = -1;
+    this.mappingDetails.hidden = true;
+    this.mappingDetails.open = false;
+    this.exportCache = null;
+    this.updateFileMeta();
+
+    if (!this.fileResults.length) {
+      this.payload = null;
+      this.deliveryBlocked = this.fileEntries.length === 1 && this.fileEntries[0].errorMessage
+        ? this.fileEntries[0].errorMessage : this.copy.batchNoneReady;
+      this.results.hidden = true;
+      this.exportButton.disabled = true;
+      qa.lastResult = null;
+      qa.combinedResult = null;
+      this.setStatus(this.deliveryBlocked, true);
+      this.renderFileList();
+    } else {
+      this.activeFileIndex = activeEntry && activeEntry !== removedEntry && activeEntry.payload
+        ? activeEntry.resultIndex : Math.min(this.activeFileIndex, this.fileResults.length - 1);
+      var combined = this.combinePayloads(this.fileResults);
+      qa.combinedResult = combined;
+      this.acceptPayload(combined);
+      var failedCount = qa.fileFailures.length;
+      this.setStatus(failedCount
+        ? replaceVars(this.copy.partialReady, { success: this.fileResults.length, total: this.fileEntries.length, failed: failedCount })
+        : this.isBatchMode
+          ? (this.payloadNeedsConfirmation(combined) ? this.copy.confirmBeforeExport : replaceVars(this.copy.combinedReady, { total: this.fileEntries.length }))
+          : this.copy.ready, false);
+    }
+
+    var nextIndex = Math.min(entryIndex, this.fileEntries.length - 1);
+    var nextRemove = this.fileList.querySelector('[data-order-file-remove][data-file-index="' + nextIndex + '"]');
+    if (nextRemove) nextRemove.focus();
+  };
+
   Analyzer.prototype.parseOneFile = async function (file) {
     this.currentFile = file;
     qa.lastFile = { name: file.name, size: file.size };
@@ -1487,6 +1577,8 @@
     var grid = element("div", "order-analyzer__file-grid");
     this.fileEntries.forEach(function (entry, index) {
       var isActive = entry.resultIndex === self.activeFileIndex && Boolean(entry.payload);
+      var item = element("div", "order-analyzer__file-entry" + (isActive ? " is-active" : "") + (entry.errorMessage ? " is-error" : ""));
+      item.setAttribute("data-order-file-entry", "");
       var button = element("button", "order-analyzer__file-item" + (isActive ? " is-active" : "") + (entry.errorMessage ? " is-error" : ""));
       button.type = "button";
       button.setAttribute("data-order-file-item", "");
@@ -1506,7 +1598,26 @@
         self.renderTable(entry.payload.result.items, entry.payload.fileName);
         if (self.isBatchMode && self.payloadNeedsConfirmation(entry.payload)) self.showBatchMapping(entry.resultIndex);
       });
-      grid.appendChild(button);
+      item.appendChild(button);
+      var removeLabel = replaceVars(self.copy.removeFile, { file: entry.file.name });
+      var removeButton = element("button", "order-analyzer__file-remove");
+      removeButton.type = "button";
+      removeButton.disabled = self.busy;
+      removeButton.setAttribute("data-order-file-remove", "");
+      removeButton.setAttribute("data-file-index", String(index));
+      removeButton.setAttribute("aria-label", removeLabel);
+      removeButton.setAttribute("title", removeLabel);
+      var removeIcon = element("img", "order-analyzer__file-remove-icon");
+      removeIcon.src = "/assets/vendor/lucide-trash-2.svg";
+      removeIcon.alt = "";
+      removeIcon.width = 20;
+      removeIcon.height = 20;
+      removeIcon.setAttribute("aria-hidden", "true");
+      removeButton.appendChild(removeIcon);
+      removeButton.appendChild(element("span", "sr-only", removeLabel));
+      removeButton.addEventListener("click", function () { self.removeFile(index); });
+      item.appendChild(removeButton);
+      grid.appendChild(item);
     });
     this.fileList.appendChild(grid);
   };
@@ -1534,8 +1645,7 @@
       return null;
     }
     this.currentFiles = files.slice();
-    this.fileMeta.textContent = (files.length === 1 ? this.copy.selectedFile : this.copy.selectedFiles) + ": " + (files.length === 1 ? files[0].name + " · " + (files[0].size / 1024 / 1024).toFixed(2) + " MB" : files.length);
-    this.clearButton.hidden = false;
+    this.updateFileMeta();
     if (files.length > MAX_FILES) {
       qa.lastError = "too_many_files:" + MAX_FILES;
       this.deliveryBlocked = this.copy.tooManyFiles;
@@ -1652,6 +1762,8 @@
     this.setStatus(this.copy.parsing, false);
     try {
       var payload;
+      var singleEntry = this.fileEntries.length === 1 ? this.fileEntries[0] : null;
+      if (singleEntry && this.currentFile !== singleEntry.file) await this.parseOneFile(singleEntry.file);
       if (this.worker && !this.workerFailed) payload = await this.workerRequest("sheet", { sheetName: sheetName });
       else payload = this.fallbackSession.selectSheet(sheetName, window.XLSX);
       this.acceptPayload(payload);
@@ -1708,6 +1820,8 @@
         this.setStatus(this.payloadNeedsConfirmation(combined) ? this.copy.confirmBeforeExport : replaceVars(this.copy.combinedReady, { total: this.fileResults.length }), false);
         return;
       }
+      var singleEntry = this.fileEntries.length === 1 ? this.fileEntries[0] : null;
+      if (singleEntry && this.currentFile !== singleEntry.file) await this.parseOneFile(singleEntry.file);
       if (this.worker && !this.workerFailed) payload = await this.workerRequest("remap", { mapping: mapping, overrides: overrides });
       else payload = this.fallbackSession.remap(mapping, overrides);
       this.acceptPayload(payload, true);

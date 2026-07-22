@@ -68,6 +68,37 @@ try {
     visual.style.display = "grid";
   });
   await page.waitForFunction(() => Array.from(document.querySelectorAll(".cbm-visual .container-load-card__shell, .cbm-visual .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1280));
+  const cargoGeometry = await page.evaluate(() => Array.from(document.querySelectorAll(".cbm-visual [data-container-load]"), (card) => {
+    const load = Number(card.getAttribute("data-container-load"));
+    const bay = card.querySelector(".container-load-card__bay").getBoundingClientRect();
+    const clip = card.querySelector(".container-load-card__cargo-clip").getBoundingClientRect();
+    const cargo = card.querySelector(".container-load-card__cargo");
+    const cargoRect = cargo.getBoundingClientRect();
+    const style = getComputedStyle(cargo);
+    return {
+      load,
+      bayWidth: bay.width,
+      bayHeight: bay.height,
+      clipWidth: clip.width,
+      cargoWidth: cargoRect.width,
+      cargoHeight: cargoRect.height,
+      naturalWidth: cargo.naturalWidth,
+      naturalHeight: cargo.naturalHeight,
+      objectFit: style.objectFit,
+      src: cargo.getAttribute("src") || ""
+    };
+  }));
+  assert.equal(cargoGeometry.length, 2, "90 CBM must render two cargo scenes");
+  cargoGeometry.forEach((geometry, index) => {
+    near(geometry.bayWidth / geometry.bayHeight, 1280 / 372, 0.03, `cargo ${index + 1}: bay aspect ratio`);
+    near(geometry.clipWidth / geometry.bayWidth * 100, geometry.load, 0.2, `cargo ${index + 1}: clipped load width`);
+    near(geometry.cargoWidth, geometry.bayWidth, 0.7, `cargo ${index + 1}: unscaled full cargo width`);
+    near(geometry.cargoHeight, geometry.bayHeight, 0.7, `cargo ${index + 1}: cargo height`);
+    assert.equal(geometry.naturalWidth, 1280, `cargo ${index + 1}: natural width`);
+    assert.equal(geometry.naturalHeight, 372, `cargo ${index + 1}: natural height`);
+    assert.equal(geometry.objectFit, "contain", `cargo ${index + 1}: cargo must not be stretched`);
+    assert.match(geometry.src, /container-cargo-stack-20260722b\.webp$/, `cargo ${index + 1}: branded pallet-free asset`);
+  });
   await page.locator(".cbm-visual").screenshot({ path: `${OUTPUT_DIR}/quick-container-allocation-90-cbm.png` });
 
   const excelTab = page.locator('[data-calculator-mode="excel"]');
@@ -131,6 +162,26 @@ try {
     const instance = root?.__jabbarOrderAnalyzer;
     instance.renderContainer(instance.containerEstimate(74.8, false));
     instance.results.hidden = false;
+  });
+  await page.waitForFunction(() => Array.from(document.querySelectorAll(".order-analyzer__container .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1280 && image.naturalHeight === 372));
+  const orderCargo = await page.evaluate(() => Array.from(document.querySelectorAll(".order-analyzer__container [data-container-load]"), (card) => {
+    const bay = card.querySelector(".container-load-card__bay").getBoundingClientRect();
+    const clip = card.querySelector(".container-load-card__cargo-clip").getBoundingClientRect();
+    const cargo = card.querySelector(".container-load-card__cargo").getBoundingClientRect();
+    return {
+      load: Number(card.getAttribute("data-container-load")),
+      bayWidth: bay.width,
+      bayHeight: bay.height,
+      clipWidth: clip.width,
+      cargoWidth: cargo.width,
+      cargoHeight: cargo.height
+    };
+  }));
+  assert.equal(orderCargo.length, 2, "74.8 m³ order result must render two branded cargo scenes");
+  orderCargo.forEach((geometry, index) => {
+    near(geometry.clipWidth / geometry.bayWidth * 100, geometry.load, 0.2, `order cargo ${index + 1}: clipped load width`);
+    near(geometry.cargoWidth, geometry.bayWidth, 0.7, `order cargo ${index + 1}: unscaled cargo width`);
+    near(geometry.cargoHeight, geometry.bayHeight, 0.7, `order cargo ${index + 1}: cargo height`);
   });
   await page.locator(".order-analyzer__container").screenshot({ path: `${OUTPUT_DIR}/container-allocation-110-percent.png` });
   assert.equal(errors.length, 0, `browser console errors: ${errors.join(" | ")}`);

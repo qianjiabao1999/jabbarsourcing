@@ -6,10 +6,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-181";
+const CSS_VERSION = "apple-182";
 const UI_VERSION = "ui-20260722a";
-const ORDER_VERSION = "order-20260722b";
-const CONTAINER_VERSION = "container-20260722a";
+const ORDER_VERSION = "order-20260722c";
+const CONTAINER_VERSION = "container-20260722b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
   zh: "社媒账号",
@@ -126,11 +126,15 @@ for (const file of ["assets/testimonial-boyner-480.webp", "assets/testimonial-bo
   assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
   assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
 }
-for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722.webp"]) {
+for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722b.webp"]) {
   const asset = await readFile(resolve(ROOT, file));
   assert(asset.byteLength > 20_000, `${file}: container visual asset is unexpectedly empty`);
   assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF", `${file}: RIFF signature`);
   assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP", `${file}: WebP signature`);
+}
+for (const file of ["assets/vendor/lucide-trash-2.svg", "assets/vendor/LUCIDE-LICENSE.txt"]) {
+  const asset = await readFile(resolve(ROOT, file), "utf8");
+  assert(asset.length > 100, `${file}: licensed delete-icon asset is unexpectedly empty`);
 }
 for (const file of ["testimonial-maria.webp", "testimonial-kwame.webp", "testimonial-samuel.webp"]) {
   await assert.rejects(readFile(resolve(ROOT, "assets", file)), { code: "ENOENT" }, `${file}: confirmed unused asset returned`);
@@ -680,7 +684,7 @@ for (const locale of LOCALES) {
   assert.match(containerJavascript, new RegExp(`\\n\\s*${locale}: \\{`), `container-visual.js: missing ${locale} labels`);
 }
 for (const token of [
-  "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722.webp",
+  "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722b.webp",
   "CONTAINER_CAPACITY_CBM", "CONTAINER_EPSILON_CBM", "MAX_VISIBLE_CONTAINERS",
   "data-container-count", "data-container-load", "data-container-index",
   'role", "progressbar', "aria-valuenow", "cbm-container-visual", "cbm-container-fill",
@@ -845,6 +849,8 @@ const containerReleaseCss = css.slice(containerReleaseIndex);
 assert.match(containerReleaseCss, /\.site-nav \.site-nav-language,[\s\S]*?box-shadow:\s*none\s*!important/, "styles.css: language shadow reset missing");
 assert.match(containerReleaseCss, /\.container-load-card__scene\s*\{[\s\S]*?aspect-ratio:\s*1280\s*\/\s*438/, "styles.css: 3D container scene ratio missing");
 assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?overflow:\s*hidden/, "styles.css: cargo clipping bay missing");
+assert.match(containerReleaseCss, /\.container-load-card__bay\s*\{[\s\S]*?aspect-ratio:\s*1280\s*\/\s*372/, "styles.css: cargo bay must match the asset ratio");
+assert.match(containerReleaseCss, /\.container-load-card__cargo\s*\{[\s\S]*?object-fit:\s*contain/, "styles.css: cargo must not be stretched");
 assert.match(css, /\.site-nav-links \.site-nav-quote-desktop[\s\S]*?order:\s*0\s*!important/, "styles.css: desktop quote must keep its middle navigation position");
 for (const removedToken of [".contact-speed-dial", ".mobile-conversion-bar", "has-mobile-conversion-bar", ".ui-section-reveal", ".site-footer-backtop"]) {
   assert(!css.includes(removedToken), `styles.css: removed floating control styles remain (${removedToken})`);
@@ -934,7 +940,7 @@ assert.match(reviewQuoteRule, /background-image:\s*linear-gradient/, "styles.css
 assert.doesNotMatch(reviewQuoteRule, /position:\s*fixed/, "styles.css: review quote CTA must remain inline");
 for (const token of [
   ".calculator-order-upload", ".order-analyzer__dropzone", ".order-analyzer__clear-files", ".order-analyzer__mapping",
-  ".order-analyzer__metrics", ".order-analyzer__actions", ".order-analyzer__table"
+  ".order-analyzer__file-entry", ".order-analyzer__file-remove", ".order-analyzer__metrics", ".order-analyzer__actions", ".order-analyzer__table"
 ]) {
   assert(css.includes(token), `styles.css: missing ${token}`);
 }
@@ -943,13 +949,14 @@ const orderAnalyzer = await load("assets/calculator-order-analyzer.js");
 const orderWorker = await load("assets/calculator-order-worker.js");
 for (const token of [
   "data-order-export", "toBlob", "JABBAR_ORDER_ANALYZER_QA",
-  "order_file_selected", "order_parse_success", "order_parse_error", "order_files_cleared",
+  "order_file_selected", "order_parse_success", "order_parse_error", "order_files_cleared", "order_file_removed",
   "order_export_png", "order_export_error", "data-order-inquiry",
-  "ORDER_INQUIRY_LABELS", "jabbarCalcResult", "calculator_inquiry", "data-order-clear", "clearSelection"
+  "ORDER_INQUIRY_LABELS", "jabbarCalcResult", "calculator_inquiry", "data-order-clear", "clearSelection",
+  "data-order-file-remove", "removeFile", "updateFileMeta", "lucide-trash-2.svg"
 ])
   assert(orderAnalyzer.includes(token), `calculator-order-analyzer.js: missing ${token}`);
 assert.equal(count(orderAnalyzer, /^\s{4}(?:zh|en|es|ar|fr|pt|ru|de|it|tr):\s+".*"[,]?$/gm), LOCALES.length, "calculator-order-analyzer.js: localized order inquiry label count");
-assert.equal(count(orderAnalyzer, /^\s{4}"(?:zh|en|es|ar|fr|pt|ru|de|it|tr)":\s+".*"[,]?$/gm), LOCALES.length, "calculator-order-analyzer.js: localized clear-files label count");
+assert.equal(count(orderAnalyzer, /^\s{4}"(?:zh|en|es|ar|fr|pt|ru|de|it|tr)":\s+\[".*",\s+".*"\][,]?$/gm), LOCALES.length, "calculator-order-analyzer.js: localized clear/per-file remove label count");
 assert.equal(count(orderAnalyzer, /setAttribute\("data-order-inquiry"/g), 1, "calculator-order-analyzer.js: duplicate order inquiry CTA");
 assert.match(orderAnalyzer, /this\.lang === "zh" \? "\/inquiry\/" : "\/" \+ this\.lang \+ "\/inquiry\/"/, "calculator-order-analyzer.js: localized inquiry path missing");
 for (const removedToken of ["data-order-wechat", "shareToWeChat", "navigator.share"]) {

@@ -809,6 +809,93 @@ try {
   assert.equal(multiExport.files.length, 1, "three-file combined export must download exactly one PNG");
   assert.equal(multiExport.files[0].width >= 3840, true, "three-file combined export is not UHD");
 
+  const initialRemoveState = await page.evaluate(() => ({
+    labels: [...document.querySelectorAll("[data-order-file-remove]")].map((button) => button.getAttribute("aria-label")),
+    positions: [...document.querySelectorAll("[data-order-file-entry]")].map((entry) => {
+      const item = entry.querySelector("[data-order-file-item]").getBoundingClientRect();
+      const remove = entry.querySelector("[data-order-file-remove]").getBoundingClientRect();
+      return { itemRight: item.right, removeLeft: remove.left, width: remove.width, height: remove.height };
+    })
+  }));
+  assert.equal(initialRemoveState.labels.length, 3, "multi-file collection must expose one remove button per file");
+  for (let index = 0; index < multiFileFixtures.length; index += 1) {
+    assert.match(initialRemoveState.labels[index] || "", new RegExp(`删除.*${multiFileFixtures[index].name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`), `file ${index + 1} remove button accessible name`);
+    assert(initialRemoveState.positions[index].removeLeft >= initialRemoveState.positions[index].itemRight, `file ${index + 1} remove button is not on the right`);
+    assert(initialRemoveState.positions[index].width >= 44 && initialRemoveState.positions[index].height >= 44, `file ${index + 1} remove target is below 44px`);
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileRemoveState = await page.evaluate(() => ({
+    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    entries: [...document.querySelectorAll("[data-order-file-entry]")].map((entry) => {
+      const entryRect = entry.getBoundingClientRect();
+      const item = entry.querySelector("[data-order-file-item]").getBoundingClientRect();
+      const remove = entry.querySelector("[data-order-file-remove]").getBoundingClientRect();
+      return { entryWidth: entryRect.width, itemRight: item.right, removeLeft: remove.left, width: remove.width, height: remove.height };
+    })
+  }));
+  assert(mobileRemoveState.overflow <= 1, `mobile per-file controls overflow by ${mobileRemoveState.overflow}px`);
+  assert.equal(mobileRemoveState.entries.length, 3, "mobile file collection must retain every remove control");
+  mobileRemoveState.entries.forEach((entry, index) => {
+    assert(entry.entryWidth > 0 && entry.entryWidth <= 330, `mobile file ${index + 1} entry width is invalid`);
+    assert(entry.removeLeft >= entry.itemRight, `mobile file ${index + 1} remove button is not on the right`);
+    assert(entry.width >= 44 && entry.height >= 44, `mobile file ${index + 1} remove target is below 44px`);
+  });
+  await page.locator("[data-order-file-list]").screenshot({ path: `${OUTPUT_DIR}/multi-file-collection-mobile-390.png` });
+  await page.setViewportSize({ width: 1280, height: 900 });
+
+  await page.locator("[data-order-file-remove]").nth(1).focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction((removedName) => {
+    const qa = window.JABBAR_ORDER_ANALYZER_QA || {};
+    const names = [...document.querySelectorAll("[data-order-file-item]")].map((item) => item.textContent || "");
+    return qa.fileResults?.length === 2 && names.length === 2 && names.every((name) => !name.includes(removedName));
+  }, multiFileFixtures[1].name);
+  let removedFileState = await page.evaluate(() => ({
+    result: window.JABBAR_ORDER_ANALYZER_QA.lastResult,
+    fileNames: document.querySelector("[data-order-analyzer]").__jabbarOrderAnalyzer.currentFiles.map((file) => file.name),
+    fileInputValue: document.querySelector("[data-order-file]").value,
+    fileMeta: document.querySelector(".order-analyzer__file-meta").textContent,
+    resultsHidden: document.querySelector("[data-order-results]").hidden,
+    focusedRemove: document.activeElement?.matches("[data-order-file-remove]") || false
+  }));
+  assert.deepEqual(removedFileState.fileNames, [multiFileFixtures[0].name, multiFileFixtures[2].name], "middle file removal did not preserve the remaining file order");
+  assert.equal(removedFileState.fileInputValue, "", "per-file removal retained a stale native FileList value");
+  assert.match(removedFileState.fileMeta, /2/, "per-file removal did not refresh the selected file count");
+  assert.equal(removedFileState.resultsHidden, false, "per-file removal hid the recomputed combined result");
+  assert.equal(removedFileState.focusedRemove, true, "keyboard focus was not restored to a remaining remove control");
+  assertMetrics(removedFileState.result, { productRows: 4, uniqueProducts: 4, quantity: 9, weight: 15, volume: 0.9, amount: 90, currency: "CNY" }, "combined result after middle file removal", true);
+
+  await page.locator("[data-order-file-remove]").first().click();
+  await page.waitForFunction(() => window.JABBAR_ORDER_ANALYZER_QA?.fileResults?.length === 1 && document.querySelectorAll("[data-order-file-item]").length === 1);
+  removedFileState = await page.evaluate(() => ({
+    result: window.JABBAR_ORDER_ANALYZER_QA.lastResult,
+    fileNames: document.querySelector("[data-order-analyzer]").__jabbarOrderAnalyzer.currentFiles.map((file) => file.name),
+    fileMeta: document.querySelector(".order-analyzer__file-meta").textContent,
+    mappingHidden: document.querySelector("[data-order-mapping]").hidden
+  }));
+  assert.deepEqual(removedFileState.fileNames, [multiFileFixtures[2].name], "second removal retained the wrong file");
+  assert.match(removedFileState.fileMeta, new RegExp(multiFileFixtures[2].name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), "single remaining file metadata was not refreshed");
+  assert.equal(removedFileState.mappingHidden, false, "single remaining file did not restore its mapping controls");
+  assertMetrics(removedFileState.result, { productRows: 2, uniqueProducts: 2, quantity: 4, weight: 5, volume: 0.4, amount: 40, currency: "CNY" }, "single result after second file removal", true);
+
+  await page.locator("[data-order-file-remove]").press("Space");
+  await page.waitForFunction(() => document.querySelectorAll("[data-order-file-entry]").length === 0);
+  const lastFileRemovedState = await page.evaluate(() => ({
+    payload: document.querySelector("[data-order-analyzer]").__jabbarOrderAnalyzer.payload,
+    qaResult: window.JABBAR_ORDER_ANALYZER_QA.lastResult,
+    qaFileResults: window.JABBAR_ORDER_ANALYZER_QA.fileResults.length,
+    fileMeta: document.querySelector(".order-analyzer__file-meta").textContent,
+    status: document.querySelector("[data-order-status]").textContent,
+    clearHidden: document.querySelector("[data-order-clear]").hidden,
+    resultsHidden: document.querySelector("[data-order-results]").hidden,
+    fileListHidden: document.querySelector("[data-order-file-list]").hidden,
+    inputFocused: document.activeElement === document.querySelector("[data-order-file]")
+  }));
+  assert.deepEqual(lastFileRemovedState, {
+    payload: null, qaResult: null, qaFileResults: 0, fileMeta: "", status: "", clearHidden: true, resultsHidden: true, fileListHidden: true, inputFocused: true
+  }, "removing the final file did not fully clear the analyzer");
+
   const summaryBatch = await uploadWorkbooks(page, summaryBatchFixtures);
   assertMetrics(summaryBatch.combined, { productRows: 2, uniqueProducts: 2, quantity: 5, weight: 10, volume: 0.5, amount: 50, currency: "CNY" }, "summary-row batch combined result", true);
   assert.equal(summaryBatch.combined.result.skippedSummaryRows, 2, "summary-row batch: combined skipped total");
@@ -1003,6 +1090,20 @@ try {
     buffer: usdHeaderFixture
   });
   assertMetrics(payload, { productRows: 2, uniqueProducts: 2, quantity: 3, weight: 6, volume: 0.3, amount: 55, currency: "USD" }, "explicit USD header fixture", true);
+  const mobileFileRemoveState = await page.evaluate(() => {
+    const entry = document.querySelector("[data-order-file-entry]").getBoundingClientRect();
+    const item = document.querySelector("[data-order-file-item]").getBoundingClientRect();
+    const remove = document.querySelector("[data-order-file-remove]").getBoundingClientRect();
+    return {
+      entryRight: entry.right, itemRight: item.right, removeLeft: remove.left, removeRight: remove.right,
+      width: remove.width, height: remove.height,
+      label: document.querySelector("[data-order-file-remove]").getAttribute("aria-label")
+    };
+  });
+  assert(mobileFileRemoveState.removeLeft >= mobileFileRemoveState.itemRight, "mobile remove button is not on the right of the file card");
+  assert(mobileFileRemoveState.removeRight <= mobileFileRemoveState.entryRight + 1, "mobile remove button exceeds the file collection");
+  assert(mobileFileRemoveState.width >= 44 && mobileFileRemoveState.height >= 44, "mobile remove target is below 44px");
+  assert.match(mobileFileRemoveState.label || "", /删除 qa-explicit-usd-header\.xlsx/, "mobile remove button accessible name");
   assert.equal(payload.overrides.currency, "USD", "explicit USD header fixture: override was relabeled as CNY");
   assert.equal(payload.overrides.mappingConfirmed, true, "explicit USD header fixture: mapping unexpectedly requires confirmation");
   assert(payload.result.items.every((item) => item.currency === "USD"), "explicit USD header fixture: a detail row was relabeled as CNY");
@@ -1348,6 +1449,7 @@ try {
 
   if (PACKING_LIST_WORKBOOK) {
     await access(PACKING_LIST_WORKBOOK);
+    await page.setViewportSize({ width: 1280, height: 900 });
     payload = await uploadWorkbook(page, PACKING_LIST_WORKBOOK);
     assert.equal(payload.mapping.cartons, 2, "packing-list workbook: 件数 column");
     assert.equal(payload.mapping.qty, 10, "packing-list workbook: 数量 column");
@@ -1357,6 +1459,22 @@ try {
     }, "packing-list workbook", true);
     assert.equal(payload.result.skippedSummaryRows, 1, "packing-list workbook: trailing total row");
     assert.equal(payload.result.subtotalMismatchCount, 0, "packing-list workbook: subtotal mismatches");
+    await page.waitForFunction(() => Array.from(document.querySelectorAll(".order-analyzer__container .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 1280 && image.naturalHeight === 372));
+    const packingContainerState = await page.evaluate(() => ({
+      loads: [...document.querySelectorAll(".order-analyzer__container [data-container-load]")].map((card) => Number(card.getAttribute("data-container-load"))),
+      cargoSources: [...document.querySelectorAll(".order-analyzer__container .container-load-card__cargo")].map((image) => image.getAttribute("src") || ""),
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+    }));
+    near(packingContainerState.loads[0], 100, 1e-8, "packing-list workbook: first container must be full");
+    near(packingContainerState.loads[1], (74.8881445148 - 68) / 68 * 100, 1e-8, "packing-list workbook: second container remainder");
+    assert(packingContainerState.cargoSources.every((src) => /container-cargo-stack-20260722b\.webp$/.test(src)), "packing-list workbook: branded cargo asset missing");
+    assert(packingContainerState.overflow <= 1, `packing-list desktop overflow by ${packingContainerState.overflow}px`);
+    await page.locator(".order-analyzer__container").screenshot({ path: `${OUTPUT_DIR}/packing-container-branded-1280.png` });
+    await page.locator("[data-order-file-list]").screenshot({ path: `${OUTPUT_DIR}/packing-file-delete-desktop-1280.png` });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await assertNoOverflow(page, "packing-list mobile 390");
+    await page.locator("[data-order-file-list]").screenshot({ path: `${OUTPUT_DIR}/packing-file-delete-mobile-390.png` });
+    await page.setViewportSize({ width: 1280, height: 900 });
     packingListTested = true;
   }
 

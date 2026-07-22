@@ -2,7 +2,7 @@
   var root = document.querySelector("[data-order-analyzer]");
   if (!root || root.getAttribute("data-order-loader-bound") === "true") return;
 
-  var VERSION = "order-20260722b";
+  var VERSION = "order-20260722c";
   var SCRIPT_URL = "/assets/calculator-order-analyzer.js?v=" + VERSION;
   var language = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
   var labels = {

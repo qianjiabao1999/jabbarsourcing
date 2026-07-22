@@ -117,6 +117,17 @@ fallback. Cloudflare overrides that exact path at the edge; if the Worker is
 missing or bypassed, the fallback still keeps analytics off and avoids a noisy
 404 in local static previews.
 
+### Production risk notes
+
+- The Cloudflare account is on **Workers Paid** and `www.jabbarsourcing.com/*`
+  intentionally remains a full-site Worker route.
+- Keep the static GitHub Pages origin and its strict `/api/consent-region`
+  fallback deployable as the rollback path. A Worker or route rollback must not
+  weaken consent defaults, inquiry CORS boundaries, HTTPS, or security headers.
+- Cloudflare Transform Rules are optional for this deployment; do not migrate
+  the full-site route merely to avoid a free-plan request quota that does not
+  apply to the confirmed Paid account.
+
 Cross-browser and device-profile checks:
 
 ```bash

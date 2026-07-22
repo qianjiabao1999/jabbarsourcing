@@ -6,7 +6,7 @@
   var CONTAINER_EPSILON_CBM = 0.000001;
   var MAX_VISIBLE_CONTAINERS = 12;
   var SHELL_ASSET = "/assets/container-40hq-shell-20260722.webp";
-  var CARGO_ASSET = "/assets/container-cargo-stack-20260722.webp";
+  var CARGO_ASSET = "/assets/container-cargo-stack-20260722b.webp";
   var lang = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
   var labels = {
     zh: { title: "集装箱装载示意", forty: "40英尺高柜", unit: "立方米", full: "满载", loaded: "已装载" },
@@ -162,7 +162,7 @@
     capacity: CONTAINER_CAPACITY_CBM,
     createCard: createCard,
     renderCards: renderCards,
-    version: "container-20260722a"
+    version: "container-20260722b"
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initQuickCalculator, { once: true });

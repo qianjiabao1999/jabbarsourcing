@@ -1,54 +1,55 @@
-# 3D 集装箱可视化设计 QA
+# Excel 文件删除与好多宝品牌货箱设计 QA
 
 ## Comparison target
 
-- Source visual truth: `/var/folders/j9/0c_cr92n7lq8zk387c94gsn80000gn/T/codex-clipboard-23e1a52e-8e67-4566-b374-389cef521fc0.png`
-- Implementation screenshots:
-  - `/tmp/jabbar-order-analyzer-qa/packing-container-first-1280.png`
-  - `/tmp/jabbar-order-analyzer-qa/packing-container-second-1280.png`
-- Combined comparison evidence: `/tmp/container-comparison.png`
-- State: original workbook total volume `74.8881445148 m³`; two 40HQ containers at `100%` and `10.1296242865%`.
+- 单文件删除参考：`/var/folders/j9/0c_cr92n7lq8zk387c94gsn80000gn/T/codex-clipboard-ea82850a-edfc-4a89-8719-22a18c24b194.png`
+- 原装柜参考（需要去木托盘）：`/var/folders/j9/0c_cr92n7lq8zk387c94gsn80000gn/T/codex-clipboard-ee4f912d-05b8-4879-bc6d-4719d39af00c.png`
+- 好多宝法定品牌 Logo：`/Users/jabbar/Desktop/微信图片_2026-07-18_061544_511.jpg`
+- 当前实现：
+  - `/tmp/jabbar-order-analyzer-qa/packing-file-delete-desktop-1280.png`
+  - `/tmp/jabbar-order-analyzer-qa/packing-file-delete-mobile-390.png`
+  - `/tmp/jabbar-order-analyzer-qa/packing-container-branded-1280.png`
+  - `/tmp/jabbar-order-analyzer-qa/multi-file-collection-mobile-390.png`
+- 同图对比证据：
+  - `/tmp/file-delete-comparison.png`
+  - `/tmp/container-branded-comparison.png`
 
-## Viewport and normalization
+## State and viewport
 
-- Browser viewport: desktop `1280px` wide, Playwright default device scale factor `1`.
-- Source intrinsic pixels: `1040 × 510`; its original CSS size and source density are unavailable.
-- Implementation card pixels: `466 × 243` per card; two cards stacked to `466 × 486`.
-- Comparison normalization: source scaled proportionally to `466px` wide and centered on a `466 × 486` white canvas; implementation retained at captured 1:1 pixels. The combined image is `932 × 486`.
-- The source is a compact flat summary while the requested implementation intentionally uses taller realistic container cards, so vertical density is not treated as a fidelity mismatch.
+- 真实工作簿：`吕总2店565件.xlsx`。
+- 桌面视口：`1280 × 900`；手机视口：`390 × 844`。
+- 真实结果：`565` 箱、总体积 `74.8881445148 m³`。
+- 装柜分配：第一柜 `100%`，第二柜 `10.1296242865%`，没有平均分摊到两个柜。
+- 货物素材：`1280 × 372` WebP，使用与素材一致的 `1280 / 372` 货舱比例和 `object-fit: contain`，无横向拉伸。
 
 ## Full-view comparison evidence
 
-`/tmp/container-comparison.png` shows the complete source component and the complete two-card implementation in one image. The implementation preserves the source information hierarchy—container number, percentage, full-first allocation, total capacity context—while replacing abstract bars with a realistic open-side 40HQ view. No clipping, overlap, horizontal overflow, or residual shadow is visible.
+`/tmp/file-delete-comparison.png` 将用户参考与实现并排：单文件卡右侧是独立、无阴影、红色语义的垃圾桶按钮；文件卡保持主点击区域，删除目标不少于 `44px`。桌面和手机都保持右侧排列，没有裁切或横向溢出。
 
-## Focused region evidence
-
-The two individual card screenshots are the focused evidence. The first card visibly fills the cargo bay end to end and uses the orange full state. The second card visibly fills only the left `10%` portion and leaves the rest of the container empty. Text, status pill, shell, and cargo remain readable at the captured size. No additional crop was needed because each focused screenshot contains exactly one complete card.
+`/tmp/container-branded-comparison.png` 将旧木托盘货箱、法定 Logo 和当前实现放在同一张图中：当前货物已取消木托盘，纸箱紧密落地堆叠；每个可见正面纸箱都带蓝红好多宝 Logo。满柜保持整幅货物图不变形，余量柜只裁切可见宽度，不缩放箱子。
 
 ## Required fidelity surfaces
 
-- Fonts and typography: existing site sans-serif and monospaced numeric stacks are retained; `100%` and `10%` have clear hierarchy and do not wrap.
-- Spacing and layout rhythm: card padding, rounded border, scene spacing, footer alignment, and the gap between cards are consistent; no outer box shadow was introduced.
-- Colors and visual tokens: teal remains the primary brand/state color and orange is reserved for the full-container state; pale blue scene backgrounds match the calculator surface.
-- Image quality and asset fidelity: real raster WebP shell and cargo assets are used, with transparent edges and natural width `1280px`; there are no handcrafted SVG or CSS-art substitutes.
-- Copy and content: 40HQ identity, per-container capacity, exact allocation order, localized unit text, percentage, and loaded/full state are preserved.
+- 删除控件：桌面和 `390px` 手机均为独立垃圾桶按钮，`aria-label`/`title` 含文件名，支持键盘，删除最后一个文件后焦点返回上传控件。
+- 品牌素材：保留好多宝蓝色中文字与蓝红英文标识；没有重新使用木托盘。
+- 装载真实性：第一柜端到端填满；第二柜从左侧显示实际剩余装载量，空舱清晰可见。
+- 视觉稳定性：货舱和货物素材比例一致，`100%` 与 `10%` 状态下箱体尺寸不变；只改变裁切宽度。
+- 设计系统：沿用现有蓝绿、橙色满载状态、圆角和无阴影规则，没有引入新的浮动控件。
+- 响应式：桌面、Chromium/WebKit/Firefox 手机、模拟 Android 微信 WebView、iOS 微信 WKWebView 和阿语 RTL 均无横向溢出。
 
 ## Findings
 
-- No actionable P0, P1, or P2 visual mismatch remains.
-- P3: the realistic cards use more vertical space than the former bar chart. This is an intentional tradeoff for clearer loading visualization; responsive CSS collapses the grid to one column without horizontal overflow.
-
-## Comparison history
-
-- Initial comparison: no P0/P1/P2 mismatch was found. The generated shell/cargo assets, full-first allocation, spacing, typography, colors, and responsive container bounds were all acceptable, so no blocking visual-fix iteration was required.
-- Automated follow-up: Chromium and WebKit checks confirmed desktop/mobile layout, RTL, ARIA progress values, exact allocation data, asset loading, and zero language-selector shadow.
+- 无 P0、P1、P2 视觉问题。
+- P3：在小尺寸装柜卡中，单个纸箱上的英文标识会自然变小，但“好多宝”中文仍清晰形成品牌识别；这是一次显示几十个真实箱面的密度取舍，不影响装载比例判断。
 
 ## Implementation checklist
 
-- [x] Preserve `68 m³` 40HQ capacity and full-first allocation.
-- [x] Render one full container before the remainder container.
-- [x] Use real image assets with accessible progress semantics.
-- [x] Keep desktop, mobile, RTL, reduced-motion, and no-JS checks green.
-- [x] Remove parent, hover, and summary shadows from the language selector.
+- [x] 每个文件卡拥有独立删除按钮，桌面和手机一致。
+- [x] 删除任意文件后重算剩余汇总；删除最后一个文件后可立即重新上传。
+- [x] 去除木托盘并保持纸箱紧密填充。
+- [x] 每个可见纸箱带好多宝 Logo。
+- [x] 第一柜 100% 后才计算第二柜剩余量。
+- [x] 货物图在满载、部分装载和 RTL 中不变形。
+- [x] 真实 Excel、10 语种、桌面/手机/微信模拟环境和控制台回归通过。
 
 final result: passed

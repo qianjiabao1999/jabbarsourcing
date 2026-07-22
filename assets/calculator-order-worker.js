@@ -6,7 +6,7 @@
 (function (scope) {
   "use strict";
 
-  var VERSION = "order-20260722b";
+  var VERSION = "order-20260722c";
   var MAX_ROWS = 10000;
   var MAX_COLUMNS = 100;
   var XLSX_URL = "/assets/vendor/xlsx.full.min.js?v=0.20.3";
