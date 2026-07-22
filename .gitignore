@@ -10,3 +10,4 @@ node_modules/
 .dev.vars.*
 .wrangler/
 *.cpuprofile
+assets/social-source/

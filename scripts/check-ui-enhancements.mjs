@@ -558,18 +558,18 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
 {
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
   const EXPECTED_LANGUAGE_MATRIX_LASTMOD = {
-    home: "2026-07-19",
-    calculator: "2026-07-19",
-    inquiry: "2026-07-19"
+    home: "2026-07-23",
+    calculator: "2026-07-23",
+    inquiry: "2026-07-23"
   };
   const EXPECTED_LEGAL_LASTMOD = {
-    [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-19",
+    [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-23",
     [`${PUBLIC_ORIGIN}/website-privacy-policy.html`]: "2026-07-22",
     ...Object.fromEntries(LOCALES.filter((locale) => locale !== "zh").map((locale) => [
       `${PUBLIC_ORIGIN}/${locale}/website-privacy-policy.html`,
       "2026-07-22"
     ])),
-    [`${PUBLIC_ORIGIN}/support.html`]: "2026-07-12"
+    [`${PUBLIC_ORIGIN}/support.html`]: "2026-07-23"
   };
   const LEGAL_PAGE_URLS = [
     `${PUBLIC_ORIGIN}/privacy-policy.html`,
