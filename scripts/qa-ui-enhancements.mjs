@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-185";
+const CSS_VERSION = "apple-186";
 const UI_VERSION = "ui-20260722a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -14,6 +14,19 @@ const HOME_PAGES = [
   { locale: "ru", path: "/ru/" }, { locale: "de", path: "/de/" }, { locale: "it", path: "/it/" }, { locale: "tr", path: "/tr/" }
 ];
 const CALCULATOR_PAGES = HOME_PAGES.map((item) => ({ ...item, path: item.path === "/" ? "/calculator/" : `${item.path}calculator/` }));
+// 首页 <title> 十语言关键词版(2026-07-25 SEO 修复),与 scripts/check-ui-enhancements.mjs 的 HOME_TITLES 保持一致。
+const HOME_TITLES = {
+  zh: "义乌采购代理 · 验货质检 · 国际物流一站式｜Jabbar Sourcing",
+  en: "Yiwu Sourcing Agent in China – Free Quotes | Jabbar Sourcing",
+  es: "Agente de Compras en Yiwu, China – Cotización Gratis | Jabbar Sourcing",
+  ar: "وكيل شراء في ييوو، الصين – عرض سعر مجاني | Jabbar Sourcing",
+  fr: "Agent d'Achat à Yiwu, Chine – Devis Gratuit | Jabbar Sourcing",
+  pt: "Agente de Compras em Yiwu, China – Cotação Grátis | Jabbar Sourcing",
+  ru: "Агент по закупкам в Иу, Китай – Бесплатный расчёт | Jabbar Sourcing",
+  de: "Yiwu Sourcing Agent in China – Kostenlose Angebote | Jabbar Sourcing",
+  it: "Agente di Acquisto a Yiwu, Cina – Preventivo Gratuito | Jabbar Sourcing",
+  tr: "Çin’de Yiwu Tedarik Acentesi – Ücretsiz Teklif | Jabbar Sourcing"
+};
 const INQUIRY_PAGES = HOME_PAGES.map((item) => ({ ...item, path: item.path === "/" ? "/inquiry/" : `${item.path}inquiry/` }));
 const HEADER_PAGES = [
   ...HOME_PAGES.map((item) => ({ ...item, type: "home" })),
@@ -1298,7 +1311,8 @@ async function homeMatrix(browserType) {
       const scope = `${item.locale} home ${viewport.width}x${viewport.height}`;
       const state = await pageState(page);
       assertShared(state, scope);
-      assert.equal(state.title, "Jabbar Sourcing", `${scope}: homepage title`);
+      assert.equal(state.title, HOME_TITLES[item.locale], `${scope}: homepage title`);
+      assert.notEqual(state.title, "Jabbar Sourcing", `${scope}: homepage title regressed to bare brand name`);
       assertHeaderNavigation(state, scope, { desktop: !viewport.mobile });
       assertNoFloatingControls(state, scope);
       assertMobileMenuTrimmed(state, scope);

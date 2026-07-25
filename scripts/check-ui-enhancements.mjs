@@ -7,7 +7,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-185";
+const CSS_VERSION = "apple-186";
 const UI_VERSION = "ui-20260722a";
 const ORDER_VERSION = "order-20260722c";
 const CONTAINER_VERSION = "container-20260722e";
@@ -96,6 +96,19 @@ const COMPANY_ENGLISH_LEGAL_NAME = "Zhejiang Haoduobao Brand Management Co., Ltd
 const CITY_FIELDS = LOCALES.map((locale) => `city_${locale}`).sort();
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const HOME_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale) }));
+// 首页 <title> 十语言关键词版(2026-07-25 SEO 修复):关键词前置,与各语言 og:title 同源文案;严禁回退为裸品牌名。
+const HOME_TITLES = {
+  zh: "义乌采购代理 · 验货质检 · 国际物流一站式｜Jabbar Sourcing",
+  en: "Yiwu Sourcing Agent in China – Free Quotes | Jabbar Sourcing",
+  es: "Agente de Compras en Yiwu, China – Cotización Gratis | Jabbar Sourcing",
+  ar: "وكيل شراء في ييوو، الصين – عرض سعر مجاني | Jabbar Sourcing",
+  fr: "Agent d'Achat à Yiwu, Chine – Devis Gratuit | Jabbar Sourcing",
+  pt: "Agente de Compras em Yiwu, China – Cotação Grátis | Jabbar Sourcing",
+  ru: "Агент по закупкам в Иу, Китай – Бесплатный расчёт | Jabbar Sourcing",
+  de: "Yiwu Sourcing Agent in China – Kostenlose Angebote | Jabbar Sourcing",
+  it: "Agente di Acquisto a Yiwu, Cina – Preventivo Gratuito | Jabbar Sourcing",
+  tr: "Çin’de Yiwu Tedarik Acentesi – Ücretsiz Teklif | Jabbar Sourcing"
+};
 const CALCULATOR_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "calculator/") }));
 const INQUIRY_PAGES = LOCALES.map((locale) => ({ locale, file: localePath(locale, "inquiry/") }));
 const WEBSITE_PRIVACY_PAGES = LOCALES.map((locale) => ({
@@ -273,7 +286,8 @@ for (const { locale, file } of HOME_PAGES) {
   const html = await load(file);
   const titles = Array.from(html.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi));
   assert.equal(titles.length, 1, `${file}: homepage title count`);
-  assert.equal(decodeText(titles[0][1]), "Jabbar Sourcing", `${file}: homepage title`);
+  assert.equal(decodeText(titles[0][1]), HOME_TITLES[locale], `${file}: homepage title`);
+  assert.notEqual(decodeText(titles[0][1]), "Jabbar Sourcing", `${file}: homepage title regressed to bare brand name`);
   assert.match(html, new RegExp(`styles\\.min\\.css\\?v=${CSS_VERSION}`), `${file}: stale CSS version`);
   assert.doesNotMatch(html, /ai-sourcing-assistant\.js|JABBAR_AI_ASSISTANT_ENDPOINT/, `${file}: removed AI bootstrap must not return`);
   assert.match(html, new RegExp(`site-enhancements\\.js\\?v=${UI_VERSION}`), `${file}: missing UI enhancements`);
