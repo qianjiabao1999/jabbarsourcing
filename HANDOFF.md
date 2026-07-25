@@ -20,9 +20,9 @@
 
 ## 4. 未开始（按优先级）
 
-1. 站主 Cloudflare 面板两项（API 令牌无权限，需站主亲手，各约 3 分钟）：
-   - AI 爬虫放行：线上 robots.txt 被 CF 托管段注入 `GPTBot/meta-externalagent Disallow /`，仓库源文件是干净的。如决定放开 AI 搜索收录：dash → jabbarsourcing.com → AI Crawl Control（或 Security → Bots）→ 关闭"托管 robots.txt"或按爬虫放行。
-   - 缓存规则：Caching → Cache Rules 新建一条，匹配 `*.css *.js *.webp *.svg`，Edge TTL 30 天 + 浏览器 TTL 7 天（资源全带 `?v=` 版本串，失效靠换串，零风险）。
+1. ~~站主 Cloudflare 面板两项~~ **已完成（2026-07-26，站主授权经浏览器操作）**：
+   - AI 爬虫放行：关闭旧版 "Block AI bots"（scope 原为"仅广告页"，实际未拦截流量但注入 robots.txt 并锁死行级开关）+ 关闭 AI Crawl Control 的 "Managed robots.txt"。线上 robots.txt 已恢复仓库源文件内容（无 GPTBot/meta Disallow）；新版 AI bot policies 三档（Search/Agent/Training）均为 Allow；行级封锁全部清零。
+   - 缓存规则：既有规则"Cache assets for 1 month"原本**只标了缓存资格、没配任何 TTL**（走 CF 默认 4h）。已补全：表达式扩为 `assets/* + *.css/*.js/*.webp/*.svg`、Edge TTL 1 个月（忽略 cache-control）、浏览器 TTL 7 天。实测 `styles.min.css` 与 assets JS 均 `cf-cache-status: HIT`、`cache-control: max-age=604800`。
 2. 页脚"公司订货网站"仍指 haoduobao123.com（站主拍板维持现状，何时切 haoduobaoerp.com 另议）。
 3. `shipments.json` 真实数据、info@ 邮箱替换、GSC 收录：继续等站主。
 4. 规划期条目不变：验货视频样例库、每月爆款清单、订单进度查询页、英文采购指南 + llms.txt。
