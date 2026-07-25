@@ -16,7 +16,7 @@
 
 ## 3. 进行中
 
-无未完成现场。本发布单元代码已就绪，待推送 `main` 并盯 Actions 全绿；上线后在线复核十语言 title 与 1280/375 两档导航。
+`072e8dc`（第十一轮）已推送但 Actions 红——排查发现**并非本轮引入**：main 自 2026-07-22 `b9f6049` 起连续三次部署失败，线上一直停在 `4ec1edb`（07-22）。根因：`b9f6049` 删除了站点验证文件 `1731ed149abf68908090297af19fab14.txt`，但 deploy.yml 的 rsync 白名单、required_root_files 断言和内容 sha 校验三处引用未同步删除，"Prepare static site artifact" 步骤 `test -f` 失败（bash -e 无输出退出）。已删除三处引用并在干净检出上复现通过，随本提交推送；上线后在线复核十语言 title 与 1280/375 两档导航。
 
 ## 4. 未开始（按优先级）
 
@@ -33,6 +33,11 @@
 - 询盘表单 quantity/budget **不加** `inputmode="numeric"`：placeholder 明确期待"1,000 pcs / one container / USD 5,000"等带单位自由文本，数字键盘会阻碍输入（体检建议第 6 项经核实后放弃）。
 - 961–1279 档导航维持 12px：该档空间最紧（品牌文字已隐藏），抬字号有换行风险，且 12px 不是可读性洼地。
 - D1（无浮动控件）、D2（Workers Paid）、D3（发运数据未到先隐藏）等既有决策不变。
+
+## 5.5 踩过的坑（本轮新增）
+
+- **删除发布物文件时，deploy.yml 的同步义务与新增同样存在**：白名单 include、required_root_files、内容校验三处都要清；漏一处 CI 就在 "Prepare static site artifact" 无输出退 1（bash -e + test 不回显）。排查这类失败直接 `bash -ex` 本地复现该步骤看最后一条命令。
+- 复现 CI 脚本时勿用管道套退出码（`bash -e x.sh | tail` 的 `$?` 是 tail 的）；用 `bash -e x.sh > log; echo $?`。
 
 ## 6. 发布注意事项
 
