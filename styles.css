@@ -5631,7 +5631,7 @@ html.gallery-ready .gallery-track {
   color: rgba(255, 255, 255, 0.76);
 }
 
-.site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+.site-footer .contact-link.contact-gmail .contact-value {
   word-break: break-word;
 }
 
@@ -5766,7 +5766,7 @@ html.gallery-ready .gallery-track {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
-  .site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+  .site-footer .contact-link.contact-gmail .contact-value {
     font-size: 10.5px;
   }
 }
@@ -6074,7 +6074,7 @@ html.gallery-ready .gallery-track {
   font-weight: 760;
 }
 
-.site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+.site-footer .contact-link.contact-gmail .contact-value {
   font-size: 10px;
 }
 
@@ -7524,7 +7524,7 @@ body {
   font-weight: 800 !important;
 }
 
-.site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+.site-footer .contact-link.contact-gmail .contact-value {
   font-size: 0.72rem !important;
 }
 
@@ -10643,7 +10643,7 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
     overflow-wrap: anywhere !important;
   }
 
-  .site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+  .site-footer .contact-link.contact-gmail .contact-value {
     font-size: 11px !important;
     line-height: 1.12 !important;
     letter-spacing: -0.015em !important;
@@ -10651,7 +10651,7 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
 }
 
 /* The full business email must remain visible inside the footer pill. */
-.site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+.site-footer .contact-link.contact-gmail .contact-value {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
@@ -10659,7 +10659,7 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
 }
 
 @media (min-width: 768px) {
-  .site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+  .site-footer .contact-link.contact-gmail .contact-value {
     font-size: 11px !important;
     letter-spacing: -0.02em !important;
   }
@@ -10872,7 +10872,7 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
   overflow: visible !important;
 }
 
-.site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+.site-footer .contact-link.contact-gmail .contact-value {
   white-space: nowrap !important;
   overflow: visible !important;
   text-overflow: clip !important;
@@ -11085,7 +11085,7 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
     font-size: 16px !important;
   }
 
-  .site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+  .site-footer .contact-link.contact-gmail .contact-value {
     font-size: 11px !important;
     letter-spacing: -0.025em !important;
   }
@@ -11101,7 +11101,7 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
     max-width: calc(50% - 5px) !important;
   }
 
-  .site-footer .contact-link[aria-label*="Gmail"] {
+  .site-footer .contact-link.contact-gmail {
     order: 3 !important;
     flex-basis: 100% !important;
     max-width: 100% !important;
@@ -11109,12 +11109,12 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
     padding-inline: 8px !important;
   }
 
-  .site-footer .contact-link[aria-label*="Gmail"] .brand-icon {
+  .site-footer .contact-link.contact-gmail .brand-icon {
     width: 32px !important;
     height: 32px !important;
   }
 
-  .site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+  .site-footer .contact-link.contact-gmail .contact-value {
     font-size: 11px !important;
   }
 
@@ -11147,12 +11147,12 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
     padding-inline: 8px !important;
   }
 
-  .site-footer .contact-link[aria-label*="Gmail"] {
+  .site-footer .contact-link.contact-gmail {
     flex-basis: 100% !important;
     max-width: 100% !important;
   }
 
-  .site-footer .contact-link[aria-label*="Gmail"] .contact-value {
+  .site-footer .contact-link.contact-gmail .contact-value {
     font-size: 11px !important;
   }
 }

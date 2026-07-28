@@ -4,7 +4,7 @@
 
 ## 1. 当前目标
 
-【第十二轮】承接 AI 爬虫放行：修复 Lighthouse Agentic Browsing 失分项（38 张社媒卡 aria-label 与可见文本 mismatch，十语言共 380 处，删除属性让内文接管无障碍名）；新增 llms.txt（业务数字与 FAQ 逐字一致，deploy.yml 白名单+必需文件两处已同步）；sitemap 十个首页 lastmod bump 至 2026-07-26（QA 的 EXPECTED_LANGUAGE_MATRIX_LASTMOD.home 同步）。验收：npm test 七件套绿、qa:ui 绿、Prepare 步骤本地复现退出码 0 且 llms.txt 确认进产物。
+【第十二轮】承接 AI 爬虫放行：修复 Lighthouse Agentic Browsing 失分项（38 张社媒卡 aria-label 与可见文本 mismatch，十语言共 380 处，删除属性让内文接管无障碍名）；新增 llms.txt（业务数字与 FAQ 逐字一致，deploy.yml 白名单+必需文件两处已同步）；sitemap 十个首页 lastmod bump 至 2026-07-26（QA 的 EXPECTED_LANGUAGE_MATRIX_LASTMOD.home 同步）。验收：npm test 七件套绿、qa:ui 绿、Prepare 步骤本地复现退出码 0 且 llms.txt 确认进产物。首包上线后 Lighthouse Agentic 50→67；补丁包继续清理页脚 6 类链接（地图+五个联系方式）的 aria-label——axe 对多子元素文本无空格拼接导致带空格的 label 判 mismatch，删除后名字由内容接管；CSS 的 14 处 [aria-label*="Gmail"] 选择器改为 .contact-gmail 类名（apple-187），qa-ui 的同款选择器同步。
 
 【第十一轮原文】
 维护面向海外采购商的 10 语言 Jabbar Sourcing 静态站。本发布单元是一次小步修复：把十个语言版首页的裸品牌 `<title>` 换成关键词版（与各语言 og:title 同源文案、关键词前置），并修复 1280–1600px 主流桌面档导航字号倒挂（原 11px，比更窄的 961–1279 档 12px 还小）。

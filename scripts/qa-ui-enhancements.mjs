@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-186";
+const CSS_VERSION = "apple-187";
 const UI_VERSION = "ui-20260722a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -1191,7 +1191,7 @@ async function assertFooterJoin(page, scope) {
     const social = document.querySelector("#social-accounts.social-platform-groups");
     const team = document.querySelector("#team.team");
     const footer = document.querySelector(".site-footer");
-    const gmail = document.querySelector('.site-footer .contact-link[aria-label*="Gmail"] .contact-value');
+    const gmail = document.querySelector('.site-footer .contact-link.contact-gmail .contact-value');
     const socialRect = social?.getBoundingClientRect();
     const footerRect = footer?.getBoundingClientRect();
     const gmailStyle = gmail ? getComputedStyle(gmail) : null;
