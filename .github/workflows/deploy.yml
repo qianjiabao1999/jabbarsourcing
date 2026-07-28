@@ -94,6 +94,7 @@ jobs:
             --include='/favicon.ico' \
             --include='/google80221688f5a3319b.html' \
             --include='/index.html' \
+            --include='/llms.txt' \
             --include='/privacy-policy.html' \
             --include='/website-privacy-policy.html' \
             --include='/api/' \
@@ -186,6 +187,7 @@ jobs:
             favicon.ico
             google80221688f5a3319b.html
             index.html
+            llms.txt
             privacy-policy.html
             website-privacy-policy.html
             robots.txt
