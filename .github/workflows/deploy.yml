@@ -130,6 +130,7 @@ jobs:
             --include='/de/website-privacy-policy.html' \
             --include='/en/' \
             --include='/en/index.html' \
+            --include='/en/yiwu-sourcing-guide.html' \
             --include='/en/calculator/' \
             --include='/en/calculator/index.html' \
             --include='/en/inquiry/' \
@@ -208,7 +209,12 @@ jobs:
             test -f "_site/$locale/calculator/index.html"
             test -f "_site/$locale/inquiry/index.html"
             test -f "_site/$locale/website-privacy-policy.html"
-            test "$(find "_site/$locale" -type f | wc -l)" -eq 4
+            expected_locale_files=4
+            if [ "$locale" = "en" ]; then
+              test -f "_site/en/yiwu-sourcing-guide.html"
+              expected_locale_files=5
+            fi
+            test "$(find "_site/$locale" -type f | wc -l)" -eq "$expected_locale_files"
           done
           test -f _site/calculator/index.html
           test -f _site/inquiry/index.html
@@ -231,7 +237,7 @@ jobs:
           test -f _site/assets/vendor/xlsx.full.min.js
           test -f _site/assets/vendor/lucide-trash-2.svg
           test -f _site/assets/vendor/LUCIDE-LICENSE.txt
-          test "$(find _site -type f -name '*.html' | wc -l)" -eq 44
+          test "$(find _site -type f -name '*.html' | wc -l)" -eq 45
 
           test ! -e _site/assets/social-source
           test -z "$(find _site/assets/gallery -maxdepth 1 -type f -name '*.jpg' -print)"

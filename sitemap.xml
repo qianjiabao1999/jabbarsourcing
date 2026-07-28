@@ -35,6 +35,12 @@
     <xhtml:link rel="alternate" hreflang="tr" href="https://www.jabbarsourcing.com/tr/" />
   </url>
   <url>
+    <loc>https://www.jabbarsourcing.com/en/yiwu-sourcing-guide.html</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.jabbarsourcing.com/es/</loc>
     <lastmod>2026-07-26</lastmod>
     <changefreq>weekly</changefreq>

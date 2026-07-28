@@ -618,10 +618,12 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
   ];
   const expectedPublicUrls = [
     ...NAV_PAGES.map(({ file }) => publicUrlForFile(file)),
-    ...LEGAL_PAGE_URLS
+    ...LEGAL_PAGE_URLS,
+    // 2026-07-28 第十二轮:英文采购指南(暂只有 en 版,无 hreflang 组)
+    "https://www.jabbarsourcing.com/en/yiwu-sourcing-guide.html"
   ].sort();
 
-  assert.equal(sitemapEntries.length, 42, "sitemap.xml: public URL count");
+  assert.equal(sitemapEntries.length, 43, "sitemap.xml: public URL count");
   assert.equal(entriesByUrl.size, sitemapEntries.length, "sitemap.xml: duplicate URL");
   assert.deepEqual([...entriesByUrl.keys()].sort(), expectedPublicUrls, "sitemap.xml: public URL set");
   assert.doesNotMatch(sitemap, /\/ja\/|hreflang="ja"/, "sitemap.xml: Japanese route or hreflang must not return");
