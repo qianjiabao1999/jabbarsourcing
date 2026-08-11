@@ -1,8 +1,11 @@
-# 交接文档（更新于：2026-07-28，第十二轮收官 / 指南页+口径修正）
+# 交接文档（更新于：2026-08-12，评价区真实数据替换）
 
 > 接手前先核对 `git status --short`、最近提交、线上版本和本文件。站主本地 `.claude/` 不入库、不触碰。
 
 ## 1. 当前目标
+
+【2026-08-12】站主提供真实素材：Maria R. 占位评价卡（巴西/USD 58,000/编写引语）十语言替换为英国客户 Matilde 实拍卡（🇬🇧/USD 15,000/到访实拍图三档 webp/boyner 句式事实文案）。卡片保持普通 testimonial-card 类型（不挂 --proof，boyner 专属断言零侵入），金额行保留满足 num-mono [1,0,1] 分布；新图命名避开 testimonial-maria.webp 防回归清单。sitemap 十首页 lastmod → 2026-08-12（QA 期望表同步）。
+
 
 【第十二轮·收官批】新增英文采购指南 `/en/yiwu-sourcing-guide.html`（legal-page 模板、Article JSON-LD、正文口径逐字对齐站内 FAQ；发布链五处同步：deploy.yml include+en 特判 5 文件+HTML 总数 45、sitemap 43 URL+QA 期望集合、llms.txt）。llms.txt 口径修正：报价 72h→24–48h、付款补 T/T（与 FAQ 一致）。GSC 提交因 Chrome 扩展未连待站主；info@ 需加 MX 记录触 DNS 红线待站主；shipments.json 待站主数据。
 

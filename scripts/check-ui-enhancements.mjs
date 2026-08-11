@@ -572,7 +572,7 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
 {
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
   const EXPECTED_LANGUAGE_MATRIX_LASTMOD = {
-    home: "2026-07-26",
+    home: "2026-08-12",
     calculator: "2026-07-23",
     inquiry: "2026-07-23"
   };
