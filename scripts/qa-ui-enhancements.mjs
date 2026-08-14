@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-187";
+const CSS_VERSION = "apple-188";
 const UI_VERSION = "ui-20260722a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -1625,7 +1625,7 @@ async function interactionChecks(browserType) {
   await page.waitForTimeout(1300);
   const metricVisuals = await page.locator(".company-metric-card strong .company-metric-visual").allTextContents();
   const metricAccessible = await page.locator(".company-metric-card strong .sr-only").allTextContents();
-  const expectedMetrics = ["2008年", "300+", "50,000㎡", "全球 100+ 国家和地区", "500,000,000 人民币元"];
+  const expectedMetrics = ["2008年", "300+", "50,000㎡", "全球 100+", "500,000,000 人民币元"];
   assert.deepEqual(metricVisuals.map((item) => item.trim()), expectedMetrics, "company metric visuals changed or did not finish counting");
   assert.deepEqual(metricAccessible.map((item) => item.trim()), expectedMetrics, "company metric accessible copy changed during animation");
   assert.equal(await page.locator(".company-metric-card strong[aria-label]").count(), 0, "company metrics still rely on aria-label");
@@ -1926,7 +1926,7 @@ async function accessibilityFallbackChecks(browserType) {
   const stampOpacities = await page.locator(".stamp").evaluateAll((items) => items.map((item) => Number.parseFloat(getComputedStyle(item).opacity)));
   assert(stampOpacities.every((opacity) => opacity >= 0.99), `reduced motion stamp opacity ${stampOpacities.join(", ")}`);
   const metrics = await page.locator(".company-metric-card strong").allTextContents();
-  assert.deepEqual(metrics.map((item) => item.trim()), ["2008年", "300+", "50,000㎡", "全球 100+ 国家和地区", "500,000,000 人民币元"], "reduced motion changed metric copy");
+  assert.deepEqual(metrics.map((item) => item.trim()), ["2008年", "300+", "50,000㎡", "全球 100+", "500,000,000 人民币元"], "reduced motion changed metric copy");
   await reduced.close();
 
   const noJs = await browserType.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });

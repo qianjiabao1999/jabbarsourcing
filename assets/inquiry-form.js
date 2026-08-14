@@ -546,6 +546,7 @@
         }
       }
 
+      if (options.skipScroll) return;
       window.requestAnimationFrame(function () {
         var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         try {
@@ -749,7 +750,7 @@
     function showTurnstileFailure(errorCode) {
       turnstileToken = "";
       directButton.disabled = true;
-      setStatus(messages.genericError, "error", { securityRelated: true, whatsappFallback: true });
+      setStatus(messages.genericError, "error", { securityRelated: true, whatsappFallback: true, skipScroll: true });
       trackSubmitError(errorCode, 0, "turnstile");
     }
 
@@ -783,7 +784,7 @@
       }
     }
 
-    setStatus(messages.turnstileLoading, "pending", { securityRelated: true });
+    setStatus(messages.turnstileLoading, "pending", { securityRelated: true, skipScroll: true, whatsappFallback: true });
     loadTurnstileApi().then(renderTurnstile).catch(function () {
       showTurnstileFailure("turnstile_load_failed");
     });

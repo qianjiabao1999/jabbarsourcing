@@ -7,7 +7,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-187";
+const CSS_VERSION = "apple-188";
 const UI_VERSION = "ui-20260722a";
 const ORDER_VERSION = "order-20260722c";
 const CONTAINER_VERSION = "container-20260722e";
@@ -572,18 +572,18 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
 {
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
   const EXPECTED_LANGUAGE_MATRIX_LASTMOD = {
-    home: "2026-08-12",
-    calculator: "2026-07-23",
-    inquiry: "2026-07-23"
+    home: "2026-08-14",
+    calculator: "2026-08-14",
+    inquiry: "2026-08-14"
   };
   const EXPECTED_LEGAL_LASTMOD = {
-    [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-07-23",
-    [`${PUBLIC_ORIGIN}/website-privacy-policy.html`]: "2026-07-22",
+    [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-08-14",
+    [`${PUBLIC_ORIGIN}/website-privacy-policy.html`]: "2026-08-14",
     ...Object.fromEntries(LOCALES.filter((locale) => locale !== "zh").map((locale) => [
       `${PUBLIC_ORIGIN}/${locale}/website-privacy-policy.html`,
-      "2026-07-22"
+      "2026-08-14"
     ])),
-    [`${PUBLIC_ORIGIN}/support.html`]: "2026-07-23"
+    [`${PUBLIC_ORIGIN}/support.html`]: "2026-08-14"
   };
   const LEGAL_PAGE_URLS = [
     `${PUBLIC_ORIGIN}/privacy-policy.html`,

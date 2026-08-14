@@ -257,6 +257,16 @@
     reviews.appendChild(link);
   }
 
+  // FAQ 读完是高意向时刻,此处到页脚间原本约 2400px 无转化入口
+  function initFaqQuoteCta() {
+    var faq = document.querySelector("#faq");
+    if (!faq || faq.querySelector(".faq-quote-cta")) return;
+    var link = createElement("a", "faq-quote-cta", copy.quote);
+    link.href = lang === "zh" ? "/inquiry/" : "/" + lang + "/inquiry/";
+    faq.appendChild(link);
+  }
+
   initShipmentTicker();
   initReviewQuoteCta();
+  initFaqQuoteCta();
 })();

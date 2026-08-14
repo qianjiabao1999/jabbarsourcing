@@ -1,9 +1,19 @@
-# 交接文档（更新于：2026-08-12，评价区真实数据替换）
+# 交接文档（更新于：2026-08-14，第十三轮 / 第三轮体检 41 条全量修复批）
 
 > 接手前先核对 `git status --short`、最近提交、线上版本和本文件。站主本地 `.claude/` 不入库、不触碰。
 
 ## 1. 当前目标
 
+【第十三轮·全量修复批 2026-08-14】第三轮体检可执行项一次做完,四批施工:
+- 批1 询盘 JS:加载与四条失败路径均不再自动滚走(setStatus skipScroll);等待期即附 WhatsApp 出路;30s 超时经断言判定为有意设计予以保留;JS 版本 inquiry-20260814a。
+- 批2 CSS 十二处(apple-188):窄屏语言菜单固定居中面板、删 961-1279 CTA 绝对居中、渐变尾/评价标题改冷色、数据卡五卡统一、hyphens manual、430 档 pill 12px、菜单项 14px+aria-current ✓、移动吸顶 0.97+blur、隐私链接触控扩展、筛选态藏重复徽章(用现成 is-social-filtered,JS 未动)。
+- 批3 十语言 17 子项:2008/2021 口径统一(公司 2008 成立+团队 2021 服务海外)、FAQ 尾 CTA 注入(faq-quote-cta,home JS)、询盘 3 信任要点×10、指南内链×3(en 首页 FAQ 尾/页脚×4/询盘提示)、评价标题改「真实到访与评价」口径×10、第 4 卡统一 100+、ar bdi/URL 框 dir=auto/Phone 8 语言/es 千分位与占位/金额本地化 ru·tr·ar·es、按钮去 directly×10、aria-current×19、color-scheme×44。地址公司名前置与 12s 超时两项与既有断言冲突已回滚(尊重既有设计)。
+- 批4 英文指南扩充 415→1136 词八节+实拍图+主站牌头(Home/CBM Tool/Free Quote)。
+- 验收:七件套+qa:ui+qa:inquiry 全绿;sitemap 43 页 lastmod→2026-08-14(QA 三张期望表同步);五代理终验 5/5(期间抓到失败路径漏传 skipScroll 的真漏洞并补验)。
+- 断言联动记录:HOME_TITLES 不变;数字卡快照期望改「全球 100+」;faq CTA 独立类名避免 Playwright 歧义。
+- 未做(需站主):FAQ 样品/售后两问口径、社媒瘦身方案、About 信任区、ar 第五卡东阿数字(待拍板)。
+
+【上一轮 2026-08-12】
 【2026-08-12】站主提供真实素材：Maria R. 占位评价卡（巴西/USD 58,000/编写引语）十语言替换为英国客户 Matilde 实拍卡（🇬🇧/USD 15,000/到访实拍图三档 webp/boyner 句式事实文案）。卡片保持普通 testimonial-card 类型（不挂 --proof，boyner 专属断言零侵入），金额行保留满足 num-mono [1,0,1] 分布；新图命名避开 testimonial-maria.webp 防回归清单。sitemap 十首页 lastmod → 2026-08-12（QA 期望表同步）。
 
 
