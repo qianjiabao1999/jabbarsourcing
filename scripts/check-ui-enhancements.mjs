@@ -336,7 +336,7 @@ for (const { locale, file } of HOME_PAGES) {
   assert.equal(count(html, /mobile-conversion-bar|has-mobile-conversion-bar/g), 0, `${file}: removed mobile conversion bar remains`);
   assert.equal(count(html, /js-inquiry-send|inquiry_channel_click/g), 0, `${file}: archived four-channel inquiry tracking returned`);
   const faqItems = tagsWithClass(html, "details", "faq-item");
-  assert.equal(faqItems.length, 7, `${file}: FAQ item count`);
+  assert.equal(faqItems.length, 9, `${file}: FAQ item count`);
   assert.equal(countClass(html, "is-faq-focused"), 0, `${file}: JavaScript-only FAQ focus scope leaked into HTML`);
   assert(faqItems.every((match) => !hasAttribute(match[0], "open")), `${file}: every FAQ item must start closed`);
   assert(faqItems.every((match) => !hasAttribute(match[0], "hidden")), `${file}: FAQ content must remain available without JavaScript`);
