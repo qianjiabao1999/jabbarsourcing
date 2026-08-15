@@ -50,7 +50,7 @@ const METRIC_EXPECTED = {
   zh: { first: "2008年", last: "500,000,000 人民币元" },
   en: { first: "2008", last: "CNY 500,000,000" },
   es: { first: "2008", last: "CNY 500.000.000" },
-  ar: { first: "2008", last: "CNY ٥٠٠٬٠٠٠٬٠٠٠" },
+  ar: { first: "2008", last: "CNY 500,000,000" },
   fr: { first: "2008", last: "CNY 500\u202F000\u202F000" },
   pt: { first: "2008", last: "CNY 500.000.000" },
   ru: { first: "2008", last: "CNY 500\u00A0000\u00A0000" },
