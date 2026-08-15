@@ -7,7 +7,7 @@ import { chromium, webkit } from "playwright";
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
 const CSS_VERSION = "apple-188";
-const UI_VERSION = "ui-20260722a";
+const UI_VERSION = "ui-20260815a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -683,7 +683,7 @@ async function assertFaqDefaultClosed(page, scope) {
     }))
   }));
   assert.equal(state.promptCount, 1, `${scope}: FAQ topic prompt count`);
-  assert.equal(state.items.length, 7, `${scope}: FAQ item count`);
+  assert.equal(state.items.length, 9, `${scope}: FAQ item count`);
   assert(state.items.every((item) => !item.open && item.hidden && !item.rendered), `${scope}: FAQ answers must start closed and filtered`);
   assert.equal(state.tags.length, state.items.length, `${scope}: FAQ tag/item count mismatch`);
   assert(state.tags.every((tag) => tag.expanded === "false" && !tag.active), `${scope}: FAQ tag starts selected`);
@@ -1324,8 +1324,8 @@ async function homeMatrix(browserType) {
       await assertTestimonialProof(page, scope, item.locale);
       await assertJointBrandParity(page, scope);
       await assertFooterJoin(page, scope);
-      assert.equal(state.counts.faqTags, 7, `${scope}: FAQ tag count`);
-      assert.equal(state.counts.faqItems, 7, `${scope}: FAQ item count`);
+      assert.equal(state.counts.faqTags, 9, `${scope}: FAQ tag count`);
+      assert.equal(state.counts.faqItems, 9, `${scope}: FAQ item count`);
       await assertFaqDefaultClosed(page, scope);
       assert.equal(state.counts.countries, 0, `${scope}: removed country strip returned`);
       assert.equal(state.counts.metrics, 5, `${scope}: current five company metrics must remain`);
@@ -1955,7 +1955,7 @@ async function accessibilityFallbackChecks(browserType) {
     display: getComputedStyle(item).display,
     rendered: item.getClientRects().length > 0
   })));
-  assert.equal(noJsFaqItems.length, 7, "no-JS FAQ item count");
+  assert.equal(noJsFaqItems.length, 9, "no-JS FAQ item count");
   assert(noJsFaqItems.every((item) => !item.hidden && item.display !== "none" && item.rendered), `no-JS FAQ content hidden: ${JSON.stringify(noJsFaqItems)}`);
   assert.equal(await noJsPage.locator(".social-platform-toggle").count(), 0, "no-JS page injected a social disclosure control");
   const noJsHiddenAccounts = await noJsPage.locator(".social-platform-group .team-card").evaluateAll((cards) => cards.filter((card) => {
@@ -2137,7 +2137,7 @@ for (const item of HOME_PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes
   await assertJointBrandParity(webkitPage, `WebKit ${item.locale}`);
   await assertFooterJoin(webkitPage, `WebKit ${item.locale}`);
   await assertMobileGalleryScroll(webkitPage, `WebKit ${item.locale}`);
-  assert.equal(state.counts.faqTags, 7, `WebKit ${item.locale}: FAQ tags`);
+  assert.equal(state.counts.faqTags, 9, `WebKit ${item.locale}: FAQ tags`);
   await assertFaqDefaultClosed(webkitPage, `WebKit ${item.locale}`);
   assert.equal(state.counts.socialFilters, 4, `WebKit ${item.locale}: social platform filters`);
   await assertSocialPlatformFilters(webkitPage, `WebKit ${item.locale}`);

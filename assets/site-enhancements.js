@@ -8,70 +8,70 @@
       cbmTitle: "集装箱装载示意", quoteWithResult: "用此结果获取报价",
       calculatorModes: "选择计算方式", quickMode: "快速计算", excelMode: "Excel 订单分析", calculatorOptional: "产品与补充信息（可选）",
       socialFilter: "按平台筛选账号",
-      faqPrompt: "选择问题查看答案", faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发"]
+      faqPrompt: "选择问题查看答案", faq: ["佣金", "起订量", "验货", "付款", "报价时效", "拼柜", "代发", "样品", "售后"]
     },
     en: {
       scan: "Scan to chat", reply: "Online · replies within 24h",
       cbmTitle: "Container loading illustration", quoteWithResult: "Get a quote with this result",
       calculatorModes: "Choose calculation mode", quickMode: "Quick calculation", excelMode: "Excel order analysis", calculatorOptional: "Product and extra details (optional)",
       socialFilter: "Filter accounts by platform",
-      faqPrompt: "Choose a topic to view its answer", faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping"]
+      faqPrompt: "Choose a topic to view its answer", faq: ["Commission", "MOQ", "Inspection", "Payment", "Quote time", "Consolidation", "Dropshipping", "Samples", "After-sales"]
     },
     es: {
       scan: "Escanea para chatear", reply: "En línea · respuesta en 24 h",
       cbmTitle: "Ilustración de carga del contenedor", quoteWithResult: "Solicitar cotización con este resultado",
       calculatorModes: "Elegir modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análisis de Excel", calculatorOptional: "Producto y detalles extra (opcional)",
       socialFilter: "Filtrar cuentas por plataforma",
-      faqPrompt: "Elige un tema para ver la respuesta", faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo"]
+      faqPrompt: "Elige un tema para ver la respuesta", faq: ["Comisión", "Pedido mínimo", "Inspección", "Pago", "Plazo de cotización", "Consolidación", "Envío directo", "Muestras", "Posventa"]
     },
     ar: {
       scan: "امسح للدردشة", reply: "متصل · نرد خلال 24 ساعة",
       cbmTitle: "رسم توضيحي لتحميل الحاوية", quoteWithResult: "اطلب عرض سعر بهذه النتيجة",
       calculatorModes: "اختر طريقة الحساب", quickMode: "حساب سريع", excelMode: "تحليل طلبات Excel", calculatorOptional: "المنتج وتفاصيل إضافية (اختياري)",
       socialFilter: "تصفية الحسابات حسب المنصة",
-      faqPrompt: "اختر سؤالاً لعرض الإجابة", faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر"]
+      faqPrompt: "اختر سؤالاً لعرض الإجابة", faq: ["العمولة", "الحد الأدنى", "الفحص", "الدفع", "مدة عرض السعر", "الشحن المجمع", "الشحن المباشر", "العينات", "ما بعد البيع"]
     },
     fr: {
       scan: "Scannez pour discuter", reply: "En ligne · réponse sous 24 h",
       cbmTitle: "Illustration du chargement du conteneur", quoteWithResult: "Demander un devis avec ce résultat",
       calculatorModes: "Choisir le mode de calcul", quickMode: "Calcul rapide", excelMode: "Analyse Excel", calculatorOptional: "Produit et précisions (facultatif)",
       socialFilter: "Filtrer les comptes par plateforme",
-      faqPrompt: "Choisissez un sujet pour voir la réponse", faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe"]
+      faqPrompt: "Choisissez un sujet pour voir la réponse", faq: ["Commission", "MOQ", "Inspection", "Paiement", "Délai de devis", "Groupage", "Livraison directe", "Échantillons", "SAV"]
     },
     pt: {
       scan: "Escaneie para conversar", reply: "Online · resposta em até 24 h",
       cbmTitle: "Ilustração do carregamento do contêiner", quoteWithResult: "Pedir cotação com este resultado",
       calculatorModes: "Escolher modo de cálculo", quickMode: "Cálculo rápido", excelMode: "Análise de Excel", calculatorOptional: "Produto e detalhes extras (opcional)",
       socialFilter: "Filtrar contas por plataforma",
-      faqPrompt: "Escolha um tema para ver a resposta", faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping"]
+      faqPrompt: "Escolha um tema para ver a resposta", faq: ["Comissão", "Pedido mínimo", "Inspeção", "Pagamento", "Prazo da cotação", "Consolidação", "Dropshipping", "Amostras", "Pós-venda"]
     },
     ru: {
       scan: "Сканируйте для чата", reply: "Онлайн · ответим в течение 24 ч",
       cbmTitle: "Схема загрузки контейнера", quoteWithResult: "Запросить расчёт с этим результатом",
       calculatorModes: "Выбор режима расчета", quickMode: "Быстрый расчет", excelMode: "Анализ Excel", calculatorOptional: "Товар и дополнительные данные (необязательно)",
       socialFilter: "Фильтр аккаунтов по платформе",
-      faqPrompt: "Выберите тему, чтобы увидеть ответ", faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг"]
+      faqPrompt: "Выберите тему, чтобы увидеть ответ", faq: ["Комиссия", "Мин. заказ", "Проверка", "Оплата", "Срок расчёта", "Сборный груз", "Дропшиппинг", "Образцы", "Рекламации"]
     },
     de: {
       scan: "Zum Chatten scannen", reply: "Online · Antwort innerhalb 24 Std.",
       cbmTitle: "Darstellung der Containerbeladung", quoteWithResult: "Mit diesem Ergebnis Angebot anfragen",
       calculatorModes: "Berechnungsart wählen", quickMode: "Schnellberechnung", excelMode: "Excel-Analyse", calculatorOptional: "Produkt und Zusatzangaben (optional)",
       socialFilter: "Konten nach Plattform filtern",
-      faqPrompt: "Thema auswählen und Antwort anzeigen", faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping"]
+      faqPrompt: "Thema auswählen und Antwort anzeigen", faq: ["Provision", "Mindestmenge", "Prüfung", "Zahlung", "Angebotszeit", "Sammelversand", "Dropshipping", "Muster", "Reklamation"]
     },
     it: {
       scan: "Scansiona per chattare", reply: "Online · risposta entro 24 ore",
       cbmTitle: "Illustrazione del carico del container", quoteWithResult: "Richiedi un preventivo con questo risultato",
       calculatorModes: "Scegli modalità di calcolo", quickMode: "Calcolo rapido", excelMode: "Analisi Excel", calculatorOptional: "Prodotto e dettagli extra (facoltativi)",
       socialFilter: "Filtra account per piattaforma",
-      faqPrompt: "Scegli un argomento per vedere la risposta", faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping"]
+      faqPrompt: "Scegli un argomento per vedere la risposta", faq: ["Commissione", "Ordine minimo", "Ispezione", "Pagamento", "Tempi preventivo", "Consolidamento", "Dropshipping", "Campioni", "Post-vendita"]
     },
     tr: {
       scan: "Sohbet için tarayın", reply: "Çevrimiçi · 24 saat içinde yanıt",
       cbmTitle: "Konteyner yükleme görseli", quoteWithResult: "Bu sonuçla teklif iste",
       calculatorModes: "Hesaplama yöntemini seçin", quickMode: "Hızlı hesaplama", excelMode: "Excel analizi", calculatorOptional: "Ürün ve ek ayrıntılar (isteğe bağlı)",
       socialFilter: "Platforma göre hesapları filtrele",
-      faqPrompt: "Yanıtı görmek için bir konu seçin", faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış"]
+      faqPrompt: "Yanıtı görmek için bir konu seçin", faq: ["Komisyon", "Minimum sipariş", "Denetim", "Ödeme", "Teklif süresi", "Konsolidasyon", "Stoksuz satış", "Numune", "Satış sonrası"]
     }
   };
   var copy = labels[lang] || labels.en;
