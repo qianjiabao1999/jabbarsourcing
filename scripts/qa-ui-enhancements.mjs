@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-189";
+const CSS_VERSION = "apple-190";
 const UI_VERSION = "ui-20261011a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -390,6 +390,13 @@ async function waitForHomeVisualSignature(page) {
     const ticker = document.querySelector(".shipment-ticker");
     return ticker?.classList.contains("is-ready") || ticker?.classList.contains("is-unavailable");
   });
+}
+
+async function assertFooterLanguageTouchTarget(page, scope) {
+  const select = page.locator(".site-footer-language-select");
+  await select.waitFor({ state: "visible" });
+  const height = await select.evaluate((element) => element.getBoundingClientRect().height);
+  assert(height >= 44, `${scope}: footer language touch target is only ${height}px`);
 }
 
 function isMonoFamily(value) {
@@ -1333,6 +1340,7 @@ async function footerToolsChecks(browserType) {
     await tools.waitFor({ state: "visible" });
     assert.equal(await tools.count(), 1, `${testCase.scope}: footer tools count`);
     assert.equal(await language.count(), 1, `${testCase.scope}: language select count`);
+    await assertFooterLanguageTouchTarget(page, testCase.scope);
     assert.equal(await page.locator(".site-footer-backtop").count(), 0, `${testCase.scope}: retired back-to-top control returned`);
     const position = await tools.evaluate((element) => getComputedStyle(element).position);
     assert(!["fixed", "sticky"].includes(position), `${testCase.scope}: footer tools must remain in document flow (${position})`);
@@ -2183,6 +2191,7 @@ const webkitErrors = collectErrors(webkitPage);
 for (const item of HOME_PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes(locale))) {
   await webkitPage.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
   await waitForHomeVisualSignature(webkitPage);
+  await assertFooterLanguageTouchTarget(webkitPage, `WebKit ${item.locale}`);
   const state = await pageState(webkitPage);
   assertShared(state, `WebKit ${item.locale}`);
   assertHeaderNavigation(state, `WebKit ${item.locale}`);

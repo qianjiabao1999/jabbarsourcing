@@ -13011,7 +13011,8 @@ main > #team.team {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
-.inquiry-form select {
+.inquiry-form select,
+.site-footer-language-select {
   -webkit-appearance: none;
   appearance: none;
   min-height: 50px !important;
@@ -13021,7 +13022,8 @@ main > #team.team {
   background-position: right 16px center !important;
   background-size: 14px 10px !important;
 }
-html[dir="rtl"] .inquiry-form select {
+html[dir="rtl"] .inquiry-form select,
+html[dir="rtl"] .site-footer-language-select {
   background-position: left 16px center !important;
 }
 html[lang="ar"] #services .company-metric-card strong {
