@@ -248,6 +248,7 @@ function inquiryRequest(
 }
 
 afterEach(async () => {
+  vi.useRealTimers();
   await reset();
 });
 
@@ -607,6 +608,8 @@ describe("inquiry Worker security regressions", () => {
   });
 
   it("keeps the exact 7/12 legacy shape compatible during the atomic rollout", async () => {
+    // Only mock Date; leave real timers running for Durable Object RPC and alarms.
+    vi.setSystemTime(new Date("2026-07-22T12:00:00Z"));
     const context = createEnv();
     const payload = validPayload({ privacyVersion: "2026-07-12" });
     delete payload.referenceUrl;
@@ -620,6 +623,7 @@ describe("inquiry Worker security regressions", () => {
   });
 
   it("keeps the 7/19 cached page compatible while the 7/22 page rollout propagates", async () => {
+    vi.setSystemTime(new Date("2026-07-22T12:00:00Z"));
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     try {
       const context = createEnv();
@@ -642,6 +646,7 @@ describe("inquiry Worker security regressions", () => {
   });
 
   it("keeps the 7/18 cached page compatible while older caches expire", async () => {
+    vi.setSystemTime(new Date("2026-07-22T12:00:00Z"));
     const context = createEnv();
     const response = await handleRequest(
       inquiryRequest(validPayload({ privacyVersion: "2026-07-18" })),
@@ -654,29 +659,65 @@ describe("inquiry Worker security regressions", () => {
     expect(context.email.sent[0]?.text).toContain("Product reference URL: https://www.alibaba.com/product-detail/example-123.html");
   });
 
-  it("rejects cached privacy versions after the documented compatibility deadline", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-22T00:00:00Z"));
-    try {
+  it.each(["2026-07-12", "2026-07-18", "2026-07-19"])(
+    "accepts cached privacy version %s at the exact compatibility deadline",
+    async (privacyVersion) => {
+      vi.setSystemTime(new Date("2026-08-21T23:59:59.000Z"));
       const context = createEnv();
-      const response = await handleRequest(
-        inquiryRequest(validPayload({ privacyVersion: "2026-07-19" })),
-        context.env,
-      );
+      const payload = validPayload({ privacyVersion });
+      if (privacyVersion === "2026-07-12") {
+        delete payload.referenceUrl;
+        delete payload.attribution;
+      }
 
-      expect(response.status).toBe(400);
-      await expect(response.json()).resolves.toMatchObject({ error: "invalid_privacy_version" });
-      expect(context.trace).toEqual(["edge"]);
-      expect(context.turnstileCalls).toHaveLength(0);
-      expect(context.email.attempts).toBe(0);
-    } finally {
-      vi.useRealTimers();
-    }
+      const response = await handleRequest(inquiryRequest(payload), context.env);
+
+      expect(response.status).toBe(201);
+      expect(context.turnstileCalls).toHaveLength(1);
+      expect(context.email.sent).toHaveLength(1);
+      expect(context.email.sent[0]?.text).toContain(`Privacy notice version: ${privacyVersion}`);
+    },
+  );
+
+  it.each(["2026-07-12", "2026-07-18", "2026-07-19"])(
+    "rejects cached privacy version %s immediately after the documented compatibility deadline",
+    async (privacyVersion) => {
+      vi.setSystemTime(new Date("2026-08-21T23:59:59.001Z"));
+      try {
+        const context = createEnv();
+        const payload = validPayload({ privacyVersion });
+        if (privacyVersion === "2026-07-12") {
+          delete payload.referenceUrl;
+          delete payload.attribution;
+        }
+        const response = await handleRequest(inquiryRequest(payload), context.env);
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toMatchObject({ error: "invalid_privacy_version" });
+        expect(context.trace).toEqual(["edge"]);
+        expect(context.turnstileCalls).toHaveLength(0);
+        expect(context.email.attempts).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    },
+  );
+
+  it("keeps the current privacy version valid after the cached compatibility deadline", async () => {
+    vi.setSystemTime(new Date("2026-08-22T00:00:00Z"));
+    const context = createEnv();
+    const response = await handleRequest(inquiryRequest(validPayload()), context.env);
+
+    expect(response.status).toBe(201);
+    expect(context.turnstileCalls).toHaveLength(1);
+    expect(context.email.sent).toHaveLength(1);
+    expect(context.email.sent[0]?.text).toContain("Privacy notice version: 2026-07-22");
   });
 
   it.each(["referenceUrl", "attribution"])(
     "rejects the legacy privacy version when the new %s field is present",
     async (newField) => {
+      vi.setSystemTime(new Date("2026-07-22T12:00:00Z"));
       const context = createEnv();
       const source = validPayload();
       const payload = validPayload({ privacyVersion: "2026-07-12" });
@@ -695,6 +736,7 @@ describe("inquiry Worker security regressions", () => {
   );
 
   it("does not accept arbitrary older privacy versions for a legacy-shaped payload", async () => {
+    vi.setSystemTime(new Date("2026-07-22T12:00:00Z"));
     const context = createEnv();
     const payload = validPayload({ privacyVersion: "2026-07-01" });
     delete payload.referenceUrl;
