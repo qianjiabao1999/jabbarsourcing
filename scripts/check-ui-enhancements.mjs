@@ -7,10 +7,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-188";
-const UI_VERSION = "ui-20260815a";
+const CSS_VERSION = "apple-189";
+const UI_VERSION = "ui-20261011a";
 const ORDER_VERSION = "order-20260722c";
-const CONTAINER_VERSION = "container-20260722e";
+const CONTAINER_VERSION = "container-20261011a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
   zh: "社媒账号",
@@ -572,9 +572,9 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
 {
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
   const EXPECTED_LANGUAGE_MATRIX_LASTMOD = {
-    home: "2026-08-14",
-    calculator: "2026-08-14",
-    inquiry: "2026-08-14"
+    home: "2026-10-11",
+    calculator: "2026-10-11",
+    inquiry: "2026-10-11"
   };
   const EXPECTED_LEGAL_LASTMOD = {
     [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-08-14",
@@ -620,10 +620,12 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
     ...NAV_PAGES.map(({ file }) => publicUrlForFile(file)),
     ...LEGAL_PAGE_URLS,
     // 2026-07-28 第十二轮:英文采购指南(暂只有 en 版,无 hreflang 组)
-    "https://www.jabbarsourcing.com/en/yiwu-sourcing-guide.html"
+    "https://www.jabbarsourcing.com/en/yiwu-sourcing-guide.html",
+    "https://www.jabbarsourcing.com/en/quality-inspection.html",
+    "https://www.jabbarsourcing.com/en/consolidation-shipping.html"
   ].sort();
 
-  assert.equal(sitemapEntries.length, 43, "sitemap.xml: public URL count");
+  assert.equal(sitemapEntries.length, 45, "sitemap.xml: public URL count");
   assert.equal(entriesByUrl.size, sitemapEntries.length, "sitemap.xml: duplicate URL");
   assert.deepEqual([...entriesByUrl.keys()].sort(), expectedPublicUrls, "sitemap.xml: public URL set");
   assert.doesNotMatch(sitemap, /\/ja\/|hreflang="ja"/, "sitemap.xml: Japanese route or hreflang must not return");
@@ -815,7 +817,13 @@ assert.match(socialJavascript, /group\.hidden = groups\.length > 1 && index !== 
 assert.match(socialJavascript, /var filterItems = groups\.map\(/, "site-enhancements.js: category filters must map one-to-one from social groups");
 assert.match(socialJavascript, /filterItems\.forEach\([\s\S]*createElement\("button", "social-platform-filter", item\.label\)/, "site-enhancements.js: social category filter buttons missing");
 assert.doesNotMatch(socialJavascript, /filterItems\.(?:push|unshift|splice)\s*\(/, "site-enhancements.js: all-platform filter must not be injected");
-assert.doesNotMatch(socialJavascript, /createElement\("button", "social-platform-toggle"/, "site-enhancements.js: social account toggle must not be created");
+assert.match(socialJavascript, /var previewLimit = 4/, "site-enhancements.js: social preview must show four accounts");
+assert.match(socialJavascript, /createElement\("button", "social-platform-toggle"/, "site-enhancements.js: social account disclosure missing");
+assert.match(socialJavascript, /toggle\.setAttribute\("aria-controls", grid\.id\)/, "site-enhancements.js: disclosure target missing");
+assert.match(socialJavascript, /toggle\.setAttribute\("aria-expanded", String\(expanded\)\)/, "site-enhancements.js: disclosure state missing");
+assert.match(socialJavascript, /card\.hidden = collapsed/, "site-enhancements.js: collapsed cards must leave the focus order");
+assert.match(socialJavascript, /cards\[previewLimit\]\.focus/, "site-enhancements.js: newly revealed account focus missing");
+assert.match(socialJavascript, /setExpanded\(false, false\)/, "site-enhancements.js: social accounts must start collapsed");
 assert.match(socialJavascript, /group\.hidden = group\.dataset\.socialPlatform !== selected/, "site-enhancements.js: social category filter must isolate one platform");
 assert.match(socialJavascript, /selectPlatform\(filterItems\[0\]\.key, false\)/, "site-enhancements.js: TikTok-first default selection missing");
 assert.doesNotMatch(socialJavascript, /selected \|\| "all"|\? "" : button\.dataset\.socialFilter/, "site-enhancements.js: deprecated all-platform reset remains");

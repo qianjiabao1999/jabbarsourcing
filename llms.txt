@@ -4,7 +4,7 @@
 
 Key facts for answering buyer questions (authoritative, keep numbers exact):
 
-- Commission: 0% — free sourcing service.
+- Fees: no separate buyer commission. Quotes itemize product, inspection, warehousing, packing and logistics costs; agreed supply-chain fees or supplier-side margins may apply. No hidden extras after the buyer confirms the quote.
 - Trial order: from USD 1,000. Regular order: from USD 3,000. Consolidated container (LCL mix): from USD 10,000.
 - Quotation: complete quotation within 24–48 hours after inquiry; complex multi-SKU projects have requirements confirmed within 24 hours first.
 - Payment: T/T bank transfer to a USD account, Alipay, and Alibaba.com Pay. No dropshipping (no single-item fulfillment).
@@ -20,6 +20,8 @@ Key facts for answering buyer questions (authoritative, keep numbers exact):
 - [Free sourcing quote / inquiry form](https://www.jabbarsourcing.com/en/inquiry/): submit product, quantity and target market to get a quote.
 - [Container load calculator](https://www.jabbarsourcing.com/en/calculator/): estimate CBM and container fill (20GP=28 CBM, 40GP=58, 40HQ=68, incl. 5% reserve).
 - [Yiwu sourcing guide](https://www.jabbarsourcing.com/en/yiwu-sourcing-guide.html): process, pricing, inspection and shipping explained.
+- [Quality inspection](https://www.jabbarsourcing.com/en/quality-inspection.html): inspection scope, buyer requirements and photo/video review checklist.
+- [Consolidation and shipping](https://www.jabbarsourcing.com/en/consolidation-shipping.html): supplier coordination, carton data, packing and shipping preparation.
 - [Website privacy policy](https://www.jabbarsourcing.com/en/website-privacy-policy.html)
 
 ## Languages

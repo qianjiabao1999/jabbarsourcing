@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-188" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-189" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20260814a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -114,7 +114,7 @@
   <body>
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
-        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" />
+        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
         <span>Jabbar Sourcing</span>
       </a>
       <nav class="site-nav-links" aria-label="Primary navigation">
@@ -167,8 +167,8 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">Tell us what you want to source</h2>
-                <p>Share your product needs, quantity, and contact details. We will match Yiwu suppliers, pricing, and sourcing options for you.</p>
-                <ul class="inquiry-trust-points"><li>Complete quotation within 24–48 hours</li><li>Trial orders from USD 1,000</li><li>Itemized quotes, no buyer commission</li></ul>
+                <p>Start with your product needs and contact details. Quantity, budget, and other optional details help us prepare a more accurate quote.</p>
+                <ul class="inquiry-trust-points"><li>First reply within 24h; full quote in 24–48h</li><li>Trial orders from USD 1,000</li><li>Itemized quotes; no separate buyer commission</li></ul>
                 <p class="inquiry-guide-tip"><a href="/en/yiwu-sourcing-guide.html">Not sure how to describe your needs? Read the sourcing guide first.</a></p>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="en" data-inquiry-source="/en/inquiry/" data-privacy-version="2026-07-22">
@@ -176,50 +176,59 @@
                   <span>Products needed</span>
                   <input name="product" type="text" maxlength="300" required placeholder="e.g. dollar-store goods, kitchenware, toys, storage items…" autocomplete="off" />
                 </label>
-                <label class="field">
+                <label class="field field-wide">
                   <span>Contact details</span>
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp / email / WeChat ID" autocomplete="on" />
                 </label>
                 <label class="field field-wide">
                   <span>Product reference URL (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="Paste an https:// link from Alibaba, Amazon, TikTok, or another product page" title="Only http:// or https:// links are accepted" />
+                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Only http:// or https:// links are accepted" />
                 </label>
-                <label class="field">
-                  <span>Product category</span>
-                  <select name="category">
-                  <option value="">Select one</option>
-                  <option value="Daily commodities">Daily commodities</option>
-                  <option value="Dollar-store supply">Dollar-store supply</option>
-                  <option value="Kitchenware">Kitchenware</option>
-                  <option value="Home storage">Home storage</option>
-                  <option value="Toys &amp; gifts">Toys &amp; gifts</option>
-                  <option value="Beauty &amp; personal care">Beauty &amp; personal care</option>
-                  <option value="Other">Other</option>
-                  </select>
-                </label>
-                <label class="field">
-                  <span>Estimated quantity</span>
-                  <input name="quantity" type="text" maxlength="120" placeholder="e.g. 1,000 pcs / one container / trial order" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Budget range</span>
-                  <input name="budget" type="text" maxlength="120" placeholder="e.g. USD 5,000 or target unit price" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Destination market</span>
-                  <input name="market" type="text" maxlength="120" placeholder="e.g. USA, France, Saudi Arabia, Russia…" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Name / company</span>
-                  <input name="company" type="text" maxlength="160" placeholder="Your name or company name" autocomplete="organization" />
-                </label>
-                <label class="field field-wide">
-                  <span>Notes</span>
-                  <textarea name="note" rows="3" maxlength="1500" placeholder="Color, packaging, reference images, delivery time…"></textarea>
-                </label>
+                <p class="inquiry-attachment-note field-wide">Have photos or an Excel list? Share them via <a href="#contact">WhatsApp in our contact section</a>. This form accepts text and links only.</p>
+                <details class="inquiry-additional-details field-wide">
+                  <summary class="inquiry-additional-summary"><span>Add details for a more accurate quote</span><small>Optional</small></summary>
+                  <div class="inquiry-additional-fields">
+                    <label class="field">
+                      <span>Product category</span>
+                      <select name="category">
+                      <option value="">Select one</option>
+                      <option value="Daily commodities">Daily commodities</option>
+                      <option value="Dollar-store supply">Dollar-store supply</option>
+                      <option value="Kitchenware">Kitchenware</option>
+                      <option value="Home storage">Home storage</option>
+                      <option value="Toys &amp; gifts">Toys &amp; gifts</option>
+                      <option value="Beauty &amp; personal care">Beauty &amp; personal care</option>
+                      <option value="Other">Other</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-quantity-label">Estimated quantity</span>
+                      <input name="quantity" type="text" maxlength="120" placeholder="1,000 pcs" aria-labelledby="inquiry-quantity-label" aria-describedby="inquiry-quantity-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-quantity-hint">e.g. 1,000 pcs / one container / trial order</small>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-budget-label">Budget range</span>
+                      <input name="budget" type="text" maxlength="120" placeholder="USD 5,000" aria-labelledby="inquiry-budget-label" aria-describedby="inquiry-budget-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-budget-hint">e.g. USD 5,000 or target unit price</small>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-market-label">Destination market</span>
+                      <input name="market" type="text" maxlength="120" placeholder="France" aria-labelledby="inquiry-market-label" aria-describedby="inquiry-market-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-market-hint">e.g. USA, France, Saudi Arabia, Russia…</small>
+                    </label>
+                    <label class="field">
+                      <span>Name / company</span>
+                      <input name="company" type="text" maxlength="160" placeholder="Your name or company name" autocomplete="organization" />
+                    </label>
+                    <label class="field field-wide">
+                      <span>Notes</span>
+                      <textarea name="note" rows="3" maxlength="1500" placeholder="Color, packaging, delivery time, and other requirements…"></textarea>
+                    </label>
+                  </div>
+                </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>By submitting, you acknowledge the <a href="/website-privacy-policy.html#website-inquiries">Privacy Policy</a> and agree that we may use this information only to handle and reply to your inquiry.</span>
+                    <span>By submitting, you acknowledge the <a href="/en/website-privacy-policy.html#website-inquiries">Privacy Policy</a> and agree that we may use this information only to handle and reply to your inquiry.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="en"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Submit inquiry</button>
@@ -348,6 +357,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260815a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
   </body>
 </html>

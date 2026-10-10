@@ -13,6 +13,9 @@ const expectedPages = [
   "privacy-policy.html",
   "website-privacy-policy.html",
   "support.html",
+  "en/yiwu-sourcing-guide.html",
+  "en/quality-inspection.html",
+  "en/consolidation-shipping.html",
   ...locales.filter(Boolean).map((locale) => `${locale}/website-privacy-policy.html`)
 ];
 const CONSENT_VERSION = "consent-20260722a";

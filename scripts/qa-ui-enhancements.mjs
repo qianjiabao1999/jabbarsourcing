@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-188";
-const UI_VERSION = "ui-20260815a";
+const CSS_VERSION = "apple-189";
+const UI_VERSION = "ui-20261011a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -372,7 +372,20 @@ async function pageState(page) {
 async function waitForHomeVisualSignature(page) {
   await page.locator(".stamp-row").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelectorAll(".stamp.land").length === 3);
-  await page.locator(".testimonial-quote-cta").waitFor({ state: "visible" });
+  await page.locator(".testimonial-quote-cta").waitFor({ state: "visible" }).catch(async (error) => {
+    const diagnostic = await page.evaluate(() => ({
+      url: location.href,
+      readyState: document.readyState,
+      reviews: Boolean(document.querySelector("#reviews")),
+      cta: Boolean(document.querySelector(".testimonial-quote-cta")),
+      homeScript: document.querySelector("script[data-home-utilities]")?.src,
+      homeResource: performance.getEntriesByType("resource")
+        .filter((entry) => entry.name.includes("site-home-enhancements"))
+        .map((entry) => ({ name: entry.name, duration: entry.duration, responseEnd: entry.responseEnd }))
+    }));
+    error.message += `\n首页初始化现场：${JSON.stringify(diagnostic)}`;
+    throw error;
+  });
   await page.waitForFunction(() => {
     const ticker = document.querySelector(".shipment-ticker");
     return ticker?.classList.contains("is-ready") || ticker?.classList.contains("is-unavailable");
@@ -691,7 +704,7 @@ async function assertFaqDefaultClosed(page, scope) {
 
 async function assertSocialPlatformFilters(page, scope) {
   const assertVisibleCardAlignment = async (label) => {
-    const cards = await page.locator(".social-platform-group:not([hidden]) .team-card").evaluateAll((elements) => elements.map((card) => {
+    const cards = await page.locator(".social-platform-group:not([hidden]) .team-card:not([hidden])").evaluateAll((elements) => elements.map((card) => {
       const center = (element) => {
         if (!element) return null;
         const rect = element.getBoundingClientRect();
@@ -708,6 +721,8 @@ async function assertSocialPlatformFilters(page, scope) {
     assert(cards.length > 0, `${scope}: ${label} has no visible social cards`);
     cards.forEach((card, index) => {
       for (const key of ["mediaCenter", "nameCenter", "handleCenter", "buttonCenter"]) {
+        // 部分抖音账号仅显示真实名称，没有另列账号标识。
+        if (key === "handleCenter" && card[key] === null) continue;
         assert(card[key] !== null, `${scope}: ${label} card ${index + 1} missing ${key}`);
         assert(Math.abs(card[key] - card.cardCenter) <= 1.5, `${scope}: ${label} card ${index + 1} ${key} is not centered`);
       }
@@ -752,9 +767,9 @@ async function assertSocialPlatformFilters(page, scope) {
     assert.equal(group.display === "none", group.platform !== "tiktok", `${scope}: social group ${index + 1} hidden display state`);
     assert.equal(group.rendered, group.platform === "tiktok", `${scope}: social group ${index + 1} rendered state`);
     assert(group.totalCards > 0, `${scope}: social group ${index + 1} has no accounts`);
-    assert.equal(group.visibleCards, group.totalCards, `${scope}: social group ${index + 1} retains per-account hiding`);
-    assert.equal(group.collapsedCards, 0, `${scope}: social group ${index + 1} retains collapsed account classes`);
-    assert.equal(group.disclosureButtons, 0, `${scope}: social group ${index + 1} retains a view-all disclosure`);
+    assert.equal(group.visibleCards, Math.min(4, group.totalCards), `${scope}: social group ${index + 1} preview count`);
+    assert.equal(group.collapsedCards, Math.max(0, group.totalCards - 4), `${scope}: social group ${index + 1} collapsed count`);
+    assert.equal(group.disclosureButtons, group.totalCards > 4 ? 1 : 0, `${scope}: social group ${index + 1} disclosure count`);
   });
   assert.equal(await page.locator(".social-platform-group:not([hidden])").count(), 1, `${scope}: default social view is not isolated to TikTok`);
   assert.deepEqual(await renderedPlatforms(), ["tiktok"], `${scope}: non-TikTok accounts render in the default view`);
@@ -795,6 +810,46 @@ async function assertSocialPlatformFilters(page, scope) {
   const restoredPlatforms = await page.locator(".social-platform-group:not([hidden])").evaluateAll((groups) => groups.map((group) => group.dataset.socialPlatform));
   assert.deepEqual(restoredPlatforms, ["tiktok"], `${scope}: TikTok restore did not isolate TikTok accounts`);
   assert.deepEqual(await renderedPlatforms(), ["tiktok"], `${scope}: TikTok restore left another platform rendered`);
+
+  for (let groupIndex = 0; groupIndex < groupCount; groupIndex += 1) {
+    const platformFilter = filters.nth(groupIndex);
+    const platform = await platformFilter.getAttribute("data-social-filter");
+    await platformFilter.click();
+    const group = page.locator(`.social-platform-group[data-social-platform="${platform}"]`);
+    const cards = group.locator(".team-card");
+    const totalCards = await cards.count();
+    const toggle = group.locator(".social-platform-toggle");
+    if (totalCards <= 4) {
+      assert.equal(await toggle.count(), 0, `${scope}: ${platform} has an unnecessary disclosure`);
+      assert.equal(await group.locator(".team-card[hidden]").count(), 0, `${scope}: ${platform} hides a short account list`);
+      continue;
+    }
+    assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${scope}: ${platform} disclosure starts expanded`);
+    assert.equal(await toggle.getAttribute("aria-controls"), await group.locator(".team-grid").getAttribute("id"), `${scope}: ${platform} disclosure target`);
+    const toggleBox = await toggle.boundingBox();
+    assert(toggleBox && toggleBox.height >= 48, `${scope}: ${platform} disclosure touch target`);
+    await toggle.focus();
+    await toggle.press("Enter");
+    assert.equal(await toggle.getAttribute("aria-expanded"), "true", `${scope}: ${platform} keyboard expand failed`);
+    assert.equal(await group.locator(".team-card[hidden]").count(), 0, `${scope}: ${platform} did not reveal every account`);
+    assert.equal(await cards.nth(4).evaluate((card) => document.activeElement === card), true, `${scope}: ${platform} focus did not reach the first revealed account`);
+    await assertVisibleCardAlignment(`${platform} expanded view`);
+    await filters.nth((groupIndex + 1) % groupCount).click();
+    await platformFilter.click();
+    assert.equal(await toggle.getAttribute("aria-expanded"), "true", `${scope}: ${platform} expansion was not preserved across filters`);
+    assert.equal(await group.locator(".team-card[hidden]").count(), 0, `${scope}: ${platform} restored only part of the expanded list`);
+    await toggle.click();
+    assert.equal(await toggle.getAttribute("aria-expanded"), "false", `${scope}: ${platform} collapse failed`);
+    assert.equal(await group.locator(".team-card:not([hidden])").count(), 4, `${scope}: ${platform} collapse did not restore four accounts`);
+    assert.equal(await toggle.evaluate((button) => document.activeElement === button), true, `${scope}: ${platform} collapse lost keyboard focus`);
+    await page.waitForFunction((key) => {
+      const button = document.querySelector(`.social-platform-group[data-social-platform="${key}"] .social-platform-toggle`);
+      const bounds = button.getBoundingClientRect();
+      const nav = document.querySelector("header.site-nav").getBoundingClientRect();
+      return bounds.top >= nav.bottom - 1 && bounds.bottom <= innerHeight + 1;
+    }, platform, { timeout: 3000 });
+  }
+  await defaultFilter.click();
 
   await page.locator(".social-platform-group:not([hidden]) .team-card[href]").first().evaluate((card) => {
     card.addEventListener("click", (event) => event.preventDefault(), { once: true });
@@ -1128,9 +1183,7 @@ async function assertCompanyProofLayout(page, scope, mobile) {
   });
 
   assert(state.photo && state.metrics, `${scope}: company proof photo or metrics missing`);
-  assert(Math.abs(state.photo.left - state.metrics.left) <= 2, `${scope}: company photo and metrics left edges differ`);
   assert(Math.abs(state.photo.width - state.metrics.width) <= 2, `${scope}: company photo and metrics widths differ`);
-  assert(state.photo.bottom < state.metrics.top, `${scope}: company photo does not sit above metrics`);
   assert.equal(state.cards.length, 5, `${scope}: company metric card count`);
   assert(state.cards.every((card) => card.textAlign === "center"), `${scope}: company metric card text is not centered`);
   assert(state.labelAlignments.every((value) => value === "center"), `${scope}: company metric labels are not centered`);
@@ -1139,11 +1192,14 @@ async function assertCompanyProofLayout(page, scope, mobile) {
   assert.equal(state.identityBlocksOnPage, 0, `${scope}: removed company identity block returned`);
 
   if (mobile) {
+    assert(Math.abs(state.photo.left - state.metrics.left) <= 2, `${scope}: mobile company proof edges differ`);
+    assert(state.photo.bottom < state.metrics.top, `${scope}: mobile photo must precede metrics`);
     assert(Math.abs(state.cards[0].rect.top - state.cards[1].rect.top) <= 2, `${scope}: first mobile metric row is misaligned`);
     assert(Math.abs(state.cards[4].rect.width - state.metrics.width) <= 2, `${scope}: final mobile metric does not span the row`);
   } else {
-    const firstTop = state.cards[0].rect.top;
-    assert(state.cards.every((card) => Math.abs(card.rect.top - firstTop) <= 2), `${scope}: desktop metric cards are not aligned in one row`);
+    assert(state.photo.right <= state.metrics.left || state.metrics.right <= state.photo.left, `${scope}: desktop proof columns overlap`);
+    assert(Math.abs(state.cards[0].rect.top - state.cards[1].rect.top) <= 2, `${scope}: desktop first metric row misaligned`);
+    assert(Math.abs(state.cards[4].rect.width - state.metrics.width) <= 2, `${scope}: final desktop metric must span the row`);
   }
 }
 
@@ -1423,7 +1479,7 @@ async function calculatorMatrix(browserType) {
     const visuals = page.locator(".cbm-container-visual");
     assert.equal(await visuals.count(), testCase.containers.length, `${testCase.qty} CBM rendered container count`);
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".cbm-visual .container-load-card__shell")).every((image) => image.complete && image.naturalWidth === 1280 && image.naturalHeight === 438)
-      && Array.from(document.querySelectorAll(".cbm-visual .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth === 2005 && image.naturalHeight === 662));
+      && Array.from(document.querySelectorAll(".cbm-visual .container-load-card__cargo")).every((image) => image.complete && image.naturalWidth > 0 && Math.abs(image.naturalWidth / image.naturalHeight - 2005 / 662) < 0.04 && /container-cargo-stack-(?:640|960|20260722e)\.webp$/.test(image.currentSrc)));
     for (let index = 0; index < testCase.containers.length; index += 1) {
       const expected = testCase.containers[index];
       const card = visuals.nth(index);
@@ -1438,8 +1494,10 @@ async function calculatorMatrix(browserType) {
       const accessibleTitle = await card.getAttribute("aria-label");
       assert(accessibleTitle.includes(expected.pct) && accessibleTitle.includes(expected.cap), `${testCase.qty} CBM container ${index + 1} accessible title is stale: ${accessibleTitle}`);
       assert.equal(await card.locator(".container-load-card__shell").evaluate((image) => image.naturalWidth), 1280, `${testCase.qty} CBM container ${index + 1} shell asset`);
-      assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => image.naturalWidth), 2005, `${testCase.qty} CBM container ${index + 1} cargo asset`);
-      assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => image.naturalHeight), 662, `${testCase.qty} CBM container ${index + 1} cargo asset height`);
+      const cargo = await card.locator(".container-load-card__cargo").evaluate((image) => ({ width: image.naturalWidth, height: image.naturalHeight, src: image.currentSrc }));
+      assert(cargo.width > 0 && cargo.height > 0, `${testCase.qty} CBM cargo image did not load`);
+      near(cargo.width / cargo.height, 2005 / 662, 0.04, `${testCase.qty} CBM cargo aspect ratio changed`);
+      assert.match(cargo.src, /container-cargo-stack-(?:640|960|20260722e)\.webp$/, `${testCase.qty} CBM unexpected responsive cargo asset`);
       assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => getComputedStyle(image).objectFit), "contain", `${testCase.qty} CBM container ${index + 1} cargo distortion guard`);
       assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => getComputedStyle(image).opacity), "1", `${testCase.qty} CBM container ${index + 1} cargo solidity guard`);
       assert.equal(await card.locator(".container-load-card__cargo").evaluate((image) => getComputedStyle(image).transform), "none", `${testCase.qty} CBM container ${index + 1} cargo transform guard`);

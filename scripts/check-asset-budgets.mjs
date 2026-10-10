@@ -18,6 +18,12 @@ const IMAGE_BUDGETS = {
   "assets/container-40hq-shell-20260722.webp": 180 * 1024,
   "assets/container-cargo-stack-20260722e.webp": 320 * 1024,
 };
+const RESPONSIVE_IMAGE_BUDGETS = {
+  "assets/jabbar-sourcing-mark-72.webp": 5 * 1024,
+  "assets/jabbar-sourcing-mark-256.webp": 28 * 1024,
+  "assets/container-cargo-stack-640.webp": 36 * 1024,
+  "assets/container-cargo-stack-960.webp": 64 * 1024,
+};
 
 const results = [];
 for (const [file, budget] of Object.entries(BUDGETS)) {
@@ -37,4 +43,10 @@ for (const [file, budget] of Object.entries(IMAGE_BUDGETS)) {
   results.push(`${file} ${source.byteLength}/${budget}`);
 }
 
+for (const [file, budget] of Object.entries(RESPONSIVE_IMAGE_BUDGETS)) {
+  const source = await readFile(resolve(ROOT, file));
+  assert(source.byteLength > 1024 && source.byteLength <= budget, `${file}: responsive image budget exceeded or file empty`);
+  assert.equal(source.toString("ascii", 8, 12), "WEBP", `${file}: not a WebP image`);
+  results.push(`${file} ${source.byteLength}/${budget}`);
+}
 console.log(`Asset budgets passed: ${results.join(", ")}.`);

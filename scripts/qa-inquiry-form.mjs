@@ -277,12 +277,16 @@ assert(
   (await page.locator('[name="note"]').inputValue()) === "QA calculator result: 12.4 CBM, one 20GP container",
   "Calculator message must prefill note"
 );
-assert(await page.locator("details.inquiry-optional-details").count() === 0, "Calculator handoff must not create an order-details disclosure");
+assert(await page.locator("details.inquiry-additional-details[open]").count() === 1, "Calculator handoff must reveal prefilled optional details");
 const freshDetailVisibility = await page.evaluate((fieldNames) => fieldNames.every((name) => {
   const field = document.querySelector(`[name="${name}"]`);
-  return Boolean(field && field.getClientRects().length > 0);
+  return Boolean(field && field.getClientRects().length > 0 && (!field.closest("details") || field.closest("details").open));
 }), ORDER_DETAIL_FIELDS);
 assert(freshDetailVisibility, "Calculator handoff must keep every order-detail field expanded and visible");
+await page.locator(".inquiry-additional-summary").click();
+assert(await page.locator("details.inquiry-additional-details[open]").count() === 0, "The buyer must still be able to collapse prefilled details");
+await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+assert(await page.locator("details.inquiry-additional-details[open]").count() === 1, "Browser-restored populated details must reopen");
 assert(
   (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
   "Consumed calculator handoff must be removed"
@@ -300,12 +304,13 @@ await openInquiry("/inquiry/");
 assert((await page.locator('[name="product"]').inputValue()) === "", "Calculator handoff older than two hours must be ignored");
 assert((await page.locator('[name="quantity"]').inputValue()) === "", "Stale calculator quantity must be ignored");
 assert((await page.locator('[name="note"]').inputValue()) === "", "Stale calculator note must be ignored");
-assert(await page.locator(".js-inquiry-form details").count() === 0, "Inquiry form must not contain a details disclosure");
-const emptyDetailVisibility = await page.evaluate((fieldNames) => fieldNames.every((name) => {
+assert(await page.locator(".js-inquiry-form details.inquiry-additional-details").count() === 1, "Inquiry form must have one native optional-details disclosure");
+assert(await page.locator("details.inquiry-additional-details[open]").count() === 0, "Empty optional details must be collapsed by default");
+const emptyDetailVisibility = await page.evaluate((fieldNames) => fieldNames.filter((name) => {
   const field = document.querySelector(`[name="${name}"]`);
   return Boolean(field && field.getClientRects().length > 0 && !field.closest("details"));
 }), ORDER_DETAIL_FIELDS);
-assert(emptyDetailVisibility, "Empty order-detail fields must still remain expanded and visible");
+assert(JSON.stringify(emptyDetailVisibility) === JSON.stringify(["referenceUrl"]), "Only the optional reference URL must remain outside the disclosure");
 assert(
   (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
   "Stale calculator handoff must be removed"
@@ -348,14 +353,14 @@ const singleActionContract = await page.evaluate(() => ({
   privacyLinks: document.querySelectorAll('.inquiry-privacy-notice a[href="/website-privacy-policy.html#website-inquiries"]').length,
   fallbackButtons: document.querySelectorAll(".js-inquiry-send").length,
   fallbackLabels: document.querySelectorAll(".inquiry-fallback-label").length,
-  detailDisclosures: document.querySelectorAll("details.inquiry-optional-details").length,
+  detailDisclosures: document.querySelectorAll("details.inquiry-additional-details").length,
 }));
 assert(singleActionContract.privacyCheckboxes === 0, "Privacy checkbox must be absent");
 assert(singleActionContract.privacyNotices === 1 && singleActionContract.privacyLinks === 1, "One linked privacy submit notice must remain");
 assert(singleActionContract.fallbackButtons === 0 && singleActionContract.fallbackLabels === 0, "All redundant fallback actions must be absent");
-assert(singleActionContract.detailDisclosures === 0, "Order details must not be placed in a disclosure");
+assert(singleActionContract.detailDisclosures === 1, "Six optional detail fields must be grouped in one native disclosure");
 assert((await analyticsEvents("channel_fallback")).length === 0, "Removed fallback controls must not emit channel_fallback");
-assert((await analyticsEvents("inquiry_optional_details_toggle")).length === 0, "Always-expanded order details must not emit disclosure-toggle analytics");
+assert((await analyticsEvents("inquiry_optional_details_toggle")).length === 0, "Optional detail interaction must not introduce unapproved analytics");
 
 await fillRequired("QA invalid reference", "qa-invalid-reference@example.com");
 await page.locator('[name="referenceUrl"]').fill("ftp://example.com/product");
@@ -374,6 +379,17 @@ assert(invalidReferenceErrors.at(-1)?.duration_ms === 0, "Local validation error
 
 await fillRequired("QA storage items", "qa@example.com");
 await page.locator('[name="referenceUrl"]').fill("https://www.alibaba.com/product-detail/qa-storage-item.html");
+await page.locator('[name="quantity"]').evaluate((field) => field.setCustomValidity("QA quantity validation"));
+await clickDirect();
+assert(await page.locator("details.inquiry-additional-details[open]").count() === 1, "Native validation must synchronously open a hidden invalid field");
+assert(await page.locator('[name="quantity"]').evaluate((field) => document.activeElement === field), "Native validation must focus the revealed invalid field");
+assert(apiPayloads.length === 0, "A hidden invalid field must stop submission before the API request");
+await page.locator('[name="quantity"]').evaluate((field) => field.setCustomValidity(""));
+await page.locator('[name="quantity"]').fill("1,000 pcs / one container");
+await page.locator('[name="budget"]').fill("USD 5,000");
+await page.locator('[name="note"]').fill("QA optional detail note");
+await page.locator(".inquiry-additional-summary").click();
+assert(await page.locator("details.inquiry-additional-details[open]").count() === 0, "Filled details can be collapsed without clearing their values");
 const formStartEvents = await analyticsEvents("inquiry_form_start");
 assert(formStartEvents.length === 1, "First business-field interaction must emit inquiry_form_start once");
 assert((await analyticsEvents("form_start")).length === 0, "Custom inquiry funnel must not duplicate GA4 form_start");
@@ -394,6 +410,8 @@ assert(
   "Happy path attribution must contain only the allowed source fields"
 );
 assert(apiPayloads[0].referenceUrl === "https://www.alibaba.com/product-detail/qa-storage-item.html", "Happy path must include the product reference URL");
+assert(apiPayloads[0].quantity === "1,000 pcs / one container", "Collapsed quantity must preserve units and reach the payload");
+assert(apiPayloads[0].budget === "USD 5,000" && apiPayloads[0].note === "QA optional detail note", "Collapsed optional values must reach the payload unchanged");
 assert(apiPayloads[0].attribution.landing_path === "/", "Payload must preserve first-touch landing_path");
 assert(apiPayloads[0].attribution.referrer_host === "www.google.com", "Payload must send hostname-only referrer attribution");
 assert(apiPayloads[0].attribution.utm_campaign === "summer_wholesale", "Payload must include bounded UTM attribution");
@@ -572,7 +590,7 @@ for (const viewport of [
       path: `${OUTPUT_DIR}/${item.locale}-${viewport.name}.png`,
       fullPage: true
     });
-    const metrics = await page.evaluate((orderDetailFields) => {
+    const metrics = await page.evaluate(({ orderDetailFields, privacyHref }) => {
       const direct = document.querySelector(".js-inquiry-direct")?.getBoundingClientRect();
       const panelElement = document.querySelector(".inquiry-direct-panel");
       const panel = panelElement?.getBoundingClientRect();
@@ -596,8 +614,14 @@ for (const viewport of [
         fallbackCount: document.querySelectorAll(".js-inquiry-send, .inquiry-fallback-label").length,
         privacyCheckboxCount: document.querySelectorAll(".js-inquiry-privacy, .inquiry-privacy input[type=checkbox]").length,
         privacyNoticeCount: document.querySelectorAll(".inquiry-privacy-notice").length,
-        privacyLinkCount: document.querySelectorAll('.inquiry-privacy-notice a[href="/website-privacy-policy.html#website-inquiries"]').length,
-        detailsCount: document.querySelectorAll(".js-inquiry-form details, .js-inquiry-form .inquiry-optional-details").length,
+        privacyLinkCount: Array.from(document.querySelectorAll(".inquiry-privacy-notice a")).filter((link) => link.getAttribute("href") === privacyHref).length,
+        detailsCount: document.querySelectorAll(".js-inquiry-form details.inquiry-additional-details").length,
+        openDetailsCount: document.querySelectorAll(".js-inquiry-form details[open]").length,
+        collapsedFieldNames: Array.from(document.querySelectorAll(".inquiry-additional-details input, .inquiry-additional-details select, .inquiry-additional-details textarea")).map((field) => field.name).sort(),
+        visibleCoreFieldCount: ["product", "contact", "referenceUrl"].filter((name) => {
+          const field = document.querySelector(`[name="${name}"]`);
+          return Boolean(field && field.getClientRects().length > 0 && !field.closest("details"));
+        }).length,
         visibleOrderDetailCount: orderDetailFields.filter((name) => {
           const field = document.querySelector(`[name="${name}"]`);
           return Boolean(field && field.getClientRects().length > 0 && !field.closest("details"));
@@ -620,7 +644,10 @@ for (const viewport of [
         brokenImages: Array.from(document.images).filter((image) => image.complete && image.naturalWidth === 0).length,
         dir: document.documentElement.dir || "ltr"
       };
-    }, ORDER_DETAIL_FIELDS);
+    }, {
+      orderDetailFields: ORDER_DETAIL_FIELDS,
+      privacyHref: `${item.locale === "zh" ? "" : `/${item.locale}`}/website-privacy-policy.html#website-inquiries`
+    });
     assert(metrics.overflow <= 1, `${item.locale} ${viewport.name} has horizontal overflow: ${metrics.overflow}px`);
     assert(metrics.directWidth > 0 && metrics.panelWidth > 0, `${item.locale} ${viewport.name} direct-submit layout is missing`);
     assert(Math.abs(metrics.directWidth - metrics.panelContentWidth) <= 2, `${item.locale} ${viewport.name} direct submit is not full-width`);
@@ -629,8 +656,9 @@ for (const viewport of [
     assert(metrics.fallbackCount === 0, `${item.locale} ${viewport.name} still has redundant fallback UI`);
     assert(metrics.privacyCheckboxCount === 0, `${item.locale} ${viewport.name} still has a privacy checkbox`);
     assert(metrics.privacyNoticeCount === 1 && metrics.privacyLinkCount === 1, `${item.locale} ${viewport.name} privacy submit notice regressed`);
-    assert(metrics.detailsCount === 0, `${item.locale} ${viewport.name} still collapses order details`);
-    assert(metrics.visibleOrderDetailCount === ORDER_DETAIL_FIELDS.length, `${item.locale} ${viewport.name} does not show every order-detail field`);
+    assert(metrics.detailsCount === 1 && metrics.openDetailsCount === 0, `${item.locale} ${viewport.name} must start with one closed optional-details disclosure`);
+    assert(metrics.visibleCoreFieldCount === 3 && metrics.visibleOrderDetailCount === 1, `${item.locale} ${viewport.name} must initially show product, contact, and reference URL only`);
+    assert(JSON.stringify(metrics.collapsedFieldNames) === JSON.stringify(["budget", "category", "company", "market", "note", "quantity"]), `${item.locale} ${viewport.name} must retain all six optional detail fields`);
     assert(metrics.turnstileHeight >= 65 && metrics.turnstileHeight <= 70, `${item.locale} ${viewport.name} Turnstile placeholder is ${metrics.turnstileHeight}px instead of a stable 65px`);
     assert(metrics.turnstileAppearance === "interaction-only", `${item.locale} ${viewport.name} Turnstile appearance regressed`);
     assert(metrics.submitEnabledAfterToken, `${item.locale} ${viewport.name} token callback did not enable submit`);
@@ -650,6 +678,17 @@ for (const viewport of [
       assert(metrics.socialPillDisplay === "none", `${item.locale} desktop responsive social pill remains visible`);
     }
     if (item.rtl) assert(metrics.dir === "rtl", "Arabic inquiry page must remain RTL");
+    await page.locator(".inquiry-additional-summary").focus();
+    await page.keyboard.press("Enter");
+    assert(await page.locator(".inquiry-additional-details[open]").count() === 1, `${item.locale} ${viewport.name} native disclosure must open by keyboard`);
+    for (const name of ORDER_DETAIL_FIELDS) {
+      assert(await page.locator(`[name="${name}"]`).isVisible(), `${item.locale} ${viewport.name} expanded ${name} field is not visible`);
+    }
+    if (viewport.width <= 430) {
+      const mobileColumns = await page.locator(".inquiry-additional-fields").evaluate((fields) => getComputedStyle(fields).gridTemplateColumns.split(/\s+/).length);
+      assert(mobileColumns === 1, `${item.locale} ${viewport.name} optional fields must use one column`);
+    }
+    assert(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth <= 1), `${item.locale} ${viewport.name} expanded optional details overflow horizontally`);
   }
 
   await page.goto(`${BASE_URL}/website-privacy-policy.html#website-inquiries`, { waitUntil: "domcontentloaded" });

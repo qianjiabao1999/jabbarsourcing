@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-188" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-189" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20260814a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -114,7 +114,7 @@
   <body>
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
-        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" />
+        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
         <span>Jabbar Sourcing</span>
       </a>
       <nav class="site-nav-links" aria-label="التنقل الرئيسي">
@@ -167,58 +167,67 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">أخبرنا بما تريد شراءه</h2>
-                <p>اكتب المنتجات والكمية وبيانات التواصل، وسنقترح لك موردين وأسعاراً وخيارات توريد من ييوو.</p>
-                <ul class="inquiry-trust-points"><li>عرض سعر كامل خلال 24–48 ساعة</li><li>طلبات تجريبية من 1,000 دولار</li><li>تسعير مفصّل بلا عمولة للمشتري</li></ul>
+                <p>ابدأ بالمنتجات المطلوبة وبيانات التواصل. تساعدنا الكمية والميزانية والتفاصيل الاختيارية الأخرى على إعداد عرض سعر أدق.</p>
+                <ul class="inquiry-trust-points"><li>رد أولي خلال 24 ساعة؛ عرض كامل خلال <bdi dir="ltr">24–48</bdi> ساعة</li><li>طلبات تجريبية من 1,000 دولار</li><li>عرض مفصّل؛ دون عمولة منفصلة على المشتري</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="ar" data-inquiry-source="/ar/inquiry/" data-privacy-version="2026-07-22">
                 <label class="field field-wide">
                   <span>المنتجات المطلوبة</span>
                   <input name="product" type="text" maxlength="300" required placeholder="مثال: منتجات يومية، أدوات مطبخ، ألعاب، تخزين…" autocomplete="off" />
                 </label>
-                <label class="field">
+                <label class="field field-wide">
                   <span>بيانات التواصل</span>
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp / بريد / WeChat ID" autocomplete="on" />
                 </label>
                 <label class="field field-wide">
                   <span>رابط مرجعي للمنتج (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" dir="auto" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="ألصق رابط المنتج من Alibaba أو Amazon أو TikTok أو صفحة منتج أخرى" title="تُقبل روابط http:// أو https:// فقط" />
+                  <input name="referenceUrl" dir="auto" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="تُقبل روابط http:// أو https:// فقط" />
                 </label>
-                <label class="field">
-                  <span>الفئة</span>
-                  <select name="category">
-                  <option value="">اختر</option>
-                  <option value="منتجات يومية">منتجات يومية</option>
-                  <option value="توريد متاجر الخصومات">توريد متاجر الخصومات</option>
-                  <option value="أدوات المطبخ">أدوات المطبخ</option>
-                  <option value="تنظيم المنزل">تنظيم المنزل</option>
-                  <option value="ألعاب وهدايا">ألعاب وهدايا</option>
-                  <option value="جمال وعناية">جمال وعناية</option>
-                  <option value="أخرى">أخرى</option>
-                  </select>
-                </label>
-                <label class="field">
-                  <span>الكمية المتوقعة</span>
-                  <input name="quantity" type="text" maxlength="120" placeholder="مثال: 1000 قطعة / حاوية / طلب تجريبي" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>الميزانية</span>
-                  <input name="budget" type="text" maxlength="120" placeholder="مثال: USD 5,000 أو سعر مستهدف" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>الدولة / السوق</span>
-                  <input name="market" type="text" maxlength="120" placeholder="مثال: أمريكا، فرنسا، السعودية، روسيا…" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>الاسم / الشركة</span>
-                  <input name="company" type="text" maxlength="160" placeholder="اسمك أو اسم الشركة" autocomplete="organization" />
-                </label>
-                <label class="field field-wide">
-                  <span>ملاحظات</span>
-                  <textarea name="note" rows="3" maxlength="1500" placeholder="اللون، التغليف، صور مرجعية، موعد التسليم…"></textarea>
-                </label>
+                <p class="inquiry-attachment-note field-wide">هل لديك صور أو قائمة Excel؟ شاركها عبر <a href="#contact">WhatsApp في قسم التواصل</a>. يقبل هذا النموذج النصوص والروابط فقط.</p>
+                <details class="inquiry-additional-details field-wide">
+                  <summary class="inquiry-additional-summary"><span>أضف تفاصيل للحصول على عرض سعر أدق</span><small>اختياري</small></summary>
+                  <div class="inquiry-additional-fields">
+                    <label class="field">
+                      <span>الفئة</span>
+                      <select name="category">
+                      <option value="">اختر</option>
+                      <option value="منتجات يومية">منتجات يومية</option>
+                      <option value="توريد متاجر الخصومات">توريد متاجر الخصومات</option>
+                      <option value="أدوات المطبخ">أدوات المطبخ</option>
+                      <option value="تنظيم المنزل">تنظيم المنزل</option>
+                      <option value="ألعاب وهدايا">ألعاب وهدايا</option>
+                      <option value="جمال وعناية">جمال وعناية</option>
+                      <option value="أخرى">أخرى</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-quantity-label">الكمية المتوقعة</span>
+                      <input name="quantity" type="text" maxlength="120" placeholder="1000 قطعة" aria-labelledby="inquiry-quantity-label" aria-describedby="inquiry-quantity-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-quantity-hint">مثال: 1000 قطعة / حاوية / طلب تجريبي</small>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-budget-label">الميزانية</span>
+                      <input name="budget" type="text" maxlength="120" placeholder="USD 5,000" aria-labelledby="inquiry-budget-label" aria-describedby="inquiry-budget-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-budget-hint">مثال: USD 5,000 أو سعر مستهدف</small>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-market-label">الدولة / السوق</span>
+                      <input name="market" type="text" maxlength="120" placeholder="فرنسا" aria-labelledby="inquiry-market-label" aria-describedby="inquiry-market-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-market-hint">مثال: أمريكا، فرنسا، السعودية، روسيا…</small>
+                    </label>
+                    <label class="field">
+                      <span>الاسم / الشركة</span>
+                      <input name="company" type="text" maxlength="160" placeholder="اسمك أو اسم الشركة" autocomplete="organization" />
+                    </label>
+                    <label class="field field-wide">
+                      <span>ملاحظات</span>
+                      <textarea name="note" rows="3" maxlength="1500" placeholder="اللون والتغليف وموعد التسليم والمتطلبات الأخرى…"></textarea>
+                    </label>
+                  </div>
+                </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>بالإرسال، تقرّ بقراءة <a href="/website-privacy-policy.html#website-inquiries">سياسة الخصوصية</a> وتوافق على استخدام هذه المعلومات فقط لمعالجة طلبك والرد عليه.</span>
+                    <span>بالإرسال، تقرّ بقراءة <a href="/ar/website-privacy-policy.html#website-inquiries">سياسة الخصوصية</a> وتوافق على استخدام هذه المعلومات فقط لمعالجة طلبك والرد عليه.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="ar"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">إرسال الطلب</button>
@@ -346,6 +355,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260815a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
   </body>
 </html>

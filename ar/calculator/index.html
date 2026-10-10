@@ -48,7 +48,7 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-188" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-189" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
     <script type="application/ld+json" data-schema="organization">
 {
@@ -119,7 +119,7 @@
   <body>
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
-        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" />
+        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
         <span>Jabbar Sourcing</span>
       </a>
       <nav class="site-nav-links" aria-label="القائمة">
@@ -250,6 +250,64 @@
         var resultDetails = results.querySelectorAll('[data-result-detail]');
         var copyButton = form.querySelector('[data-copy-result]');
         var fields = ['length','width','height','qty','weight','unit','product','note'].reduce(function (acc, name) { acc[name] = form.elements.namedItem(name); return acc; }, {});
+        var validationText = {"positive":"أدخل رقمًا صالحًا أكبر من 0.","cartons":"أدخل عددًا صحيحًا للكراتين أكبر من 0.","weight":"أدخل وزنًا صالحًا يساوي 0 أو أكثر، أو اترك الحقل فارغًا.","summary":"تحقق من الحقول المحددة وصححها."};
+        var validationStarted = false;
+        var numericFields = ['length','width','height','qty','weight'];
+        function fieldError(name) {
+          var field = fields[name];
+          var value = Number(field.value);
+          var badNumber = field.validity.badInput || !Number.isFinite(value);
+          if (name === 'weight') {
+            return badNumber || (field.value !== '' && value < 0) ? validationText.weight : '';
+          }
+          if (name === 'qty') {
+            return badNumber || !(value > 0) || !Number.isInteger(value) ? validationText.cartons : '';
+          }
+          return badNumber || !(value > 0) ? validationText.positive : '';
+        }
+        function showFieldError(name, message) {
+          var field = fields[name];
+          var errorId = field.id + '-error';
+          var error = document.getElementById(errorId);
+          var descriptions = (field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+          if (message) {
+            if (!error) {
+              error = document.createElement('p');
+              error.id = errorId;
+              error.className = 'calculator-field-error';
+              field.parentNode.appendChild(error);
+            }
+            error.textContent = message;
+            error.hidden = false;
+            field.setAttribute('aria-invalid', 'true');
+            if (descriptions.indexOf(errorId) === -1) descriptions.push(errorId);
+          } else {
+            if (error) {
+              error.textContent = '';
+              error.hidden = true;
+            }
+            field.removeAttribute('aria-invalid');
+            descriptions = descriptions.filter(function (id) { return id !== errorId; });
+          }
+          if (descriptions.length) field.setAttribute('aria-describedby', descriptions.join(' '));
+          else field.removeAttribute('aria-describedby');
+        }
+        function validateFields(showInvalid) {
+          if (showInvalid) validationStarted = true;
+          var firstInvalid = null;
+          numericFields.forEach(function (name) {
+            var message = fieldError(name);
+            if (message && !firstInvalid) firstInvalid = fields[name];
+            if (validationStarted) showFieldError(name, message);
+          });
+          if (showInvalid && firstInvalid) {
+            var optionalDetails = firstInvalid.closest('details');
+            if (optionalDetails) optionalDetails.open = true;
+            firstInvalid.focus({ preventScroll: true });
+            firstInvalid.scrollIntoView({ block: 'center', behavior: 'auto' });
+          }
+          return !firstInvalid;
+        }
         var out = {
           per: document.querySelector('[data-per-cbm]'), total: document.querySelector('[data-total-cbm]'), buffer: document.querySelector('[data-buffer-cbm]'),
           container: document.querySelector('[data-container]'), weight: document.querySelector('[data-weight-total]'), summary: document.querySelector('[data-summary]'), status: document.querySelector('[data-copy-status]')
@@ -306,9 +364,10 @@
           if (!ready) resetResult(message);
         }
         function calculate(showInvalid) {
+          var valid = validateFields(showInvalid);
           var l = val('length'), w = val('width'), h = val('height'), q = Math.max(0, Math.floor(val('qty'))), unit = fields.unit.value;
-          if (!(l > 0 && w > 0 && h > 0 && q > 0)) {
-            setResultState(showInvalid ? 'invalid' : 'empty', showInvalid ? t.invalid : t.summary);
+          if (!valid) {
+            setResultState(showInvalid ? 'invalid' : 'empty', showInvalid ? validationText.summary : t.summary);
             return false;
           }
           var factor = unit === 'in' ? Math.pow(2.54, 3) : 1;
@@ -355,8 +414,8 @@
         calculate(false);
       })();
     </script>
-  <script src="/assets/container-visual.js?v=container-20260722e" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20260815a" defer></script>
+  <script src="/assets/container-visual.js?v=container-20261011a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
   <script src="/assets/calculator-order-loader.js?v=order-20260722c" defer></script>
   </body>
 </html>

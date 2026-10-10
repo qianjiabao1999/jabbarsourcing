@@ -449,6 +449,18 @@
       });
     }
 
+    function revealFieldDetails(field) {
+      var details = field && field.closest("details.inquiry-additional-details");
+      if (details) details.open = true;
+    }
+
+    function revealPopulatedDetails() {
+      FIELD_NAMES.forEach(function (name) {
+        var field = form.elements[name];
+        if (field && String(field.value || "").trim()) revealFieldDetails(field);
+      });
+    }
+
     function consumeCalculatorResult() {
       var raw = null;
       try {
@@ -485,6 +497,8 @@
     }
 
     consumeCalculatorResult();
+    revealPopulatedDetails();
+    window.addEventListener("pageshow", revealPopulatedDetails);
 
     decorateFieldLabels();
 
@@ -641,18 +655,34 @@
       var field = form.elements[name];
       if (!field) return;
       field.addEventListener("input", function () {
+        revealFieldDetails(field);
         markFormStart();
         if (!submitting) currentSubmissionId = "";
         setStatus("", "");
       });
       field.addEventListener("change", function () {
+        revealFieldDetails(field);
         markFormStart();
         if (!submitting) currentSubmissionId = "";
         setStatus("", "");
       });
     });
 
-    form.addEventListener("invalid", function () {
+    form.addEventListener("invalid", function (event) {
+      var field = event.target;
+      var details = field.closest("details.inquiry-additional-details");
+      var wasClosed = details && !details.open;
+      var firstInvalid = form.querySelector("input:invalid, select:invalid, textarea:invalid");
+      // 原生校验先展开详情；WebKit 需等布局后才能聚焦原先隐藏的字段。
+      revealFieldDetails(event.target);
+      if (wasClosed && field === firstInvalid) {
+        window.requestAnimationFrame(function () {
+          if (!field.isConnected || field.validity.valid
+              || form.querySelector("input:invalid, select:invalid, textarea:invalid") !== field) return;
+          try { field.focus({ preventScroll: true }); } catch (error) { field.focus(); }
+          field.scrollIntoView({ block: "nearest", behavior: "auto" });
+        });
+      }
       trackNativeValidationError();
     }, true);
 

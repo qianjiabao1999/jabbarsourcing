@@ -9,9 +9,9 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-22";
-const CSS_VERSION = "apple-188";
+const CSS_VERSION = "apple-189";
 const CONSENT_VERSION = "consent-20260722a";
-const JS_VERSION = "inquiry-20260814a";
+const JS_VERSION = "inquiry-20261011a";
 
 const PAGES = [
   { file: "inquiry/index.html", locale: "zh", source: "/inquiry/" },
@@ -169,6 +169,11 @@ function checkSharedJavascript(source) {
     ["status focus without extra scrolling", "status.focus({ preventScroll: true })"],
     ["non-disruptive status focus guard", "var mayMoveFocus"],
     ["localized optional field labels", "OPTIONAL_LABELS"],
+    ["prefilled detail disclosure", "revealPopulatedDetails();"],
+    ["restored detail disclosure", 'window.addEventListener("pageshow", revealPopulatedDetails)'],
+    ["invalid-field detail disclosure", "revealFieldDetails(event.target)"],
+    ["hidden invalid-field focus guard", "wasClosed && field === firstInvalid"],
+    ["deferred invalid-field focus", "field.focus({ preventScroll: true })"],
     ["required field marker", 'marker.classList.add("is-required")'],
     ["first-touch attribution storage", '"jabbarAttributionV1"'],
     ["safe landing path", "safeLandingPath"],
@@ -190,8 +195,8 @@ function checkSharedJavascript(source) {
   }
 
   const removedFlowFragments = [
-    ["optional-details disclosure builder", "function groupOptionalFields"],
-    ["optional-details disclosure copy", "OPTIONAL_DETAILS_LABELS"],
+    ["legacy runtime disclosure builder", "function groupOptionalFields"],
+    ["legacy runtime disclosure copy", "OPTIONAL_DETAILS_LABELS"],
     ["privacy checkbox lookup", 'querySelector(".js-inquiry-privacy")'],
     ["fallback-channel analytics", 'trackEvent("channel_fallback"'],
   ];
@@ -267,8 +272,22 @@ function checkPage(page, html) {
   if (!hasClass(formTag, "inquiry-form") || !hasClass(formTag, "js-inquiry-form")) {
     fail(scope, "the unique form must include inquiry-form and js-inquiry-form classes");
   }
-  if (findTags(formBody, "details").length !== 0 || countClassToken(formBody, "inquiry-optional-details") !== 0) {
-    fail(scope, "all order-detail fields must remain expanded without a details disclosure");
+  const detailsBlocks = Array.from(formBody.matchAll(/<details\b([^>]*)>([\s\S]*?)<\/details>/gi));
+  if (detailsBlocks.length !== 1) {
+    fail(scope, "optional order details must use exactly one native disclosure");
+  } else {
+    const details = { name: "details", attributes: parseAttributes(detailsBlocks[0][1]) };
+    if (!hasClass(details, "inquiry-additional-details") || details.attributes.has("open")) {
+      fail(scope, "optional detail disclosure must be closed by default with its styling class");
+    }
+    const summaries = findTags(detailsBlocks[0][2], "summary");
+    if (summaries.length !== 1 || !hasClass(summaries[0], "inquiry-additional-summary")) {
+      fail(scope, "optional detail disclosure must expose one native summary");
+    }
+    const controlsIn = (html) => ["input", "select", "textarea"].flatMap((tag) => findTags(html, tag))
+      .map((tag) => tag.attributes.get("name")).filter(Boolean);
+    expectExactSet(scope, "collapsed optional fields", controlsIn(detailsBlocks[0][2]), ["category", "quantity", "budget", "market", "company", "note"]);
+    expectExactSet(scope, "default visible business fields", controlsIn(formBody.replace(detailsBlocks[0][0], "")), ["product", "contact", "referenceUrl"]);
   }
 
   const formExpectations = new Map([
@@ -347,6 +366,23 @@ function checkPage(page, html) {
       }
     }
 
+    if (["quantity", "budget", "market"].includes(fieldName)) {
+      const hintId = `inquiry-${fieldName}-hint`;
+      const labelId = `inquiry-${fieldName}-label`;
+      const placeholder = control.attributes.get("placeholder") || "";
+      if (!placeholder || placeholder.length >= 20) fail(scope, `${fieldName} must use a short example`);
+      if (control.attributes.get("type") !== "text" || control.attributes.has("inputmode")) {
+        fail(scope, `${fieldName} must preserve free text, including units`);
+      }
+      if (control.attributes.get("aria-describedby") !== hintId || control.attributes.get("aria-labelledby") !== labelId) {
+        fail(scope, `${fieldName} must explicitly associate its label and visible example`);
+      }
+      const hints = findTags(formBody, "small").filter((tag) => tag.attributes.get("id") === hintId && hasClass(tag, "inquiry-field-hint"));
+      const labels = findTags(formBody, "span").filter((tag) => tag.attributes.get("id") === labelId);
+      checkSingleTag(scope, hints, `${fieldName} visible example`);
+      checkSingleTag(scope, labels, `${fieldName} explicit label`);
+    }
+
     if (control.attributes.get("maxlength") !== expectedMaximum) {
       fail(
         scope,
@@ -382,16 +418,17 @@ function checkPage(page, html) {
   const privacyNoticeBlocks = Array.from(
     formBody.matchAll(/<p\b([^>]*)>([\s\S]*?)<\/p>/gi),
   ).filter((match) => hasClass({ name: "p", attributes: parseAttributes(match[1]) }, "inquiry-privacy-notice"));
+  const expectedPrivacyHref = `${page.locale === "zh" ? "" : `/${page.locale}`}/website-privacy-policy.html#website-inquiries`;
   if (privacyNoticeBlocks.length === 1) {
     const text = privacyNoticeBlocks[0][2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
     if (!text) fail(scope, "privacy submit notice must contain localized text");
-    if (!/href=["']\/website-privacy-policy\.html#website-inquiries["']/i.test(privacyNoticeBlocks[0][2])) {
-      fail(scope, "privacy submit notice must contain the website-inquiries policy link");
+    if (!findTags(privacyNoticeBlocks[0][2], "a").some((tag) => tag.attributes.get("href") === expectedPrivacyHref)) {
+      fail(scope, "privacy submit notice must link to the current language policy and inquiry section");
     }
   }
 
   const privacyLinks = findTags(formBody, "a")
-    .filter((tag) => tag.attributes.get("href") === "/website-privacy-policy.html#website-inquiries");
+    .filter((tag) => tag.attributes.get("href") === expectedPrivacyHref);
   checkSingleTag(scope, privacyLinks, "website-inquiries privacy link");
 
   const turnstileElements = Array.from(formBody.matchAll(/<([A-Za-z0-9:-]+)\b[^>]*>/g))

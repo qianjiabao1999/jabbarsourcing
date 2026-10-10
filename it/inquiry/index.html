@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-188" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-189" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20260814a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -114,7 +114,7 @@
   <body>
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
-        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" />
+        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
         <span>Jabbar Sourcing</span>
       </a>
       <nav class="site-nav-links" aria-label="Navigazione principale">
@@ -167,58 +167,67 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">Dicci cosa vuoi comprare</h2>
-                <p>Condividi prodotto, quantità e contatti. Ti abbiniamo fornitori di Yiwu, prezzi e opzioni.</p>
-                <ul class="inquiry-trust-points"><li>Preventivo completo in 24–48 ore</li><li>Ordini di prova da 1.000 USD</li><li>Preventivo dettagliato, senza commissioni</li></ul>
+                <p>Inizia dai prodotti che cerchi e dai tuoi recapiti. Quantità, budget e altri dettagli facoltativi ci aiutano a preparare un preventivo più preciso.</p>
+                <ul class="inquiry-trust-points"><li>Prima risposta entro 24 ore; preventivo in 24–48 ore</li><li>Ordini di prova da 1.000 USD</li><li>Preventivo dettagliato; nessuna commissione separata all’acquirente</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="it" data-inquiry-source="/it/inquiry/" data-privacy-version="2026-07-22">
                 <label class="field field-wide">
                   <span>Prodotti richiesti</span>
                   <input name="product" type="text" maxlength="300" placeholder="es. articoli per dollar store, cucina, giocattoli, organizer…" autocomplete="off"  required/>
                 </label>
-                <label class="field">
+                <label class="field field-wide">
                   <span>Contatti</span>
                   <input name="contact" type="text" maxlength="200" placeholder="WhatsApp / email / WeChat ID" autocomplete="on"  required/>
                 </label>
                 <label class="field field-wide">
                   <span>Link di riferimento del prodotto (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="Incolla un link https:// da Alibaba, Amazon, TikTok o un'altra pagina prodotto" title="Sono accettati solo link http:// o https://" />
+                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Sono accettati solo link http:// o https://" />
                 </label>
-                <label class="field">
-                  <span>Categoria prodotto</span>
-                  <select name="category">
-                  <option value="">Seleziona</option>
-                  <option value="Articoli quotidiani">Articoli quotidiani</option>
-                  <option value="Fornitura dollar store">Fornitura dollar store</option>
-                  <option value="Utensili da cucina">Utensili da cucina</option>
-                  <option value="Organizzazione casa">Organizzazione casa</option>
-                  <option value="Giocattoli e regali">Giocattoli e regali</option>
-                  <option value="Beauty e cura personale">Beauty e cura personale</option>
-                  <option value="Altro">Altro</option>
-                  </select>
-                </label>
-                <label class="field">
-                  <span>Quantità stimata</span>
-                  <input name="quantity" type="text" maxlength="120" placeholder="es. 1.000 pezzi / un container / ordine test" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Budget</span>
-                  <input name="budget" type="text" maxlength="120" placeholder="es. USD 5.000 o prezzo unitario target" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Mercato di destinazione</span>
-                  <input name="market" type="text" maxlength="120" placeholder="es. USA, Francia, Arabia Saudita, Russia…" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Nome / azienda</span>
-                  <input name="company" type="text" maxlength="160" placeholder="Il tuo nome o azienda" autocomplete="organization" />
-                </label>
-                <label class="field field-wide">
-                  <span>Note</span>
-                  <textarea name="note" rows="3" maxlength="1500" placeholder="Colore, packaging, immagini, tempi di consegna…"></textarea>
-                </label>
+                <p class="inquiry-attachment-note field-wide">Hai foto o un elenco Excel? Condividili tramite <a href="#contact">WhatsApp nella sezione contatti</a>. Questo modulo accetta solo testo e link.</p>
+                <details class="inquiry-additional-details field-wide">
+                  <summary class="inquiry-additional-summary"><span>Aggiungi dettagli per un preventivo più preciso</span><small>Facoltativo</small></summary>
+                  <div class="inquiry-additional-fields">
+                    <label class="field">
+                      <span>Categoria prodotto</span>
+                      <select name="category">
+                      <option value="">Seleziona</option>
+                      <option value="Articoli quotidiani">Articoli quotidiani</option>
+                      <option value="Fornitura dollar store">Fornitura dollar store</option>
+                      <option value="Utensili da cucina">Utensili da cucina</option>
+                      <option value="Organizzazione casa">Organizzazione casa</option>
+                      <option value="Giocattoli e regali">Giocattoli e regali</option>
+                      <option value="Beauty e cura personale">Beauty e cura personale</option>
+                      <option value="Altro">Altro</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-quantity-label">Quantità stimata</span>
+                      <input name="quantity" type="text" maxlength="120" placeholder="1.000 pezzi" aria-labelledby="inquiry-quantity-label" aria-describedby="inquiry-quantity-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-quantity-hint">es. 1.000 pezzi / un container / ordine test</small>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-budget-label">Budget</span>
+                      <input name="budget" type="text" maxlength="120" placeholder="USD 5.000" aria-labelledby="inquiry-budget-label" aria-describedby="inquiry-budget-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-budget-hint">es. USD 5.000 o prezzo unitario target</small>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-market-label">Mercato di destinazione</span>
+                      <input name="market" type="text" maxlength="120" placeholder="Francia" aria-labelledby="inquiry-market-label" aria-describedby="inquiry-market-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-market-hint">es. USA, Francia, Arabia Saudita, Russia…</small>
+                    </label>
+                    <label class="field">
+                      <span>Nome / azienda</span>
+                      <input name="company" type="text" maxlength="160" placeholder="Il tuo nome o azienda" autocomplete="organization" />
+                    </label>
+                    <label class="field field-wide">
+                      <span>Note</span>
+                      <textarea name="note" rows="3" maxlength="1500" placeholder="Colore, imballaggio, tempi di consegna e altre esigenze…"></textarea>
+                    </label>
+                  </div>
+                </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>Con l’invio, confermi l’<a href="/website-privacy-policy.html#website-inquiries">Informativa sulla privacy</a> e accetti che questi dati siano usati solo per gestire e rispondere alla richiesta.</span>
+                    <span>Con l’invio, confermi l’<a href="/it/website-privacy-policy.html#website-inquiries">Informativa sulla privacy</a> e accetti che questi dati siano usati solo per gestire e rispondere alla richiesta.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="it"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Invia la richiesta</button>
@@ -345,6 +354,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260815a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
   </body>
 </html>

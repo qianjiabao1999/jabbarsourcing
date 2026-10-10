@@ -1088,6 +1088,20 @@
     if (!social) return;
 
     var groups = Array.prototype.slice.call(social.querySelectorAll(".social-platform-group"));
+    var previewLimit = 4;
+    var disclosureLabels = {
+      zh: ["查看全部 {count} 个账号", "收起其余账号"],
+      en: ["View all {count} accounts", "Show fewer accounts"],
+      es: ["Ver las {count} cuentas", "Mostrar menos cuentas"],
+      ar: ["عرض جميع الحسابات ({count})", "عرض حسابات أقل"],
+      fr: ["Voir les {count} comptes", "Afficher moins de comptes"],
+      pt: ["Ver todas as {count} contas", "Mostrar menos contas"],
+      ru: ["Показать все аккаунты ({count})", "Показать меньше аккаунтов"],
+      de: ["Alle {count} Konten anzeigen", "Weniger Konten anzeigen"],
+      it: ["Mostra tutti i {count} account", "Mostra meno account"],
+      tr: ["{count} hesabın tümünü göster", "Daha az hesap göster"]
+    };
+    var labels = disclosureLabels[lang] || disclosureLabels.en;
 
     groups.forEach(function (group) {
       group.dataset.socialPlatform = socialPlatformKey(group);
@@ -1103,6 +1117,44 @@
       Array.prototype.forEach.call(group.querySelectorAll(".social-platform-toggle"), function (toggle) {
         toggle.remove();
       });
+
+      var cards = Array.prototype.slice.call(group.querySelectorAll(".team-card"));
+      var grid = group.querySelector(".team-grid");
+      if (!grid || cards.length <= previewLimit) return;
+      grid.id = grid.id || "social-accounts-" + group.dataset.socialPlatform;
+      var toggle = createElement("button", "social-platform-toggle");
+      toggle.type = "button";
+      toggle.setAttribute("aria-controls", grid.id);
+      group.classList.add("has-social-overflow");
+      group.appendChild(toggle);
+
+      function setExpanded(expanded, focusNewAccount) {
+        if (!expanded && cards.slice(previewLimit).some(function (card) { return card.contains(document.activeElement); })) {
+          toggle.focus({ preventScroll: true });
+        }
+        cards.forEach(function (card, cardIndex) {
+          var collapsed = !expanded && cardIndex >= previewLimit;
+          card.hidden = collapsed;
+          card.classList.toggle("is-social-card-collapsed", collapsed);
+        });
+        group.classList.toggle("is-social-expanded", expanded);
+        toggle.setAttribute("aria-expanded", String(expanded));
+        toggle.textContent = expanded ? labels[1] : labels[0].replace("{count}", String(cards.length));
+        if (expanded && focusNewAccount) {
+          cards[previewLimit].focus({ preventScroll: true });
+          cards[previewLimit].scrollIntoView({ block: "nearest", behavior: "auto" });
+        }
+      }
+
+      toggle.addEventListener("click", function () {
+        var expanded = toggle.getAttribute("aria-expanded") !== "true";
+        // WebKit 鼠标点击按钮不会自动聚焦；跨平台切换后也明确保留操作焦点。
+        toggle.focus({ preventScroll: true });
+        setExpanded(expanded, document.activeElement === toggle);
+        // 收起后列表高度变化，保持当前操作按钮在视口中。
+        if (!expanded) toggle.scrollIntoView({ block: "nearest", behavior: "auto" });
+      });
+      setExpanded(false, false);
     });
 
     var existingFilters = social.querySelector(".social-platform-filters");

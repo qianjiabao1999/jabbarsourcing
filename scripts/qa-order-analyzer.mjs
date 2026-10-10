@@ -1464,7 +1464,7 @@ try {
     assert.equal(payload.result.subtotalMismatchCount, 0, "packing-list workbook: subtotal mismatches");
     await page.waitForFunction(() => {
       const images = Array.from(document.querySelectorAll(".order-analyzer__container .container-load-card__cargo"));
-      return images.length === 2 && images.every((image) => image.complete && image.naturalWidth === 2005 && image.naturalHeight === 662);
+      return images.length === 2 && images.every((image) => image.complete && image.naturalWidth > 0 && Math.abs(image.naturalWidth / image.naturalHeight - 2005 / 662) < 0.04 && /container-cargo-stack-(?:640|960|20260722e)\.webp$/.test(image.currentSrc));
     });
     await page.locator(".order-analyzer__container .container-load-card__cargo").evaluateAll(async (images) => {
       await Promise.all(images.map((image) => image.decode?.().catch(() => undefined)));
@@ -1554,6 +1554,9 @@ try {
       quantityVisible: isVisible(form?.elements.quantity),
       noteVisible: isVisible(form?.elements.note),
       detailsCount: form?.querySelectorAll("details").length ?? -1,
+      additionalDetailsOpen: form?.querySelector("details.inquiry-additional-details")?.open ?? false,
+      quantityInAdditionalDetails: Boolean(form?.elements.quantity?.closest("details.inquiry-additional-details")),
+      noteInAdditionalDetails: Boolean(form?.elements.note?.closest("details.inquiry-additional-details")),
       stored: sessionStorage.getItem("jabbarCalcResult")
     };
   });
@@ -1565,7 +1568,10 @@ try {
   assert.equal(inquiryBridgeState.productVisible, true, "Excel inquiry prefilled product field is not visible");
   assert.equal(inquiryBridgeState.quantityVisible, true, "Excel inquiry prefilled quantity field is not visible");
   assert.equal(inquiryBridgeState.noteVisible, true, "Excel inquiry prefilled note field is not visible");
-  assert.equal(inquiryBridgeState.detailsCount, 0, "Excel inquiry form still contains collapsible details");
+  assert.equal(inquiryBridgeState.detailsCount, 1, "Excel inquiry must contain one optional-details group");
+  assert.equal(inquiryBridgeState.additionalDetailsOpen, true, "Excel inquiry must expand prefilled optional details");
+  assert.equal(inquiryBridgeState.quantityInAdditionalDetails, true, "Excel inquiry quantity must remain in the optional-details group");
+  assert.equal(inquiryBridgeState.noteInAdditionalDetails, true, "Excel inquiry note must remain in the optional-details group");
   assert.equal(inquiryBridgeState.stored, null, "Excel inquiry handoff was not consumed");
   assert.deepEqual(bridgeErrors, [], `Excel inquiry bridge console errors: ${bridgeErrors.join(" | ")}`);
   await bridgePage.close();

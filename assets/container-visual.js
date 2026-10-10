@@ -38,6 +38,11 @@
   function image(className, src) {
     var element = document.createElement("img");
     element.className = className;
+    // 按容器实际展示宽度选择图片，保留原图供高密度大屏使用。
+    if (className.indexOf("cargo") !== -1) {
+      element.srcset = "/assets/container-cargo-stack-640.webp 640w, /assets/container-cargo-stack-960.webp 960w, " + CARGO_ASSET + " 2005w";
+      element.sizes = "(max-width: 560px) 82vw, (max-width: 960px) 45vw, 420px";
+    }
     element.src = src;
     element.alt = "";
     var isCargo = className.indexOf("cargo") !== -1;
@@ -163,7 +168,7 @@
     capacity: CONTAINER_CAPACITY_CBM,
     createCard: createCard,
     renderCards: renderCards,
-    version: "container-20260722e"
+    version: "container-20261011a"
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initQuickCalculator, { once: true });

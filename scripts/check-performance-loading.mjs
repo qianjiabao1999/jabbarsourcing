@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ORDER_VERSION = "order-20260722c";
-const CONTAINER_VERSION = "container-20260722e";
+const CONTAINER_VERSION = "container-20261011a";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const load = (file) => readFile(resolve(ROOT, file), "utf8");
@@ -26,6 +26,9 @@ for (const locale of LOCALES) {
   const partnershipMarks = images.filter((tag) => /jabbar-sourcing-mark-transparent-hd\.webp\?v=brand-20260722hd1/.test(tag));
   assert.equal(navigationMarks.length, 1, `${file}: lightweight navigation mark reference missing`);
   assert.equal(partnershipMarks.length, 1, `${file}: high-density partnership mark reference missing`);
+  assert.match(attribute(navigationMarks[0], "srcset"), /jabbar-sourcing-mark-72\.webp 72w/, `${file}: small navigation logo variant missing`);
+  assert.match(attribute(partnershipMarks[0], "srcset"), /jabbar-sourcing-mark-256\.webp 256w/, `${file}: responsive hero logo variant missing`);
+  assert.match(attribute(partnershipMarks[0], "sizes"), /84px, 116px/, `${file}: responsive hero logo sizing missing`);
   assert.doesNotMatch(html, /jabbar-sourcing-mark-transparent\.png/, `${file}: unoptimized transparent brand mark returned`);
   const gallerySequence = images.filter((tag) => /assets\/gallery\/responsive\//.test(tag) && /\bfetchpriority=/.test(tag));
   assert.equal(gallerySequence.length, 13, `${file}: gallery sequence image count`);

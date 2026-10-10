@@ -59,12 +59,14 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:4173/inquiry/ >/dev/null
           npm run qa:inquiry
+          npm run qa:inquiry-disclosure
           npm run qa:ui
           npm run qa:analytics-consent
           npm run qa:browser-matrix
           npm run qa:calculator-order
           npm run qa:order-resilience
           npm run qa:container-allocation
+          npm run qa:calculator-validation
 
       - name: Install Worker verification dependencies
         run: npm ci --prefix cloudflare/inquiry-api
@@ -131,6 +133,8 @@ jobs:
             --include='/en/' \
             --include='/en/index.html' \
             --include='/en/yiwu-sourcing-guide.html' \
+            --include='/en/quality-inspection.html' \
+            --include='/en/consolidation-shipping.html' \
             --include='/en/calculator/' \
             --include='/en/calculator/index.html' \
             --include='/en/inquiry/' \
@@ -203,6 +207,17 @@ jobs:
             test -f "_site/$file"
           done
 
+          # assets/*** 已覆盖响应式图片；单独验证本轮新增资源确实进入发布物。
+          responsive_assets=(
+            jabbar-sourcing-mark-72.webp
+            jabbar-sourcing-mark-256.webp
+            container-cargo-stack-640.webp
+            container-cargo-stack-960.webp
+          )
+          for file in "${responsive_assets[@]}"; do
+            test -s "_site/assets/$file"
+          done
+
           locales=(ar de en es fr it pt ru tr)
           for locale in "${locales[@]}"; do
             test -f "_site/$locale/index.html"
@@ -212,7 +227,9 @@ jobs:
             expected_locale_files=4
             if [ "$locale" = "en" ]; then
               test -f "_site/en/yiwu-sourcing-guide.html"
-              expected_locale_files=5
+              test -f "_site/en/quality-inspection.html"
+              test -f "_site/en/consolidation-shipping.html"
+              expected_locale_files=7
             fi
             test "$(find "_site/$locale" -type f | wc -l)" -eq "$expected_locale_files"
           done
@@ -237,7 +254,7 @@ jobs:
           test -f _site/assets/vendor/xlsx.full.min.js
           test -f _site/assets/vendor/lucide-trash-2.svg
           test -f _site/assets/vendor/LUCIDE-LICENSE.txt
-          test "$(find _site -type f -name '*.html' | wc -l)" -eq 45
+          test "$(find _site -type f -name '*.html' | wc -l)" -eq 47
 
           test ! -e _site/assets/social-source
           test -z "$(find _site/assets/gallery -maxdepth 1 -type f -name '*.jpg' -print)"

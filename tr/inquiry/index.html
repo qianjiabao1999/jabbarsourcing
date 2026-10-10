@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-188" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-189" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20260814a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -114,7 +114,7 @@
   <body>
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
-        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" />
+        <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
         <span>Jabbar Sourcing</span>
       </a>
       <nav class="site-nav-links" aria-label="Ana gezinme">
@@ -167,58 +167,67 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">Ne satın almak istediğinizi yazın</h2>
-                <p>Ürün, miktar ve iletişim bilgilerinizi paylaşın. Size Yiwu tedarikçileri, fiyat ve seçenekleri bulalım.</p>
-                <ul class="inquiry-trust-points"><li>24–48 saatte eksiksiz teklif</li><li>1.000 USD’den itibaren deneme siparişi</li><li>Şeffaf kalem dökümü, komisyonsuz</li></ul>
+                <p>İstediğiniz ürünleri ve iletişim bilgilerinizi yazarak başlayın. Miktar, bütçe ve diğer isteğe bağlı bilgiler daha doğru bir teklif hazırlamamıza yardımcı olur.</p>
+                <ul class="inquiry-trust-points"><li>24 saat içinde ilk yanıt; 24–48 saatte tam teklif</li><li>1.000 USD’den itibaren deneme siparişi</li><li>Kalem kalem teklif; alıcıdan ayrıca komisyon alınmaz</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="tr" data-inquiry-source="/tr/inquiry/" data-privacy-version="2026-07-22">
                 <label class="field field-wide">
                   <span>Gerekli ürünler</span>
                   <input name="product" type="text" maxlength="300" placeholder="örn. tek fiyat mağazası ürünleri, mutfak, oyuncak, düzenleme…" autocomplete="off"  required/>
                 </label>
-                <label class="field">
+                <label class="field field-wide">
                   <span>İletişim bilgileri</span>
                   <input name="contact" type="text" maxlength="200" placeholder="WhatsApp / e-posta / WeChat ID" autocomplete="on"  required/>
                 </label>
                 <label class="field field-wide">
                   <span>Ürün referans bağlantısı (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="Alibaba, Amazon, TikTok veya başka bir ürün sayfasından https:// bağlantısı yapıştırın" title="Yalnızca http:// veya https:// bağlantıları kabul edilir" />
+                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Yalnızca http:// veya https:// bağlantıları kabul edilir" />
                 </label>
-                <label class="field">
-                  <span>Ürün kategorisi</span>
-                  <select name="category">
-                  <option value="">Seçin</option>
-                  <option value="Günlük ürünler">Günlük ürünler</option>
-                  <option value="Tek fiyat mağazası tedariki">Tek fiyat mağazası tedariki</option>
-                  <option value="Mutfak ürünleri">Mutfak ürünleri</option>
-                  <option value="Ev düzenleme">Ev düzenleme</option>
-                  <option value="Oyuncak ve hediyeler">Oyuncak ve hediyeler</option>
-                  <option value="Güzellik ve kişisel bakım">Güzellik ve kişisel bakım</option>
-                  <option value="Diğer">Diğer</option>
-                  </select>
-                </label>
-                <label class="field">
-                  <span>Tahmini miktar</span>
-                  <input name="quantity" type="text" maxlength="120" placeholder="örn. 1.000 adet / bir konteyner / deneme siparişi" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Bütçe aralığı</span>
-                  <input name="budget" type="text" maxlength="120" placeholder="örn. USD 5.000 veya hedef birim fiyat" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Hedef pazar</span>
-                  <input name="market" type="text" maxlength="120" placeholder="örn. ABD, Fransa, Suudi Arabistan, Rusya…" autocomplete="off" />
-                </label>
-                <label class="field">
-                  <span>Ad / şirket</span>
-                  <input name="company" type="text" maxlength="160" placeholder="Adınız veya şirket adınız" autocomplete="organization" />
-                </label>
-                <label class="field field-wide">
-                  <span>Notlar</span>
-                  <textarea name="note" rows="3" maxlength="1500" placeholder="Renk, ambalaj, referans görsel, teslim süresi…"></textarea>
-                </label>
+                <p class="inquiry-attachment-note field-wide">Fotoğraf veya Excel listeniz mi var? <a href="#contact">İletişim bölümündeki WhatsApp</a> üzerinden paylaşın. Bu form yalnızca metin ve bağlantı kabul eder.</p>
+                <details class="inquiry-additional-details field-wide">
+                  <summary class="inquiry-additional-summary"><span>Daha doğru bir teklif için ayrıntı ekleyin</span><small>İsteğe bağlı</small></summary>
+                  <div class="inquiry-additional-fields">
+                    <label class="field">
+                      <span>Ürün kategorisi</span>
+                      <select name="category">
+                      <option value="">Seçin</option>
+                      <option value="Günlük ürünler">Günlük ürünler</option>
+                      <option value="Tek fiyat mağazası tedariki">Tek fiyat mağazası tedariki</option>
+                      <option value="Mutfak ürünleri">Mutfak ürünleri</option>
+                      <option value="Ev düzenleme">Ev düzenleme</option>
+                      <option value="Oyuncak ve hediyeler">Oyuncak ve hediyeler</option>
+                      <option value="Güzellik ve kişisel bakım">Güzellik ve kişisel bakım</option>
+                      <option value="Diğer">Diğer</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-quantity-label">Tahmini miktar</span>
+                      <input name="quantity" type="text" maxlength="120" placeholder="1.000 adet" aria-labelledby="inquiry-quantity-label" aria-describedby="inquiry-quantity-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-quantity-hint">örn. 1.000 adet / bir konteyner / deneme siparişi</small>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-budget-label">Bütçe aralığı</span>
+                      <input name="budget" type="text" maxlength="120" placeholder="USD 5.000" aria-labelledby="inquiry-budget-label" aria-describedby="inquiry-budget-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-budget-hint">örn. USD 5.000 veya hedef birim fiyat</small>
+                    </label>
+                    <label class="field">
+                      <span id="inquiry-market-label">Hedef pazar</span>
+                      <input name="market" type="text" maxlength="120" placeholder="Fransa" aria-labelledby="inquiry-market-label" aria-describedby="inquiry-market-hint" autocomplete="off" />
+                      <small class="inquiry-field-hint" id="inquiry-market-hint">örn. ABD, Fransa, Suudi Arabistan, Rusya…</small>
+                    </label>
+                    <label class="field">
+                      <span>Ad / şirket</span>
+                      <input name="company" type="text" maxlength="160" placeholder="Adınız veya şirket adınız" autocomplete="organization" />
+                    </label>
+                    <label class="field field-wide">
+                      <span>Notlar</span>
+                      <textarea name="note" rows="3" maxlength="1500" placeholder="Renk, ambalaj, teslim süresi ve diğer gereksinimler…"></textarea>
+                    </label>
+                  </div>
+                </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>Göndererek <a href="/website-privacy-policy.html#website-inquiries">Gizlilik Politikası</a>’nı kabul eder ve bu bilgilerin yalnızca talebinizi işlemek ve yanıtlamak için kullanılmasını onaylarsınız.</span>
+                    <span>Göndererek <a href="/tr/website-privacy-policy.html#website-inquiries">Gizlilik Politikası</a>’nı kabul eder ve bu bilgilerin yalnızca talebinizi işlemek ve yanıtlamak için kullanılmasını onaylarsınız.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="tr"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Talebi gönder</button>
@@ -345,6 +354,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20260815a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
   </body>
 </html>
