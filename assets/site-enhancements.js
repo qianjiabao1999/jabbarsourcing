@@ -604,6 +604,9 @@
 
   function prepareCounter(strong) {
     var original = strong.textContent.trim();
+    // 成立年份是历史日期，不是累计数量；保留同一读屏包装，但不做从零递增。
+    var metricCard = strong.closest(".company-metric-card");
+    var staticValue = Boolean(metricCard && metricCard.matches(":first-child"));
     var numberElement = strong.querySelector(".company-metric-number") || strong.querySelector("bdi");
     var token = "";
     var explicitTarget = numberElement ? numberElement.getAttribute("data-counter-value") || "" : "";
@@ -644,9 +647,10 @@
     while (strong.firstChild) visual.appendChild(strong.firstChild);
     strong.appendChild(visual);
     strong.appendChild(createElement("span", "sr-only", original));
-    numberElement.textContent = "0";
+    if (!staticValue) numberElement.textContent = "0";
     return {
       element: numberElement,
+      staticValue: staticValue,
       original: token,
       target: target,
       grouped: explicitTarget ? numberElement.getAttribute("data-counter-grouped") === "true" : /[,.٬\s\u00a0\u202f]/.test(token),
@@ -655,6 +659,7 @@
   }
 
   function animateCounter(counter) {
+    if (counter.staticValue) return;
     var start = performance.now();
     function step(now) {
       var elapsed = Math.min(1, (now - start) / 1200);
@@ -1083,6 +1088,41 @@
     });
   }
 
+  function initHomeLanguageContext() {
+    var homePath = /^\/(?:(?:en|es|ar|fr|pt|ru|de|it|tr)\/)?$/;
+    var currentPath = window.location.pathname.replace(/\/index\.html$/, "/");
+    if (!homePath.test(currentPath)) return;
+    var allowedSections = ["team", "services", "how-it-works", "reviews", "faq", "social-accounts", "contact"];
+    var allowedLocales = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
+    var links = Array.prototype.slice.call(document.querySelectorAll(".site-nav-language .language-options a[href]"));
+
+    function sectionHash() {
+      var id = window.location.hash.slice(1);
+      return allowedSections.indexOf(id) !== -1 && document.getElementById(id) ? "#" + id : "";
+    }
+
+    function updateLanguageLinks() {
+      var hash = sectionHash();
+      links.forEach(function (link) {
+        var destination = new URL(link.getAttribute("href"), window.location.href);
+        if (destination.origin !== window.location.origin || !homePath.test(destination.pathname)) return;
+        // 只保留站内首页路径与白名单章节，查询参数不会跨语言转发。
+        link.setAttribute("href", destination.pathname + hash);
+      });
+    }
+
+    updateLanguageLinks();
+    window.addEventListener("hashchange", updateLanguageLinks);
+    document.addEventListener("change", function (event) {
+      var select = event.target;
+      if (!select.matches(".site-footer-language-select") || !sectionHash()) return;
+      if (allowedLocales.indexOf(select.value) === -1) return;
+      // 页脚工具异步创建；捕获阶段接管首页章节跳转，深层页面仍用原路由。
+      event.stopImmediatePropagation();
+      window.location.assign((select.value === "zh" ? "/" : "/" + select.value + "/") + sectionHash());
+    }, true);
+  }
+
   function initSocialAccountDisclosure() {
     var social = document.querySelector(".social-platform-groups");
     if (!social) return;
@@ -1253,6 +1293,7 @@
   initGalleryMarquee();
   initHomepageMotion();
   initNavigationDisclosures();
+  initHomeLanguageContext();
   initFaqTags();
   initSocialAccountDisclosure();
   initFooterUtilities();

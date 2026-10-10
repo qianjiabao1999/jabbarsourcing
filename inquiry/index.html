@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../styles.min.css?v=apple-190" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-191" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011b" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -111,7 +111,7 @@
       }, true);
     </script>
   </head>
-  <body>
+  <body class="inquiry-page-compact">
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
         <img src="../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../assets/jabbar-sourcing-mark-72.webp 72w, ../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
@@ -153,6 +153,8 @@
           <a href="../#reviews">客户评价</a>
           <a href="#contact">联系我们</a>
 
+          <a class="site-nav-inquiry-extra" href="../#social-accounts">社媒账号</a>
+          <a class="site-nav-inquiry-extra" href="../calculator/">体积工具</a>
         </nav>
       </details>
     </header>
@@ -167,10 +169,15 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">告诉我们你想采购什么</h2>
-                <p>先填写产品和联系方式即可发起询盘；补充数量、预算等信息，有助于我们准备更准确的报价。</p>
+                <p>填写产品和联系方式即可，其他信息可选。</p>
                 <ul class="inquiry-trust-points"><li>24 小时内首次回复，24–48 小时完整报价</li><li>试单 USD 1,000 起</li><li>明细报价，不单独向买家收取佣金</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="zh" data-inquiry-source="/inquiry/" data-privacy-version="2026-07-22">
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="无法删除已保存的草稿；请关闭此标签页以丢弃它。" data-draft-restored="已恢复此标签页的草稿。" data-draft-cleared="草稿和表单已清除。" data-draft-expired="已保存的草稿已过期。" data-draft-unavailable="无法保存草稿。完成前请保持此页面打开。">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">草稿含联系方式，仅在此标签页保留30分钟；提交前不会发送。</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>清除草稿</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                </div>
                 <label class="field field-wide">
                   <span>想采购的产品</span>
                   <input name="product" type="text" maxlength="300" required placeholder="例如：一元店百货、厨房用品、玩具、收纳用品…" autocomplete="off" />
@@ -190,14 +197,14 @@
                     <label class="field">
                       <span>产品方向</span>
                       <select name="category">
-                      <option value="">请选择</option>
-                      <option value="日用百货">日用百货</option>
-                      <option value="一元店/折扣店货源">一元店/折扣店货源</option>
-                      <option value="厨房用品">厨房用品</option>
-                      <option value="家居收纳">家居收纳</option>
-                      <option value="玩具礼品">玩具礼品</option>
-                      <option value="美妆个护">美妆个护</option>
-                      <option value="其他">其他</option>
+                      <option data-draft-value="" value="">请选择</option>
+                      <option data-draft-value="daily" value="日用百货">日用百货</option>
+                      <option data-draft-value="discount" value="一元店/折扣店货源">一元店/折扣店货源</option>
+                      <option data-draft-value="kitchenware" value="厨房用品">厨房用品</option>
+                      <option data-draft-value="storage" value="家居收纳">家居收纳</option>
+                      <option data-draft-value="toys" value="玩具礼品">玩具礼品</option>
+                      <option data-draft-value="beauty" value="美妆个护">美妆个护</option>
+                      <option data-draft-value="other" value="其他">其他</option>
                       </select>
                     </label>
                     <label class="field">
@@ -227,7 +234,7 @@
                 </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>提交即表示你已阅读《<a href="/website-privacy-policy.html#website-inquiries">隐私政策</a>》，并同意我们仅使用这些信息处理和回复本次询盘。</span>
+                    <span>提交即表示你已阅读《<a href="/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">隐私政策 <small class="inquiry-privacy-window">(新窗口打开)</small></a>》，并同意我们仅使用这些信息处理和回复本次询盘。</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="zh-cn"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">提交询盘</button>
@@ -355,6 +362,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011b" defer></script>
   </body>
 </html>

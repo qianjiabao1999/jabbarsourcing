@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-190" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-191" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011b" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -111,7 +111,7 @@
       }, true);
     </script>
   </head>
-  <body>
+  <body class="inquiry-page-compact">
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
         <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
@@ -153,6 +153,8 @@
           <a href="../#reviews">آراء العملاء</a>
           <a href="#contact">اتصل بنا</a>
 
+          <a class="site-nav-inquiry-extra" href="../#social-accounts">حسابات التواصل الاجتماعي</a>
+          <a class="site-nav-inquiry-extra" href="../calculator/">الحجم</a>
         </nav>
       </details>
     </header>
@@ -167,10 +169,15 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">أخبرنا بما تريد شراءه</h2>
-                <p>ابدأ بالمنتجات المطلوبة وبيانات التواصل. تساعدنا الكمية والميزانية والتفاصيل الاختيارية الأخرى على إعداد عرض سعر أدق.</p>
+                <p>أدخل المنتجات وبيانات التواصل؛ باقي التفاصيل اختيارية.</p>
                 <ul class="inquiry-trust-points"><li>رد أولي خلال 24 ساعة؛ عرض كامل خلال <bdi dir="ltr">24–48</bdi> ساعة</li><li>طلبات تجريبية من 1,000 دولار</li><li>عرض مفصّل؛ دون عمولة منفصلة على المشتري</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="ar" data-inquiry-source="/ar/inquiry/" data-privacy-version="2026-07-22">
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="تعذر حذف المسودة المحفوظة. أغلق علامة التبويب هذه للتخلص منها." data-draft-restored="تمت استعادة المسودة في علامة التبويب هذه." data-draft-cleared="تم مسح المسودة والنموذج." data-draft-expired="انتهت صلاحية المسودة المحفوظة." data-draft-unavailable="حفظ المسودة غير متاح. أبقِ الصفحة مفتوحة حتى تنتهي.">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">المسودة تشمل بيانات التواصل: في علامة التبويب هذه فقط لمدة 30 دقيقة. لا تُرسل قبل الإرسال.</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>مسح المسودة</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                </div>
                 <label class="field field-wide">
                   <span>المنتجات المطلوبة</span>
                   <input name="product" type="text" maxlength="300" required placeholder="مثال: منتجات يومية، أدوات مطبخ، ألعاب، تخزين…" autocomplete="off" />
@@ -190,14 +197,14 @@
                     <label class="field">
                       <span>الفئة</span>
                       <select name="category">
-                      <option value="">اختر</option>
-                      <option value="منتجات يومية">منتجات يومية</option>
-                      <option value="توريد متاجر الخصومات">توريد متاجر الخصومات</option>
-                      <option value="أدوات المطبخ">أدوات المطبخ</option>
-                      <option value="تنظيم المنزل">تنظيم المنزل</option>
-                      <option value="ألعاب وهدايا">ألعاب وهدايا</option>
-                      <option value="جمال وعناية">جمال وعناية</option>
-                      <option value="أخرى">أخرى</option>
+                      <option data-draft-value="" value="">اختر</option>
+                      <option data-draft-value="daily" value="منتجات يومية">منتجات يومية</option>
+                      <option data-draft-value="discount" value="توريد متاجر الخصومات">توريد متاجر الخصومات</option>
+                      <option data-draft-value="kitchenware" value="أدوات المطبخ">أدوات المطبخ</option>
+                      <option data-draft-value="storage" value="تنظيم المنزل">تنظيم المنزل</option>
+                      <option data-draft-value="toys" value="ألعاب وهدايا">ألعاب وهدايا</option>
+                      <option data-draft-value="beauty" value="جمال وعناية">جمال وعناية</option>
+                      <option data-draft-value="other" value="أخرى">أخرى</option>
                       </select>
                     </label>
                     <label class="field">
@@ -227,7 +234,7 @@
                 </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>بالإرسال، تقرّ بقراءة <a href="/ar/website-privacy-policy.html#website-inquiries">سياسة الخصوصية</a> وتوافق على استخدام هذه المعلومات فقط لمعالجة طلبك والرد عليه.</span>
+                    <span>بالإرسال، تقرّ بقراءة <a href="/ar/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">سياسة الخصوصية <small class="inquiry-privacy-window">(يفتح في نافذة جديدة)</small></a> وتوافق على استخدام هذه المعلومات فقط لمعالجة طلبك والرد عليه.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="ar"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">إرسال الطلب</button>
@@ -355,6 +362,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011b" defer></script>
   </body>
 </html>

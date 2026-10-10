@@ -9,16 +9,16 @@
   var CARGO_ASSET = "/assets/container-cargo-stack-20260722e.webp";
   var lang = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
   var labels = {
-    zh: { title: "集装箱装载示意", forty: "40英尺高柜", unit: "立方米", full: "满载", loaded: "已装载" },
-    en: { title: "Container loading illustration", forty: "40HQ", unit: "CBM", full: "Full", loaded: "loaded" },
-    es: { title: "Ilustración de carga del contenedor", forty: "40HQ", unit: "CBM", full: "Completo", loaded: "cargado" },
-    ar: { title: "رسم توضيحي لتحميل الحاوية", forty: "40HQ", unit: "CBM", full: "ممتلئة", loaded: "محمّلة" },
-    fr: { title: "Illustration du chargement du conteneur", forty: "40HQ", unit: "CBM", full: "Plein", loaded: "chargé" },
-    pt: { title: "Ilustração do carregamento do contêiner", forty: "40HQ", unit: "CBM", full: "Cheio", loaded: "carregado" },
-    ru: { title: "Схема загрузки контейнера", forty: "40HQ", unit: "CBM", full: "Полный", loaded: "загружено" },
-    de: { title: "Darstellung der Containerbeladung", forty: "40HQ", unit: "CBM", full: "Voll", loaded: "beladen" },
-    it: { title: "Illustrazione del carico del container", forty: "40HQ", unit: "CBM", full: "Pieno", loaded: "caricato" },
-    tr: { title: "Konteyner yükleme görseli", forty: "40HQ", unit: "CBM", full: "Dolu", loaded: "yüklü" }
+    zh: { actual: "图示：实际体积，不含 5% 预留", title: "集装箱装载示意", forty: "40英尺高柜", unit: "立方米", full: "满载", loaded: "已装载" },
+    en: { actual: "Illustration: actual volume, excluding the 5% buffer", title: "Container loading illustration", forty: "40HQ", unit: "CBM", full: "Full", loaded: "loaded" },
+    es: { actual: "Ilustración: volumen real, sin el 5% de reserva", title: "Ilustración de carga del contenedor", forty: "40HQ", unit: "CBM", full: "Completo", loaded: "cargado" },
+    ar: { actual: "الرسم: الحجم الفعلي دون احتياط 5%", title: "رسم توضيحي لتحميل الحاوية", forty: "40HQ", unit: "CBM", full: "ممتلئة", loaded: "محمّلة" },
+    fr: { actual: "Illustration : volume réel, hors marge de 5%", title: "Illustration du chargement du conteneur", forty: "40HQ", unit: "CBM", full: "Plein", loaded: "chargé" },
+    pt: { actual: "Ilustração: volume real, sem a reserva de 5%", title: "Ilustração do carregamento do contêiner", forty: "40HQ", unit: "CBM", full: "Cheio", loaded: "carregado" },
+    ru: { actual: "На схеме: фактический объём без запаса 5%", title: "Схема загрузки контейнера", forty: "40HQ", unit: "CBM", full: "Полный", loaded: "загружено" },
+    de: { actual: "Darstellung: tatsächliches Volumen ohne 5% Puffer", title: "Darstellung der Containerbeladung", forty: "40HQ", unit: "CBM", full: "Voll", loaded: "beladen" },
+    it: { actual: "Illustrazione: volume effettivo, escluso il margine del 5%", title: "Illustrazione del carico del container", forty: "40HQ", unit: "CBM", full: "Pieno", loaded: "caricato" },
+    tr: { actual: "Görsel: %5 pay hariç gerçek hacim", title: "Konteyner yükleme görseli", forty: "40HQ", unit: "CBM", full: "Dolu", loaded: "yüklü" }
   };
   var copy = labels[lang] || labels.en;
 
@@ -152,7 +152,8 @@
         });
       }
       visual.setAttribute("data-container-count", String(count));
-      renderCards(visual, entries, { title: copy.title });
+      renderCards(visual, entries, { title: copy.actual });
+      visual.appendChild(createElement("p", "calculator-summary cbm-visual-note", copy.actual));
       if (count > MAX_VISIBLE_CONTAINERS) {
         visual.appendChild(createElement("p", "cbm-visual-overflow", "+" + (count - MAX_VISIBLE_CONTAINERS)));
       }
@@ -168,7 +169,7 @@
     capacity: CONTAINER_CAPACITY_CBM,
     createCard: createCard,
     renderCards: renderCards,
-    version: "container-20261011a"
+    version: "container-20261011b"
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initQuickCalculator, { once: true });

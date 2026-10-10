@@ -15,6 +15,8 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
       const context = await browser.newContext({ viewport: { width, height: 800 } });
       let inquiryRequests = 0;
       await context.addInitScript(() => {
+        // 每个旧错误聚焦场景需要空表；草稿恢复在专用套件验收。
+        sessionStorage.removeItem("jabbarInquiryDraftV1");
         localStorage.setItem("jabbar.analyticsConsent.v1", "granted");
         window.turnstile = {
           render: (element, options) => {

@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ORIGIN = "https://www.jabbarsourcing.com";
 const CONSENT_VERSION = "consent-20260722a";
-const UI_VERSION = "ui-20261011a";
+const UI_VERSION = "ui-20261011b";
 
 const routes = {
   zh: { lang: "zh-CN", hreflang: "zh-Hans", path: "/website-privacy-policy.html", home: "/" },
@@ -27,7 +27,8 @@ const copy = {
     title: "Website Privacy Notice | Jabbar Sourcing",
     description: "How Jabbar Sourcing handles website inquiries, security verification and optional analytics.",
     h1: "Website Privacy Notice",
-    updated: "Last updated: July 22, 2026",
+    updated: "Last updated: October 11, 2026",
+    draftNotice: "To protect your work when you reload or change language, the form temporarily saves your entered product, contact and optional details in this tab’s sessionStorage. The draft is valid for 30 minutes after your last edit, is not sent to our server, and can be removed with Clear draft. An expired draft is not restored; a successful submission clears the submitted draft, while new unsent edits made during sending remain saved.",
     intro: "This notice explains how Zhejiang Haoduobao Brand Management Co., Ltd. handles personal information submitted through the Jabbar Sourcing website.",
     settings: "Analytics settings",
     regionalAnalytics: "Cloudflare uses the country code inferred from the network request only to decide whether the analytics choice panel should appear automatically. The page receives only that coarse decision, not the country code, and we do not store the location. In the EEA, United Kingdom and Switzerland, or when the location is unknown, Tor-based or unavailable, analytics stays off and the panel may appear automatically. In other regions analytics also stays off by default, but the panel does not open automatically; you can make a choice below. If your browser sends a Global Privacy Control (GPC) signal, analytics remains disabled.",
@@ -46,7 +47,8 @@ const copy = {
     title: "Aviso de privacidad del sitio web | Jabbar Sourcing",
     description: "Cómo Jabbar Sourcing trata las consultas, la verificación de seguridad y los análisis opcionales del sitio web.",
     h1: "Aviso de privacidad del sitio web",
-    updated: "Última actualización: 22 de julio de 2026",
+    updated: "Última actualización: 11 de octubre de 2026",
+    draftNotice: "Para conservar su trabajo al recargar o cambiar de idioma, el formulario guarda temporalmente el producto, los datos de contacto y los detalles opcionales en sessionStorage de esta pestaña. El borrador es válido durante 30 minutos desde la última edición, no se envía a nuestro servidor y puede eliminarse con Borrar borrador. No se restaura un borrador caducado; un envío exitoso elimina el borrador enviado; los cambios nuevos realizados durante el envío y aún no enviados se conservan.",
     intro: "Este aviso explica cómo Zhejiang Haoduobao Brand Management Co., Ltd. trata la información personal enviada a través del sitio web de Jabbar Sourcing.",
     settings: "Configuración de análisis",
     regionalAnalytics: "Cloudflare usa el código de país deducido de la solicitud de red únicamente para decidir si el panel de preferencias de análisis debe mostrarse automáticamente. La página recibe solo esa decisión general, no el código de país, y no guardamos la ubicación. En el EEE, Reino Unido y Suiza, o cuando la ubicación es desconocida, procede de Tor o no está disponible, los análisis permanecen desactivados y el panel puede aparecer automáticamente. En otras regiones también están desactivados de forma predeterminada, pero el panel no se abre automáticamente; puede elegir abajo. Si el navegador envía una señal Global Privacy Control (GPC), los análisis permanecen desactivados.",
@@ -65,7 +67,8 @@ const copy = {
     title: "إشعار خصوصية الموقع | Jabbar Sourcing",
     description: "كيفية معالجة Jabbar Sourcing لاستفسارات الموقع والتحقق الأمني والتحليلات الاختيارية.",
     h1: "إشعار خصوصية الموقع",
-    updated: "آخر تحديث: 22 يوليو 2026",
+    updated: "آخر تحديث: 11 أكتوبر 2026",
+    draftNotice: "لحماية ما أدخلته عند إعادة التحميل أو تغيير اللغة، يحفظ النموذج مؤقتًا تفاصيل المنتج وبيانات الاتصال والتفاصيل الاختيارية في sessionStorage لعلامة التبويب الحالية. تظل المسودة صالحة لمدة 30 دقيقة بعد آخر تعديل ولا تُرسل إلى خادمنا، ويمكن حذفها باستخدام مسح المسودة. لا تُستعاد المسودة المنتهية، ويؤدي الإرسال الناجح إلى مسح المسودة المرسلة، مع الاحتفاظ بالتعديلات الجديدة غير المرسلة التي أُجريت أثناء الإرسال.",
     intro: "يوضح هذا الإشعار كيفية معالجة Zhejiang Haoduobao Brand Management Co., Ltd. للمعلومات الشخصية المقدمة عبر موقع Jabbar Sourcing.",
     settings: "إعدادات التحليلات",
     regionalAnalytics: "تستخدم Cloudflare رمز البلد المستنتج من طلب الشبكة فقط لتحديد ما إذا كان ينبغي عرض لوحة خيارات التحليلات تلقائياً. لا تتلقى الصفحة سوى هذا القرار العام، ولا تتلقى رمز البلد، ولا نخزّن الموقع. في المنطقة الاقتصادية الأوروبية والمملكة المتحدة وسويسرا، أو عندما يكون الموقع غير معروف أو عبر Tor أو غير متاح، تبقى التحليلات معطلة وقد تظهر اللوحة تلقائياً. وفي المناطق الأخرى تبقى التحليلات معطلة افتراضياً أيضاً، لكن اللوحة لا تُفتح تلقائياً ويمكنك الاختيار أدناه. وإذا أرسل المتصفح إشارة Global Privacy Control (GPC)، فستظل التحليلات معطلة.",
@@ -84,7 +87,8 @@ const copy = {
     title: "Avis de confidentialité du site | Jabbar Sourcing",
     description: "Traitement des demandes, vérification de sécurité et mesures d’audience facultatives par Jabbar Sourcing.",
     h1: "Avis de confidentialité du site",
-    updated: "Dernière mise à jour : 22 juillet 2026",
+    updated: "Dernière mise à jour : 11 octobre 2026",
+    draftNotice: "Pour préserver votre saisie lors d’un rechargement ou d’un changement de langue, le formulaire conserve temporairement le produit, les coordonnées et les détails facultatifs dans le sessionStorage de cet onglet. Le brouillon est valable 30 minutes après la dernière modification, n’est pas envoyé à notre serveur et peut être supprimé avec Effacer le brouillon. Un brouillon expiré n’est pas restauré ; un envoi réussi efface le brouillon envoyé, mais conserve les nouvelles modifications non envoyées effectuées pendant l’envoi.",
     intro: "Cet avis explique comment Zhejiang Haoduobao Brand Management Co., Ltd. traite les informations personnelles transmises sur le site Jabbar Sourcing.",
     settings: "Paramètres d’analyse",
     regionalAnalytics: "Cloudflare utilise le code pays déduit de la requête réseau uniquement pour déterminer si le panneau de choix analytique doit s’afficher automatiquement. La page ne reçoit que cette décision générale, pas le code pays, et nous ne conservons pas la localisation. Dans l’EEE, au Royaume-Uni et en Suisse, ou si la localisation est inconnue, issue de Tor ou indisponible, l’analyse reste désactivée et le panneau peut s’afficher automatiquement. Dans les autres régions, l’analyse reste également désactivée par défaut, mais le panneau ne s’ouvre pas automatiquement ; vous pouvez choisir ci-dessous. Si le navigateur envoie un signal Global Privacy Control (GPC), l’analyse reste désactivée.",
@@ -103,7 +107,8 @@ const copy = {
     title: "Aviso de privacidade do site | Jabbar Sourcing",
     description: "Como a Jabbar Sourcing trata pedidos, verificação de segurança e análises opcionais no site.",
     h1: "Aviso de privacidade do site",
-    updated: "Última atualização: 22 de julho de 2026",
+    updated: "Última atualização: 11 de outubro de 2026",
+    draftNotice: "Para preservar o que preenche ao recarregar ou mudar de idioma, o formulário guarda temporariamente o produto, os contactos e os detalhes opcionais no sessionStorage deste separador. O rascunho é válido por 30 minutos após a última edição, não é enviado ao nosso servidor e pode ser removido com Limpar rascunho. Um rascunho expirado não é restaurado; um envio bem-sucedido limpa o rascunho enviado, mas preserva as novas alterações ainda não enviadas feitas durante o envio.",
     intro: "Este aviso explica como a Zhejiang Haoduobao Brand Management Co., Ltd. trata as informações pessoais enviadas pelo site da Jabbar Sourcing.",
     settings: "Definições de análise",
     regionalAnalytics: "A Cloudflare utiliza o código do país inferido do pedido de rede apenas para decidir se o painel de escolha de análise deve aparecer automaticamente. A página recebe somente essa decisão geral, não o código do país, e não guardamos a localização. No EEE, Reino Unido e Suíça, ou quando a localização é desconhecida, proveniente de Tor ou indisponível, a análise permanece desativada e o painel pode aparecer automaticamente. Noutras regiões, a análise também permanece desativada por predefinição, mas o painel não abre automaticamente; pode escolher abaixo. Se o navegador enviar um sinal Global Privacy Control (GPC), a análise permanece desativada.",
@@ -122,7 +127,8 @@ const copy = {
     title: "Уведомление о конфиденциальности сайта | Jabbar Sourcing",
     description: "Как Jabbar Sourcing обрабатывает запросы, проверку безопасности и необязательную аналитику сайта.",
     h1: "Уведомление о конфиденциальности сайта",
-    updated: "Последнее обновление: 22 июля 2026 г.",
+    updated: "Последнее обновление: 11 октября 2026 г.",
+    draftNotice: "Чтобы сохранить ввод при перезагрузке или смене языка, форма временно сохраняет товар, контактные и дополнительные данные в sessionStorage текущей вкладки. Черновик действителен 30 минут после последнего изменения, не отправляется на наш сервер и может быть удалён кнопкой очистки черновика. Просроченный черновик не восстанавливается; успешная отправка удаляет отправленный черновик, но сохраняет новые неотправленные изменения, внесённые во время отправки.",
     intro: "В этом уведомлении описано, как Zhejiang Haoduobao Brand Management Co., Ltd. обрабатывает персональные данные, отправленные через сайт Jabbar Sourcing.",
     settings: "Настройки аналитики",
     regionalAnalytics: "Cloudflare использует код страны, определённый по сетевому запросу, только для решения, следует ли автоматически показывать панель выбора аналитики. Страница получает лишь это общее решение, но не код страны; местоположение мы не сохраняем. В ЕЭЗ, Великобритании и Швейцарии, а также при неизвестном местоположении, Tor или сбое определения аналитика остаётся отключённой, а панель может появиться автоматически. В других регионах аналитика также отключена по умолчанию, но панель не открывается автоматически; сделать выбор можно ниже. Если браузер передаёт сигнал Global Privacy Control (GPC), аналитика остаётся отключённой.",
@@ -141,7 +147,8 @@ const copy = {
     title: "Datenschutzhinweis der Website | Jabbar Sourcing",
     description: "Wie Jabbar Sourcing Website-Anfragen, Sicherheitsprüfungen und optionale Analysen verarbeitet.",
     h1: "Datenschutzhinweis der Website",
-    updated: "Letzte Aktualisierung: 22. Juli 2026",
+    updated: "Letzte Aktualisierung: 11. Oktober 2026",
+    draftNotice: "Damit Ihre Eingaben beim Neuladen oder Sprachwechsel erhalten bleiben, speichert das Formular Produkt-, Kontakt- und optionale Angaben vorübergehend im sessionStorage dieses Tabs. Der Entwurf ist nach der letzten Änderung 30 Minuten gültig, wird nicht an unseren Server gesendet und kann über Entwurf löschen entfernt werden. Abgelaufene Entwürfe werden nicht wiederhergestellt; nach erfolgreichem Senden wird der gesendete Entwurf gelöscht; während des Sendens neu eingegebene, noch nicht gesendete Änderungen bleiben gespeichert.",
     intro: "Dieser Hinweis erläutert, wie Zhejiang Haoduobao Brand Management Co., Ltd. personenbezogene Daten verarbeitet, die über die Jabbar-Sourcing-Website übermittelt werden.",
     settings: "Analyse-Einstellungen",
     regionalAnalytics: "Cloudflare verwendet den aus der Netzwerkanfrage abgeleiteten Ländercode ausschließlich, um zu entscheiden, ob das Auswahlfenster für Analysen automatisch erscheinen soll. Die Seite erhält nur diese grobe Entscheidung, nicht den Ländercode; wir speichern den Standort nicht. Im EWR, im Vereinigten Königreich und in der Schweiz sowie bei unbekanntem Standort, Tor oder fehlgeschlagener Ermittlung bleibt die Analyse deaktiviert und das Fenster kann automatisch erscheinen. In anderen Regionen bleibt die Analyse ebenfalls standardmäßig deaktiviert, das Fenster öffnet sich jedoch nicht automatisch; unten können Sie wählen. Sendet der Browser ein Global-Privacy-Control-Signal (GPC), bleibt die Analyse deaktiviert.",
@@ -160,7 +167,8 @@ const copy = {
     title: "Informativa sulla privacy del sito | Jabbar Sourcing",
     description: "Come Jabbar Sourcing tratta richieste, verifica di sicurezza e analisi facoltative del sito.",
     h1: "Informativa sulla privacy del sito",
-    updated: "Ultimo aggiornamento: 22 luglio 2026",
+    updated: "Ultimo aggiornamento: 11 ottobre 2026",
+    draftNotice: "Per preservare i dati durante il ricaricamento o il cambio di lingua, il modulo salva temporaneamente prodotto, recapiti e dettagli facoltativi nel sessionStorage di questa scheda. La bozza è valida per 30 minuti dall’ultima modifica, non viene inviata al nostro server e può essere rimossa con Cancella bozza. Una bozza scaduta non viene ripristinata; l’invio riuscito cancella la bozza inviata, ma conserva le nuove modifiche non ancora inviate apportate durante l’invio.",
     intro: "Questa informativa spiega come Zhejiang Haoduobao Brand Management Co., Ltd. tratta i dati personali inviati tramite il sito Jabbar Sourcing.",
     settings: "Preferenze di analisi",
     regionalAnalytics: "Cloudflare usa il codice Paese dedotto dalla richiesta di rete solo per decidere se il pannello delle preferenze di analisi debba apparire automaticamente. La pagina riceve soltanto questa decisione generale, non il codice Paese, e non conserviamo la posizione. Nel SEE, nel Regno Unito e in Svizzera, oppure quando la posizione è sconosciuta, proviene da Tor o non è disponibile, l’analisi resta disattivata e il pannello può apparire automaticamente. Nelle altre regioni l’analisi resta comunque disattivata per impostazione predefinita, ma il pannello non si apre automaticamente; puoi scegliere qui sotto. Se il browser invia un segnale Global Privacy Control (GPC), l’analisi resta disattivata.",
@@ -179,7 +187,8 @@ const copy = {
     title: "Web sitesi gizlilik bildirimi | Jabbar Sourcing",
     description: "Jabbar Sourcing’in web sitesi taleplerini, güvenlik doğrulamasını ve isteğe bağlı analizi nasıl işlediği.",
     h1: "Web sitesi gizlilik bildirimi",
-    updated: "Son güncelleme: 22 Temmuz 2026",
+    updated: "Son güncelleme: 11 Ekim 2026",
+    draftNotice: "Sayfayı yenilerken veya dili değiştirirken girişinizi korumak için form, ürün, iletişim ve isteğe bağlı bilgileri bu sekmenin sessionStorage alanına geçici olarak kaydeder. Taslak son düzenlemeden sonra 30 dakika geçerlidir, sunucumuza gönderilmez ve Taslağı temizle ile kaldırılabilir. Süresi dolan taslak geri yüklenmez; başarılı gönderim gönderilen taslağı siler; gönderim sırasında yapılan yeni ve henüz gönderilmemiş düzenlemeler saklanır.",
     intro: "Bu bildirim, Zhejiang Haoduobao Brand Management Co., Ltd. şirketinin Jabbar Sourcing web sitesi üzerinden gönderilen kişisel bilgileri nasıl işlediğini açıklar.",
     settings: "Analiz tercihleri",
     regionalAnalytics: "Cloudflare, ağ isteğinden çıkarılan ülke kodunu yalnızca analiz tercih panelinin otomatik gösterilip gösterilmeyeceğine karar vermek için kullanır. Sayfa ülke kodunu değil, yalnızca bu genel kararı alır ve konumu saklamayız. AEA, Birleşik Krallık ve İsviçre’de ya da konum bilinmediğinde, Tor üzerinden geldiğinde veya belirlenemediğinde analiz kapalı kalır ve panel otomatik görünebilir. Diğer bölgelerde de analiz varsayılan olarak kapalıdır, ancak panel otomatik açılmaz; aşağıdan seçim yapabilirsiniz. Tarayıcı Global Privacy Control (GPC) sinyali gönderirse analiz kapalı kalır.",
@@ -225,6 +234,9 @@ function footerFor(locale) {
 function page(locale) {
   const route = routes[locale];
   const value = copy[locale];
+  const readable = (text) => locale === "ar"
+    ? text.replaceAll("Zhejiang Haoduobao Brand Management Co., Ltd.", "<bdi>Zhejiang Haoduobao Brand Management Co., Ltd.</bdi>")
+    : text;
   const sectionMarkup = value.sections.map(([heading, paragraphs], index) => {
     const localizedParagraphs = index === 4
       ? [...paragraphs, value.regionalAnalytics]
@@ -232,7 +244,8 @@ function page(locale) {
     return [
       `        <section${index === 0 ? ' id="website-inquiries"' : ""}>`,
       `          <h2>${heading}</h2>`,
-      ...localizedParagraphs.map((paragraph) => `          <p>${contactMarkup(paragraph)}</p>`),
+      ...localizedParagraphs.map((paragraph) => `          <p>${readable(contactMarkup(paragraph))}</p>`),
+      ...(index === 1 ? [`          <p data-inquiry-draft-notice>${contactMarkup(value.draftNotice)}</p>`] : []),
       "        </section>"
     ].join("\n");
   }).join("\n");
@@ -243,7 +256,7 @@ function page(locale) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="${value.description}" />
-    <meta name="theme-color" content="#173f35" />
+${locale === "ar" ? '    <meta name="color-scheme" content="light" />\n' : ""}    <meta name="theme-color" content="#173f35" />
     <meta property="og:site_name" content="Jabbar Sourcing" />
     <meta property="og:title" content="${value.title}" />
     <meta property="og:description" content="${value.description}" />
@@ -259,7 +272,7 @@ function page(locale) {
 ${alternateLinks()}
     <link rel="icon" href="/assets/favicon.png?v=jabbar-6" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
-    <link rel="stylesheet" href="/styles.min.css?v=apple-190" />
+    <link rel="stylesheet" href="/styles.min.css?v=apple-191" />
     <script src="/assets/analytics-consent.js?v=${CONSENT_VERSION}" defer></script>
     <script src="/script.js?v=apple-154" defer></script>
   </head>
@@ -281,7 +294,7 @@ ${alternateLinks()}
         </div>
       </section>
       <article class="container-narrow legal-content">
-        <p>${value.intro}</p>
+        <p>${readable(value.intro)}</p>
 ${sectionMarkup}
         <button class="privacy-consent-control" type="button" data-analytics-consent-open>${value.settings}</button>
       </article>
@@ -309,7 +322,7 @@ const sitemapAlternates = [
 const sitemapPolicies = Object.values(routes).map((route) => [
   "  <url>",
   `    <loc>${ORIGIN}${route.path}</loc>`,
-  "    <lastmod>2026-07-22</lastmod>",
+  "    <lastmod>2026-10-11</lastmod>",
   "    <changefreq>yearly</changefreq>",
   "    <priority>0.3</priority>",
   sitemapAlternates,

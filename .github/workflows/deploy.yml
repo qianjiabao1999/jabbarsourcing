@@ -67,6 +67,9 @@ jobs:
           npm run qa:order-resilience
           npm run qa:container-allocation
           npm run qa:calculator-validation
+          npm run qa:calculator-feedback
+          npm run qa:inquiry-draft
+          npm run qa:post-launch-home
 
       - name: Install Worker verification dependencies
         run: npm ci --prefix cloudflare/inquiry-api

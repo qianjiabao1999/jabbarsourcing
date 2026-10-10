@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-190" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-191" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011b" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -111,7 +111,7 @@
       }, true);
     </script>
   </head>
-  <body>
+  <body class="inquiry-page-compact">
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
         <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
@@ -153,6 +153,8 @@
           <a href="../#reviews">Reviews</a>
           <a href="#contact">Contact</a>
 
+          <a class="site-nav-inquiry-extra" href="../#social-accounts">Social Accounts</a>
+          <a class="site-nav-inquiry-extra" href="../calculator/">CBM Tool</a>
         </nav>
       </details>
     </header>
@@ -167,11 +169,15 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">Tell us what you want to source</h2>
-                <p>Start with your product needs and contact details. Quantity, budget, and other optional details help us prepare a more accurate quote.</p>
+                <p>Start with products and contact details; everything else is optional.</p>
                 <ul class="inquiry-trust-points"><li>First reply within 24h; full quote in 24–48h</li><li>Trial orders from USD 1,000</li><li>Itemized quotes; no separate buyer commission</li></ul>
-                <p class="inquiry-guide-tip"><a href="/en/yiwu-sourcing-guide.html">Not sure how to describe your needs? Read the sourcing guide first.</a></p>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="en" data-inquiry-source="/en/inquiry/" data-privacy-version="2026-07-22">
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="The saved draft could not be deleted. Close this tab to discard it." data-draft-restored="Your draft has been restored in this tab." data-draft-cleared="The draft and form have been cleared." data-draft-expired="The saved draft has expired." data-draft-unavailable="Draft saving is unavailable. Keep this page open until you finish.">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">Drafts include contact details: this tab only, 30 minutes. Nothing is sent until you submit.</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>Clear draft</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                </div>
                 <label class="field field-wide">
                   <span>Products needed</span>
                   <input name="product" type="text" maxlength="300" required placeholder="e.g. dollar-store goods, kitchenware, toys, storage items…" autocomplete="off" />
@@ -185,20 +191,21 @@
                   <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Only http:// or https:// links are accepted" />
                 </label>
                 <p class="inquiry-attachment-note field-wide">Have photos or an Excel list? Share them via <a href="#contact">WhatsApp in our contact section</a>. This form accepts text and links only.</p>
+                <p class="inquiry-guide-tip field-wide"><a href="/en/yiwu-sourcing-guide.html" target="_blank" rel="noopener">Need help? Read the sourcing guide (opens in a new window).</a></p>
                 <details class="inquiry-additional-details field-wide">
                   <summary class="inquiry-additional-summary"><span>Add details for a more accurate quote</span><small>Optional</small></summary>
                   <div class="inquiry-additional-fields">
                     <label class="field">
                       <span>Product category</span>
                       <select name="category">
-                      <option value="">Select one</option>
-                      <option value="Daily commodities">Daily commodities</option>
-                      <option value="Dollar-store supply">Dollar-store supply</option>
-                      <option value="Kitchenware">Kitchenware</option>
-                      <option value="Home storage">Home storage</option>
-                      <option value="Toys &amp; gifts">Toys &amp; gifts</option>
-                      <option value="Beauty &amp; personal care">Beauty &amp; personal care</option>
-                      <option value="Other">Other</option>
+                      <option data-draft-value="" value="">Select one</option>
+                      <option data-draft-value="daily" value="Daily commodities">Daily commodities</option>
+                      <option data-draft-value="discount" value="Dollar-store supply">Dollar-store supply</option>
+                      <option data-draft-value="kitchenware" value="Kitchenware">Kitchenware</option>
+                      <option data-draft-value="storage" value="Home storage">Home storage</option>
+                      <option data-draft-value="toys" value="Toys &amp; gifts">Toys &amp; gifts</option>
+                      <option data-draft-value="beauty" value="Beauty &amp; personal care">Beauty &amp; personal care</option>
+                      <option data-draft-value="other" value="Other">Other</option>
                       </select>
                     </label>
                     <label class="field">
@@ -228,7 +235,7 @@
                 </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>By submitting, you acknowledge the <a href="/en/website-privacy-policy.html#website-inquiries">Privacy Policy</a> and agree that we may use this information only to handle and reply to your inquiry.</span>
+                    <span>By submitting, you acknowledge the <a href="/en/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">Privacy Policy <small class="inquiry-privacy-window">(opens in a new window)</small></a> and agree that we may use this information only to handle and reply to your inquiry.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="en"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Submit inquiry</button>
@@ -357,6 +364,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011b" defer></script>
   </body>
 </html>

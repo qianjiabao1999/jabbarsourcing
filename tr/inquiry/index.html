@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-190" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-191" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011b" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -111,7 +111,7 @@
       }, true);
     </script>
   </head>
-  <body>
+  <body class="inquiry-page-compact">
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
         <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
@@ -153,6 +153,8 @@
           <a href="../#reviews">Yorumlar</a>
           <a href="#contact">İletişim</a>
 
+          <a class="site-nav-inquiry-extra" href="../#social-accounts">Sosyal Medya Hesapları</a>
+          <a class="site-nav-inquiry-extra" href="../calculator/">Hacim</a>
         </nav>
       </details>
     </header>
@@ -167,10 +169,15 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">Ne satın almak istediğinizi yazın</h2>
-                <p>İstediğiniz ürünleri ve iletişim bilgilerinizi yazarak başlayın. Miktar, bütçe ve diğer isteğe bağlı bilgiler daha doğru bir teklif hazırlamamıza yardımcı olur.</p>
+                <p>Ürünleri ve iletişim bilgilerini yazın; diğer bilgiler isteğe bağlıdır.</p>
                 <ul class="inquiry-trust-points"><li>24 saat içinde ilk yanıt; 24–48 saatte tam teklif</li><li>1.000 USD’den itibaren deneme siparişi</li><li>Kalem kalem teklif; alıcıdan ayrıca komisyon alınmaz</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="tr" data-inquiry-source="/tr/inquiry/" data-privacy-version="2026-07-22">
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="Kaydedilen taslak silinemedi. Taslağı kaldırmak için bu sekmeyi kapatın." data-draft-restored="Taslağınız bu sekmede geri yüklendi." data-draft-cleared="Taslak ve form temizlendi." data-draft-expired="Kaydedilen taslağın süresi doldu." data-draft-unavailable="Taslak kaydedilemiyor. Bitirene kadar bu sayfayı açık tutun.">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">Taslak iletişim bilgilerini içerir: yalnızca bu sekmede, 30 dakika. Siz göndermeden iletilmez.</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>Taslağı sil</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                </div>
                 <label class="field field-wide">
                   <span>Gerekli ürünler</span>
                   <input name="product" type="text" maxlength="300" placeholder="örn. tek fiyat mağazası ürünleri, mutfak, oyuncak, düzenleme…" autocomplete="off"  required/>
@@ -190,14 +197,14 @@
                     <label class="field">
                       <span>Ürün kategorisi</span>
                       <select name="category">
-                      <option value="">Seçin</option>
-                      <option value="Günlük ürünler">Günlük ürünler</option>
-                      <option value="Tek fiyat mağazası tedariki">Tek fiyat mağazası tedariki</option>
-                      <option value="Mutfak ürünleri">Mutfak ürünleri</option>
-                      <option value="Ev düzenleme">Ev düzenleme</option>
-                      <option value="Oyuncak ve hediyeler">Oyuncak ve hediyeler</option>
-                      <option value="Güzellik ve kişisel bakım">Güzellik ve kişisel bakım</option>
-                      <option value="Diğer">Diğer</option>
+                      <option data-draft-value="" value="">Seçin</option>
+                      <option data-draft-value="daily" value="Günlük ürünler">Günlük ürünler</option>
+                      <option data-draft-value="discount" value="Tek fiyat mağazası tedariki">Tek fiyat mağazası tedariki</option>
+                      <option data-draft-value="kitchenware" value="Mutfak ürünleri">Mutfak ürünleri</option>
+                      <option data-draft-value="storage" value="Ev düzenleme">Ev düzenleme</option>
+                      <option data-draft-value="toys" value="Oyuncak ve hediyeler">Oyuncak ve hediyeler</option>
+                      <option data-draft-value="beauty" value="Güzellik ve kişisel bakım">Güzellik ve kişisel bakım</option>
+                      <option data-draft-value="other" value="Diğer">Diğer</option>
                       </select>
                     </label>
                     <label class="field">
@@ -227,7 +234,7 @@
                 </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>Göndererek <a href="/tr/website-privacy-policy.html#website-inquiries">Gizlilik Politikası</a>’nı kabul eder ve bu bilgilerin yalnızca talebinizi işlemek ve yanıtlamak için kullanılmasını onaylarsınız.</span>
+                    <span>Göndererek <a href="/tr/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">Gizlilik Politikası <small class="inquiry-privacy-window">(yeni pencerede açılır)</small></a>’nı kabul eder ve bu bilgilerin yalnızca talebinizi işlemek ve yanıtlamak için kullanılmasını onaylarsınız.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="tr"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Talebi gönder</button>
@@ -354,6 +361,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011b" defer></script>
   </body>
 </html>

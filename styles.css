@@ -3593,8 +3593,9 @@ html.gallery-ready .gallery-track {
 }
 
 .sourcing-gallery {
-  content-visibility: auto;
-  contain-intrinsic-size: 920px;
+  /* 画廊占位回缩会令 Safari 首次章节跳转错位；图片自身仍延迟加载。 */
+  content-visibility: visible;
+  contain-intrinsic-size: none;
 }
 
 .site-logo-lockup {
@@ -11272,20 +11273,14 @@ html.gallery-ready .sourcing-gallery .gallery-frame::before {
 @media (min-width: 768px) {
   .faq-quick-tags {
     width: min(100%, 700px);
-    display: grid;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+    display: flex;
   }
-
-  .faq-quick-tag:nth-child(1) { grid-column: 1 / 3; }
-  .faq-quick-tag:nth-child(2) { grid-column: 3 / 5; }
-  .faq-quick-tag:nth-child(3) { grid-column: 5 / 7; }
-  .faq-quick-tag:nth-child(4) { grid-column: 7 / 9; }
-  .faq-quick-tag:nth-child(5) { grid-column: 2 / 4; }
-  .faq-quick-tag:nth-child(6) { grid-column: 4 / 6; }
-  .faq-quick-tag:nth-child(7) { grid-column: 6 / 8; }
 }
 
 .faq-quick-tag {
+  flex: 1 1 180px;
+  min-width: 0;
+  max-width: 100%;
   min-height: 46px !important;
   display: inline-flex;
   align-items: center;
@@ -11411,12 +11406,11 @@ main > #team.team {
   }
 
   .faq-quick-tags {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    margin-inline: calc(var(--page-padding, 18px) * -1);
-    padding: 4px var(--page-padding, 18px) 12px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-inline: 0;
+    padding: 4px 0 12px;
+    overflow-x: visible;
   }
 
   .faq-quick-tags::-webkit-scrollbar {
@@ -11424,6 +11418,9 @@ main > #team.team {
   }
 
   .faq-quick-tag {
+    flex-basis: 140px;
+    min-width: 140px;
+    overflow-wrap: anywhere;
     min-height: 44px !important;
     padding-inline: 13px !important;
     font-size: 13px !important;
@@ -11801,7 +11798,7 @@ main > #team.team {
 }
 
 #services .company-metric-card:nth-child(5) strong {
-  font-size: clamp(15px, 1.02vw, 20px) !important;
+  font-size: clamp(22px, 2.1vw, 30px) !important;
 }
 
 .testimonial-card--proof {
@@ -12009,7 +12006,7 @@ main > #team.team {
 
 @media (max-width: 767px) {
   #services .company-metric-card:nth-child(5) strong {
-    font-size: clamp(18px, 4.8vw, 22px) !important;
+    font-size: clamp(20px, 5.2vw, 24px) !important;
   }
 
   .testimonial-grid {
@@ -13118,7 +13115,7 @@ main > #team .section-heading h2 {
 #services .company-metric-card:last-child {
   grid-column: 1 / -1;
 }
-#services .company-metric-card span {
+#services .company-metric-card > span {
   font-size: 16px !important;
   font-weight: 650 !important;
 }
@@ -13142,5 +13139,139 @@ main > #team .section-heading h2 {
   }
   .inquiry-additional-fields {
     padding-inline: 14px;
+  }
+}
+
+/* 2026-10-11 上线后复核：数字包装继承、紧凑询盘导航与原位反馈。 */
+#services .company-metric-card strong > .company-metric-visual,
+#services .company-metric-card strong .company-metric-number,
+#services .company-metric-card strong .company-metric-currency {
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+.calculator-result-card strong span {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+.calculator-copy-fallback[hidden],
+.inquiry-draft-panel [hidden],
+.js-inquiry-form:not([data-calculator-prefill]) .calculator-prefill-notice {
+  display: none !important;
+}
+.calculator-copy-fallback textarea {
+  width: 100%;
+  min-height: 160px;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.5;
+}
+.inquiry-privacy-notice,
+.inquiry-privacy-notice a,
+.inquiry-privacy-window {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+.inquiry-privacy-window {
+  display: inline;
+  margin-inline-start: 4px;
+}
+.inquiry-draft-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  min-width: 0;
+  color: var(--ink-muted-strong);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: start;
+}
+.inquiry-draft-notice,
+.inquiry-draft-feedback {
+  flex: 1 1 240px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.inquiry-draft-clear {
+  min-height: 44px;
+  padding: 8px 12px;
+  color: var(--brand-teal);
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.inquiry-draft-clear:focus-visible {
+  outline: 2px solid var(--brand-teal);
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  /* 首页双行导航最高117px；章节保留至少16px可读留白。 */
+  #team,
+  #services,
+  #how-it-works,
+  #reviews,
+  #faq,
+  #social-accounts,
+  #contact {
+    scroll-margin-top: 136px;
+  }
+  .inquiry-page-compact header.site-nav {
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr) auto 44px !important;
+    gap: 5px !important;
+    padding: 8px !important;
+  }
+  .inquiry-page-compact header.site-nav::before,
+  .inquiry-page-compact header.site-nav > .site-nav-social-pill,
+  .inquiry-page-compact header.site-nav > .site-nav-tool-pill {
+    display: none !important;
+  }
+  .inquiry-page-compact header.site-nav .site-nav-brand {
+    display: inline-flex !important;
+    grid-column: 1;
+    width: 44px;
+    min-height: 44px;
+    margin: 0 !important;
+  }
+  .inquiry-page-compact header.site-nav .site-nav-return-home {
+    order: 2 !important;
+    grid-column: 2;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    padding: 8px !important;
+    font-size: 13px !important;
+    line-height: 1.2;
+    white-space: normal;
+    text-align: center;
+  }
+  .inquiry-page-compact header.site-nav .site-nav-language {
+    order: 3 !important;
+    grid-column: 3;
+    margin: 0 !important;
+  }
+  .inquiry-page-compact header.site-nav .site-nav-language > summary {
+    padding-inline: 8px !important;
+  }
+  .inquiry-page-compact header.site-nav .site-nav-mobile-menu {
+    order: 4 !important;
+    grid-column: 4;
+    margin: 0 !important;
+  }
+  .inquiry-page-compact header.site-nav .language-options,
+  .inquiry-page-compact header.site-nav .site-nav-mobile-panel {
+    max-height: calc(100dvh - 80px) !important;
   }
 }

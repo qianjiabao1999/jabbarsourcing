@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-190";
-const UI_VERSION = "ui-20261011a";
+const CSS_VERSION = "apple-191";
+const UI_VERSION = "ui-20261011b";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -221,6 +221,7 @@ async function pageState(page) {
       width: window.innerWidth,
       documentWidth: document.documentElement.scrollWidth,
       direction: document.documentElement.dir || getComputedStyle(document.documentElement).direction,
+      compactInquiry: document.body.classList.contains("inquiry-page-compact"),
       cssVersion: document.querySelector('link[href*="styles.min.css"]')?.getAttribute("href") || "",
       uiVersion: document.querySelector('script[src*="site-enhancements.js"]')?.getAttribute("src") || "",
       counts: {
@@ -509,6 +510,7 @@ function rectanglesOverlap(first, second) {
 }
 
 function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
+  const compact = state.compactInquiry && state.width <= 767;
   assert.equal(state.counts.toolPills, 1, `${scope}: tool pill count`);
   assert.equal(state.counts.socialPills, 1, `${scope}: social pill count`);
   assert([1, 2].includes(state.counts.quoteLinks), `${scope}: quote link count ${state.counts.quoteLinks}`);
@@ -521,11 +523,29 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   }
   assert(state.header.toolText, `${scope}: tool pill has no localized label`);
   assert(state.header.quoteText, `${scope}: quote link has no localized label`);
-  assertVisibleRect(state.rects.toolPill, `${scope}: tool pill`);
+  if (compact) {
+    assert.equal(state.rects.toolPill.display, "none", `${scope}: compact inquiry tool must move into menu`);
+    assert.equal(state.rects.socialPill.display, "none", `${scope}: compact inquiry social must move into menu`);
+    assert(state.rects.header.height <= 76, `${scope}: compact inquiry header is too tall`);
+    assert(state.rects.quoteLink.height >= 44, `${scope}: compact inquiry return action is too small`);
+    const controls = [state.rects.brand, state.rects.quoteLink, state.rects.language, state.rects.mobileMenu];
+    for (const [index, control] of controls.entries()) {
+      assertVisibleRect(control, `${scope}: compact header control ${index}`);
+      assert(control.height >= 44, `${scope}: compact header control ${index} is too small`);
+    }
+    for (let first = 0; first < controls.length; first += 1) {
+      assert(controls[first].left >= -1 && controls[first].right <= state.width + 1, `${scope}: compact header action outside viewport`);
+      for (let second = first + 1; second < controls.length; second += 1) {
+        assert(!rectanglesOverlap(controls[first], controls[second]), `${scope}: compact header actions overlap`);
+      }
+    }
+  } else {
+    assertVisibleRect(state.rects.toolPill, `${scope}: tool pill`);
+    assert(state.rects.toolPill.left >= -1 && state.rects.toolPill.right <= state.width + 1, `${scope}: tool pill is outside the viewport`);
+  }
   assertVisibleRect(state.rects.quoteLink, `${scope}: quote link`);
-  assert(state.rects.toolPill.left >= -1 && state.rects.toolPill.right <= state.width + 1, `${scope}: tool pill is outside the viewport`);
   assert(state.rects.quoteLink.left >= -1 && state.rects.quoteLink.right <= state.width + 1, `${scope}: quote link is outside the viewport`);
-  if (!desktop || state.counts.quoteLinks === 1) {
+  if ((!desktop || state.counts.quoteLinks === 1) && !compact) {
     assert(Number(state.header.tool.order) < Number(state.header.quote.order), `${scope}: tool pill visual order ${state.header.tool.order} is not before quote ${state.header.quote.order}`);
   }
   assert(state.header.toolBefore, `${scope}: tool pill container visual missing`);
@@ -535,7 +555,7 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   assert(state.header.toolBefore.borderLeftWidth >= 1, `${scope}: tool pill container border missing`);
   assert.notEqual(state.header.toolBefore.backgroundImage, "none", `${scope}: tool pill container ribs/background missing`);
 
-  if (state.width < 1280) {
+  if (state.width < 1280 && !compact) {
     assertVisibleRect(state.rects.socialPill, `${scope}: responsive social pill`);
     assert(state.rects.socialPill.left >= -1 && state.rects.socialPill.right <= state.width + 1, `${scope}: social pill is outside the viewport`);
     assert(Number(state.header.social.order) < Number(state.header.tool.order), `${scope}: social pill visual order ${state.header.social.order} is not before tool ${state.header.tool.order}`);
@@ -560,7 +580,7 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
         );
       }
     }
-  } else {
+  } else if (!compact) {
     assert(state.header.social, `${scope}: desktop social pill style missing`);
     assert.equal(state.header.social.display, "none", `${scope}: responsive social pill remains visible at ${state.width}px`);
   }
@@ -613,8 +633,9 @@ function assertNoFloatingControls(state, scope) {
 }
 
 function assertMobileMenuTrimmed(state, scope) {
-  assert.equal(state.mobileMenu.calculatorLinks, 0, `${scope}: calculator link remains in mobile menu`);
-  assert.equal(state.mobileMenu.teamLinks, 0, `${scope}: social account remains inside the mobile menu`);
+  const expected = state.compactInquiry ? 1 : 0;
+  assert.equal(state.mobileMenu.calculatorLinks, expected, `${scope}: mobile menu calculator entry count`);
+  assert.equal(state.mobileMenu.teamLinks, expected, `${scope}: mobile menu social entry count`);
 }
 
 function assertFooterLocationContract(state, scope, { mobile }) {
@@ -1177,7 +1198,7 @@ async function assertCompanyProofLayout(page, scope, mobile) {
     const photo = document.querySelector("#services .company-photo-card");
     const metrics = document.querySelector("#services .company-metrics");
     const cards = Array.from(document.querySelectorAll("#services .company-metric-card"));
-    const labels = Array.from(document.querySelectorAll("#services .company-metric-card span"));
+    const labels = Array.from(document.querySelectorAll("#services .company-metric-card > span"));
     return {
       photo: rect(photo),
       metrics: rect(metrics),
@@ -1554,7 +1575,7 @@ async function inquiryMatrix(browserType) {
     assert.equal(await page.locator(".site-nav-return-home").count(), 1, `${scope}: top return-home control count`);
     assert.equal(await page.locator(".site-nav-return-home").getAttribute("href"), "../", `${scope}: top return-home target`);
     assert.equal(await page.locator(".site-nav-mobile-home").count(), 0, `${scope}: duplicate return-home mobile item remains`);
-    assert.equal(await page.locator(".site-nav-mobile-team").count(), 0, `${scope}: social account remains inside the mobile menu`);
+    assert.equal(await page.locator(".site-nav-inquiry-extra").count(), 2, `${scope}: compact inquiry menu must retain social and calculator destinations`);
     assert.equal(await page.locator(".site-nav-social-pill").count(), 1, `${scope}: responsive social pill count`);
     assert.equal(await page.locator(".site-nav-social-pill").getAttribute("href"), "../#social-accounts", `${scope}: responsive social pill target`);
     if (item.locale === "en") {
@@ -1590,8 +1611,20 @@ async function mobileHeaderMatrix(browserType) {
     const errors = collectErrors(page);
     for (const item of HEADER_PAGES) {
       await page.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
-      await page.locator(".site-nav-social-pill").waitFor({ state: "visible" });
-      await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
+      const compact = item.type === "inquiry" && width <= 767;
+      await page.locator(compact ? ".site-nav-return-home" : ".site-nav-social-pill").waitFor({ state: "visible" });
+      if (!compact) await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
+      if (compact) {
+        await page.locator(".site-nav-mobile-menu > summary").click();
+        const entries = await page.locator(".site-nav-inquiry-extra").evaluateAll((links) => links.map((link) => ({
+          href: link.getAttribute("href"), height: link.getBoundingClientRect().height,
+          width: link.getBoundingClientRect().width, text: link.textContent.trim()
+        })));
+        assert.equal(entries.length, 2, `${item.locale}: compact inquiry menu destinations`);
+        assert(entries.every((entry) => entry.height >= 44 && entry.width > 0 && entry.text), `${item.locale}: compact inquiry menu entries must be visible and touch sized`);
+        assert(entries.some((entry) => entry.href === "../#social-accounts") && entries.some((entry) => entry.href === "../calculator/"), `${item.locale}: compact inquiry menu hrefs`);
+        await page.keyboard.press("Escape");
+      }
       const scope = `${item.locale} ${item.type} header ${width}x844`;
       const state = await pageState(page);
       assertShared(state, scope);
@@ -2135,8 +2168,8 @@ async function calculatorAnalyticsChecks(browserType) {
   await quoteLink.waitFor({ state: "visible" });
   await quoteLink.click();
   await page.waitForURL(`${BASE_URL}/inquiry/`);
-  assert.equal(await page.locator('[name="quantity"]').inputValue(), "1350", "calculator quantity was not transferred to inquiry");
-  assert((await page.locator('[name="note"]').inputValue()).includes("Total CBM"), "calculator summary was not transferred to inquiry notes");
+  assert.equal(await page.locator('[name="quantity"]').inputValue(), "1350 箱", "calculator quantity and carton unit were not transferred to inquiry");
+  assert((await page.locator('[name="note"]').inputValue()).includes("总体积"), "localized calculator summary was not transferred to inquiry notes");
   const prefillNotice = page.locator(".calculator-prefill-notice");
   await prefillNotice.waitFor({ state: "visible" });
   assert.equal(await prefillNotice.count(), 1, "calculator handoff notice count");

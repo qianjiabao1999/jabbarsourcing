@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-190" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-191" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011b" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -111,7 +111,7 @@
       }, true);
     </script>
   </head>
-  <body>
+  <body class="inquiry-page-compact">
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
         <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
@@ -153,6 +153,8 @@
           <a href="../#reviews">Отзывы</a>
           <a href="#contact">Контакты</a>
 
+          <a class="site-nav-inquiry-extra" href="../#social-accounts">Аккаунты в соцсетях</a>
+          <a class="site-nav-inquiry-extra" href="../calculator/">Объём</a>
         </nav>
       </details>
     </header>
@@ -167,10 +169,15 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">Расскажите, что хотите купить</h2>
-                <p>Укажите нужные товары и контактные данные. Количество, бюджет и другие необязательные сведения помогут подготовить более точное предложение.</p>
+                <p>Укажите товары и контакты; остальные сведения необязательны.</p>
                 <ul class="inquiry-trust-points"><li>Первый ответ — в течение 24 ч; предложение — за 24–48 ч</li><li>Пробный заказ от 1 000 USD</li><li>Подробная смета; без отдельной комиссии с покупателя</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="ru" data-inquiry-source="/ru/inquiry/" data-privacy-version="2026-07-22">
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="Не удалось удалить сохранённый черновик. Закройте эту вкладку, чтобы отказаться от него." data-draft-restored="Черновик восстановлен в этой вкладке." data-draft-cleared="Черновик и форма очищены." data-draft-expired="Срок хранения черновика истёк." data-draft-unavailable="Сохранение черновика недоступно. Не закрывайте страницу до завершения.">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">Черновик, включая контакты: только в этой вкладке, 30 минут. До отправки данные не передаются.</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>Удалить черновик</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                </div>
                 <label class="field field-wide">
                   <span>Нужные товары</span>
                   <input name="product" type="text" maxlength="300" required placeholder="Например: товары для дискаунтера, кухня, игрушки, хранение…" autocomplete="off" />
@@ -190,14 +197,14 @@
                     <label class="field">
                       <span>Категория</span>
                       <select name="category">
-                      <option value="">Выберите</option>
-                      <option value="Товары повседневного спроса">Товары повседневного спроса</option>
-                      <option value="Товары для дискаунтера">Товары для дискаунтера</option>
-                      <option value="Кухонные товары">Кухонные товары</option>
-                      <option value="Хранение для дома">Хранение для дома</option>
-                      <option value="Игрушки и подарки">Игрушки и подарки</option>
-                      <option value="Красота и уход">Красота и уход</option>
-                      <option value="Другое">Другое</option>
+                      <option data-draft-value="" value="">Выберите</option>
+                      <option data-draft-value="daily" value="Товары повседневного спроса">Товары повседневного спроса</option>
+                      <option data-draft-value="discount" value="Товары для дискаунтера">Товары для дискаунтера</option>
+                      <option data-draft-value="kitchenware" value="Кухонные товары">Кухонные товары</option>
+                      <option data-draft-value="storage" value="Хранение для дома">Хранение для дома</option>
+                      <option data-draft-value="toys" value="Игрушки и подарки">Игрушки и подарки</option>
+                      <option data-draft-value="beauty" value="Красота и уход">Красота и уход</option>
+                      <option data-draft-value="other" value="Другое">Другое</option>
                       </select>
                     </label>
                     <label class="field">
@@ -227,7 +234,7 @@
                 </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>Отправляя форму, вы подтверждаете ознакомление с <a href="/ru/website-privacy-policy.html#website-inquiries">Политикой конфиденциальности</a> и соглашаетесь на использование данных только для обработки запроса и ответа.</span>
+                    <span>Отправляя форму, вы подтверждаете ознакомление с <a href="/ru/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">Политикой конфиденциальности <small class="inquiry-privacy-window">(откроется в новом окне)</small></a> и соглашаетесь на использование данных только для обработки запроса и ответа.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="ru"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Отправить запрос</button>
@@ -355,6 +362,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011b" defer></script>
   </body>
 </html>

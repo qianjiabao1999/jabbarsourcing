@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-190" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-191" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261011a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261011b" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -111,7 +111,7 @@
       }, true);
     </script>
   </head>
-  <body>
+  <body class="inquiry-page-compact">
     <header class="site-nav" aria-label="Jabbar Sourcing navigation">
       <a class="site-nav-brand" href="../" aria-label="Jabbar Sourcing home">
         <img src="../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719" alt="" aria-hidden="true" width="64" height="64" decoding="async" loading="eager" fetchpriority="high" srcset="../../assets/jabbar-sourcing-mark-72.webp 72w, ../../assets/jabbar-sourcing-mark-transparent.webp?v=nav-20260719 180w" sizes="36px" />
@@ -153,6 +153,8 @@
           <a href="../#reviews">Reseñas</a>
           <a href="#contact">Contacto</a>
 
+          <a class="site-nav-inquiry-extra" href="../#social-accounts">Redes sociales</a>
+          <a class="site-nav-inquiry-extra" href="../calculator/">Volumen</a>
         </nav>
       </details>
     </header>
@@ -167,10 +169,15 @@
             <div class="inquiry-panel">
               <div class="inquiry-copy">
                 <h2 id="inquiry-title">Cuéntanos qué quieres comprar</h2>
-                <p>Empieza con los productos que buscas y tus datos de contacto. La cantidad, el presupuesto y otros datos opcionales nos ayudan a preparar una cotización más precisa.</p>
+                <p>Indica los productos y tu contacto; el resto es opcional.</p>
                 <ul class="inquiry-trust-points"><li>Primera respuesta en 24 h; cotización en 24–48 h</li><li>Pedidos de prueba desde USD 1.000</li><li>Cotización desglosada; sin comisión aparte al comprador</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="es" data-inquiry-source="/es/inquiry/" data-privacy-version="2026-07-22">
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="No se pudo borrar el borrador guardado. Cierra esta pestaña para descartarlo." data-draft-restored="Se ha restaurado tu borrador en esta pestaña." data-draft-cleared="Se han borrado el borrador y el formulario." data-draft-expired="El borrador guardado ha caducado." data-draft-unavailable="No se puede guardar el borrador. Mantén esta página abierta hasta terminar.">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">El borrador incluye tu contacto: solo en esta pestaña, 30 minutos. No se envía nada hasta que lo envíes.</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>Borrar borrador</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                </div>
                 <label class="field field-wide">
                   <span>Productos buscados</span>
                   <input name="product" type="text" maxlength="300" required placeholder="Ej. artículos de descuento, cocina, juguetes, organización…" autocomplete="off" />
@@ -190,14 +197,14 @@
                     <label class="field">
                       <span>Categoría</span>
                       <select name="category">
-                      <option value="">Seleccionar</option>
-                      <option value="Artículos diarios">Artículos diarios</option>
-                      <option value="Suministro para tiendas discount">Suministro para tiendas discount</option>
-                      <option value="Cocina">Cocina</option>
-                      <option value="Organización del hogar">Organización del hogar</option>
-                      <option value="Juguetes y regalos">Juguetes y regalos</option>
-                      <option value="Belleza y cuidado">Belleza y cuidado</option>
-                      <option value="Otro">Otro</option>
+                      <option data-draft-value="" value="">Seleccionar</option>
+                      <option data-draft-value="daily" value="Artículos diarios">Artículos diarios</option>
+                      <option data-draft-value="discount" value="Suministro para tiendas discount">Suministro para tiendas discount</option>
+                      <option data-draft-value="kitchenware" value="Cocina">Cocina</option>
+                      <option data-draft-value="storage" value="Organización del hogar">Organización del hogar</option>
+                      <option data-draft-value="toys" value="Juguetes y regalos">Juguetes y regalos</option>
+                      <option data-draft-value="beauty" value="Belleza y cuidado">Belleza y cuidado</option>
+                      <option data-draft-value="other" value="Otro">Otro</option>
                       </select>
                     </label>
                     <label class="field">
@@ -227,7 +234,7 @@
                 </details>
                 <div class="inquiry-direct-panel field-wide">
                   <p class="inquiry-privacy-notice">
-                    <span>Al enviar, confirmas la <a href="/es/website-privacy-policy.html#website-inquiries">Política de privacidad</a> y aceptas que usemos estos datos solo para gestionar y responder a tu solicitud.</span>
+                    <span>Al enviar, confirmas la <a href="/es/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">Política de privacidad <small class="inquiry-privacy-window">(se abre en otra ventana)</small></a> y aceptas que usemos estos datos solo para gestionar y responder a tu solicitud.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="es"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Enviar solicitud</button>
@@ -355,6 +362,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261011a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261011b" defer></script>
   </body>
 </html>

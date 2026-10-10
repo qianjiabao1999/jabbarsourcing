@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ORDER_VERSION = "order-20260722c";
-const CONTAINER_VERSION = "container-20261011a";
+const CONTAINER_VERSION = "container-20261011b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const localePath = (locale, suffix = "") => locale === "zh" ? `${suffix}index.html` : `${locale}/${suffix}index.html`;
 const load = (file) => readFile(resolve(ROOT, file), "utf8");
@@ -81,6 +81,8 @@ assert.doesNotMatch(loader, /IntersectionObserver/, "calculator-order-loader.js:
 assert.match(loader, new RegExp(`order-${ORDER_VERSION.replace(/^order-/, "")}`), "calculator-order-loader.js: order version mismatch");
 
 const containerVisual = await load("assets/container-visual.js");
+const styles = await load("styles.css");
+assert.match(styles, /\.sourcing-gallery\s*\{[^}]*content-visibility:\s*visible;[^}]*contain-intrinsic-size:\s*none;/, "styles.css: gallery placeholders must not displace first Safari anchor navigation");
 assert.match(containerVisual, new RegExp(CONTAINER_VERSION), "container-visual.js: container version mismatch");
 for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/container-cargo-stack-20260722e.webp"]) {
   const asset = await readFile(resolve(ROOT, file));

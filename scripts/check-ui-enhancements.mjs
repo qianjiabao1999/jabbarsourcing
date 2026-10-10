@@ -7,10 +7,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-190";
-const UI_VERSION = "ui-20261011a";
+const CSS_VERSION = "apple-191";
+const UI_VERSION = "ui-20261011b";
 const ORDER_VERSION = "order-20260722c";
-const CONTAINER_VERSION = "container-20261011a";
+const CONTAINER_VERSION = "container-20261011b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const SOCIAL_ACCOUNT_NAV_LABELS = {
   zh: "社媒账号",
@@ -440,7 +440,7 @@ for (const { locale, file } of CALCULATOR_PAGES) {
   }
   assert.match(html, /function\s+setTextWithMonoNumbers\s*\(element,\s*value\)/, `${file}: dynamic numeric wrapper helper missing`);
   assert.match(html, /setTextWithMonoNumbers\(out\.container,\s*container\)/, `${file}: dynamic container numbers are not wrapped`);
-  assert.match(html, /setTextWithMonoNumbers\(out\.summary,\s*container\s*\+/, `${file}: dynamic summary numbers are not wrapped`);
+  assert.match(html, /setTextWithMonoNumbers\(out\.summary,\s*containerLabel\s*\+\s*': '\s*\+\s*container\s*\+/, `${file}: dynamic summary numbers and buffer basis are not wrapped`);
   assert.equal(count(html, /window\.renderCbmVisual\(total\)/g), 1, `${file}: CBM visual hook count`);
   assert.equal(count(html, /["']jabbar:calc-result["']/g), 1, `${file}: calculator result bridge event count`);
   for (const detailField of ["message", "product", "quantity", "totalCbm", "bufferedCbm", "container"]) {
@@ -526,9 +526,18 @@ for (const { locale, file } of NAV_PAGES) {
   assert(html.indexOf(socialPillLinks[0][0]) < html.indexOf(toolLinks[0][0]), `${file}: social pill must precede volume tool`);
   const mobilePanels = regionsForClass(html, "nav", "site-nav-mobile-panel");
   assert.equal(mobilePanels.length, 1, `${file}: mobile navigation panel count`);
-  assert.doesNotMatch(mobilePanels[0], /href="(?:\.\/|[^\"]*calculator\/?)"/, `${file}: calculator link remains in mobile navigation`);
   assert.equal(countClass(mobilePanels[0], "site-nav-mobile-team"), 0, `${file}: social account remains in mobile navigation`);
-  assert.doesNotMatch(mobilePanels[0], /href="[^"]*#social-accounts"/, `${file}: duplicate social destination remains in mobile navigation`);
+  if (INQUIRY_PAGES.some((page) => page.file === file)) {
+    assert.match(html, /<body class="inquiry-page-compact">/, `${file}: compact inquiry page marker missing`);
+    const secondaryEntries = tagsWithClass(mobilePanels[0], "a", "site-nav-inquiry-extra");
+    assert.equal(secondaryEntries.length, 2, `${file}: compact inquiry must retain two secondary menu destinations`);
+    assert.deepEqual(secondaryEntries.map((entry) => attribute(entry[0], "href")).sort(), ["../#social-accounts", "../calculator/"], `${file}: compact inquiry menu routes regressed`);
+    assert.equal(count(mobilePanels[0], /href="[^"]*#social-accounts"/g), 1, `${file}: duplicate compact inquiry social destination`);
+    assert.equal(count(mobilePanels[0], /href="[^"]*calculator\/"/g), 1, `${file}: duplicate compact inquiry calculator destination`);
+  } else {
+    assert.doesNotMatch(mobilePanels[0], /href="(?:\.\/|[^\"]*calculator\/?)"/, `${file}: calculator link remains in mobile navigation`);
+    assert.doesNotMatch(mobilePanels[0], /href="[^"]*#social-accounts"/, `${file}: duplicate social destination remains in mobile navigation`);
+  }
   if (!INQUIRY_PAGES.some((page) => page.file === file)) {
     const desktopQuote = tagsWithClass(html, "a", "site-nav-quote-desktop");
     const actionQuote = tagsWithClass(html, "a", "site-nav-quote-action");
@@ -578,10 +587,10 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
   };
   const EXPECTED_LEGAL_LASTMOD = {
     [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-08-14",
-    [`${PUBLIC_ORIGIN}/website-privacy-policy.html`]: "2026-08-14",
+    [`${PUBLIC_ORIGIN}/website-privacy-policy.html`]: "2026-10-11",
     ...Object.fromEntries(LOCALES.filter((locale) => locale !== "zh").map((locale) => [
       `${PUBLIC_ORIGIN}/${locale}/website-privacy-policy.html`,
-      "2026-08-14"
+      "2026-10-11"
     ])),
     [`${PUBLIC_ORIGIN}/support.html`]: "2026-08-14"
   };

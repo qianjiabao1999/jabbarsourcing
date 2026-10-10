@@ -82,6 +82,8 @@ await mkdir(OUTPUT_DIR, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 await context.addInitScript(() => {
+  // 旧提交/校验场景按新文档隔离草稿；恢复行为由 qa-inquiry-draft 独立覆盖。
+  sessionStorage.removeItem("jabbarInquiryDraftV1");
   window.localStorage.setItem("jabbar.analyticsConsent.v1", "granted");
 });
 const apiResponses = [];
@@ -261,7 +263,9 @@ assert(quoteEvents.length === 1, `Homepage quote CTA must emit quote_click exact
 assert(quoteEvents[0].placement === "hero", "Homepage quote_click must retain its placement");
 assert(quoteEvents[0].landing_path === "/" && quoteEvents[0].utm_source === "google", "quote_click must include first-touch attribution");
 
-await page.goto(`${BASE_URL}/inquiry/`, { waitUntil: "domcontentloaded" });
+// 从不加载询盘初始化脚本的同源页面播种，模拟真实计算器交接；
+// 不能让旧询盘页的迟到 pageshow 提前消费下一页的预填。
+await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
 await page.evaluate(() => {
   sessionStorage.setItem("jabbarCalcResult", JSON.stringify({
     savedAt: Date.now(),
@@ -285,7 +289,15 @@ const freshDetailVisibility = await page.evaluate((fieldNames) => fieldNames.eve
 assert(freshDetailVisibility, "Calculator handoff must keep every order-detail field expanded and visible");
 await page.locator(".inquiry-additional-summary").click();
 assert(await page.locator("details.inquiry-additional-details[open]").count() === 0, "The buyer must still be able to collapse prefilled details");
+await page.waitForFunction(() => JSON.parse(sessionStorage.getItem("jabbarInquiryDraftV1") || "{}").detailsOpen === false);
 await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+assert(await page.locator("details.inquiry-additional-details[open]").count() === 0, "A saved buyer-collapsed disclosure must remain collapsed on pageshow");
+// 单独验证无草稿时浏览器恢复的补充字段仍会展开，不与买家已保存的折叠状态混淆。
+await openInquiry("/inquiry/");
+await page.evaluate(() => {
+  document.querySelector('[name="company"]').value = "QA browser-restored company";
+  window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+});
 assert(await page.locator("details.inquiry-additional-details[open]").count() === 1, "Browser-restored populated details must reopen");
 assert(
   (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
@@ -633,6 +645,11 @@ for (const viewport of [
         returnHomeHref: document.querySelector(".site-nav-return-home")?.getAttribute("href") || "",
         duplicateMobileHomeCount: document.querySelectorAll(".site-nav-mobile-home").length,
         mobileTeamCount: document.querySelectorAll(".site-nav-mobile-team").length,
+        mobileExtraEntries: Array.from(document.querySelectorAll(".site-nav-inquiry-extra"), (link) => ({
+          href: link.getAttribute("href"), text: link.textContent.trim(),
+          height: link.getBoundingClientRect().height, width: link.getBoundingClientRect().width
+        })),
+        headerHeight: document.querySelector(".site-nav").getBoundingClientRect().height,
         socialPillCount: document.querySelectorAll(".site-nav-social-pill").length,
         socialPillHref: socialPill?.getAttribute("href") || "",
         socialPillAriaLabel: socialPill?.getAttribute("aria-label") || "",
@@ -664,16 +681,16 @@ for (const viewport of [
     assert(metrics.submitEnabledAfterToken, `${item.locale} ${viewport.name} token callback did not enable submit`);
     assert(metrics.returnHomeCount === 1 && metrics.returnHomeHref === "../", `${item.locale} ${viewport.name} top Return Home control regressed`);
     assert(metrics.duplicateMobileHomeCount === 0, `${item.locale} ${viewport.name} duplicate Return Home remains in mobile menu`);
-    assert(metrics.mobileTeamCount === 0, `${item.locale} ${viewport.name} social account remains inside the mobile menu`);
+    assert(metrics.mobileTeamCount === 0, `${item.locale} ${viewport.name} legacy duplicate social entry remains`);
+    assert(metrics.mobileExtraEntries.length === 2, `${item.locale} ${viewport.name} compact inquiry menu destinations missing`);
     assert(metrics.socialPillCount === 1 && metrics.socialPillHref === "../#social-accounts", `${item.locale} ${viewport.name} responsive social pill target regressed`);
     assert(metrics.socialPillAriaLabel.length > 0, `${item.locale} ${viewport.name} responsive social pill has no accessible label`);
     assert(metrics.brokenImages === 0, `${item.locale} ${viewport.name} has ${metrics.brokenImages} broken loaded images`);
     if (viewport.name !== "desktop") {
-      assert(metrics.socialPillDisplay !== "none", `${item.locale} ${viewport.name} responsive social pill is hidden`);
-      const socialToolGap = metrics.dir === "rtl"
-        ? metrics.socialPillLeft - metrics.toolPillRight
-        : metrics.toolPillLeft - metrics.socialPillRight;
-      assert(socialToolGap >= -1 && socialToolGap <= 28, `${item.locale} ${viewport.name} social/tool visual gap ${socialToolGap}px is not adjacent or RTL-mirrored`);
+      assert(metrics.socialPillDisplay === "none", `${item.locale} ${viewport.name} secondary social action must move into menu`);
+      assert(metrics.headerHeight <= 76, `${item.locale} ${viewport.name} inquiry header is not compact`);
+      assert(metrics.mobileExtraEntries.every((entry) => entry.height >= 44 && entry.width > 0 && entry.text), `${item.locale} ${viewport.name} secondary menu entries are not visible/touch sized`);
+      assert(metrics.mobileExtraEntries.some((entry) => entry.href === "../#social-accounts") && metrics.mobileExtraEntries.some((entry) => entry.href === "../calculator/"), `${item.locale} ${viewport.name} secondary menu routes regressed`);
     } else {
       assert(metrics.socialPillDisplay === "none", `${item.locale} desktop responsive social pill remains visible`);
     }
@@ -714,7 +731,7 @@ for (const viewport of [
   assert(privacyMetrics.mentionsReferenceUrl, "Privacy policy must disclose the product reference URL field");
   assert(privacyMetrics.mentionsWorkersLogs, "Privacy policy must disclose the structured Workers Logs metric");
   assert(privacyMetrics.mentionsDecisionRetention, "Privacy policy must disclose the 30-day Decide later retention");
-  assert(privacyMetrics.updatedDate.includes("July 22, 2026"), "Privacy policy must display the current disclosure date");
+  assert(privacyMetrics.updatedDate.includes("October 11, 2026"), "Privacy policy must display the current disclosure date");
   assert(privacyMetrics.title === "Jabbar Sourcing Website Inquiry Privacy Notice", "Privacy page title must cover public website inquiries");
 
   await page.goto(`${BASE_URL}/privacy-policy.html#website-inquiries`, { waitUntil: "domcontentloaded" });
@@ -739,14 +756,14 @@ for (const policy of [
   {
     locale: "en",
     path: "/en/website-privacy-policy.html",
-    date: "July 22, 2026",
+    date: "October 11, 2026",
     later: "Decide later choice is stored for up to 30 days",
     rtl: false
   },
   {
     locale: "ar",
     path: "/ar/website-privacy-policy.html",
-    date: "22 يوليو 2026",
+    date: "11 أكتوبر 2026",
     later: "القرار لاحقاً» لمدة تصل إلى 30 يوماً",
     rtl: true
   }

@@ -15,6 +15,8 @@
 
   var CALCULATOR_RESULT_KEY = "jabbarCalcResult";
   var CALCULATOR_RESULT_MAX_AGE = 2 * 60 * 60 * 1000;
+  var DRAFT_KEY = "jabbarInquiryDraftV1";
+  var DRAFT_MAX_AGE = 30 * 60 * 1000;
   var ATTRIBUTION_KEY = "jabbarAttributionV1";
   var ATTRIBUTION_FIELDS = [
     "landing_path",
@@ -375,6 +377,18 @@
     var formStarted = false;
     var nativeValidationTracked = false;
     var attribution = sanitizeAttribution(window.jabbarCaptureAttribution());
+    var additionalDetails = form.querySelector(".inquiry-additional-details");
+    var draftPanel = form.querySelector(".inquiry-draft-panel");
+    var draftNotice = form.querySelector(".inquiry-draft-notice");
+    var draftClearButton = form.querySelector(".inquiry-draft-clear");
+    var draftFeedback = form.querySelector(".inquiry-draft-feedback");
+    var draftNoticeText = draftNotice ? draftNotice.textContent : "";
+    var draftLastSignature = "";
+    var draftLastSavedAt = 0;
+    var draftStorageReadable = true;
+    var draftRemovalPending = false;
+    var draftExpiryTimer = null;
+    var calculatorPrefilledFields = {};
 
     if (!directButton || !turnstileElement || !endpoint || !sourcePath || !privacyVersion) {
       return;
@@ -463,6 +477,7 @@
 
     function consumeCalculatorResult() {
       var raw = null;
+      calculatorPrefilledFields = {};
       try {
         raw = window.sessionStorage.getItem(CALCULATOR_RESULT_KEY);
         if (!raw) return;
@@ -482,12 +497,14 @@
         ["product", "quantity", "note"].forEach(function (name) {
           var field = form.elements[name];
           var value = typeof values[name] === "string" ? values[name].trim() : "";
-          if (!field || !value || String(field.value || "").trim()) return;
+          if (!field || !value) return;
           var maximum = Number(field.getAttribute("maxlength"));
           field.value = Number.isFinite(maximum) && maximum > 0 ? value.slice(0, maximum) : value;
+          calculatorPrefilledFields[name] = true;
           prefilled = true;
         });
         if (prefilled) form.setAttribute("data-calculator-prefill", "true");
+        return prefilled;
       } catch (error) {
       } finally {
         if (raw !== null) {
@@ -496,9 +513,226 @@
       }
     }
 
-    consumeCalculatorResult();
-    revealPopulatedDetails();
-    window.addEventListener("pageshow", revealPopulatedDetails);
+    function draftFieldValue(field) {
+      if (!field) return "";
+      if (field.name === "category" && field.tagName === "SELECT") {
+        var option = field.options[field.selectedIndex];
+        return option ? String(option.getAttribute("data-draft-value") || "") : "";
+      }
+      return String(field.value || "");
+    }
+
+    function draftFields() {
+      var values = {};
+      FIELD_NAMES.forEach(function (name) {
+        var field = form.elements[name];
+        values[name] = draftFieldValue(field);
+      });
+      return values;
+    }
+
+    function hasDraftContent(values) {
+      return FIELD_NAMES.some(function (name) { return Boolean(String(values[name] || "").trim()); });
+    }
+
+    function draftSignature(values, detailsOpen) {
+      return JSON.stringify({ fields: values, detailsOpen: Boolean(detailsOpen) });
+    }
+
+    function showDraftFeedback(kind) {
+      if (!draftFeedback || !draftPanel) return;
+      draftFeedback.textContent = draftPanel.getAttribute("data-draft-" + kind) || "";
+      draftFeedback.hidden = !draftFeedback.textContent;
+    }
+
+    function draftStorageUnavailable() {
+      draftStorageReadable = false;
+      if (draftNotice && draftPanel) draftNotice.textContent = draftPanel.getAttribute("data-draft-unavailable") || "";
+      if (draftFeedback) draftFeedback.hidden = true;
+    }
+
+    function updateDraftControls() {
+      if (draftClearButton) draftClearButton.hidden = !hasDraftContent(draftFields());
+    }
+
+    function removeDraft() {
+      window.clearTimeout(draftExpiryTimer);
+      draftExpiryTimer = null;
+      try {
+        window.sessionStorage.removeItem(DRAFT_KEY);
+        draftRemovalPending = false;
+        return true;
+      } catch (error) {
+        draftRemovalPending = true;
+        draftStorageUnavailable();
+        return false;
+      }
+    }
+
+    function scheduleDraftExpiry(savedAt) {
+      window.clearTimeout(draftExpiryTimer);
+      draftExpiryTimer = window.setTimeout(function () {
+        try {
+          var current = JSON.parse(window.sessionStorage.getItem(DRAFT_KEY));
+          if (!current || Number(current.savedAt) !== savedAt) return;
+        } catch (error) { draftStorageUnavailable(); return; }
+        removeDraft();
+        draftLastSavedAt = 0;
+        // 只删除过期的存储副本，不突然擦除用户正在编辑的表单。
+        draftLastSignature = draftSignature(draftFields(), additionalDetails && additionalDetails.open);
+        showDraftFeedback("expired");
+      }, Math.max(0, savedAt + DRAFT_MAX_AGE - Date.now()));
+    }
+
+    function readDraft() {
+      try {
+        if (draftRemovalPending && !removeDraft()) return null;
+        var raw = window.sessionStorage.getItem(DRAFT_KEY);
+        draftStorageReadable = true;
+        if (!raw) return null;
+        var record = JSON.parse(raw);
+        var age = Date.now() - Number(record && record.savedAt);
+        if (!record || record.version !== 1 || !Number.isFinite(age) || age < 0
+            || age >= DRAFT_MAX_AGE || !record.fields || typeof record.fields !== "object") {
+          removeDraft();
+          if (Number.isFinite(age) && age >= DRAFT_MAX_AGE) showDraftFeedback("expired");
+          return null;
+        }
+        var fields = {};
+        FIELD_NAMES.forEach(function (name) {
+          var field = form.elements[name];
+          var value = typeof record.fields[name] === "string" ? record.fields[name] : "";
+          var maximum = field ? Number(field.getAttribute("maxlength")) : 0;
+          if (maximum > 0) value = value.slice(0, maximum);
+          if (field && field.tagName === "SELECT" && !Array.prototype.some.call(field.options, function (option) { return option.getAttribute("data-draft-value") === value; })) value = "";
+          fields[name] = value;
+        });
+        if (!hasDraftContent(fields)) {
+          removeDraft();
+          return null;
+        }
+        return { fields: fields, detailsOpen: record.detailsOpen === true, savedAt: Number(record.savedAt) };
+      } catch (error) {
+        // 损坏的草稿或禁用存储不影响表单、原生校验和安全提交。
+        removeDraft();
+        draftStorageUnavailable();
+        return null;
+      }
+    }
+
+    function saveDraft() {
+      if (!draftPanel) return;
+      // 删除失败时保留内存重试标记；可访问后先删除旧副本，不让它复活。
+      if (draftRemovalPending && !removeDraft()) {
+        updateDraftControls();
+        return;
+      }
+      var fields = draftFields();
+      var detailsOpen = Boolean(additionalDetails && additionalDetails.open);
+      var signature = draftSignature(fields, detailsOpen);
+      updateDraftControls();
+      if (signature === draftLastSignature) return;
+      draftLastSignature = signature;
+      if (!hasDraftContent(fields)) {
+        removeDraft();
+        form.removeAttribute("data-calculator-prefill");
+        draftLastSavedAt = 0;
+        return;
+      }
+      try {
+        var savedAt = Date.now();
+        // 仅允许九个业务字段；不保存 token、同意状态、隐藏字段或提交标识。
+        window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ version: 1, savedAt: savedAt, detailsOpen: detailsOpen, fields: fields }));
+        draftLastSavedAt = savedAt;
+        if (draftNotice) draftNotice.textContent = draftNoticeText;
+        if (draftFeedback) draftFeedback.hidden = true;
+        scheduleDraftExpiry(savedAt);
+      } catch (error) { draftStorageUnavailable(); }
+    }
+
+    function restoreInquiryContext() {
+      var calculatorPrefilled = consumeCalculatorResult();
+      var previousSavedAt = draftLastSavedAt;
+      var record = draftPanel ? readDraft() : null;
+      var browserRestoredDetails = false;
+      if (record) {
+        var newerDraft = previousSavedAt > 0 && record.savedAt > previousSavedAt;
+        FIELD_NAMES.forEach(function (name) {
+          var field = form.elements[name];
+          if (!field || calculatorPrefilledFields[name]) return;
+          // 保留浏览器已恢复或用户正在编辑的值；草稿补齐未恢复的字段。
+          if (!newerDraft && String(field.value || "").trim()) {
+            if (draftFieldValue(field) !== record.fields[name] && field.closest(".inquiry-additional-details")) browserRestoredDetails = true;
+          } else {
+            if (field.tagName === "SELECT") {
+              Array.prototype.some.call(field.options, function (option) {
+                if (option.getAttribute("data-draft-value") !== record.fields[name]) return false;
+                field.value = option.value;
+                return true;
+              });
+            } else {
+              field.value = record.fields[name];
+            }
+          }
+        });
+        if (additionalDetails) additionalDetails.open = record.detailsOpen;
+        draftLastSignature = draftSignature(record.fields, record.detailsOpen);
+        draftLastSavedAt = record.savedAt;
+        scheduleDraftExpiry(record.savedAt);
+        showDraftFeedback("restored");
+      } else {
+        // 同标签页另一语言已清除/过期：BFCache 的旧表单不得复活该草稿。
+        if (draftStorageReadable && previousSavedAt > 0) {
+          FIELD_NAMES.forEach(function (name) {
+            if (form.elements[name] && !calculatorPrefilledFields[name]) form.elements[name].value = "";
+          });
+          if (additionalDetails) additionalDetails.open = false;
+          if (!calculatorPrefilled) form.removeAttribute("data-calculator-prefill");
+          draftLastSavedAt = 0;
+          if (draftFeedback && draftFeedback.hidden) showDraftFeedback("cleared");
+        }
+        revealPopulatedDetails();
+        draftLastSignature = draftSignature(draftFields(), additionalDetails && additionalDetails.open);
+      }
+      if (calculatorPrefilled) {
+        revealPopulatedDetails();
+        // 新计算器预填优先于旧草稿，且写回同一标签页的最新副本。
+        draftLastSignature = "";
+        saveDraft();
+      }
+      if (browserRestoredDetails) {
+        revealPopulatedDetails();
+        saveDraft();
+      }
+      updateDraftControls();
+    }
+
+    if (draftPanel) {
+      draftPanel.hidden = false;
+      if (additionalDetails) additionalDetails.addEventListener("toggle", saveDraft);
+      window.addEventListener("pagehide", saveDraft);
+      if (draftClearButton) draftClearButton.addEventListener("click", function () {
+        FIELD_NAMES.forEach(function (name) {
+          if (form.elements[name]) form.elements[name].value = "";
+        });
+        if (additionalDetails) additionalDetails.open = false;
+        form.removeAttribute("data-calculator-prefill");
+        currentSubmissionId = "";
+        var draftRemoved = removeDraft();
+        draftLastSavedAt = 0;
+        draftLastSignature = draftSignature(draftFields(), false);
+        updateDraftControls();
+        setStatus("", "");
+        showDraftFeedback(draftRemoved ? "cleared" : "delete-failed");
+        var firstField = form.elements.product;
+        if (firstField) {
+          try { firstField.focus({ preventScroll: true }); } catch (error) { firstField.focus(); }
+          firstField.scrollIntoView({ block: "nearest", behavior: "auto" });
+        }
+      });
+    }
+    restoreInquiryContext();
+    window.addEventListener("pageshow", restoreInquiryContext);
 
     decorateFieldLabels();
 
@@ -584,6 +818,7 @@
 
     function setSubmitting(value) {
       submitting = value;
+      if (draftClearButton) draftClearButton.disabled = value;
       directButton.disabled = value || !turnstileToken;
       directButton.setAttribute("aria-busy", value ? "true" : "false");
       directButton.textContent = value ? messages.sendingLabel : directButtonLabel;
@@ -634,7 +869,22 @@
     }
 
     function completeSubmission(message, submittedContentKey, statusCode, startedAt, submissionId) {
-      if (!submittedContentKey || contentKey() === submittedContentKey) form.reset();
+      var hasNewEdits = Boolean(submittedContentKey && contentKey() !== submittedContentKey);
+      if (!hasNewEdits) {
+        form.reset();
+        form.removeAttribute("data-calculator-prefill");
+      }
+      var submittedDraftRemoved = removeDraft();
+      draftLastSavedAt = 0;
+      // 仅清除已提交副本；请求期间的新输入仍是未提交草稿，不能丢失。
+      draftLastSignature = hasNewEdits ? "" : draftSignature(draftFields(), additionalDetails && additionalDetails.open);
+      if (hasNewEdits) saveDraft();
+      updateDraftControls();
+      if (submittedDraftRemoved) {
+        if (draftFeedback) draftFeedback.hidden = true;
+      } else {
+        showDraftFeedback("delete-failed");
+      }
       currentSubmissionId = "";
       resetTurnstile();
       setStatus(message, "success", { reference: String(submissionId || "").slice(0, 8) });
@@ -656,12 +906,14 @@
       if (!field) return;
       field.addEventListener("input", function () {
         revealFieldDetails(field);
+        saveDraft();
         markFormStart();
         if (!submitting) currentSubmissionId = "";
         setStatus("", "");
       });
       field.addEventListener("change", function () {
         revealFieldDetails(field);
+        saveDraft();
         markFormStart();
         if (!submitting) currentSubmissionId = "";
         setStatus("", "");

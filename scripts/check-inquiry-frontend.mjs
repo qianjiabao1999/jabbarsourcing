@@ -9,9 +9,9 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-22";
-const CSS_VERSION = "apple-190";
+const CSS_VERSION = "apple-191";
 const CONSENT_VERSION = "consent-20260722a";
-const JS_VERSION = "inquiry-20261011a";
+const JS_VERSION = "inquiry-20261011b";
 
 const PAGES = [
   { file: "inquiry/index.html", locale: "zh", source: "/inquiry/" },
@@ -170,7 +170,10 @@ function checkSharedJavascript(source) {
     ["non-disruptive status focus guard", "var mayMoveFocus"],
     ["localized optional field labels", "OPTIONAL_LABELS"],
     ["prefilled detail disclosure", "revealPopulatedDetails();"],
-    ["restored detail disclosure", 'window.addEventListener("pageshow", revealPopulatedDetails)'],
+    ["restored form context", 'window.addEventListener("pageshow", restoreInquiryContext)'],
+    ["restored detail disclosure", "function restoreInquiryContext()"],
+    ["temporary draft lifetime", "var DRAFT_MAX_AGE = 30 * 60 * 1000"],
+    ["temporary draft storage", "window.sessionStorage.setItem(DRAFT_KEY"],
     ["invalid-field detail disclosure", "revealFieldDetails(event.target)"],
     ["hidden invalid-field focus guard", "wasClosed && field === firstInvalid"],
     ["deferred invalid-field focus", "field.focus({ preventScroll: true })"],
@@ -577,7 +580,9 @@ if (!websitePrivacy.includes("Google Analytics 4") ||
     !websitePrivacy.includes("first landing-page path") ||
     !websitePrivacy.includes("product reference URL") ||
     !websitePrivacy.includes("Analytics settings") ||
-    !websitePrivacy.includes("July 22, 2026") ||
+    !websitePrivacy.includes("October 11, 2026") ||
+    !websitePrivacy.includes("data-inquiry-draft-notice") ||
+    !websitePrivacy.includes("sessionStorage") ||
     !websitePrivacy.includes("Cloudflare Workers Logs") ||
     !websitePrivacy.includes("Decide later choice is stored for up to 30 days")) {
   fail("website-privacy-policy.html", "website inquiry, attribution, or consent disclosure is incomplete");
