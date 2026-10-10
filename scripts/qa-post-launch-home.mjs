@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
+const ONLY_RACE_QA = process.env.ONLY_RACE_QA === "1";
 const locales = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const homePath = (locale) => locale === "zh" ? "/" : `/${locale}/`;
 
@@ -11,6 +12,42 @@ async function contextFor(browser, width) {
   // 本地验证不加载第三方统计，也不提交表单。
   await context.route(/https:\/\/(?:www\.googletagmanager\.com|www\.google-analytics\.com|www\.clarity\.ms|c\.clarity\.ms)\//, route => route.abort());
   return context;
+}
+
+async function waitForScrollSettled(page, scope) {
+  // 仅观察真实滚动，不发起或取消滚动；动画或布局持续不稳定必须明确失败。
+  const state = await page.evaluate(() => new Promise(resolve => {
+    const started = performance.now();
+    let lastY = scrollY;
+    let stableSince = started;
+    let frame;
+    const finish = settled => {
+      clearTimeout(timeout);
+      cancelAnimationFrame(frame);
+      resolve({ settled, y: scrollY, elapsed: performance.now() - started });
+    };
+    const timeout = setTimeout(() => finish(false), 8000);
+    const sample = now => {
+      if (Math.abs(scrollY - lastY) > 0.25) {
+        lastY = scrollY;
+        stableSince = now;
+      }
+      if (now - stableSince >= 180) finish(true);
+      else frame = requestAnimationFrame(sample);
+    };
+    frame = requestAnimationFrame(sample);
+  }));
+  assert(state.settled, `${scope}: 滚动在 8 秒内未稳定 ${JSON.stringify(state)}`);
+}
+
+async function sectionPosition(page, id) {
+  return page.evaluate(id => {
+    const section = document.getElementById(id);
+    const label = [...section.querySelectorAll(".section-code,h1,h2")].find(element => element.getBoundingClientRect().height > 0)
+      || section.querySelector("a,button") || section;
+    const box = label.getBoundingClientRect();
+    return { headerBottom: document.querySelector(".site-nav").getBoundingClientRect().bottom, top: box.top, bottom: box.bottom, viewport: innerHeight };
+  }, id);
 }
 
 async function homeChecks(browser, engine, locale, width) {
@@ -79,17 +116,14 @@ async function homeChecks(browser, engine, locale, width) {
     if (["zh", "en", "ar"].includes(locale)) {
       // 保留章节的语言切换须真正可读，不能只验证 URL 有 hash。
       for (const id of ["team", "services", "how-it-works", "reviews", "faq", "social-accounts", "contact"]) {
-        const heading = await page.evaluate(async (id) => {
+        await page.evaluate(id => {
           const section = document.getElementById(id);
           document.documentElement.style.scrollBehavior = "auto";
           location.hash = id;
           section.scrollIntoView({ block: "start", behavior: "instant" });
-          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-          const label = [...section.querySelectorAll(".section-code,h1,h2")].find(element => element.getBoundingClientRect().height > 0)
-            || section.querySelector("a,button") || section;
-          const box = label?.getBoundingClientRect();
-          return { headerBottom: document.querySelector(".site-nav").getBoundingClientRect().bottom, top: box?.top, bottom: box?.bottom, viewport: innerHeight };
         }, id);
+        await waitForScrollSettled(page, `${scope}/#${id}`);
+        const heading = await sectionPosition(page, id);
         assert(heading.top >= heading.headerBottom + 15 && heading.bottom <= heading.viewport, `${scope}/#${id}: 章节编号或标题必须可见且不被导航遮挡 ${JSON.stringify(heading)}`);
       }
     }
@@ -176,6 +210,7 @@ async function firstAnchorChecks(browser, engine, locale, width) {
         return box.top >= document.querySelector(".site-nav").getBoundingClientRect().bottom + 15 && box.bottom <= innerHeight;
       }, undefined, { timeout: 10000 });
       await page.waitForTimeout(700);
+      await waitForScrollSettled(page, scope);
       const position = await page.evaluate(() => {
         const code = document.querySelector("#how-it-works .section-code").getBoundingClientRect();
         return { top: code.top, bottom: code.bottom, header: document.querySelector(".site-nav").getBoundingClientRect().bottom, height: innerHeight };
@@ -185,15 +220,69 @@ async function firstAnchorChecks(browser, engine, locale, width) {
   }
 }
 
+async function faqNavigationRaceChecks(browser, engine, locale, width) {
+  for (const initialHash of ["", "#team"]) {
+    // 每条竞争路径使用新页面；普通动画保留，成立年份测试不受影响。
+    const context = await contextFor(browser, width);
+    const page = await context.newPage();
+    const scope = `${engine}/${locale}/${width}/FAQ→team/${initialHash ? "same-hash" : "new-hash"}`;
+    const posts = [];
+    page.on("request", request => { if (request.method() === "POST") posts.push(request.url()); });
+    await context.route("https://inquiry-api.jabbarsourcing.com/**", route => route.abort());
+    try {
+      await page.goto(BASE_URL + homePath(locale) + initialHash, { waitUntil: "networkidle" });
+      await page.locator(".faq-quick-tag").nth(8).waitFor({ state: "attached" });
+      await page.evaluate(() => document.fonts.ready);
+      await page.locator("#faq").scrollIntoViewIfNeeded();
+      await waitForScrollSettled(page, `${scope}/before-click`);
+      const held = await page.evaluate(() => {
+        const original = window.requestAnimationFrame;
+        const callbacks = [];
+        // 只控制同步 click 中排队的 FAQ 回调；立即恢复浏览器的原 rAF。
+        window.requestAnimationFrame = callback => { callbacks.push(callback); return -callbacks.length; };
+        try { document.querySelectorAll(".faq-quick-tag")[8].click(); }
+        finally { window.requestAnimationFrame = original; }
+        window.__releaseFaqScroll = () => {
+          callbacks.forEach(callback => callback(performance.now()));
+          delete window.__releaseFaqScroll;
+        };
+        return { count: callbacks.length, restored: window.requestAnimationFrame === original };
+      });
+      assert.equal(held.count, 1, `${scope}: 必须恰好捕获真实 FAQ 滚动回调`);
+      assert(held.restored, `${scope}: 同步点击后必须立即恢复原 rAF`);
+      await page.waitForFunction(() => document.querySelectorAll(".faq-quick-tag")[8].getAttribute("aria-expanded") === "true");
+      assert.equal(await page.locator(".faq-item:not([hidden])[open]").count(), 1, `${scope}: 真实第九项答案保持打开`);
+      assert.equal(await page.locator("#faq-item-9").evaluate(element => element.open && !element.hidden), true, `${scope}: 答案没有被测试替换`);
+      await page.evaluate(() => {
+        document.documentElement.style.scrollBehavior = "auto";
+        location.hash = "team";
+        document.getElementById("team").scrollIntoView({ block: "start", behavior: "instant" });
+        window.__releaseFaqScroll();
+      });
+      await waitForScrollSettled(page, scope);
+      const heading = await sectionPosition(page, "team");
+      assert(heading.top >= heading.headerBottom + 15 && heading.bottom <= heading.viewport, `${scope}: 迟到的 FAQ 回调不能覆盖新的章节导航 ${JSON.stringify(heading)}`);
+      assert.equal(await page.evaluate(() => location.hash), "#team", `${scope}: 新章节 hash 必须保留`);
+      assert.deepEqual(posts, [], `${scope}: 不得发送任何 POST`);
+      console.log(`${scope}: 章节保持可见，零 POST`);
+    } finally { await context.close(); }
+  }
+}
+
 for (const [engine, browserType] of [["Chromium", chromium], ["WebKit", webkit]]) {
   const browser = await browserType.launch();
   try {
-    const selectedLocales = engine === "Chromium" ? locales : ["zh", "en", "ar"];
-    for (const locale of selectedLocales) for (const width of [320, 390, 1440]) await homeChecks(browser, engine, locale, width);
-    for (const width of [390, 1440]) await languageChecks(browser, engine, width);
-    for (const locale of ["zh", "en", "ar"]) for (const width of [320, 390, 1440]) await firstAnchorChecks(browser, engine, locale, width);
+    if (!ONLY_RACE_QA) {
+      const selectedLocales = engine === "Chromium" ? locales : ["zh", "en", "ar"];
+      for (const locale of selectedLocales) for (const width of [320, 390, 1440]) await homeChecks(browser, engine, locale, width);
+      for (const width of [390, 1440]) await languageChecks(browser, engine, width);
+      for (const locale of ["zh", "en", "ar"]) for (const width of [320, 390, 1440]) await firstAnchorChecks(browser, engine, locale, width);
+    }
+    for (const locale of ["zh", "en", "ar"]) for (const width of [390, 1440]) await faqNavigationRaceChecks(browser, engine, locale, width);
   } finally {
     await browser.close();
   }
 }
-console.log("上线后回归通过：39 个首页组合、126 个章节留白检查、26 个询盘窄屏导航组合、36 条首次自然锚点路径；FAQ 九项、数字继承、静态年份和 4 组语言路由检查。");
+console.log(ONLY_RACE_QA
+  ? "FAQ 导航竞争专项通过：12 个语言/尺寸/引擎组合，24 条新 hash/同 hash 路径，零 POST。"
+  : "上线后回归通过：39 个首页组合、126 个章节留白检查、26 个询盘窄屏导航组合、36 条首次自然锚点路径；FAQ 九项、数字继承、静态年份和 4 组语言路由检查；另有 12 个组合/24 条 FAQ 导航竞争路径，零 POST。");

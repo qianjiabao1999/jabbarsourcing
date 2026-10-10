@@ -1003,8 +1003,9 @@
           other.hidden = !selected;
           other.open = selected;
         });
+        var position = window.location.hash + ":" + window.scrollY;
         window.requestAnimationFrame(function () {
-          item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
+          if (window.location.hash + ":" + window.scrollY === position) item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
         });
         var summary = item.querySelector("summary");
         summary.classList.remove("faq-summary-flash");

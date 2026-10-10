@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CSS_VERSION = "apple-191";
-const UI_VERSION = "ui-20261011b";
+const UI_VERSION = "ui-20261011c";
 const ORDER_VERSION = "order-20260722c";
 const CONTAINER_VERSION = "container-20261011b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
