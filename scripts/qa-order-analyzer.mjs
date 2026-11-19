@@ -39,7 +39,13 @@ function near(actual, expected, tolerance, label) {
 
 function collectErrors(page) {
   const errors = [];
-  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    const resource = message.location().url;
+    const address = resource ? new URL(resource, BASE_URL) : null;
+    const source = address?.origin === new URL(BASE_URL).origin ? address.pathname : address?.origin;
+    errors.push(source ? `${message.text()} (${source})` : message.text());
+  });
   page.on("pageerror", (error) => errors.push(error.message));
   return errors;
 }
@@ -1532,6 +1538,19 @@ try {
 
   const bridgePage = await context.newPage();
   const bridgeErrors = collectErrors(bridgePage);
+  const bridgePosts = [];
+  // The calculator handoff has no dependency on a real Cloudflare challenge.
+  // This fixture never provides a token; verification has its own browser QA.
+  await bridgePage.route("https://challenges.cloudflare.com/turnstile/v0/api.js*", (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: 'window.turnstile={render:function(){return "excel-bridge-fixture"},reset:function(){},remove:function(){},getResponse:function(){return ""}};'
+  }));
+  await bridgePage.route("**/*", (route) => {
+    const request = route.request();
+    if (request.method() !== "POST") return route.fallback();
+    bridgePosts.push(new URL(request.url()).pathname);
+    return route.abort();
+  });
   await bridgePage.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
   for (const [field, value] of [["length", "50"], ["width", "40"], ["height", "30"], ["qty", "100"]]) {
     await bridgePage.locator(`#${field}`).fill(value);
@@ -1594,6 +1613,8 @@ try {
   await bridgePage.locator(".calculator-prefill-edit").click();
   assert.equal(await bridgePage.locator('[name="quantity"]').isVisible(), true, "Excel inquiry quantity cannot be reviewed");
   assert.equal(await bridgePage.locator('[name="note"]').isVisible(), true, "Excel inquiry note cannot be reviewed");
+  assert.equal(await bridgePage.locator(".js-inquiry-direct").isDisabled(), true, "Excel handoff must not bypass inquiry verification");
+  assert.deepEqual(bridgePosts, [], "Excel inquiry handoff must not submit a request");
   assert.deepEqual(bridgeErrors, [], `Excel inquiry bridge console errors: ${bridgeErrors.join(" | ")}`);
   await bridgePage.close();
   assert.deepEqual(errors, [], `Chinese calculator console errors: ${errors.join(" | ")}`);
