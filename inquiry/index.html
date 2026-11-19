@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../styles.min.css?v=apple-193" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-192" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261120a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261119a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -168,11 +168,16 @@
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
-                <h2 id="inquiry-title">获取采购报价</h2>
-                <p>只需填写产品和联系方式。</p>
-                <ul class="inquiry-trust-points"><li>24 小时内首次回复，24–48 小时完整报价</li></ul>
+                <h2 id="inquiry-title">告诉我们你想采购什么</h2>
+                <p>填写产品和联系方式即可，其他信息可选。</p>
+                <ul class="inquiry-trust-points"><li>24 小时内首次回复，24–48 小时完整报价</li><li>试单 USD 1,000 起</li><li>明细报价，不单独向买家收取佣金</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="zh" data-inquiry-source="/inquiry/" data-privacy-version="2026-07-22">
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="无法删除已保存的草稿；请关闭此标签页以丢弃它。" data-draft-restored="已恢复此标签页的草稿。" data-draft-cleared="草稿和表单已清除。" data-draft-expired="已保存的草稿已过期。" data-draft-unavailable="无法保存草稿。完成前请保持此页面打开。">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">草稿含联系方式，仅在此标签页保留30分钟；提交前不会发送。</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>清除草稿</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                </div>
                 <label class="field field-wide">
                   <span>想采购的产品</span>
                   <input name="product" type="text" maxlength="300" required placeholder="例如：一元店百货、厨房用品、玩具、收纳用品…" autocomplete="off" />
@@ -181,14 +186,14 @@
                   <span>联系方式</span>
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp / 邮箱 / 微信号" autocomplete="on" />
                 </label>
+                <label class="field field-wide">
+                  <span>产品参考链接（Alibaba / Amazon / TikTok）</span>
+                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="仅接受 http:// 或 https:// 链接" />
+                </label>
+                <p class="inquiry-attachment-note field-wide">表单仅接收文字和链接。提交后，请通过<a href="#contact">联系区的 WhatsApp</a>补发图片或 Excel 清单，并附上询盘编号。</p>
                 <details class="inquiry-additional-details field-wide">
                   <summary class="inquiry-additional-summary"><span>补充详情，便于准确报价</span><small>可选</small></summary>
                   <div class="inquiry-additional-fields">
-                    <label class="field field-wide">
-                      <span id="inquiry-reference-label">产品参考链接（Alibaba / Amazon / TikTok）</span>
-                      <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-hint" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="仅接受 http:// 或 https:// 链接" />
-                      <small class="inquiry-field-hint" id="inquiry-reference-hint">请粘贴以 https:// 或 http:// 开头的完整链接。</small>
-                    </label>
                     <label class="field">
                       <span>产品方向</span>
                       <select name="category">
@@ -225,8 +230,6 @@
                       <span>补充说明</span>
                       <textarea name="note" rows="3" maxlength="1500" placeholder="颜色、包装、交期及其他要求…"></textarea>
                     </label>
-                    <ul class="inquiry-trust-points inquiry-trust-points-extra field-wide"><li>试单 USD 1,000 起</li><li>明细报价，不单独向买家收取佣金</li></ul>
-                    <p class="inquiry-attachment-note field-wide">表单仅接收文字和链接。提交后，请通过<a href="#contact">联系区的 WhatsApp</a>补发图片或 Excel 清单，并附上询盘编号。</p>
                   </div>
                 </details>
                 <div class="inquiry-direct-panel field-wide">
@@ -234,13 +237,8 @@
                     <span>提交即表示你已阅读《<a href="/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">隐私政策 <small class="inquiry-privacy-window">(新窗口打开)</small></a>》，并同意我们仅使用这些信息处理和回复本次询盘。</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="zh-cn"></div>
-                  <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">提交询盘</button>
-                </div>
-                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="无法删除已保存的草稿；请关闭此标签页以丢弃它。" data-draft-restored="已恢复此标签页的草稿。" data-draft-cleared="草稿和表单已清除。" data-draft-expired="已保存的草稿已过期。" data-draft-unavailable="无法保存草稿。完成前请保持此页面打开。">
-                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">草稿含联系方式，仅在此标签页保留30分钟；提交前不会发送。</p>
-                  <button type="button" class="inquiry-draft-clear" hidden>清除草稿</button>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                  <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
                 </div>
               </form>
             </div>
@@ -364,6 +362,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261120a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261119a" defer></script>
   </body>
 </html>

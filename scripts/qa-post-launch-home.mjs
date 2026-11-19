@@ -3,12 +3,11 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const ONLY_RACE_QA = process.env.ONLY_RACE_QA === "1";
-const ONLY_SHORT_HOME_QA = process.env.ONLY_SHORT_HOME_QA === "1";
 const locales = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const homePath = (locale) => locale === "zh" ? "/" : `/${locale}/`;
 
-async function contextFor(browser, width, { height = 900, javaScriptEnabled = true } = {}) {
-  const context = await browser.newContext({ viewport: { width, height }, javaScriptEnabled });
+async function contextFor(browser, width) {
+  const context = await browser.newContext({ viewport: { width, height: 900 } });
   await context.addInitScript(() => Object.defineProperty(navigator, "globalPrivacyControl", { value: true }));
   // 本地验证不加载第三方统计，也不提交表单。
   await context.route(/https:\/\/(?:www\.googletagmanager\.com|www\.google-analytics\.com|www\.clarity\.ms|c\.clarity\.ms)\//, route => route.abort());
@@ -77,7 +76,7 @@ async function homeChecks(browser, engine, locale, width) {
           photoSource: photo.currentSrc,
           photoAlt: photo.alt,
           quoteTop: document.querySelector(".inquiry-entry-button").getBoundingClientRect().top,
-          minimumsBottom: minimums.getBoundingClientRect().bottom,
+          minimumsTop: minimums.getBoundingClientRect().top,
           minimumsScrollWidth: minimums.scrollWidth,
           minimumsWidth: minimums.clientWidth,
           amounts: [...minimums.querySelectorAll("dd")].map((item) => item.textContent.replace(/[^0-9]/g, ""))
@@ -91,13 +90,12 @@ async function homeChecks(browser, engine, locale, width) {
       leftToRight.slice(1).forEach((box, index) => assert(box.left >= leftToRight[index].right, `${scope}: 首页导航入口不能重叠`));
       assert(hero.photoAlt && /landscape-05-(480|960)\.webp/.test(hero.photoSource), `${scope}: 首屏显示有描述的真实仓库图片`);
       assert(hero.photoBottom <= 550, `${scope}: 短屏应可完整看见仓库图片`);
-      assert(hero.quoteTop >= hero.minimumsBottom && hero.quoteTop - hero.minimumsBottom <= 24, `${scope}: 起订规则紧邻并先于报价按钮`);
+      assert(hero.minimumsTop >= hero.quoteTop + 48, `${scope}: 起订规则紧邻报价按钮`);
       assert(hero.minimumsScrollWidth <= hero.minimumsWidth, `${scope}: 起订规则不能横向溢出`);
       assert.deepEqual(hero.amounts, ["1000", "3000", "10000"], `${scope}: 三档现有采购金额`);
     } else {
       assert(!(await photo.isVisible()), `${scope}: 手机首屏图片不能改变桌面首屏`);
       assert(!(await page.locator(".hero-order-minimums").isVisible()), `${scope}: 桌面原报价布局保留`);
-      assert(!(await page.locator(".hero-first-reply").isVisible()), `${scope}: 桌面不会重复时效说明`);
     }
     const year = page.locator(".company-metric-card").first().locator(".company-metric-visual");
     const expectedYear = await page.locator(".company-metric-card").first().locator("strong .sr-only").textContent();
@@ -189,130 +187,6 @@ async function homeChecks(browser, engine, locale, width) {
   }
 }
 
-async function shortHomeChecks(browser, engine, locale) {
-  const context = await contextFor(browser, 320, { height: 568 });
-  const page = await context.newPage();
-  const scope = `${engine}/${locale}/320×568`;
-  const url = BASE_URL + homePath(locale);
-  const links = page.locator(".sourcing-faq-links a");
-  async function assertAnswer(answerPage, id) {
-    const summary = answerPage.locator(`#${id} > summary`);
-    await answerPage.waitForFunction((id) => {
-      const item = document.getElementById(id);
-      const heading = item?.querySelector("summary");
-      return item?.open && !item.hidden && heading?.getBoundingClientRect().top >= document.querySelector(".site-nav").getBoundingClientRect().bottom
-        && heading.getBoundingClientRect().bottom <= innerHeight;
-    }, id, { timeout: 8000 });
-    await waitForScrollSettled(answerPage, `${scope}/#${id}`);
-    const heading = await summary.evaluate(element => {
-      const box = element.getBoundingClientRect();
-      return { top: box.top, bottom: box.bottom, header: document.querySelector(".site-nav").getBoundingClientRect().bottom, height: innerHeight };
-    });
-    assert(heading.top >= heading.header && heading.bottom <= heading.height, `${scope}/#${id}: 深链答案标题完整可见 ${JSON.stringify(heading)}`);
-    assert.equal(await answerPage.locator(".faq-item:not([hidden])[open]").count(), 1, `${scope}: 只展开目标问答`);
-    assert.equal(await answerPage.locator(`.faq-quick-tag[aria-controls="${id}"]`).getAttribute("aria-expanded"), "true", `${scope}: 选题与深链状态同步`);
-    assert.equal(await answerPage.evaluate(() => history.scrollRestoration), "manual", `${scope}: FAQ 深链不恢复旧的浏览位置`);
-  }
-  try {
-    await page.goto(url, { waitUntil: "domcontentloaded" });
-    await page.locator(".hero-site-photo img").evaluate(image => image.decode());
-    await page.evaluate(() => document.fonts.ready);
-    const hero = await page.locator(".home-hero-compact").evaluate(element => {
-      const photo = element.querySelector(".hero-site-photo");
-      const quote = element.querySelector(".quote-entry");
-      const reply = quote.querySelector(".hero-first-reply");
-      const button = quote.querySelector(".inquiry-entry-button");
-      return {
-        width: innerWidth,
-        documentWidth: document.documentElement.scrollWidth,
-        photo: photo.getBoundingClientRect().toJSON(),
-        reply: reply.getBoundingClientRect().toJSON(),
-        replyText: reply.innerText,
-        minimums: [...quote.querySelectorAll(".hero-order-minimums dd")].map(amount => ({
-          ...amount.getBoundingClientRect().toJSON(),
-          amount: amount.innerText.replace(/[^0-9]/g, "")
-        })),
-        button: button.getBoundingClientRect().toJSON()
-      };
-    });
-    assert.equal(hero.documentWidth, hero.width, `${scope}: 短屏不能横向溢出`);
-    assert(hero.photo.height >= 100 && hero.photo.bottom <= hero.reply.top, `${scope}: 保留清晰可见的仓库首图`);
-    assert(hero.reply.height > 0 && /24/.test(hero.replyText), `${scope}: 报价前可见24小时回复时效`);
-    assert.deepEqual(hero.minimums.map(item => item.amount), ["1000", "3000", "10000"], `${scope}: 三档起订额`);
-    for (const amount of hero.minimums) {
-      assert(amount.height > 0 && amount.top >= hero.reply.bottom && amount.bottom <= hero.button.top
-        && amount.left >= 0 && amount.right <= hero.width, `${scope}: 每档金额都完整出现在报价按钮前`);
-    }
-    assert(hero.button.height >= 48 && hero.button.bottom <= 568, `${scope}: 首屏完整显示报价按钮 ${JSON.stringify(hero)}`);
-
-    assert.deepEqual(await links.evaluateAll(elements => elements.map(link => link.hash)), ["#faq-item-1", "#faq-item-2", "#faq-item-6"], `${scope}: 费用、起订额、拼柜各有一个深链`);
-    for (const id of ["faq-item-1", "faq-item-2", "faq-item-6"]) {
-      const link = page.locator(`.sourcing-faq-links a[href="#${id}"]`);
-      assert(await link.evaluate(element => element.getBoundingClientRect().height >= 44), `${scope}: 深链触控面积`);
-      await link.click();
-      await page.waitForURL(`${url}#${id}`);
-      await assertAnswer(page, id);
-    }
-    await page.locator('.faq-quick-tag[aria-controls="faq-item-8"]').click();
-    assert(await page.locator("#faq-item-8").evaluate(element => element.open && !element.hidden), `${scope}: 手动选择问题覆盖前一个选择`);
-    await page.locator('.sourcing-faq-links a[href="#faq-item-6"]').click();
-    await assertAnswer(page, "faq-item-6");
-    await page.goBack();
-    await page.waitForURL(url + "#faq-item-2");
-    await assertAnswer(page, "faq-item-2");
-    await page.goForward();
-    await page.waitForURL(url + "#faq-item-6");
-    await assertAnswer(page, "faq-item-6");
-    // Return during the native smooth scroll, while the FAQ is still in view.
-    // An already-aligned scrollIntoView alone does not cancel that animation.
-    await page.evaluate(() => { location.hash = "services"; });
-    await page.waitForFunction(() => history.scrollRestoration === "auto", undefined, { timeout: 8000 });
-    await page.goBack();
-    await page.waitForURL(url + "#faq-item-6");
-    await assertAnswer(page, "faq-item-6");
-
-    const direct = await context.newPage();
-    await direct.goto(url + "#faq-item-2", { waitUntil: "domcontentloaded" });
-    await assertAnswer(direct, "faq-item-2");
-  } finally {
-    await context.close();
-  }
-}
-
-async function noScriptFaqLink(browser, locale) {
-  const context = await contextFor(browser, 320, { height: 568, javaScriptEnabled: false });
-  try {
-    const page = await context.newPage();
-    await page.goto(BASE_URL + homePath(locale));
-    const link = page.locator('.sourcing-faq-links a[href="#faq-item-1"]');
-    await link.click();
-    await page.waitForURL("**/#faq-item-1");
-    const item = page.locator("#faq-item-1");
-    assert.equal(await item.evaluate(element => !element.hidden && !element.open), true, `${locale}: 无脚本可访问原生折叠问答`);
-    const heading = item.locator("summary");
-    let lastTop;
-    let settled = false;
-    // 禁用页面脚本时从测试进程采样原生片段滚动。
-    for (let attempt = 0; attempt < 40; attempt += 1) {
-      const box = await heading.evaluate(element => {
-        const bounds = element.getBoundingClientRect();
-        return { top: bounds.top, bottom: bounds.bottom, header: document.querySelector(".site-nav").getBoundingClientRect().bottom, viewport: innerHeight };
-      });
-      if (box.top >= box.header && box.bottom <= box.viewport && Math.abs(box.top - lastTop) < 0.25) {
-        settled = true;
-        break;
-      }
-      lastTop = box.top;
-      await page.waitForTimeout(100);
-    }
-    assert(settled, `${locale}: 无脚本深链仍应定位到原生问答`);
-    await heading.click({ timeout: 8000 });
-    assert(await item.locator("p").isVisible(), `${locale}: 无脚本时可手动打开原答案`);
-  } finally {
-    await context.close();
-  }
-}
-
 async function languageChecks(browser, engine, width) {
   const context = await contextFor(browser, width);
   const page = await context.newPage();
@@ -320,7 +194,6 @@ async function languageChecks(browser, engine, width) {
     for (const example of [
       { from: "/en/?test_sensitive=sample#services", lang: "fr", to: "/fr/#services" },
       { from: "/ar/#reviews", lang: "en", to: "/en/#reviews" },
-      { from: "/en/#faq-item-2", lang: "ar", to: "/ar/#faq-item-2" },
       { from: "/en/#not-a-section", lang: "ar", to: "/ar/" },
       { from: "/en/calculator/", lang: "ar", to: "/ar/calculator/" },
       { from: "/en/inquiry/", lang: "fr", to: "/fr/inquiry/" }
@@ -335,7 +208,6 @@ async function languageChecks(browser, engine, width) {
     }
     for (const example of [
       { from: "/en/#faq", locale: "zh", to: "/#faq" },
-      { from: "/ar/#faq-item-6", locale: "de", to: "/de/#faq-item-6" },
       { from: "/ar/#contact", locale: "de", to: "/de/#contact" },
       { from: "/en/calculator/", locale: "fr", to: "/fr/calculator/" },
       { from: "/en/inquiry/", locale: "de", to: "/de/inquiry/" }
@@ -438,15 +310,9 @@ async function faqNavigationRaceChecks(browser, engine, locale, width) {
 for (const [engine, browserType] of [["Chromium", chromium], ["WebKit", webkit]]) {
   const browser = await browserType.launch();
   try {
-    if (ONLY_SHORT_HOME_QA) {
-      for (const locale of locales) await shortHomeChecks(browser, engine, locale);
-      continue;
-    }
     if (!ONLY_RACE_QA) {
       const selectedLocales = engine === "Chromium" ? locales : ["zh", "en", "ar"];
       for (const locale of selectedLocales) for (const width of [320, 390, 1440]) await homeChecks(browser, engine, locale, width);
-      for (const locale of locales) await shortHomeChecks(browser, engine, locale);
-      await noScriptFaqLink(browser, engine === "Chromium" ? "en" : "ar");
       for (const width of [390, 1440]) await languageChecks(browser, engine, width);
       for (const locale of ["zh", "en", "ar"]) for (const width of [320, 390, 1440]) await firstAnchorChecks(browser, engine, locale, width);
     }
@@ -455,8 +321,6 @@ for (const [engine, browserType] of [["Chromium", chromium], ["WebKit", webkit]]
     await browser.close();
   }
 }
-console.log(ONLY_SHORT_HOME_QA
-  ? "320×568 FAQ 深链和历史导航通过：十语言，Chromium 与 WebKit。"
-  : ONLY_RACE_QA
+console.log(ONLY_RACE_QA
   ? "FAQ 导航竞争专项通过：12 个语言/尺寸/引擎组合，24 条新 hash/同 hash 路径，零 POST。"
-  : "上线后回归通过：39 个首页组合、126 个章节留白、26 个询盘窄屏导航、36 条首次自然锚点；20 个 320×568 报价及 FAQ 深链组合、2 条无脚本路径、24 条 FAQ 导航竞争路径，零 POST。");
+  : "上线后回归通过：39 个首页组合、126 个章节留白检查、26 个询盘窄屏导航组合、36 条首次自然锚点路径；FAQ 九项、数字继承、静态年份和 4 组语言路由检查；另有 12 个组合/24 条 FAQ 导航竞争路径，零 POST。");

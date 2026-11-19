@@ -44,14 +44,6 @@
       turnstileRetryLabel: "重试安全验证",
       verifyRetry: "安全验证已失效。请完成新的验证后再次提交。",
       whatsappFallback: "改用 WhatsApp",
-      whatsappDetails: "打开 WhatsApp 会预填您已填写的产品、联系方式及其他询盘资料。发送前可核对或修改。",
-      draftConfirmPrompt: "要清除所有已填写的内容和草稿吗？",
-      draftConfirmLabel: "确认清除",
-      draftCancelLabel: "取消",
-      calculatorAdded: "已带入计算结果",
-      calculatorReview: "查看或修改",
-      calculatorDismiss: "关闭计算结果摘要",
-      successAttachment: "用此询盘编号通过 WhatsApp 补发图片或 Excel 清单",
       referenceLabel: "询盘编号",
       success: "我们已收到您的询盘，将在 24 小时内回复。",
       accepted: "我们已收到您的询盘，正在确认发送结果；请勿重复提交，我们会在 24 小时内回复。",
@@ -73,14 +65,6 @@
       turnstileRetryLabel: "Retry security check",
       verifyRetry: "The security check expired. Complete the new check, then submit again.",
       whatsappFallback: "Continue on WhatsApp",
-      whatsappDetails: "WhatsApp will open with your product, contact details and other inquiry information you entered. Review or edit the message before sending.",
-      draftConfirmPrompt: "Clear all entered information and the saved draft?",
-      draftConfirmLabel: "Confirm clear",
-      draftCancelLabel: "Cancel",
-      calculatorAdded: "Calculator result added",
-      calculatorReview: "Review or edit",
-      calculatorDismiss: "Dismiss calculator summary",
-      successAttachment: "Send photos or an Excel list on WhatsApp with this reference",
       referenceLabel: "Inquiry reference",
       success: "We have received your inquiry and will reply within 24 hours.",
       accepted: "We have received your inquiry and are confirming delivery. Please do not submit again; we will reply within 24 hours.",
@@ -102,14 +86,6 @@
       turnstileRetryLabel: "Reintentar la verificación",
       verifyRetry: "La verificación de seguridad caducó. Completa la nueva verificación y vuelve a enviar.",
       whatsappFallback: "Continuar por WhatsApp",
-      whatsappDetails: "WhatsApp se abrirá con el producto, los datos de contacto y demás información que hayas indicado. Revisa o edita el mensaje antes de enviarlo.",
-      draftConfirmPrompt: "¿Borrar toda la información ingresada y el borrador guardado?",
-      draftConfirmLabel: "Confirmar borrado",
-      draftCancelLabel: "Cancelar",
-      calculatorAdded: "Resultado de la calculadora añadido",
-      calculatorReview: "Revisar o editar",
-      calculatorDismiss: "Cerrar resumen del cálculo",
-      successAttachment: "Enviar fotos o una lista de Excel por WhatsApp con esta referencia",
       referenceLabel: "Referencia de solicitud",
       success: "Hemos recibido tu solicitud y responderemos en un plazo de 24 horas.",
       accepted: "Hemos recibido tu solicitud y estamos confirmando el envío. No la envíes de nuevo; responderemos en un plazo de 24 horas.",
@@ -131,14 +107,6 @@
       turnstileRetryLabel: "إعادة محاولة التحقق الأمني",
       verifyRetry: "انتهت صلاحية التحقق الأمني. أكمل التحقق الجديد ثم أرسل الطلب مجددًا.",
       whatsappFallback: "المتابعة عبر WhatsApp",
-      whatsappDetails: "سيفتح WhatsApp برسالة تتضمن بيانات المنتج والتواصل ومعلومات الطلب الأخرى التي أدخلتها. راجع الرسالة أو عدّلها قبل إرسالها.",
-      draftConfirmPrompt: "هل تريد مسح كل المعلومات المدخلة والمسودة المحفوظة؟",
-      draftConfirmLabel: "تأكيد المسح",
-      draftCancelLabel: "إلغاء",
-      calculatorAdded: "تمت إضافة نتيجة الحاسبة",
-      calculatorReview: "مراجعة أو تعديل",
-      calculatorDismiss: "إغلاق ملخص الحاسبة",
-      successAttachment: "أرسل الصور أو قائمة Excel عبر WhatsApp مع هذا المرجع",
       referenceLabel: "مرجع الطلب",
       success: "لقد استلمنا طلبك وسنرد عليك خلال 24 ساعة.",
       accepted: "لقد استلمنا طلبك ونتحقق من وصوله. يرجى عدم إرساله مجددًا؛ سنرد عليك خلال 24 ساعة.",
@@ -160,14 +128,6 @@
       turnstileRetryLabel: "Relancer la vérification",
       verifyRetry: "La vérification de sécurité a expiré. Effectuez la nouvelle vérification, puis renvoyez la demande.",
       whatsappFallback: "Continuer sur WhatsApp",
-      whatsappDetails: "WhatsApp s’ouvrira avec le produit, vos coordonnées et les autres informations saisies. Vérifiez ou modifiez le message avant de l’envoyer.",
-      draftConfirmPrompt: "Effacer toutes les informations saisies et le brouillon enregistré ?",
-      draftConfirmLabel: "Confirmer l’effacement",
-      draftCancelLabel: "Annuler",
-      calculatorAdded: "Résultat du calculateur ajouté",
-      calculatorReview: "Vérifier ou modifier",
-      calculatorDismiss: "Fermer le résumé du calcul",
-      successAttachment: "Envoyer des photos ou une liste Excel sur WhatsApp avec cette référence",
       referenceLabel: "Référence de la demande",
       success: "Nous avons bien reçu votre demande et vous répondrons sous 24 heures.",
       accepted: "Nous avons bien reçu votre demande et vérifions sa transmission. Ne la renvoyez pas ; nous vous répondrons sous 24 heures.",
@@ -189,14 +149,6 @@
       turnstileRetryLabel: "Tentar a verificação de novo",
       verifyRetry: "A verificação de segurança expirou. Conclua a nova verificação e envie novamente.",
       whatsappFallback: "Continuar no WhatsApp",
-      whatsappDetails: "O WhatsApp abrirá com o produto, seus dados de contato e outras informações da consulta que você preencheu. Confira ou edite a mensagem antes de enviar.",
-      draftConfirmPrompt: "Limpar todos os dados informados e o rascunho salvo?",
-      draftConfirmLabel: "Confirmar exclusão",
-      draftCancelLabel: "Cancelar",
-      calculatorAdded: "Resultado da calculadora adicionado",
-      calculatorReview: "Revisar ou editar",
-      calculatorDismiss: "Fechar resumo do cálculo",
-      successAttachment: "Enviar fotos ou uma lista do Excel pelo WhatsApp com esta referência",
       referenceLabel: "Referência da solicitação",
       success: "Recebemos sua solicitação e responderemos em até 24 horas.",
       accepted: "Recebemos sua solicitação e estamos confirmando o envio. Não envie novamente; responderemos em até 24 horas.",
@@ -218,14 +170,6 @@
       turnstileRetryLabel: "Повторить проверку",
       verifyRetry: "Срок проверки безопасности истёк. Пройдите новую проверку и отправьте запрос ещё раз.",
       whatsappFallback: "Продолжить в WhatsApp",
-      whatsappDetails: "WhatsApp откроется с данными о товаре, контактами и другой информацией, которую вы ввели. Проверьте или измените сообщение перед отправкой.",
-      draftConfirmPrompt: "Удалить все введённые данные и сохранённый черновик?",
-      draftConfirmLabel: "Подтвердить удаление",
-      draftCancelLabel: "Отмена",
-      calculatorAdded: "Результат расчёта добавлен",
-      calculatorReview: "Проверить или изменить",
-      calculatorDismiss: "Закрыть сводку расчёта",
-      successAttachment: "Отправьте фото или список Excel в WhatsApp с этим номером запроса",
       referenceLabel: "Номер запроса",
       success: "Мы получили ваш запрос и ответим в течение 24 часов.",
       accepted: "Мы получили ваш запрос и проверяем его доставку. Не отправляйте его повторно; мы ответим в течение 24 часов.",
@@ -247,14 +191,6 @@
       turnstileRetryLabel: "Sicherheitsprüfung wiederholen",
       verifyRetry: "Die Sicherheitsprüfung ist abgelaufen. Schließen Sie die neue Prüfung ab und senden Sie erneut.",
       whatsappFallback: "Über WhatsApp fortfahren",
-      whatsappDetails: "WhatsApp öffnet sich mit Ihren Angaben zum Produkt, Ihren Kontaktdaten und weiteren eingegebenen Informationen. Prüfen oder bearbeiten Sie die Nachricht vor dem Senden.",
-      draftConfirmPrompt: "Alle Eingaben und den gespeicherten Entwurf löschen?",
-      draftConfirmLabel: "Löschen bestätigen",
-      draftCancelLabel: "Abbrechen",
-      calculatorAdded: "Rechnergebnis übernommen",
-      calculatorReview: "Prüfen oder bearbeiten",
-      calculatorDismiss: "Rechnergebnis ausblenden",
-      successAttachment: "Fotos oder eine Excel-Liste mit dieser Anfragereferenz per WhatsApp senden",
       referenceLabel: "Anfragereferenz",
       success: "Wir haben Ihre Anfrage erhalten und antworten innerhalb von 24 Stunden.",
       accepted: "Wir haben Ihre Anfrage erhalten und bestätigen gerade die Zustellung. Bitte senden Sie sie nicht erneut; wir antworten innerhalb von 24 Stunden.",
@@ -276,14 +212,6 @@
       turnstileRetryLabel: "Ripeti la verifica",
       verifyRetry: "La verifica di sicurezza è scaduta. Completa la nuova verifica e invia di nuovo.",
       whatsappFallback: "Continua su WhatsApp",
-      whatsappDetails: "WhatsApp si aprirà con il prodotto, i recapiti e le altre informazioni della richiesta che hai inserito. Controlla o modifica il messaggio prima di inviarlo.",
-      draftConfirmPrompt: "Cancellare tutte le informazioni inserite e la bozza salvata?",
-      draftConfirmLabel: "Conferma cancellazione",
-      draftCancelLabel: "Annulla",
-      calculatorAdded: "Risultato del calcolatore aggiunto",
-      calculatorReview: "Controlla o modifica",
-      calculatorDismiss: "Chiudi riepilogo del calcolo",
-      successAttachment: "Invia foto o un elenco Excel su WhatsApp con questo riferimento",
       referenceLabel: "Riferimento richiesta",
       success: "Abbiamo ricevuto la tua richiesta e risponderemo entro 24 ore.",
       accepted: "Abbiamo ricevuto la tua richiesta e ne stiamo confermando l’invio. Non inviarla di nuovo; risponderemo entro 24 ore.",
@@ -305,14 +233,6 @@
       turnstileRetryLabel: "Güvenlik kontrolünü tekrarla",
       verifyRetry: "Güvenlik kontrolünün süresi doldu. Yeni kontrolü tamamlayıp tekrar gönderin.",
       whatsappFallback: "WhatsApp ile devam et",
-      whatsappDetails: "WhatsApp, girdiğiniz ürün, iletişim ve diğer talep bilgileriyle açılır. Göndermeden önce mesajı kontrol edebilir veya düzenleyebilirsiniz.",
-      draftConfirmPrompt: "Girilen tüm bilgiler ve kayıtlı taslak silinsin mi?",
-      draftConfirmLabel: "Silme işlemini onayla",
-      draftCancelLabel: "İptal",
-      calculatorAdded: "Hesaplama sonucu eklendi",
-      calculatorReview: "İncele veya düzenle",
-      calculatorDismiss: "Hesaplama özetini kapat",
-      successAttachment: "Fotoğraf veya Excel listesini bu referansla WhatsApp’tan gönderin",
       referenceLabel: "Talep referansı",
       success: "Talebinizi aldık ve 24 saat içinde yanıt vereceğiz.",
       accepted: "Talebinizi aldık ve iletimi doğruluyoruz. Lütfen tekrar göndermeyin; 24 saat içinde yanıt vereceğiz.",
@@ -518,31 +438,12 @@
     var draftRemovalPending = false;
     var draftExpiryTimer = null;
     var calculatorPrefilledFields = {};
-    var calculatorResult = null;
-    var calculatorNotice = null;
-    var calculatorSummary = null;
-    var calculatorVolumeFormat = null;
-    var draftConfirmation = null;
 
     if (!directButton || !turnstileElement || !endpoint || !sourcePath || !privacyVersion) {
       return;
     }
 
     var directButtonLabel = directButton.textContent;
-    form.setAttribute("data-calculator-summary", "true");
-
-    function focusControl(control) {
-      if (!control) return;
-      try { control.focus({ preventScroll: true }); } catch (error) { control.focus(); }
-    }
-
-    function button(className, text) {
-      var control = document.createElement("button");
-      control.type = "button";
-      control.className = className;
-      control.textContent = text;
-      return control;
-    }
 
     function analyticsParams(extra) {
       var params = {
@@ -623,95 +524,6 @@
       });
     }
 
-    function validVolume(value) {
-      return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
-    }
-
-    function setCalculatorResult(volume, dismissed) {
-      calculatorResult = {
-        volume: validVolume(volume),
-        quantity: readValue("quantity"),
-        note: readValue("note"),
-        dismissed: dismissed === true
-      };
-    }
-
-    function calculatorDraftMetadata() {
-      if (!calculatorResult) return null;
-      var note = readValue("note");
-      var quantity = readValue("quantity");
-      // 早期交接可能只有数量。主动删除原有备注时，不再显示旧结果。
-      if (!note && (calculatorResult.note || !quantity)) return null;
-      var unchanged = calculatorResult.note === note && calculatorResult.quantity === quantity;
-      return { volume: unchanged ? calculatorResult.volume : null, dismissed: calculatorResult.dismissed };
-    }
-
-    function renderCalculatorSummary() {
-      var metadata = calculatorDraftMetadata();
-      if (metadata) form.setAttribute("data-calculator-prefill", "true");
-      else form.removeAttribute("data-calculator-prefill");
-      if (!metadata || metadata.dismissed || !additionalDetails) {
-        if (calculatorNotice) calculatorNotice.remove();
-        calculatorNotice = null;
-        calculatorSummary = null;
-        return;
-      }
-      if (!calculatorNotice) {
-        var detailsControl = additionalDetails.querySelector("summary");
-        calculatorNotice = document.createElement("div");
-        calculatorNotice.className = "calculator-prefill-notice";
-        calculatorNotice.setAttribute("role", "status");
-        var copy = document.createElement("span");
-        copy.className = "calculator-prefill-notice-text";
-        copy.textContent = messages.calculatorAdded;
-        calculatorNotice.appendChild(copy);
-        calculatorSummary = document.createElement("span");
-        calculatorSummary.className = "calculator-prefill-summary";
-        calculatorNotice.appendChild(calculatorSummary);
-        var edit = button("calculator-prefill-edit", messages.calculatorReview);
-        edit.addEventListener("click", function () {
-          additionalDetails.open = true;
-          focusControl(detailsControl);
-          if (detailsControl) detailsControl.scrollIntoView({ block: "nearest" });
-        });
-        var dismiss = button("calculator-prefill-notice-dismiss", "×");
-        dismiss.setAttribute("aria-label", messages.calculatorDismiss);
-        dismiss.addEventListener("click", function () {
-          calculatorResult.dismissed = true;
-          draftLastSignature = "";
-          renderCalculatorSummary();
-          saveDraft();
-          focusControl(detailsControl);
-        });
-        calculatorNotice.appendChild(edit);
-        calculatorNotice.appendChild(dismiss);
-        additionalDetails.parentNode.insertBefore(calculatorNotice, additionalDetails);
-      }
-      var values = [readValue("quantity")];
-      if (metadata.volume !== null) {
-        if (!calculatorVolumeFormat) {
-          calculatorVolumeFormat = new Intl.NumberFormat(locale === "ar" ? "ar-u-nu-latn" : locale, {
-            minimumFractionDigits: 3, maximumFractionDigits: 3
-          });
-        }
-        values.push(calculatorVolumeFormat.format(metadata.volume) + " m³");
-      }
-      var summaryText = values.filter(Boolean).join(" · ");
-      if (calculatorSummary.textContent === summaryText) return;
-      calculatorSummary.textContent = "";
-      values.filter(Boolean).forEach(function (value, index) {
-        if (index) calculatorSummary.appendChild(document.createTextNode(" · "));
-        var isolated = document.createElement("bdi");
-        isolated.textContent = value;
-        calculatorSummary.appendChild(isolated);
-      });
-    }
-
-    function clearCalculatorSummary() {
-      calculatorResult = null;
-      renderCalculatorSummary();
-    }
-
     function consumeCalculatorResult() {
       var raw = null;
       calculatorPrefilledFields = {};
@@ -740,7 +552,7 @@
           calculatorPrefilledFields[name] = true;
           prefilled = true;
         });
-        if (prefilled) setCalculatorResult(result.totalCbm, false);
+        if (prefilled) form.setAttribute("data-calculator-prefill", "true");
         return prefilled;
       } catch (error) {
       } finally {
@@ -789,70 +601,7 @@
     }
 
     function updateDraftControls() {
-      if (!draftClearButton) return;
-      draftClearButton.hidden = !hasDraftContent(draftFields());
-      if (draftClearButton.hidden) setDraftConfirmation(false);
-    }
-
-    function setDraftConfirmation(open, returnFocus) {
-      if (!draftConfirmation || !draftClearButton) return;
-      draftConfirmation.hidden = !open;
-      draftClearButton.setAttribute("aria-expanded", String(open));
-      if (open) focusControl(draftConfirmation.querySelector(".inquiry-draft-cancel"));
-      else if (returnFocus) focusControl(draftClearButton);
-    }
-
-    function clearDraftFields() {
-      if (submitting) return;
-      FIELD_NAMES.forEach(function (name) {
-        if (form.elements[name]) form.elements[name].value = "";
-      });
-      if (additionalDetails) additionalDetails.open = false;
-      clearCalculatorSummary();
-      currentSubmissionId = "";
-      var draftRemoved = removeDraft();
-      draftLastSavedAt = 0;
-      draftLastSignature = draftSignature(draftFields(), false);
-      updateDraftControls();
-      updateStatusForDraftEdit();
-      showDraftFeedback(draftRemoved ? "cleared" : "delete-failed");
-      var firstField = form.elements.product;
-      if (firstField) {
-        focusControl(firstField);
-        firstField.scrollIntoView({ block: "nearest", behavior: "auto" });
-      }
-    }
-
-    function initDraftConfirmation() {
-      if (!draftClearButton) return;
-      draftConfirmation = document.createElement("div");
-      draftConfirmation.id = "inquiry-draft-confirmation";
-      draftConfirmation.className = "inquiry-draft-confirmation";
-      draftConfirmation.setAttribute("role", "group");
-      draftConfirmation.setAttribute("aria-labelledby", "inquiry-draft-confirmation-text");
-      draftConfirmation.hidden = true;
-      var prompt = document.createElement("p");
-      prompt.id = "inquiry-draft-confirmation-text";
-      prompt.className = "inquiry-draft-confirmation-text";
-      prompt.textContent = messages.draftConfirmPrompt;
-      draftConfirmation.appendChild(prompt);
-      var cancel = button("inquiry-draft-cancel", messages.draftCancelLabel);
-      cancel.addEventListener("click", function () { setDraftConfirmation(false, true); });
-      var accept = button("inquiry-draft-confirm", messages.draftConfirmLabel);
-      accept.addEventListener("click", clearDraftFields);
-      draftConfirmation.appendChild(cancel);
-      draftConfirmation.appendChild(accept);
-      draftConfirmation.addEventListener("keydown", function (event) {
-        if (event.key !== "Escape") return;
-        event.preventDefault();
-        setDraftConfirmation(false, true);
-      });
-      draftPanel.appendChild(draftConfirmation);
-      draftClearButton.setAttribute("aria-controls", draftConfirmation.id);
-      draftClearButton.setAttribute("aria-expanded", "false");
-      draftClearButton.addEventListener("click", function () {
-        if (!submitting) setDraftConfirmation(draftConfirmation.hidden);
-      });
+      if (draftClearButton) draftClearButton.hidden = !hasDraftContent(draftFields());
     }
 
     function removeDraft() {
@@ -911,12 +660,7 @@
           removeDraft();
           return null;
         }
-        return {
-          fields: fields,
-          detailsOpen: record.detailsOpen === true,
-          savedAt: Number(record.savedAt),
-          calculator: record.calculator && typeof record.calculator === "object" && (fields.note || fields.quantity) ? record.calculator : null
-        };
+        return { fields: fields, detailsOpen: record.detailsOpen === true, savedAt: Number(record.savedAt) };
       } catch (error) {
         // 损坏的草稿或禁用存储不影响表单、原生校验和安全提交。
         removeDraft();
@@ -936,22 +680,18 @@
       var detailsOpen = Boolean(additionalDetails && additionalDetails.open);
       var signature = draftSignature(fields, detailsOpen);
       updateDraftControls();
-      renderCalculatorSummary();
       if (signature === draftLastSignature) return;
       draftLastSignature = signature;
       if (!hasDraftContent(fields)) {
         removeDraft();
-        clearCalculatorSummary();
+        form.removeAttribute("data-calculator-prefill");
         draftLastSavedAt = 0;
         return;
       }
       try {
         var savedAt = Date.now();
-        // 只存九个业务字段和展示偏好；不保存验证令牌、同意状态或提交标识。
-        var record = { version: 1, savedAt: savedAt, detailsOpen: detailsOpen, fields: fields };
-        var metadata = calculatorDraftMetadata();
-        if (metadata) record.calculator = metadata;
-        window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(record));
+        // 仅允许九个业务字段；不保存 token、同意状态、隐藏字段或提交标识。
+        window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ version: 1, savedAt: savedAt, detailsOpen: detailsOpen, fields: fields }));
         draftLastSavedAt = savedAt;
         if (draftNotice) draftNotice.textContent = draftNoticeText;
         if (draftFeedback) draftFeedback.hidden = true;
@@ -984,19 +724,11 @@
             }
           }
         });
-        if (!calculatorPrefilled) {
-          if (record.calculator && readValue("note") === record.fields.note.trim()) {
-            var restoredVolume = readValue("quantity") === record.fields.quantity.trim() ? record.calculator.volume : null;
-            setCalculatorResult(restoredVolume, record.calculator.dismissed);
-          } else if (newerDraft || !readValue("note")) {
-            clearCalculatorSummary();
-          }
-        }
-        if (additionalDetails) additionalDetails.open = !calculatorPrefilled && record.detailsOpen;
+        if (additionalDetails) additionalDetails.open = record.detailsOpen;
         draftLastSignature = draftSignature(record.fields, record.detailsOpen);
         draftLastSavedAt = record.savedAt;
         scheduleDraftExpiry(record.savedAt);
-        if (!calculatorPrefilled) showDraftFeedback("restored");
+        showDraftFeedback("restored");
       } else {
         // 同标签页另一语言已清除/过期：BFCache 的旧表单不得复活该草稿。
         if (draftStorageReadable && previousSavedAt > 0) {
@@ -1004,23 +736,23 @@
             if (form.elements[name] && !calculatorPrefilledFields[name]) form.elements[name].value = "";
           });
           if (additionalDetails) additionalDetails.open = false;
-          if (!calculatorPrefilled) clearCalculatorSummary();
+          if (!calculatorPrefilled) form.removeAttribute("data-calculator-prefill");
           draftLastSavedAt = 0;
           if (draftFeedback && draftFeedback.hidden) showDraftFeedback("cleared");
         }
-        if (!calculatorPrefilled && !calculatorResult) revealPopulatedDetails();
+        revealPopulatedDetails();
         draftLastSignature = draftSignature(draftFields(), additionalDetails && additionalDetails.open);
       }
       if (calculatorPrefilled) {
-        // 显示摘要，完整字段由客户按需打开。新计算结果仍优先于旧草稿。
-        if (additionalDetails) additionalDetails.open = false;
+        revealPopulatedDetails();
+        // 新计算器预填优先于旧草稿，且写回同一标签页的最新副本。
         draftLastSignature = "";
         saveDraft();
-      } else if (browserRestoredDetails) {
+      }
+      if (browserRestoredDetails) {
         revealPopulatedDetails();
         saveDraft();
       }
-      renderCalculatorSummary();
       updateDraftControls();
       refreshVerificationFallback();
     }
@@ -1029,7 +761,25 @@
       draftPanel.hidden = false;
       if (additionalDetails) additionalDetails.addEventListener("toggle", saveDraft);
       window.addEventListener("pagehide", saveDraft);
-      initDraftConfirmation();
+      if (draftClearButton) draftClearButton.addEventListener("click", function () {
+        FIELD_NAMES.forEach(function (name) {
+          if (form.elements[name]) form.elements[name].value = "";
+        });
+        if (additionalDetails) additionalDetails.open = false;
+        form.removeAttribute("data-calculator-prefill");
+        currentSubmissionId = "";
+        var draftRemoved = removeDraft();
+        draftLastSavedAt = 0;
+        draftLastSignature = draftSignature(draftFields(), false);
+        updateDraftControls();
+        updateStatusForDraftEdit();
+        showDraftFeedback(draftRemoved ? "cleared" : "delete-failed");
+        var firstField = form.elements.product;
+        if (firstField) {
+          try { firstField.focus({ preventScroll: true }); } catch (error) { firstField.focus(); }
+          firstField.scrollIntoView({ block: "nearest", behavior: "auto" });
+        }
+      });
     }
     restoreInquiryContext();
     window.addEventListener("pageshow", restoreInquiryContext);
@@ -1089,15 +839,6 @@
           reference.className = "inquiry-status-reference";
           reference.textContent = messages.referenceLabel + ": " + options.reference;
           text.appendChild(reference);
-          var attachmentLink = form.querySelector(".inquiry-attachment-note a");
-          if (attachmentLink) {
-            var attachmentHint = document.createElement("span");
-            attachmentHint.className = "inquiry-success-attachment";
-            var link = attachmentLink.cloneNode(false);
-            link.textContent = messages.successAttachment;
-            attachmentHint.appendChild(link);
-            text.appendChild(attachmentHint);
-          }
         }
         status.appendChild(icon);
         status.appendChild(text);
@@ -1122,18 +863,12 @@
           actions.appendChild(retryButton);
         }
         if (options.whatsappFallback) {
-          var disclosure = document.createElement("span");
-          disclosure.id = "inquiry-whatsapp-disclosure";
-          disclosure.className = "inquiry-whatsapp-disclosure";
-          disclosure.textContent = messages.whatsappDetails;
-          actions.appendChild(disclosure);
           var whatsapp = document.createElement("a");
           whatsapp.className = "inquiry-status-whatsapp";
           whatsapp.href = buildWhatsAppSummary();
           whatsapp.target = "_blank";
           whatsapp.rel = "noopener noreferrer";
           whatsapp.textContent = messages.whatsappFallback;
-          whatsapp.setAttribute("aria-describedby", disclosure.id);
           actions.appendChild(whatsapp);
         }
         status.appendChild(actions);
@@ -1165,7 +900,6 @@
 
     function setSubmitting(value) {
       submitting = value;
-      if (value) setDraftConfirmation(false);
       if (draftClearButton) draftClearButton.disabled = value;
       directButton.disabled = value || !turnstileToken;
       directButton.setAttribute("aria-busy", value ? "true" : "false");
@@ -1174,7 +908,6 @@
 
     function resetTurnstile() {
       stopVerificationTimer();
-      delete turnstileElement.dataset.interactive;
       turnstileToken = "";
       directButton.disabled = true;
       if (widgetId !== null && window.turnstile && typeof window.turnstile.reset === "function") {
@@ -1222,7 +955,7 @@
       var hasNewEdits = Boolean(submittedContentKey && contentKey() !== submittedContentKey);
       if (!hasNewEdits) {
         form.reset();
-        clearCalculatorSummary();
+        form.removeAttribute("data-calculator-prefill");
       }
       var submittedDraftRemoved = removeDraft();
       draftLastSavedAt = 0;
@@ -1396,7 +1129,6 @@
 
     function showTurnstileFailure(errorCode) {
       stopVerificationTimer();
-      delete turnstileElement.dataset.interactive;
       turnstileToken = "";
       directButton.disabled = true;
       if (!submitting && (!status || !status.classList.contains("is-success"))) {
@@ -1407,7 +1139,6 @@
 
     function startTurnstile() {
       var attempt = ++verificationAttempt;
-      delete turnstileElement.dataset.interactive;
       turnstileToken = "";
       directButton.disabled = true;
       stopVerificationTimer();
@@ -1442,27 +1173,24 @@
             sitekey: turnstileElement.getAttribute("data-sitekey"),
             action: turnstileElement.getAttribute("data-action") || "turnstile-spin-v1",
             language: turnstileElement.getAttribute("data-language") || "auto",
-            size: directButton.clientWidth < 300 ? "compact" : "normal",
+            size: "flexible",
             theme: "light",
             appearance: "interaction-only",
             callback: function (token) {
               if (attempt !== verificationAttempt || !token) return;
               stopVerificationTimer();
-              delete turnstileElement.dataset.interactive;
               turnstileToken = String(token || "");
               if (!submitting) directButton.disabled = !turnstileToken;
               if (status && status.dataset.securityRelated === "true") setStatus("", "");
             },
             "before-interactive-callback": function () {
-              if (attempt !== verificationAttempt || submitting || turnstileToken) return;
-              turnstileElement.dataset.interactive = "true";
-              if (!status || status.dataset.securityRelated !== "true") return;
+              if (attempt !== verificationAttempt || submitting || turnstileToken
+                  || !status || status.dataset.securityRelated !== "true") return;
               stopVerificationTimer();
               showVerificationStatus(messages.verifyError, "pending", false);
             },
             "expired-callback": function () {
               if (attempt !== verificationAttempt) return;
-              delete turnstileElement.dataset.interactive;
               turnstileToken = "";
               directButton.disabled = true;
             },

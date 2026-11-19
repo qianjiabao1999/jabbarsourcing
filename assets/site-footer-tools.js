@@ -24,7 +24,7 @@
   }
 
   function initCalculatorPrefillNotice() {
-    var form = document.querySelector('.js-inquiry-form[data-calculator-prefill="true"]:not([data-calculator-summary])');
+    var form = document.querySelector('.js-inquiry-form[data-calculator-prefill="true"]');
     if (!form || form.querySelector(".calculator-prefill-notice")) return;
     var notice = element("div", "calculator-prefill-notice");
     notice.setAttribute("role", "status");

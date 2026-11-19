@@ -978,32 +978,16 @@
       item.hidden = true;
     });
 
-    function selectItem(item, anchor) {
-      items.forEach(function (other) {
-        var selected = other === item;
-        other.hidden = !selected;
-        other.open = selected;
-      });
-      if (anchor) {
-        scrollTo({ top: scrollY, behavior: "instant" });
-        return item.scrollIntoView({ behavior: "instant" });
-      }
-      var position = location.hash + ":" + scrollY;
-      requestAnimationFrame(function () {
-        if (!item.hidden && location.hash + ":" + scrollY === position) {
-          item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
-        }
-      });
-    }
-
     var tags = createElement("div", "faq-quick-tags");
     tags.setAttribute("role", "group");
-    tags.setAttribute("aria-label", faq.querySelector("h2").textContent);
+    tags.setAttribute("aria-label", faq.querySelector("h2") ? faq.querySelector("h2").textContent : "FAQ");
+    var prompt = createElement("p", "faq-quick-tags-label", copy.faqPrompt);
     items.forEach(function (item, index) {
+      var id = "faq-item-" + (index + 1);
+      item.id = id;
       var button = createElement("button", "faq-quick-tag", copy.faq[index]);
       button.type = "button";
-      item.id = item.id || "faq-item-" + (index + 1);
-      button.setAttribute("aria-controls", item.id);
+      button.setAttribute("aria-controls", id);
       button.setAttribute("aria-expanded", "false");
       tags.appendChild(button);
 
@@ -1011,21 +995,32 @@
         button.setAttribute("aria-expanded", String(item.open));
         button.classList.toggle("is-active", item.open);
       });
-      button.addEventListener("click", function () { selectItem(item); });
+      button.addEventListener("click", function () {
+        items.forEach(function (other) {
+          var selected = other === item;
+          other.hidden = !selected;
+          other.open = selected;
+        });
+        var position = window.location.hash + ":" + window.scrollY;
+        window.requestAnimationFrame(function () {
+          if (window.location.hash + ":" + window.scrollY === position) item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
+        });
+        var summary = item.querySelector("summary");
+        summary.classList.remove("faq-summary-flash");
+        void summary.offsetWidth;
+        summary.classList.add("faq-summary-flash");
+        window.setTimeout(function () { summary.classList.remove("faq-summary-flash"); }, 620);
+      });
     });
-    faq.querySelector(".section-heading").after(createElement("p", "faq-quick-tags-label", copy.faqPrompt), tags);
 
-    function selectFromHash() {
-      var item = document.getElementById(location.hash.slice(1));
-      var anchored = items.includes(item);
-      history.scrollRestoration = anchored ? "manual" : "auto";
-      if (anchored) selectItem(item, true);
+    var heading = faq.querySelector(".section-heading");
+    if (heading) {
+      heading.insertAdjacentElement("afterend", prompt);
+      prompt.insertAdjacentElement("afterend", tags);
+    } else {
+      faq.insertBefore(tags, faq.firstChild);
+      faq.insertBefore(prompt, tags);
     }
-    window.addEventListener("hashchange", selectFromHash);
-    faq.parentNode.addEventListener("click", function (event) {
-      if (event.target.getAttribute("href") === location.hash) selectFromHash();
-    });
-    selectFromHash();
   }
 
   function initNavigationDisclosures() {
@@ -1102,7 +1097,7 @@
 
     function sectionHash() {
       var id = window.location.hash.slice(1);
-      return (allowedSections.indexOf(id) !== -1 || /^faq-item-[126]$/.test(id)) && document.getElementById(id) ? "#" + id : "";
+      return allowedSections.indexOf(id) !== -1 && document.getElementById(id) ? "#" + id : "";
     }
 
     function updateLanguageLinks() {
@@ -1110,6 +1105,7 @@
       links.forEach(function (link) {
         var destination = new URL(link.getAttribute("href"), window.location.href);
         if (destination.origin !== window.location.origin || !homePath.test(destination.pathname)) return;
+        // 只保留站内首页路径与白名单章节，查询参数不会跨语言转发。
         link.setAttribute("href", destination.pathname + hash);
       });
     }
@@ -1120,7 +1116,7 @@
       var select = event.target;
       if (!select.matches(".site-footer-language-select") || !sectionHash()) return;
       if (allowedLocales.indexOf(select.value) === -1) return;
-      // Footer controls are added asynchronously.
+      // 页脚工具异步创建；捕获阶段接管首页章节跳转，深层页面仍用原路由。
       event.stopImmediatePropagation();
       window.location.assign((select.value === "zh" ? "/" : "/" + select.value + "/") + sectionHash());
     }, true);
@@ -1271,7 +1267,7 @@
   function initFooterUtilities() {
     if (document.querySelector('script[data-footer-utilities]')) return;
     var script = document.createElement("script");
-    script.src = "/assets/site-footer-tools.js?v=footer-20261120a";
+    script.src = "/assets/site-footer-tools.js?v=footer-20260720a";
     script.async = true;
     script.setAttribute("data-footer-utilities", "");
     document.head.appendChild(script);

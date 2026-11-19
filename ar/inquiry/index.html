@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-193" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-192" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261120a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261119a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -168,11 +168,16 @@
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
-                <h2 id="inquiry-title">اطلب عرض سعر للتوريد</h2>
-                <p>أدخل المنتجات وبيانات التواصل.</p>
-                <ul class="inquiry-trust-points"><li>رد أولي خلال 24 ساعة؛ عرض كامل خلال <bdi dir="ltr">24–48</bdi> ساعة</li></ul>
+                <h2 id="inquiry-title">أخبرنا بما تريد شراءه</h2>
+                <p>أدخل المنتجات وبيانات التواصل؛ باقي التفاصيل اختيارية.</p>
+                <ul class="inquiry-trust-points"><li>رد أولي خلال 24 ساعة؛ عرض كامل خلال <bdi dir="ltr">24–48</bdi> ساعة</li><li>طلبات تجريبية من 1,000 دولار</li><li>عرض مفصّل؛ دون عمولة منفصلة على المشتري</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="ar" data-inquiry-source="/ar/inquiry/" data-privacy-version="2026-07-22">
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="تعذر حذف المسودة المحفوظة. أغلق علامة التبويب هذه للتخلص منها." data-draft-restored="تمت استعادة المسودة في علامة التبويب هذه." data-draft-cleared="تم مسح المسودة والنموذج." data-draft-expired="انتهت صلاحية المسودة المحفوظة." data-draft-unavailable="حفظ المسودة غير متاح. أبقِ الصفحة مفتوحة حتى تنتهي.">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">المسودة تشمل بيانات التواصل: في علامة التبويب هذه فقط لمدة 30 دقيقة. لا تُرسل قبل الإرسال.</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>مسح المسودة</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                </div>
                 <label class="field field-wide">
                   <span>المنتجات المطلوبة</span>
                   <input name="product" type="text" maxlength="300" required placeholder="مثال: منتجات يومية، أدوات مطبخ، ألعاب، تخزين…" autocomplete="off" />
@@ -181,14 +186,14 @@
                   <span>بيانات التواصل</span>
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp / بريد / WeChat ID" autocomplete="on" />
                 </label>
+                <label class="field field-wide">
+                  <span>رابط مرجعي للمنتج (Alibaba / Amazon / TikTok)</span>
+                  <input name="referenceUrl" dir="auto" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="تُقبل روابط http:// أو https:// فقط" />
+                </label>
+                <p class="inquiry-attachment-note field-wide">يقبل هذا النموذج النصوص والروابط فقط. بعد إرسال الطلب، أرسل الصور أو قائمة Excel عبر <a href="#contact">WhatsApp في قسم التواصل</a> واذكر مرجع الطلب.</p>
                 <details class="inquiry-additional-details field-wide">
                   <summary class="inquiry-additional-summary"><span>أضف تفاصيل للحصول على عرض سعر أدق</span><small>اختياري</small></summary>
                   <div class="inquiry-additional-fields">
-                    <label class="field field-wide">
-                      <span id="inquiry-reference-label">رابط مرجعي للمنتج (Alibaba / Amazon / TikTok)</span>
-                      <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-hint" dir="auto" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="تُقبل روابط http:// أو https:// فقط" />
-                      <small class="inquiry-field-hint" id="inquiry-reference-hint">ألصق رابطًا كاملاً يبدأ بـ <bdi>https://</bdi> أو <bdi>http://</bdi>.</small>
-                    </label>
                     <label class="field">
                       <span>الفئة</span>
                       <select name="category">
@@ -225,8 +230,6 @@
                       <span>ملاحظات</span>
                       <textarea name="note" rows="3" maxlength="1500" placeholder="اللون والتغليف وموعد التسليم والمتطلبات الأخرى…"></textarea>
                     </label>
-                    <ul class="inquiry-trust-points inquiry-trust-points-extra field-wide"><li>طلبات تجريبية من 1,000 دولار</li><li>عرض مفصّل؛ دون عمولة منفصلة على المشتري</li></ul>
-                    <p class="inquiry-attachment-note field-wide">يقبل هذا النموذج النصوص والروابط فقط. بعد إرسال الطلب، أرسل الصور أو قائمة Excel عبر <a href="#contact">WhatsApp في قسم التواصل</a> واذكر مرجع الطلب.</p>
                   </div>
                 </details>
                 <div class="inquiry-direct-panel field-wide">
@@ -234,13 +237,8 @@
                     <span>بالإرسال، تقرّ بقراءة <a href="/ar/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">سياسة الخصوصية <small class="inquiry-privacy-window">(يفتح في نافذة جديدة)</small></a> وتوافق على استخدام هذه المعلومات فقط لمعالجة طلبك والرد عليه.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="ar"></div>
-                  <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">إرسال الطلب</button>
-                </div>
-                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="تعذر حذف المسودة المحفوظة. أغلق علامة التبويب هذه للتخلص منها." data-draft-restored="تمت استعادة المسودة في علامة التبويب هذه." data-draft-cleared="تم مسح المسودة والنموذج." data-draft-expired="انتهت صلاحية المسودة المحفوظة." data-draft-unavailable="حفظ المسودة غير متاح. أبقِ الصفحة مفتوحة حتى تنتهي.">
-                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">المسودة تشمل بيانات التواصل: في علامة التبويب هذه فقط لمدة 30 دقيقة. لا تُرسل قبل الإرسال.</p>
-                  <button type="button" class="inquiry-draft-clear" hidden>مسح المسودة</button>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                  <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
                 </div>
               </form>
             </div>
@@ -364,6 +362,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261120a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261119a" defer></script>
   </body>
 </html>

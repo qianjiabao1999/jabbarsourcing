@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-193" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-192" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261120a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261119a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -168,11 +168,16 @@
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
-                <h2 id="inquiry-title">Angebot anfragen</h2>
-                <p>Geben Sie die Produkte und Ihre Kontaktdaten an.</p>
-                <ul class="inquiry-trust-points"><li>Erste Antwort binnen 24 Std.; Angebot in 24–48 Std.</li></ul>
+                <h2 id="inquiry-title">Sagen Sie uns, was Sie kaufen möchten</h2>
+                <p>Produkte und Kontaktdaten genügen; alles Weitere ist optional.</p>
+                <ul class="inquiry-trust-points"><li>Erste Antwort binnen 24 Std.; Angebot in 24–48 Std.</li><li>Testbestellungen ab 1.000 USD</li><li>Detailliertes Angebot; keine separate Käuferprovision</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="de" data-inquiry-source="/de/inquiry/" data-privacy-version="2026-07-22">
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="Der gespeicherte Entwurf konnte nicht gelöscht werden. Schließen Sie diesen Tab, um ihn zu verwerfen." data-draft-restored="Ihr Entwurf wurde in diesem Tab wiederhergestellt." data-draft-cleared="Entwurf und Formular wurden gelöscht." data-draft-expired="Der gespeicherte Entwurf ist abgelaufen." data-draft-unavailable="Entwurf kann nicht gespeichert werden. Lassen Sie die Seite bis zum Abschluss geöffnet.">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">Entwurf inklusive Kontaktdaten: nur in diesem Tab, 30 Minuten. Keine Übermittlung vor dem Absenden.</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>Entwurf löschen</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                </div>
                 <label class="field field-wide">
                   <span>Gewünschte Produkte</span>
                   <input name="product" type="text" maxlength="300" placeholder="z. B. Dollar-Store-Waren, Küchenartikel, Spielzeug, Aufbewahrung…" autocomplete="off"  required/>
@@ -181,14 +186,14 @@
                   <span>Kontaktdaten</span>
                   <input name="contact" type="text" maxlength="200" placeholder="WhatsApp / E-Mail / WeChat-ID" autocomplete="on"  required/>
                 </label>
+                <label class="field field-wide">
+                  <span>Produkt-Referenzlink (Alibaba / Amazon / TikTok)</span>
+                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Nur http://- oder https://-Links werden akzeptiert" />
+                </label>
+                <p class="inquiry-attachment-note field-wide">Dieses Formular akzeptiert nur Text und Links. Senden Sie Fotos oder eine Excel-Liste nach dem Absenden über <a href="#contact">WhatsApp im Kontaktbereich</a> und geben Sie Ihre Anfragereferenz an.</p>
                 <details class="inquiry-additional-details field-wide">
                   <summary class="inquiry-additional-summary"><span>Details für ein genaueres Angebot ergänzen</span><small>Optional</small></summary>
                   <div class="inquiry-additional-fields">
-                    <label class="field field-wide">
-                      <span id="inquiry-reference-label">Produkt-Referenzlink (Alibaba / Amazon / TikTok)</span>
-                      <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-hint" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Nur http://- oder https://-Links werden akzeptiert" />
-                      <small class="inquiry-field-hint" id="inquiry-reference-hint">Fügen Sie einen vollständigen Link ein, der mit https:// oder http:// beginnt.</small>
-                    </label>
                     <label class="field">
                       <span>Produktkategorie</span>
                       <select name="category">
@@ -225,8 +230,6 @@
                       <span>Notizen</span>
                       <textarea name="note" rows="3" maxlength="1500" placeholder="Farbe, Verpackung, Liefertermin und weitere Anforderungen…"></textarea>
                     </label>
-                    <ul class="inquiry-trust-points inquiry-trust-points-extra field-wide"><li>Testbestellungen ab 1.000 USD</li><li>Detailliertes Angebot; keine separate Käuferprovision</li></ul>
-                    <p class="inquiry-attachment-note field-wide">Dieses Formular akzeptiert nur Text und Links. Senden Sie Fotos oder eine Excel-Liste nach dem Absenden über <a href="#contact">WhatsApp im Kontaktbereich</a> und geben Sie Ihre Anfragereferenz an.</p>
                   </div>
                 </details>
                 <div class="inquiry-direct-panel field-wide">
@@ -234,13 +237,8 @@
                     <span>Mit dem Senden bestätigen Sie die <a href="/de/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">Datenschutzerklärung <small class="inquiry-privacy-window">(öffnet sich in einem neuen Fenster)</small></a> und stimmen zu, dass diese Angaben nur zur Bearbeitung und Beantwortung Ihrer Anfrage verwendet werden.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="de"></div>
-                  <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Anfrage senden</button>
-                </div>
-                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="Der gespeicherte Entwurf konnte nicht gelöscht werden. Schließen Sie diesen Tab, um ihn zu verwerfen." data-draft-restored="Ihr Entwurf wurde in diesem Tab wiederhergestellt." data-draft-cleared="Entwurf und Formular wurden gelöscht." data-draft-expired="Der gespeicherte Entwurf ist abgelaufen." data-draft-unavailable="Entwurf kann nicht gespeichert werden. Lassen Sie die Seite bis zum Abschluss geöffnet.">
-                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">Entwurf inklusive Kontaktdaten: nur in diesem Tab, 30 Minuten. Keine Übermittlung vor dem Absenden.</p>
-                  <button type="button" class="inquiry-draft-clear" hidden>Entwurf löschen</button>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
+                  <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
                 </div>
               </form>
             </div>
@@ -363,6 +361,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261120a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261119a" defer></script>
   </body>
 </html>

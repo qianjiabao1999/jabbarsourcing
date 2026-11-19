@@ -184,14 +184,7 @@ async function check(browser, lang, width) {
     assert.equal(await page.locator('[name="quantity"]').inputValue(), quantities[lang], `${scope}: inquiry carton unit was lost`);
     assert.equal(await page.locator('[name="product"]').inputValue(), "Kitchen storage QA", `${scope}: inquiry product was lost`);
     assert.equal(await page.locator('[name="note"]').inputValue(), result.message, `${scope}: inquiry report differs from copy report`);
-    assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), false, `${scope}: calculator handoff should stay compact`);
-    const summary = page.locator(".calculator-prefill-summary");
-    await summary.waitFor({ state: "visible" });
-    assert((await summary.textContent()).includes(result.quantity), `${scope}: compact summary is missing the handed-off quantity`);
-    assert.match(await summary.textContent(), /m³/, `${scope}: compact summary is missing the volume`);
-    await page.locator(".calculator-prefill-edit").click();
-    assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), true, `${scope}: the buyer cannot review the prefilled details`);
-    assert.equal(await page.locator('[name="note"]').isVisible(), true, `${scope}: the report must become visible when reviewing details`);
+    assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), true, `${scope}: prefilled optional fields collapsed`);
     assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null, `${scope}: inquiry prefill not consumed`);
     assert.deepEqual(errors, [], `${scope}: browser errors`);
     assert.deepEqual(blockedPosts, [], `${scope}: unexpected POST attempted`);
