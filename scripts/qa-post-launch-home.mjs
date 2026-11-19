@@ -108,6 +108,17 @@ async function homeChecks(browser, engine, locale, width) {
     const photo = page.locator(".hero-site-photo img");
     if (width <= 390) {
       await assertMobileNavigation(page, scope, width);
+      if (locale === "ar" && width === 320) {
+        const social = page.locator(".site-nav-links > .site-nav-team");
+        // 模拟备用字形让一个导航标签更高；同行的三个触控区仍必须对齐。
+        await social.evaluate(link => link.style.setProperty("min-height", "47px", "important"));
+        try {
+          const reflow = await assertMobileNavigation(page, scope + "/font-reflow", width);
+          assert(reflow.links.slice(3).every(link => link.height >= 47), scope + ": 第二行必须按最高标签铺齐");
+        } finally {
+          await social.evaluate(link => link.style.removeProperty("min-height"));
+        }
+      }
       const hero = await page.evaluate(() => {
         const root = document.querySelector(".home-hero-compact");
         const button = root.querySelector(".inquiry-entry-button");
