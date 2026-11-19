@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-192" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-193" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261119a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261120a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -168,16 +168,11 @@
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
-                <h2 id="inquiry-title">Tell us what you want to source</h2>
-                <p>Start with products and contact details; everything else is optional.</p>
-                <ul class="inquiry-trust-points"><li>First reply within 24h; full quote in 24–48h</li><li>Trial orders from USD 1,000</li><li>Itemized quotes; no separate buyer commission</li></ul>
+                <h2 id="inquiry-title">Get a sourcing quote</h2>
+                <p>Enter your products and contact details.</p>
+                <ul class="inquiry-trust-points"><li>First reply within 24h; full quote in 24–48h</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="en" data-inquiry-source="/en/inquiry/" data-privacy-version="2026-07-22">
-                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="The saved draft could not be deleted. Close this tab to discard it." data-draft-restored="Your draft has been restored in this tab." data-draft-cleared="The draft and form have been cleared." data-draft-expired="The saved draft has expired." data-draft-unavailable="Draft saving is unavailable. Keep this page open until you finish.">
-                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">Drafts include contact details: this tab only, 30 minutes. Nothing is sent until you submit.</p>
-                  <button type="button" class="inquiry-draft-clear" hidden>Clear draft</button>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
-                </div>
                 <label class="field field-wide">
                   <span>Products needed</span>
                   <input name="product" type="text" maxlength="300" required placeholder="e.g. dollar-store goods, kitchenware, toys, storage items…" autocomplete="off" />
@@ -186,15 +181,14 @@
                   <span>Contact details</span>
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp / email / WeChat ID" autocomplete="on" />
                 </label>
-                <label class="field field-wide">
-                  <span>Product reference URL (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Only http:// or https:// links are accepted" />
-                </label>
-                <p class="inquiry-attachment-note field-wide">This form accepts text and links only. After submitting, send photos or an Excel list via <a href="#contact">WhatsApp in our contact section</a> and include your inquiry reference.</p>
-                <p class="inquiry-guide-tip field-wide"><a href="/en/yiwu-sourcing-guide.html" target="_blank" rel="noopener">Need help? Read the sourcing guide (opens in a new window).</a></p>
                 <details class="inquiry-additional-details field-wide">
                   <summary class="inquiry-additional-summary"><span>Add details for a more accurate quote</span><small>Optional</small></summary>
                   <div class="inquiry-additional-fields">
+                    <label class="field field-wide">
+                      <span id="inquiry-reference-label">Product reference URL (Alibaba / Amazon / TikTok)</span>
+                      <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-hint" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Only http:// or https:// links are accepted" />
+                      <small class="inquiry-field-hint" id="inquiry-reference-hint">Paste a full link starting with https:// or http://.</small>
+                    </label>
                     <label class="field">
                       <span>Product category</span>
                       <select name="category">
@@ -231,6 +225,9 @@
                       <span>Notes</span>
                       <textarea name="note" rows="3" maxlength="1500" placeholder="Color, packaging, delivery time, and other requirements…"></textarea>
                     </label>
+                    <ul class="inquiry-trust-points inquiry-trust-points-extra field-wide"><li>Trial orders from USD 1,000</li><li>Itemized quotes; no separate buyer commission</li></ul>
+                    <p class="inquiry-attachment-note field-wide">This form accepts text and links only. After submitting, send photos or an Excel list via <a href="#contact">WhatsApp in our contact section</a> and include your inquiry reference.</p>
+                    <p class="inquiry-guide-tip field-wide"><a href="/en/yiwu-sourcing-guide.html" target="_blank" rel="noopener">Need help? Read the sourcing guide (opens in a new window).</a></p>
                   </div>
                 </details>
                 <div class="inquiry-direct-panel field-wide">
@@ -238,8 +235,13 @@
                     <span>By submitting, you acknowledge the <a href="/en/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">Privacy Policy <small class="inquiry-privacy-window">(opens in a new window)</small></a> and agree that we may use this information only to handle and reply to your inquiry.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="en"></div>
-                  <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Submit inquiry</button>
                   <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+                  <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Submit inquiry</button>
+                </div>
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="The saved draft could not be deleted. Close this tab to discard it." data-draft-restored="Your draft has been restored in this tab." data-draft-cleared="The draft and form have been cleared." data-draft-expired="The saved draft has expired." data-draft-unavailable="Draft saving is unavailable. Keep this page open until you finish.">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">Drafts include contact details: this tab only, 30 minutes. Nothing is sent until you submit.</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>Clear draft</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
               </form>
             </div>
@@ -364,6 +366,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261119a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261120a" defer></script>
   </body>
 </html>

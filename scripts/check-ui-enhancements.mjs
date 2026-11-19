@@ -7,8 +7,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-192";
-const UI_VERSION = "ui-20261119a";
+const CSS_VERSION = "apple-193";
+const UI_VERSION = "ui-20261120a";
 const ORDER_VERSION = "order-20260722c";
 const CONTAINER_VERSION = "container-20261011b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
@@ -588,9 +588,9 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
 {
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
   const EXPECTED_LANGUAGE_MATRIX_LASTMOD = {
-    home: "2026-11-19",
+    home: "2026-11-20",
     calculator: "2026-11-19",
-    inquiry: "2026-11-19"
+    inquiry: "2026-11-20"
   };
   const EXPECTED_LEGAL_LASTMOD = {
     [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-08-14",
@@ -814,7 +814,9 @@ assert.match(faqJavascript, /faq\.classList\.add\("is-faq-focused"\)/, "site-enh
 assert.match(faqJavascript, /item\.open = false;\s*item\.hidden = true;/, "site-enhancements.js: FAQ items must be closed and filtered initially");
 assert.match(faqJavascript, /other\.hidden = !selected;\s*other\.open = selected;/, "site-enhancements.js: a quick tag must show and open only its matching FAQ item");
 assert.doesNotMatch(faqJavascript, /shouldOpen|!item\.open/, "site-enhancements.js: repeated quick-tag clicks must not close the answer");
-assert.match(faqJavascript, /item\.scrollIntoView\(\{[^}]*block: "center"[^}]*\}\)/, "site-enhancements.js: FAQ quick tag must scroll its answer into view");
+assert.match(faqJavascript, /item\.scrollIntoView\(\{[^}]*block: block[^}]*\}\)/, "site-enhancements.js: FAQ should scroll to the selected answer");
+assert.match(faqJavascript, /selectItem\(item, "center"\)/, "site-enhancements.js: FAQ quick tag should center the selected answer");
+assert.match(faqJavascript, /selectItem\(item, "start"\)/, "site-enhancements.js: direct topic links should bring the question into view");
 assert.doesNotMatch(faqJavascript, /\.focus\s*\(/, "site-enhancements.js: FAQ quick tags must not steal focus");
 assert.doesNotMatch(faqJavascript, /window\.open\s*\(|(?:window\.)?location(?:\.href)?\s*=|setAttribute\(["'](?:href|target)["']/, "site-enhancements.js: FAQ quick tags must not navigate or open a new page");
 

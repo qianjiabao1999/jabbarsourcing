@@ -234,7 +234,12 @@ await slowTurnstilePage.locator('[name="product"]').fill("Slow check draft");
 await slowTurnstilePage.locator('[name="contact"]').fill("slow-check@example.invalid");
 const slowFallback = slowStatus.locator(".inquiry-status-whatsapp");
 assert((await slowFallback.getAttribute("href")).includes("slow-check%40example.invalid"), "Security fallback must reflect edited fields without losing the retry action");
+const fallbackDisclosure = slowStatus.locator(".inquiry-whatsapp-disclosure");
+assert((await fallbackDisclosure.textContent()).includes("product, contact details"), "WhatsApp must explain which form values will be included");
+assert(await slowFallback.getAttribute("aria-describedby") === await fallbackDisclosure.getAttribute("id"), "The WhatsApp action must reference that explanation");
 await slowTurnstilePage.getByRole("button", { name: "Clear draft" }).click();
+assert(await slowTurnstilePage.locator('[name="product"]').inputValue() === "Slow check draft", "Opening confirmation must not clear fields");
+await slowTurnstilePage.locator(".inquiry-draft-confirm").click();
 assert((await slowStatus.textContent()).includes("taking longer than expected"), "Clearing a draft must preserve active verification feedback");
 assert(await slowRetry.isVisible() && await slowFallback.isVisible(), "Clearing a draft must preserve both security actions");
 assert(!(await slowFallback.getAttribute("href")).includes("slow-check"), "Clearing a draft must remove cleared contact data from the fallback link");
@@ -264,9 +269,11 @@ const retrySubmit = retryTurnstilePage.locator(".js-inquiry-direct");
 await retryCheck.waitFor();
 assert((await retryStatus.textContent()).includes("could not be completed"), "Loading failure must describe the security check failure");
 assert(await retryTurnstilePage.locator("script[data-jabbar-turnstile-api]").count() === 0, "Failed verification script must be removed before retry");
+assert(await retrySubmit.evaluate((node) => getComputedStyle(node).cursor) === "not-allowed", "Disabled submit must have a distinct visual state");
 await retryTurnstilePage.locator('[name="product"]').fill("Retry check draft");
 await retryCheck.click();
 await retryTurnstilePage.waitForFunction(() => Boolean(window.__turnstileOptions));
+assert(await retryTurnstilePage.evaluate(() => window.__turnstileOptions.size) === "compact", "A 320px screen must get a challenge sized for the form width");
 assert((await retryStatus.textContent()).includes("Running the security check"), "Widget rendering must replace the script loading message");
 assert(await retrySubmit.isDisabled(), "Retry must keep submission gated until a fresh token arrives");
 assert((await retryTurnstilePage.locator('[name="product"]').inputValue()) === "Retry check draft", "Retry must keep the draft");
@@ -275,7 +282,9 @@ await retryTurnstilePage.evaluate(() => {
   window.__firstTurnstileOptions["before-interactive-callback"]();
 });
 assert((await retryStatus.textContent()).includes("Please complete the security check"), "Interactive verification must tell the user to complete the visible check");
+assert(await retryTurnstilePage.locator(".js-inquiry-turnstile").getAttribute("data-interactive") === "true", "Only a visible challenge may reserve Turnstile space");
 await retryTurnstilePage.evaluate(() => window.__firstTurnstileOptions["timeout-callback"]());
+assert(await retryTurnstilePage.locator(".js-inquiry-turnstile").evaluate((node) => node.getBoundingClientRect().height) === 0, "A failed challenge must collapse the empty Turnstile wrapper");
 await retryCheck.click();
 await retryTurnstilePage.waitForFunction(() => window.__turnstileRenderCount === 2);
 assert(
@@ -340,6 +349,7 @@ await page.evaluate(() => {
     savedAt: Date.now(),
     product: "QA calculator product",
     quantity: "3,600 pcs",
+    totalCbm: 12.4,
     message: "QA calculator result: 12.4 CBM, one 20GP container"
   }));
 });
@@ -350,7 +360,11 @@ assert(
   (await page.locator('[name="note"]').inputValue()) === "QA calculator result: 12.4 CBM, one 20GP container",
   "Calculator message must prefill note"
 );
-assert(await page.locator("details.inquiry-additional-details[open]").count() === 1, "Calculator handoff must reveal prefilled optional details");
+assert(await page.locator("details.inquiry-additional-details[open]").count() === 0, "Calculator handoff must show a compact preview first");
+const prefill = page.locator(".calculator-prefill-summary");
+assert((await prefill.textContent()).includes("3,600 pcs") && (await prefill.textContent()).includes("12.400 m³"), "The preview must use incoming quantity and volume");
+await page.locator(".calculator-prefill-edit").click();
+assert(await page.locator(".inquiry-additional-summary").evaluate((node) => document.activeElement === node), "Review must move focus to revealed details");
 const freshDetailVisibility = await page.evaluate((fieldNames) => fieldNames.every((name) => {
   const field = document.querySelector(`[name="${name}"]`);
   return Boolean(field && field.getClientRects().length > 0 && (!field.closest("details") || field.closest("details").open));
@@ -391,7 +405,7 @@ const emptyDetailVisibility = await page.evaluate((fieldNames) => fieldNames.fil
   const field = document.querySelector(`[name="${name}"]`);
   return Boolean(field && field.getClientRects().length > 0 && !field.closest("details"));
 }), ORDER_DETAIL_FIELDS);
-assert(JSON.stringify(emptyDetailVisibility) === JSON.stringify(["referenceUrl"]), "Only the optional reference URL must remain outside the disclosure");
+assert(emptyDetailVisibility.length === 0, "All optional fields must be grouped in the disclosure");
 assert(
   (await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult"))) === null,
   "Stale calculator handoff must be removed"
@@ -409,13 +423,13 @@ const statusContract = await page.locator(".inquiry-status").evaluate((status) =
   atomic: status.getAttribute("aria-atomic"),
   tabIndex: status.getAttribute("tabindex"),
   insideDirectPanel: status.parentElement?.classList.contains("inquiry-direct-panel") || false,
-  immediatelyAfterDirectButton: status.previousElementSibling?.classList.contains("js-inquiry-direct") || false
+  immediatelyBeforeDirectButton: status.nextElementSibling?.classList.contains("js-inquiry-direct") || false
 }));
 assert(statusContract.role === "status", "Inquiry feedback must expose role=status");
 assert(statusContract.live === "polite" && statusContract.atomic === "true", "Inquiry feedback must be an atomic polite live region");
 assert(statusContract.tabIndex === "-1", "Inquiry feedback must be programmatically focusable");
 assert(statusContract.insideDirectPanel, "Inquiry feedback must remain inside the direct-submit panel");
-assert(statusContract.immediatelyAfterDirectButton, "Inquiry feedback must immediately follow the direct-submit button");
+assert(statusContract.immediatelyBeforeDirectButton, "Inquiry feedback must immediately precede the direct-submit button");
 
 await page.evaluate(() => {
   window.__inquiryScrollCalls = [];
@@ -444,7 +458,9 @@ assert((await analyticsEvents("channel_fallback")).length === 0, "Removed fallba
 assert((await analyticsEvents("inquiry_optional_details_toggle")).length === 0, "Optional detail interaction must not introduce unapproved analytics");
 
 await fillRequired("QA invalid reference", "qa-invalid-reference@example.com");
+await page.locator(".inquiry-additional-summary").click();
 await page.locator('[name="referenceUrl"]').fill("ftp://example.com/product");
+await page.locator(".inquiry-additional-summary").click();
 const beforeInvalidReferenceApi = apiPayloads.length;
 const beforeInvalidReferenceErrors = (await analyticsEvents("inquiry_submit_error")).length;
 await clickDirect();
@@ -457,9 +473,11 @@ const invalidReferenceErrors = await analyticsEvents("inquiry_submit_error");
 assert(invalidReferenceErrors.at(-1)?.error_code === "native_validation", "Invalid reference URL must report controlled native validation");
 assert(invalidReferenceErrors.at(-1)?.stage === "validation", "Invalid reference URL must use the validation funnel stage");
 assert(invalidReferenceErrors.at(-1)?.duration_ms === 0, "Local validation error duration must remain zero");
+assert(await page.locator('[name="referenceUrl"]').isVisible(), "The invalid link must reveal the optional fields");
 
 await fillRequired("QA storage items", "qa@example.com");
 await page.locator('[name="referenceUrl"]').fill("https://www.alibaba.com/product-detail/qa-storage-item.html");
+await page.locator(".inquiry-additional-summary").click();
 await page.locator('[name="quantity"]').evaluate((field) => field.setCustomValidity("QA quantity validation"));
 await clickDirect();
 assert(await page.locator("details.inquiry-additional-details[open]").count() === 1, "Native validation must synchronously open a hidden invalid field");
@@ -512,6 +530,7 @@ assert(
   "Success feedback must show the first eight characters of the submission reference"
 );
 assert(await page.locator(".inquiry-status .inquiry-status-icon").getAttribute("aria-hidden") === "true", "Success check must not duplicate the live-region announcement");
+assert(await page.locator(".inquiry-success-attachment a").getAttribute("href") === "#contact", "Success must explain the existing attachment path beside its reference");
 assert(await page.locator(".inquiry-status .inquiry-status-whatsapp").count() === 0, "Success feedback must not restore a redundant fallback action");
 await page.waitForFunction(() => (window.__inquiryScrollCalls || []).length >= 2);
 const successScrollCalls = await page.evaluate(() => window.__inquiryScrollCalls);
@@ -690,7 +709,7 @@ for (const viewport of [
         panelWidth: panel?.width || 0,
         panelContentWidth,
         statusInsideDirectPanel: status?.parentElement?.classList.contains("inquiry-direct-panel") || false,
-        statusAfterDirectButton: status?.previousElementSibling?.classList.contains("js-inquiry-direct") || false,
+        statusBeforeDirectButton: status?.nextElementSibling?.classList.contains("js-inquiry-direct") || false,
         statusRole: status?.getAttribute("role") || "",
         fallbackCount: document.querySelectorAll(".js-inquiry-send, .inquiry-fallback-label").length,
         privacyCheckboxCount: document.querySelectorAll(".js-inquiry-privacy, .inquiry-privacy input[type=checkbox]").length,
@@ -699,7 +718,7 @@ for (const viewport of [
         detailsCount: document.querySelectorAll(".js-inquiry-form details.inquiry-additional-details").length,
         openDetailsCount: document.querySelectorAll(".js-inquiry-form details[open]").length,
         collapsedFieldNames: Array.from(document.querySelectorAll(".inquiry-additional-details input, .inquiry-additional-details select, .inquiry-additional-details textarea")).map((field) => field.name).sort(),
-        visibleCoreFieldCount: ["product", "contact", "referenceUrl"].filter((name) => {
+        visibleCoreFieldCount: ["product", "contact"].filter((name) => {
           const field = document.querySelector(`[name="${name}"]`);
           return Boolean(field && field.getClientRects().length > 0 && !field.closest("details"));
         }).length,
@@ -737,15 +756,15 @@ for (const viewport of [
     assert(metrics.overflow <= 1, `${item.locale} ${viewport.name} has horizontal overflow: ${metrics.overflow}px`);
     assert(metrics.directWidth > 0 && metrics.panelWidth > 0, `${item.locale} ${viewport.name} direct-submit layout is missing`);
     assert(Math.abs(metrics.directWidth - metrics.panelContentWidth) <= 2, `${item.locale} ${viewport.name} direct submit is not full-width`);
-    assert(metrics.statusInsideDirectPanel && metrics.statusAfterDirectButton, `${item.locale} ${viewport.name} status placement regressed`);
+    assert(metrics.statusInsideDirectPanel && metrics.statusBeforeDirectButton, `${item.locale} ${viewport.name} status placement regressed`);
     assert(metrics.statusRole === "status", `${item.locale} ${viewport.name} status semantics regressed`);
     assert(metrics.fallbackCount === 0, `${item.locale} ${viewport.name} still has redundant fallback UI`);
     assert(metrics.privacyCheckboxCount === 0, `${item.locale} ${viewport.name} still has a privacy checkbox`);
     assert(metrics.privacyNoticeCount === 1 && metrics.privacyLinkCount === 1, `${item.locale} ${viewport.name} privacy submit notice regressed`);
     assert(metrics.detailsCount === 1 && metrics.openDetailsCount === 0, `${item.locale} ${viewport.name} must start with one closed optional-details disclosure`);
-    assert(metrics.visibleCoreFieldCount === 3 && metrics.visibleOrderDetailCount === 1, `${item.locale} ${viewport.name} must initially show product, contact, and reference URL only`);
-    assert(JSON.stringify(metrics.collapsedFieldNames) === JSON.stringify(["budget", "category", "company", "market", "note", "quantity"]), `${item.locale} ${viewport.name} must retain all six optional detail fields`);
-    assert(metrics.turnstileHeight >= 65 && metrics.turnstileHeight <= 70, `${item.locale} ${viewport.name} Turnstile placeholder is ${metrics.turnstileHeight}px instead of a stable 65px`);
+    assert(metrics.visibleCoreFieldCount === 2 && metrics.visibleOrderDetailCount === 0, `${item.locale} ${viewport.name} must initially show just product and contact`);
+    assert(JSON.stringify(metrics.collapsedFieldNames) === JSON.stringify(["budget", "category", "company", "market", "note", "quantity", "referenceUrl"]), `${item.locale} ${viewport.name} must retain all seven optional detail fields`);
+    assert(metrics.turnstileHeight === 0, `${item.locale} ${viewport.name} empty Turnstile must not reserve space`);
     assert(metrics.turnstileAppearance === "interaction-only", `${item.locale} ${viewport.name} Turnstile appearance regressed`);
     assert(metrics.submitEnabledAfterToken, `${item.locale} ${viewport.name} token callback did not enable submit`);
     assert(metrics.returnHomeCount === 1 && metrics.returnHomeHref === "../", `${item.locale} ${viewport.name} top Return Home control regressed`);

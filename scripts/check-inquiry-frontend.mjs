@@ -9,9 +9,9 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-22";
-const CSS_VERSION = "apple-192";
+const CSS_VERSION = "apple-193";
 const CONSENT_VERSION = "consent-20260722a";
-const JS_VERSION = "inquiry-20261119a";
+const JS_VERSION = "inquiry-20261120a";
 
 const PAGES = [
   { file: "inquiry/index.html", locale: "zh", source: "/inquiry/" },
@@ -289,8 +289,8 @@ function checkPage(page, html) {
     }
     const controlsIn = (html) => ["input", "select", "textarea"].flatMap((tag) => findTags(html, tag))
       .map((tag) => tag.attributes.get("name")).filter(Boolean);
-    expectExactSet(scope, "collapsed optional fields", controlsIn(detailsBlocks[0][2]), ["category", "quantity", "budget", "market", "company", "note"]);
-    expectExactSet(scope, "default visible business fields", controlsIn(formBody.replace(detailsBlocks[0][0], "")), ["product", "contact", "referenceUrl"]);
+    expectExactSet(scope, "collapsed optional fields", controlsIn(detailsBlocks[0][2]), ["referenceUrl", "category", "quantity", "budget", "market", "company", "note"]);
+    expectExactSet(scope, "default visible business fields", controlsIn(formBody.replace(detailsBlocks[0][0], "")), ["product", "contact"]);
   }
 
   const formExpectations = new Map([
@@ -362,6 +362,9 @@ function checkPage(page, html) {
       if (control.attributes.has("required")) {
         fail(scope, "referenceUrl must remain optional");
       }
+      const hintId = control.attributes.get("aria-describedby");
+      const hints = findTags(formBody, "small").filter((tag) => tag.attributes.get("id") === hintId && hasClass(tag, "inquiry-field-hint"));
+      checkSingleTag(scope, hints, "referenceUrl visible guidance");
       const referencePosition = formBody.indexOf('name="referenceUrl"');
       const referenceContext = formBody.slice(Math.max(0, referencePosition - 500), referencePosition + 700);
       for (const brand of ["Alibaba", "Amazon", "TikTok"]) {
@@ -483,8 +486,8 @@ function checkPage(page, html) {
       }
     }
   }
-  if (!/<button\b[^>]*\bjs-inquiry-direct\b[^>]*>[\s\S]*?<\/button>\s*<p\b[^>]*\binquiry-status\b[^>]*><\/p>\s*<\/div>/i.test(formBody)) {
-    fail(scope, "inquiry status must be immediately after the direct-submit button inside the direct panel");
+  if (!/<p\b[^>]*\binquiry-status\b[^>]*><\/p>\s*<button\b[^>]*\bjs-inquiry-direct\b[^>]*>[\s\S]*?<\/button>\s*<\/div>/i.test(formBody)) {
+    fail(scope, "inquiry status must be immediately before the direct-submit button inside the direct panel");
   }
   const fallbackButtons = buttons.filter((button) => hasClass(button, "js-inquiry-send"));
   if (fallbackButtons.length !== 0 || countClassToken(formBody, "js-inquiry-send") !== 0) {

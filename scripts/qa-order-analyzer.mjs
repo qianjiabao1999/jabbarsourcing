@@ -1560,7 +1560,7 @@ try {
   ]);
   const inquiryBridgeState = await bridgePage.evaluate(() => {
     const form = document.querySelector(".js-inquiry-form");
-    const isVisible = (field) => Boolean(field && field.getClientRects().length);
+    const isVisible = (field) => Boolean(field && field.getClientRects().length && !field.closest("details:not([open])"));
     return {
       product: form?.elements.product?.value || "",
       quantity: form?.elements.quantity?.value || "",
@@ -1581,13 +1581,19 @@ try {
   assert.match(inquiryBridgeState.note, /总体积: 9\.5 m³/, "Excel inquiry volume handoff");
   assert.match(inquiryBridgeState.note, /qa-order-analyzer-190-products\.xlsx/, "Excel inquiry source file handoff");
   assert.equal(inquiryBridgeState.productVisible, true, "Excel inquiry prefilled product field is not visible");
-  assert.equal(inquiryBridgeState.quantityVisible, true, "Excel inquiry prefilled quantity field is not visible");
-  assert.equal(inquiryBridgeState.noteVisible, true, "Excel inquiry prefilled note field is not visible");
+  assert.equal(inquiryBridgeState.quantityVisible, false, "Excel inquiry quantity should start inside the collapsed details");
+  assert.equal(inquiryBridgeState.noteVisible, false, "Excel inquiry note should start inside the collapsed details");
   assert.equal(inquiryBridgeState.detailsCount, 1, "Excel inquiry must contain one optional-details group");
-  assert.equal(inquiryBridgeState.additionalDetailsOpen, true, "Excel inquiry must expand prefilled optional details");
+  assert.equal(inquiryBridgeState.additionalDetailsOpen, false, "Excel inquiry must start with closed optional details");
   assert.equal(inquiryBridgeState.quantityInAdditionalDetails, true, "Excel inquiry quantity must remain in the optional-details group");
   assert.equal(inquiryBridgeState.noteInAdditionalDetails, true, "Excel inquiry note must remain in the optional-details group");
   assert.equal(inquiryBridgeState.stored, null, "Excel inquiry handoff was not consumed");
+  const excelSummary = bridgePage.locator(".calculator-prefill-summary");
+  await excelSummary.waitFor({ state: "visible" });
+  assert.match(await excelSummary.textContent(), /380[\s\S]*9\.5[\s\S]*m³/, "Excel inquiry summary must show the transferred quantity and volume");
+  await bridgePage.locator(".calculator-prefill-edit").click();
+  assert.equal(await bridgePage.locator('[name="quantity"]').isVisible(), true, "Excel inquiry quantity cannot be reviewed");
+  assert.equal(await bridgePage.locator('[name="note"]').isVisible(), true, "Excel inquiry note cannot be reviewed");
   assert.deepEqual(bridgeErrors, [], `Excel inquiry bridge console errors: ${bridgeErrors.join(" | ")}`);
   await bridgePage.close();
   assert.deepEqual(errors, [], `Chinese calculator console errors: ${errors.join(" | ")}`);

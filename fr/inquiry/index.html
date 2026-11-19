@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-192" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-193" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261119a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261120a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -168,16 +168,11 @@
           <section class="inquiry-section" aria-labelledby="inquiry-title">
             <div class="inquiry-panel">
               <div class="inquiry-copy">
-                <h2 id="inquiry-title">Dites-nous ce que vous voulez acheter</h2>
-                <p>Indiquez les produits et vos coordonnées ; le reste est facultatif.</p>
-                <ul class="inquiry-trust-points"><li>Première réponse sous 24 h ; devis sous 24–48 h</li><li>Commandes d’essai dès 1 000 USD</li><li>Devis détaillé ; sans commission distincte pour l’acheteur</li></ul>
+                <h2 id="inquiry-title">Demander un devis</h2>
+                <p>Indiquez les produits et vos coordonnées.</p>
+                <ul class="inquiry-trust-points"><li>Première réponse sous 24 h ; devis sous 24–48 h</li></ul>
               </div>
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="fr" data-inquiry-source="/fr/inquiry/" data-privacy-version="2026-07-22">
-                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="Le brouillon enregistré n’a pas pu être supprimé. Fermez cet onglet pour l’abandonner." data-draft-restored="Votre brouillon a été restauré dans cet onglet." data-draft-cleared="Le brouillon et le formulaire ont été effacés." data-draft-expired="Le brouillon enregistré a expiré." data-draft-unavailable="Enregistrement du brouillon indisponible. Gardez cette page ouverte jusqu’à la fin.">
-                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">Brouillon avec vos coordonnées : cet onglet uniquement, 30 minutes. Rien ne part avant votre envoi.</p>
-                  <button type="button" class="inquiry-draft-clear" hidden>Effacer le brouillon</button>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
-                </div>
                 <label class="field field-wide">
                   <span>Produits recherchés</span>
                   <input name="product" type="text" maxlength="300" required placeholder="Ex. articles discount, cuisine, jouets, rangement…" autocomplete="off" />
@@ -186,14 +181,14 @@
                   <span>Contact</span>
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp / e-mail / WeChat ID" autocomplete="on" />
                 </label>
-                <label class="field field-wide">
-                  <span>Lien de référence du produit (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Seuls les liens http:// ou https:// sont acceptés" />
-                </label>
-                <p class="inquiry-attachment-note field-wide">Ce formulaire accepte uniquement du texte et des liens. Une fois votre demande envoyée, transmettez vos photos ou votre fichier Excel via <a href="#contact">WhatsApp dans la rubrique contact</a> en indiquant la référence de votre demande.</p>
                 <details class="inquiry-additional-details field-wide">
                   <summary class="inquiry-additional-summary"><span>Ajoutez des détails pour un devis plus précis</span><small>Facultatif</small></summary>
                   <div class="inquiry-additional-fields">
+                    <label class="field field-wide">
+                      <span id="inquiry-reference-label">Lien de référence du produit (Alibaba / Amazon / TikTok)</span>
+                      <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-hint" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Seuls les liens http:// ou https:// sont acceptés" />
+                      <small class="inquiry-field-hint" id="inquiry-reference-hint">Collez un lien complet commençant par https:// ou http://.</small>
+                    </label>
                     <label class="field">
                       <span>Catégorie</span>
                       <select name="category">
@@ -230,6 +225,8 @@
                       <span>Notes</span>
                       <textarea name="note" rows="3" maxlength="1500" placeholder="Couleur, emballage, délai de livraison et autres besoins…"></textarea>
                     </label>
+                    <ul class="inquiry-trust-points inquiry-trust-points-extra field-wide"><li>Commandes d’essai dès 1 000 USD</li><li>Devis détaillé ; sans commission distincte pour l’acheteur</li></ul>
+                    <p class="inquiry-attachment-note field-wide">Ce formulaire accepte uniquement du texte et des liens. Une fois votre demande envoyée, transmettez vos photos ou votre fichier Excel via <a href="#contact">WhatsApp dans la rubrique contact</a> en indiquant la référence de votre demande.</p>
                   </div>
                 </details>
                 <div class="inquiry-direct-panel field-wide">
@@ -237,8 +234,13 @@
                     <span>En envoyant, vous reconnaissez la <a href="/fr/website-privacy-policy.html#website-inquiries" target="_blank" rel="noopener">Politique de confidentialité <small class="inquiry-privacy-window">(s’ouvre dans une nouvelle fenêtre)</small></a> et acceptez que ces informations servent uniquement à traiter votre demande et à y répondre.</span>
                   </p>
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="fr"></div>
-                  <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Envoyer la demande</button>
                   <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+                  <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Envoyer la demande</button>
+                </div>
+                <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="Le brouillon enregistré n’a pas pu être supprimé. Fermez cet onglet pour l’abandonner." data-draft-restored="Votre brouillon a été restauré dans cet onglet." data-draft-cleared="Le brouillon et le formulaire ont été effacés." data-draft-expired="Le brouillon enregistré a expiré." data-draft-unavailable="Enregistrement du brouillon indisponible. Gardez cette page ouverte jusqu’à la fin.">
+                  <p class="inquiry-draft-notice" id="inquiry-draft-notice">Brouillon avec vos coordonnées : cet onglet uniquement, 30 minutes. Rien ne part avant votre envoi.</p>
+                  <button type="button" class="inquiry-draft-clear" hidden>Effacer le brouillon</button>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
               </form>
             </div>
@@ -362,6 +364,6 @@
         });
       })();
     </script>
-  <script src="/assets/site-enhancements.js?v=ui-20261119a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261120a" defer></script>
   </body>
 </html>

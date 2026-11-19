@@ -87,11 +87,16 @@ async function open(page, locale) {
 const readValues = (page) => page.evaluate((names) => Object.fromEntries(names.map((name) => [name, document.querySelector(`[name="${name}"]`).value])), FIELD_NAMES);
 const readStored = (page) => page.evaluate((key) => JSON.parse(sessionStorage.getItem(key)), DRAFT_KEY);
 
+async function confirmClear(page) {
+  await page.locator(".inquiry-draft-clear").click();
+  await page.locator(".inquiry-draft-confirm").click();
+}
+
 async function fillAll(page) {
   await page.locator('[name="product"]').fill(FIXTURE.product);
   await page.locator('[name="contact"]').fill(FIXTURE.contact);
-  await page.locator('[name="referenceUrl"]').fill(FIXTURE.referenceUrl);
   await page.locator(".inquiry-additional-summary").click();
+  await page.locator('[name="referenceUrl"]').fill(FIXTURE.referenceUrl);
   for (const name of ["quantity", "budget", "market", "company", "note"]) await page.locator(`[name="${name}"]`).fill(FIXTURE[name]);
   await page.locator('[name="category"]').selectOption({ index: 3 });
   return { ...FIXTURE, category: await page.locator('[name="category"]').inputValue() };
@@ -107,10 +112,13 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         await open(page, locale);
         if (["en", "ar"].includes(locale)) await page.screenshot({ path: `${OUTPUT_DIR}/inquiry-draft-${locale}-${engineName.toLowerCase()}-empty.png` });
         assert.equal(await page.locator(".inquiry-draft-clear").isVisible(), false, `${locale}: empty draft must not add a clear control`);
-        const noticeBeforeInput = await page.evaluate(() => document.querySelector(".inquiry-draft-notice").getBoundingClientRect().bottom <= document.querySelector('[name="product"]').getBoundingClientRect().top);
-        assert.equal(noticeBeforeInput, true, `${locale}: transparent notice must precede first field`);
+        const productTop = await page.locator('[name="product"]').evaluate((field) => field.getBoundingClientRect().top + scrollY);
+        await page.locator('[name="product"]').fill(FIXTURE.product);
+        assert.equal(await page.locator('[name="product"]').evaluate((field) => field.getBoundingClientRect().top + scrollY), productTop, `${locale}: first edit must not move the product input`);
+        const noticeAfterSubmit = await page.evaluate(() => document.querySelector(".js-inquiry-direct").compareDocumentPosition(document.querySelector(".inquiry-draft-notice")) & Node.DOCUMENT_POSITION_FOLLOWING);
+        assert(noticeAfterSubmit, `${locale}: transparent notice should be in the draft controls rather than above the fields`);
         assert.equal(await page.locator("input[required]").count(), 2);
-        assert.equal(await page.locator(".inquiry-additional-fields input,.inquiry-additional-fields select,.inquiry-additional-fields textarea").count(), 6);
+        assert.equal(await page.locator(".inquiry-additional-fields input,.inquiry-additional-fields select,.inquiry-additional-fields textarea").count(), 7);
         const expected = await fillAll(page);
         let record = await readStored(page);
         assert.deepEqual(Object.keys(record).sort(), ["detailsOpen", "fields", "savedAt", "version"]);
@@ -158,6 +166,14 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         assert.equal(await page.evaluate(() => location.search), "", `${locale}: draft must not be placed in URL`);
 
         await page.locator(".inquiry-draft-clear").click();
+        assert.equal(await page.locator(".inquiry-draft-confirmation").isVisible(), true);
+        assert.equal(await page.locator(".inquiry-draft-cancel").evaluate((node) => document.activeElement === node), true);
+        assert.equal(await page.locator('[name="product"]').inputValue(), FIXTURE.product);
+        await page.keyboard.press("Escape");
+        assert.equal(await page.locator(".inquiry-draft-confirmation").isVisible(), false);
+        assert.equal(await page.locator(".inquiry-draft-clear").evaluate((node) => document.activeElement === node), true);
+        assert.equal(await page.locator('[name="product"]').inputValue(), FIXTURE.product);
+        await confirmClear(page);
         assert.equal(await readStored(page), null);
         assert(Object.values(await readValues(page)).every((value) => value === ""));
         assert.equal(await page.evaluate(() => document.activeElement.name), "product");
@@ -190,14 +206,14 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
       assert.equal(await page.locator('[name="product"]').inputValue(), FIXTURE.product, `${engineName}: active expiry must not erase current editing fields`);
       await page.locator('[name="product"]').fill("Edited after expiry");
       assert.equal((await readStored(page)).fields.product, "Edited after expiry");
-      await page.locator(".inquiry-draft-clear").click();
+      await confirmClear(page);
       await page.evaluate((key) => sessionStorage.setItem(key, "{broken-json"), DRAFT_KEY);
       await page.reload({ waitUntil: "networkidle" });
       assert.equal(await readStored(page), null, `${engineName}: malformed draft must be removed`);
 
       await page.locator('[name="product"]').fill("Saved before deletion became unavailable");
       await page.evaluate(() => { window.__blockSessionAccess = true; });
-      await page.locator(".inquiry-draft-clear").click();
+      await confirmClear(page);
       assert.equal(await page.locator('[name="product"]').inputValue(), "");
       assert((await page.locator(".inquiry-draft-feedback").textContent()).includes("could not be deleted"));
       await page.evaluate(() => { window.__blockSessionAccess = false; });
@@ -211,14 +227,26 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
       assert.equal(await readStored(page), null, `${engineName}: manually emptied form must clear draft`);
       await page.evaluate(({ key, fields }) => {
         sessionStorage.setItem(key, JSON.stringify({ version: 1, savedAt: Date.now(), detailsOpen: false, fields }));
-        sessionStorage.setItem("jabbarCalcResult", JSON.stringify({ savedAt: Date.now(), product: "New calculator product", quantity: "250 cartons", note: "New calculator notes" }));
+        sessionStorage.setItem("jabbarCalcResult", JSON.stringify({ savedAt: Date.now(), product: "New calculator product", quantity: "250 cartons", note: "New calculator notes", totalCbm: 9.25 }));
       }, { key: DRAFT_KEY, fields: { ...FIXTURE, category: "kitchenware" } });
       await page.reload({ waitUntil: "networkidle" });
       assert.deepEqual(await readValues(page), { ...FIXTURE, product: "New calculator product", quantity: "250 cartons", note: "New calculator notes" });
-      assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), true);
+      assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), false);
+      assert.match(await page.locator(".calculator-prefill-summary").textContent(), /250 cartons.*9\.250 m³/);
       assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null);
       assert.equal((await readStored(page)).fields.product, "New calculator product");
       assert.equal(await page.locator(".js-inquiry-form").getAttribute("data-calculator-prefill"), "true");
+      await page.reload({ waitUntil: "networkidle" });
+      assert.match(await page.locator(".calculator-prefill-summary").textContent(), /250 cartons.*9\.250 m³/, `${engineName}: valid preview must persist in its draft`);
+      await page.locator(".calculator-prefill-edit").click();
+      assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), true);
+      await page.locator('[name="quantity"]').fill("300 cartons");
+      assert.equal(await page.locator(".calculator-prefill-summary").textContent(), "300 cartons", `${engineName}: revised quantity must remove stale volume from preview`);
+      await page.locator(".calculator-prefill-notice-dismiss").click();
+      assert.equal(await page.locator(".calculator-prefill-notice").count(), 0);
+      assert.equal(await page.locator('[name="note"]').inputValue(), "New calculator notes", `${engineName}: dismiss must not change imported values`);
+      await page.reload({ waitUntil: "networkidle" });
+      assert.equal(await page.locator(".calculator-prefill-notice").count(), 0, `${engineName}: dismissed preview must stay hidden across reload`);
 
       // 模拟 BFCache 旧文档返回：同标签页更晚的另一语言草稿应覆盖旧非空值。
       await page.waitForTimeout(10);
@@ -246,6 +274,15 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
       assert.equal(await readStored(page), null);
       assert.equal(await page.locator(".js-inquiry-form").getAttribute("data-calculator-prefill"), null, `${engineName}: cleared cached draft must remove prefill state`);
       assert.equal(await page.locator(".calculator-prefill-notice").isVisible(), false, `${engineName}: cleared form must not show an old prefill notice`);
+
+      await page.goto(`${BASE_URL}/en/`, { waitUntil: "networkidle" });
+      await page.evaluate(() => sessionStorage.setItem("jabbarCalcResult", JSON.stringify({
+        savedAt: Date.now(), product: "Legacy calculator product", quantity: "25 cartons"
+      })));
+      await open(page, "en");
+      assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), false);
+      assert.equal(await page.locator(".calculator-prefill-summary").textContent(), "25 cartons", `${engineName}: legacy payload must show existing values without inventing a volume`);
+      await confirmClear(page);
 
       for (const status of [200, 201, 202]) {
         state.responseStatus = status;

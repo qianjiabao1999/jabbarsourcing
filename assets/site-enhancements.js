@@ -978,16 +978,29 @@
       item.hidden = true;
     });
 
+    function selectItem(item, block) {
+      items.forEach(function (other) {
+        var selected = other === item;
+        other.hidden = !selected;
+        other.open = selected;
+      });
+      var position = window.location.hash + ":" + window.scrollY;
+      window.requestAnimationFrame(function () {
+        if (!item.hidden && window.location.hash + ":" + window.scrollY === position) {
+          item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: block });
+        }
+      });
+    }
+
     var tags = createElement("div", "faq-quick-tags");
     tags.setAttribute("role", "group");
-    tags.setAttribute("aria-label", faq.querySelector("h2") ? faq.querySelector("h2").textContent : "FAQ");
+    tags.setAttribute("aria-label", faq.querySelector("h2").textContent);
     var prompt = createElement("p", "faq-quick-tags-label", copy.faqPrompt);
     items.forEach(function (item, index) {
-      var id = "faq-item-" + (index + 1);
-      item.id = id;
       var button = createElement("button", "faq-quick-tag", copy.faq[index]);
       button.type = "button";
-      button.setAttribute("aria-controls", id);
+      item.id = item.id || "faq-item-" + (index + 1);
+      button.setAttribute("aria-controls", item.id);
       button.setAttribute("aria-expanded", "false");
       tags.appendChild(button);
 
@@ -995,32 +1008,19 @@
         button.setAttribute("aria-expanded", String(item.open));
         button.classList.toggle("is-active", item.open);
       });
-      button.addEventListener("click", function () {
-        items.forEach(function (other) {
-          var selected = other === item;
-          other.hidden = !selected;
-          other.open = selected;
-        });
-        var position = window.location.hash + ":" + window.scrollY;
-        window.requestAnimationFrame(function () {
-          if (window.location.hash + ":" + window.scrollY === position) item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
-        });
-        var summary = item.querySelector("summary");
-        summary.classList.remove("faq-summary-flash");
-        void summary.offsetWidth;
-        summary.classList.add("faq-summary-flash");
-        window.setTimeout(function () { summary.classList.remove("faq-summary-flash"); }, 620);
-      });
+      button.addEventListener("click", function () { selectItem(item, "center"); });
     });
+    faq.querySelector(".section-heading").after(prompt, tags);
 
-    var heading = faq.querySelector(".section-heading");
-    if (heading) {
-      heading.insertAdjacentElement("afterend", prompt);
-      prompt.insertAdjacentElement("afterend", tags);
-    } else {
-      faq.insertBefore(tags, faq.firstChild);
-      faq.insertBefore(prompt, tags);
+    function selectFromHash() {
+      var item = document.getElementById(window.location.hash.slice(1));
+      if (items.indexOf(item) !== -1) selectItem(item, "start");
     }
+    window.addEventListener("hashchange", selectFromHash);
+    faq.parentNode.addEventListener("click", function (event) {
+      if (event.target.getAttribute("href") === window.location.hash) selectFromHash();
+    });
+    selectFromHash();
   }
 
   function initNavigationDisclosures() {
@@ -1097,7 +1097,7 @@
 
     function sectionHash() {
       var id = window.location.hash.slice(1);
-      return allowedSections.indexOf(id) !== -1 && document.getElementById(id) ? "#" + id : "";
+      return (allowedSections.indexOf(id) !== -1 || /^faq-item-[126]$/.test(id)) && document.getElementById(id) ? "#" + id : "";
     }
 
     function updateLanguageLinks() {
@@ -1267,7 +1267,7 @@
   function initFooterUtilities() {
     if (document.querySelector('script[data-footer-utilities]')) return;
     var script = document.createElement("script");
-    script.src = "/assets/site-footer-tools.js?v=footer-20260720a";
+    script.src = "/assets/site-footer-tools.js?v=footer-20261120a";
     script.async = true;
     script.setAttribute("data-footer-utilities", "");
     document.head.appendChild(script);
