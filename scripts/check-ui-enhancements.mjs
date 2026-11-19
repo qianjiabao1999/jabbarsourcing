@@ -813,6 +813,7 @@ const faqJavascript = sourceBetween(javascript, "  function initFaqTags()", "  f
 assert.match(faqJavascript, /faq\.classList\.add\("is-faq-focused"\)/, "site-enhancements.js: focused FAQ enhancement scope missing");
 assert.match(faqJavascript, /item\.open = false;\s*item\.hidden = true;/, "site-enhancements.js: FAQ items must be closed and filtered initially");
 assert.match(faqJavascript, /other\.hidden = !selected;\s*other\.open = selected;/, "site-enhancements.js: a quick tag must show and open only its matching FAQ item");
+assert.match(faqJavascript, /button\.setAttribute\("aria-expanded", String\(item\.open\)\);\s*button\.classList\.toggle\("is-active", item\.open\);/, "site-enhancements.js: FAQ accessibility and active class must track the same opened state");
 assert.doesNotMatch(faqJavascript, /shouldOpen|!item\.open/, "site-enhancements.js: repeated quick-tag clicks must not close the answer");
 assert.match(faqJavascript, /button\.addEventListener\("click", function \(\) \{ selectItem\(item\); \}\)/, "site-enhancements.js: FAQ quick tag should use the normal scroll path");
 assert.match(faqJavascript, /item\.scrollIntoView\(\{[^}]*block: "center"[^}]*\}\)/, "site-enhancements.js: normal FAQ actions should center the selected answer");

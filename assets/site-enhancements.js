@@ -1009,6 +1009,7 @@
 
       item.addEventListener("toggle", function () {
         button.setAttribute("aria-expanded", String(item.open));
+        button.classList.toggle("is-active", item.open);
       });
       button.addEventListener("click", function () { selectItem(item); });
     });
@@ -1119,7 +1120,7 @@
       var select = event.target;
       if (!select.matches(".site-footer-language-select") || !sectionHash()) return;
       if (allowedLocales.indexOf(select.value) === -1) return;
-      // 页脚工具异步创建；捕获阶段接管首页章节跳转，深层页面仍用原路由。
+      // Footer controls are added asynchronously.
       event.stopImmediatePropagation();
       window.location.assign((select.value === "zh" ? "/" : "/" + select.value + "/") + sectionHash());
     }, true);
