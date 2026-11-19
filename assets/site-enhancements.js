@@ -978,16 +978,20 @@
       item.hidden = true;
     });
 
-    function selectItem(item, block) {
+    function selectItem(item, anchor) {
       items.forEach(function (other) {
         var selected = other === item;
         other.hidden = !selected;
         other.open = selected;
       });
-      var position = window.location.hash + ":" + window.scrollY;
-      window.requestAnimationFrame(function () {
-        if (!item.hidden && window.location.hash + ":" + window.scrollY === position) {
-          item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: block });
+      if (anchor) {
+        scrollTo({ top: scrollY, behavior: "instant" });
+        return item.scrollIntoView({ behavior: "instant" });
+      }
+      var position = location.hash + ":" + scrollY;
+      requestAnimationFrame(function () {
+        if (!item.hidden && location.hash + ":" + scrollY === position) {
+          item.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
         }
       });
     }
@@ -995,7 +999,6 @@
     var tags = createElement("div", "faq-quick-tags");
     tags.setAttribute("role", "group");
     tags.setAttribute("aria-label", faq.querySelector("h2").textContent);
-    var prompt = createElement("p", "faq-quick-tags-label", copy.faqPrompt);
     items.forEach(function (item, index) {
       var button = createElement("button", "faq-quick-tag", copy.faq[index]);
       button.type = "button";
@@ -1006,19 +1009,20 @@
 
       item.addEventListener("toggle", function () {
         button.setAttribute("aria-expanded", String(item.open));
-        button.classList.toggle("is-active", item.open);
       });
-      button.addEventListener("click", function () { selectItem(item, "center"); });
+      button.addEventListener("click", function () { selectItem(item); });
     });
-    faq.querySelector(".section-heading").after(prompt, tags);
+    faq.querySelector(".section-heading").after(createElement("p", "faq-quick-tags-label", copy.faqPrompt), tags);
 
     function selectFromHash() {
-      var item = document.getElementById(window.location.hash.slice(1));
-      if (items.indexOf(item) !== -1) selectItem(item, "start");
+      var item = document.getElementById(location.hash.slice(1));
+      var anchored = items.includes(item);
+      history.scrollRestoration = anchored ? "manual" : "auto";
+      if (anchored) selectItem(item, true);
     }
     window.addEventListener("hashchange", selectFromHash);
     faq.parentNode.addEventListener("click", function (event) {
-      if (event.target.getAttribute("href") === window.location.hash) selectFromHash();
+      if (event.target.getAttribute("href") === location.hash) selectFromHash();
     });
     selectFromHash();
   }
@@ -1105,7 +1109,6 @@
       links.forEach(function (link) {
         var destination = new URL(link.getAttribute("href"), window.location.href);
         if (destination.origin !== window.location.origin || !homePath.test(destination.pathname)) return;
-        // 只保留站内首页路径与白名单章节，查询参数不会跨语言转发。
         link.setAttribute("href", destination.pathname + hash);
       });
     }

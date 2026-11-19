@@ -3,6 +3,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const ONLY_RACE_QA = process.env.ONLY_RACE_QA === "1";
+const ONLY_SHORT_HOME_QA = process.env.ONLY_SHORT_HOME_QA === "1";
 const locales = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const homePath = (locale) => locale === "zh" ? "/" : `/${locale}/`;
 
@@ -210,6 +211,7 @@ async function shortHomeChecks(browser, engine, locale) {
     assert(heading.top >= heading.header && heading.bottom <= heading.height, `${scope}/#${id}: 深链答案标题完整可见 ${JSON.stringify(heading)}`);
     assert.equal(await answerPage.locator(".faq-item:not([hidden])[open]").count(), 1, `${scope}: 只展开目标问答`);
     assert.equal(await answerPage.locator(`.faq-quick-tag[aria-controls="${id}"]`).getAttribute("aria-expanded"), "true", `${scope}: 选题与深链状态同步`);
+    assert.equal(await answerPage.evaluate(() => history.scrollRestoration), "manual", `${scope}: FAQ 深链不恢复旧的浏览位置`);
   }
   try {
     await page.goto(url, { waitUntil: "domcontentloaded" });
@@ -256,8 +258,17 @@ async function shortHomeChecks(browser, engine, locale) {
     await page.locator('.sourcing-faq-links a[href="#faq-item-6"]').click();
     await assertAnswer(page, "faq-item-6");
     await page.goBack();
+    await page.waitForURL(url + "#faq-item-2");
     await assertAnswer(page, "faq-item-2");
     await page.goForward();
+    await page.waitForURL(url + "#faq-item-6");
+    await assertAnswer(page, "faq-item-6");
+    // Return during the native smooth scroll, while the FAQ is still in view.
+    // An already-aligned scrollIntoView alone does not cancel that animation.
+    await page.evaluate(() => { location.hash = "services"; });
+    await page.waitForFunction(() => history.scrollRestoration === "auto", undefined, { timeout: 8000 });
+    await page.goBack();
+    await page.waitForURL(url + "#faq-item-6");
     await assertAnswer(page, "faq-item-6");
 
     const direct = await context.newPage();
@@ -427,6 +438,10 @@ async function faqNavigationRaceChecks(browser, engine, locale, width) {
 for (const [engine, browserType] of [["Chromium", chromium], ["WebKit", webkit]]) {
   const browser = await browserType.launch();
   try {
+    if (ONLY_SHORT_HOME_QA) {
+      for (const locale of locales) await shortHomeChecks(browser, engine, locale);
+      continue;
+    }
     if (!ONLY_RACE_QA) {
       const selectedLocales = engine === "Chromium" ? locales : ["zh", "en", "ar"];
       for (const locale of selectedLocales) for (const width of [320, 390, 1440]) await homeChecks(browser, engine, locale, width);
@@ -440,6 +455,8 @@ for (const [engine, browserType] of [["Chromium", chromium], ["WebKit", webkit]]
     await browser.close();
   }
 }
-console.log(ONLY_RACE_QA
+console.log(ONLY_SHORT_HOME_QA
+  ? "320×568 FAQ 深链和历史导航通过：十语言，Chromium 与 WebKit。"
+  : ONLY_RACE_QA
   ? "FAQ 导航竞争专项通过：12 个语言/尺寸/引擎组合，24 条新 hash/同 hash 路径，零 POST。"
   : "上线后回归通过：39 个首页组合、126 个章节留白、26 个询盘窄屏导航、36 条首次自然锚点；20 个 320×568 报价及 FAQ 深链组合、2 条无脚本路径、24 条 FAQ 导航竞争路径，零 POST。");
