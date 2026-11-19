@@ -1532,6 +1532,32 @@ try {
 
   const bridgePage = await context.newPage();
   const bridgeErrors = collectErrors(bridgePage);
+  let bridgePosts = 0;
+  let unexpectedChallengeRequests = 0;
+  // The handoff test exercises prefill, not the real challenge service.
+  // The fixture never issues a verification token.
+  await bridgePage.route("**/*", (route) => {
+    const request = route.request();
+    if (request.method() === "POST") {
+      bridgePosts += 1;
+      return route.abort();
+    }
+    const url = new URL(request.url());
+    if (url.origin !== "https://challenges.cloudflare.com") return route.fallback();
+    if (url.pathname !== "/turnstile/v0/api.js") {
+      unexpectedChallengeRequests += 1;
+      return route.abort();
+    }
+    return route.fulfill({
+      contentType: "application/javascript",
+      body: `window.turnstile = {
+        render: function () { window.__qaOrderBridgeTurnstileRendered = true; return "excel-bridge-fixture"; },
+        remove: function () {},
+        reset: function () {},
+        getResponse: function () { return ""; }
+      };`
+    });
+  });
   await bridgePage.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
   for (const [field, value] of [["length", "50"], ["width", "40"], ["height", "30"], ["qty", "100"]]) {
     await bridgePage.locator(`#${field}`).fill(value);
@@ -1558,6 +1584,7 @@ try {
     bridgePage.waitForURL(/\/inquiry\/$/),
     bridgeLink.click()
   ]);
+  await bridgePage.waitForFunction(() => window.__qaOrderBridgeTurnstileRendered === true);
   const inquiryBridgeState = await bridgePage.evaluate(() => {
     const form = document.querySelector(".js-inquiry-form");
     const isVisible = (field) => Boolean(field && field.getClientRects().length);
@@ -1588,6 +1615,9 @@ try {
   assert.equal(inquiryBridgeState.quantityInAdditionalDetails, true, "Excel inquiry quantity must remain in the optional-details group");
   assert.equal(inquiryBridgeState.noteInAdditionalDetails, true, "Excel inquiry note must remain in the optional-details group");
   assert.equal(inquiryBridgeState.stored, null, "Excel inquiry handoff was not consumed");
+  assert.equal(await bridgePage.locator(".js-inquiry-direct").isDisabled(), true, "Excel handoff must not unlock inquiry submission");
+  assert.equal(bridgePosts, 0, "Excel inquiry handoff attempted a POST");
+  assert.equal(unexpectedChallengeRequests, 0, "Excel inquiry handoff attempted a real challenge request");
   assert.deepEqual(bridgeErrors, [], `Excel inquiry bridge console errors: ${bridgeErrors.join(" | ")}`);
   await bridgePage.close();
   assert.deepEqual(errors, [], `Chinese calculator console errors: ${errors.join(" | ")}`);

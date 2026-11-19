@@ -7,7 +7,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-192";
+const CSS_VERSION = "apple-194";
 const UI_VERSION = "ui-20261119a";
 const ORDER_VERSION = "order-20260722c";
 const CONTAINER_VERSION = "container-20261011b";
@@ -502,6 +502,15 @@ for (const { locale, file } of INQUIRY_PAGES) {
   const returnLinks = tagsWithClass(html, "a", "site-nav-return-home");
   assert.equal(returnLinks.length, 1, `${file}: top return-home link count`);
   assert.equal(attribute(returnLinks[0][0], "href"), "../", `${file}: top return-home target`);
+  const nav = regionsForClass(html, "nav", "site-nav-links");
+  assert.equal(nav.length, 1, `${file}: shared primary navigation count`);
+  const mobileReturn = tagsWithClass(nav[0], "a", "site-nav-mobile-return-home");
+  assert.equal(countClass(html, "site-nav-mobile-return-home"), 1, `${file}: mobile return-home link count`);
+  assert.equal(mobileReturn.length, 1, `${file}: mobile return-home must be inside the shared navigation`);
+  assert.equal(attribute(mobileReturn[0][0], "href"), attribute(returnLinks[0][0], "href"), `${file}: mobile and desktop return-home targets differ`);
+  assert.equal(decodeText(mobileReturn[0][0]), decodeText(returnLinks[0][0]), `${file}: mobile and desktop return-home labels differ`);
+  assert.equal(tagsWithClass(nav[0], "a", "site-nav-return-home").length, 0, `${file}: desktop return-home must stay outside primary navigation`);
+  assert.match(nav[0], /class="[^"]*\bsite-nav-mobile-return-home\b[^"]*"[^>]*>[^<]*<\/a>\s*(?:<\/nav>)?\s*$/, `${file}: mobile return-home must follow the other links`);
   assert.equal(countClass(html, "site-nav-mobile-home"), 0, `${file}: duplicate return-home item remains in mobile menu`);
   assert.equal(countClass(html, "site-nav-mobile-team"), 0, `${file}: social account remains inside mobile menu`);
   assert.deepEqual(textsForClass(html, "a", "site-nav-social-pill"), [SOCIAL_ACCOUNT_NAV_LABELS[locale]], `${file}: mobile social pill label`);
@@ -546,6 +555,7 @@ for (const { locale, file } of NAV_PAGES) {
     assert.doesNotMatch(mobilePanels[0], /href="[^"]*#social-accounts"/, `${file}: duplicate social destination remains in mobile navigation`);
   }
   if (!INQUIRY_PAGES.some((page) => page.file === file)) {
+    assert.equal(countClass(html, "site-nav-mobile-return-home"), 0, `${file}: inquiry-only return-home link unexpectedly present`);
     const desktopQuote = tagsWithClass(html, "a", "site-nav-quote-desktop");
     const actionQuote = tagsWithClass(html, "a", "site-nav-quote-action");
     assert.equal(desktopQuote.length, 1, `${file}: centered desktop quote count`);

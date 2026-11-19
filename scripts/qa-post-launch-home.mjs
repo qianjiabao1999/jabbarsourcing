@@ -10,7 +10,8 @@ async function contextFor(browser, width) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
   await context.addInitScript(() => Object.defineProperty(navigator, "globalPrivacyControl", { value: true }));
   // 本地验证不加载第三方统计，也不提交表单。
-  await context.route(/https:\/\/(?:www\.googletagmanager\.com|www\.google-analytics\.com|www\.clarity\.ms|c\.clarity\.ms)\//, route => route.abort());
+  await context.route(/https:\/\/(?:www\.googletagmanager\.com|www\.google-analytics\.com|www\.clarity\.ms|c\.clarity\.ms|challenges\.cloudflare\.com)\//, route => route.abort());
+  await context.route("**/*", route => route.request().method() === "POST" ? route.abort() : route.fallback());
   return context;
 }
 
@@ -50,6 +51,51 @@ async function sectionPosition(page, id) {
   }, id);
 }
 
+async function assertMobileNavigation(page, scope, width, isInquiry = false) {
+  await page.evaluate(() => document.fonts.ready);
+  const layout = await page.locator("header.site-nav").evaluate(header => {
+    const boxAndText = element => {
+      const bounds = element.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const text = range.getBoundingClientRect();
+      return { width: bounds.width, height: bounds.height, left: bounds.left, right: bounds.right, top: bounds.top, bottom: bounds.bottom,
+        textLeft: text.left, textRight: text.right, textTop: text.top, textBottom: text.bottom, href: element.getAttribute("href") };
+    };
+    const controls = [".site-nav-brand", ".site-nav-tool-pill", ".site-nav-language > summary"].map(selector => boxAndText(header.querySelector(selector)));
+    const capsule = header.querySelector(".site-nav-links");
+    const links = [...capsule.querySelectorAll(":scope > a")].map(boxAndText);
+    const countColumns = getComputedStyle(capsule).gridTemplateColumns.trim().split(/\s+/).length;
+    const visible = selector => [...header.querySelectorAll(selector)].some(element => element.getBoundingClientRect().width > 0);
+    const brand = header.querySelector(".site-nav-brand > span");
+    return { controls, links, countColumns, capsuleTop: capsule.getBoundingClientRect().top,
+      headerHeight: header.getBoundingClientRect().height,
+      wordmark: brand.getBoundingClientRect().width > 0 && brand.textContent.trim() === "Jabbar Sourcing",
+      hasLegacyMenu: visible(".site-nav-mobile-menu,.site-nav-quote-action,.site-nav-return-home") };
+  });
+  assert(layout.wordmark, `${scope}: 桌面品牌字标仍完整可见`);
+  assert(!layout.hasLegacyMenu, `${scope}: 旧手机菜单、独立报价和外置返回入口必须隐藏`);
+  assert.equal(layout.countColumns, 3, `${scope}: 导航胶囊应有三列`);
+  const destinations = isInquiry
+    ? ["../#services", "../#how-it-works", "../#reviews", "#contact", "../#social-accounts", "../"]
+    : ["#services", "#how-it-works", "#reviews", "inquiry/", "#contact", "#social-accounts"];
+  assert.deepEqual(layout.links.map(link => link.href), destinations, `${scope}: 六个导航入口的实际地址与顺序`);
+  const rowCounts = new Map();
+  for (const link of layout.links) {
+    const row = Math.round(link.top);
+    rowCounts.set(row, (rowCounts.get(row) || 0) + 1);
+  }
+  assert.deepEqual([...rowCounts.values()], [3, 3], `${scope}: 六个入口应排列成两行`);
+  for (const control of [...layout.controls, ...layout.links]) {
+    assert(control.width >= 44 && control.height >= 44 && control.left >= -1 && control.right <= width + 1, `${scope}: 完整显示 44px 触控入口 ${JSON.stringify(control)}`);
+    assert(control.textLeft >= control.left - 1 && control.textRight <= control.right + 1 && control.textTop >= control.top - 1 && control.textBottom <= control.bottom + 1, `${scope}: 导航入口文字不能裁切 ${JSON.stringify(control)}`);
+  }
+  const topRow = [...layout.controls].sort((first, second) => first.left - second.left);
+  assert(topRow.every((control, index) => control.bottom <= layout.capsuleTop + 1 && (!index || control.left >= topRow[index - 1].right - 0.5)), `${scope}: 第一行三个入口不得重叠 ${JSON.stringify(layout)}`);
+  assert(layout.headerHeight <= 172, `${scope}: 吸顶导航不得出现多余第三行 ${JSON.stringify(layout)}`);
+  return layout;
+}
+
 async function homeChecks(browser, engine, locale, width) {
   const context = await contextFor(browser, width);
   const page = await context.newPage();
@@ -61,37 +107,50 @@ async function homeChecks(browser, engine, locale, width) {
     await page.locator(".faq-quick-tag").first().waitFor({ state: "attached" });
     const photo = page.locator(".hero-site-photo img");
     if (width <= 390) {
-      await photo.evaluate((image) => image.decode());
-      await page.evaluate(() => document.fonts.ready);
+      await assertMobileNavigation(page, scope, width);
       const hero = await page.evaluate(() => {
-        const nav = document.querySelector("header.site-nav").getBoundingClientRect();
-        const photo = document.querySelector(".hero-site-photo img");
-        const controls = [".site-nav-brand", ".site-nav-quote-action", ".site-nav-language > summary", ".site-nav-mobile-menu > summary"]
-          .map((selector) => document.querySelector(selector).getBoundingClientRect().toJSON());
-        const minimums = document.querySelector(".hero-order-minimums");
+        const root = document.querySelector(".home-hero-compact");
+        const button = root.querySelector(".inquiry-entry-button");
+        const card = root.querySelector(".inquiry-entry-card-cta");
+        const copy = root.querySelector(".inquiry-entry-copy");
+        const buttonRect = button.getBoundingClientRect();
+        const labelStyle = getComputedStyle(button);
+        const bounds = root.getBoundingClientRect();
         return {
-          navHeight: nav.height,
-          controls,
-          photoBottom: photo.getBoundingClientRect().bottom,
-          photoSource: photo.currentSrc,
-          photoAlt: photo.alt,
-          quoteTop: document.querySelector(".inquiry-entry-button").getBoundingClientRect().top,
-          minimumsTop: minimums.getBoundingClientRect().top,
-          minimumsScrollWidth: minimums.scrollWidth,
-          minimumsWidth: minimums.clientWidth,
-          amounts: [...minimums.querySelectorAll("dd")].map((item) => item.textContent.replace(/[^0-9]/g, ""))
+          headingAlignment: getComputedStyle(root.querySelector("h1")).textAlign,
+          textAlignment: getComputedStyle(root.querySelector(".hero-social")).textAlign,
+          logos: [...root.querySelectorAll(".hero-brand-partnership .site-logo-lockup")].map(logo => {
+            const box = logo.getBoundingClientRect();
+            return [box.width, box.height];
+          }),
+          copyHeight: copy.getBoundingClientRect().height,
+          cardHref: card.getAttribute("href"),
+          cardBackground: getComputedStyle(card).backgroundImage,
+          buttonBackground: labelStyle.backgroundImage,
+          buttonRadius: parseFloat(labelStyle.borderStartStartRadius),
+          buttonFont: parseFloat(labelStyle.fontSize),
+          buttonRect: buttonRect.toJSON(),
+          rootCenter: (bounds.left + bounds.right) / 2,
+          viewport: innerHeight,
+          stamps: [...root.querySelectorAll(".stamp-row .stamp-item")].map(item => {
+            const stamp = item.querySelector(".stamp").getBoundingClientRect();
+            return { width: stamp.width, height: stamp.height, left: stamp.left, right: stamp.right, text: item.querySelector(".stamp").textContent.trim(), note: item.querySelector(".stamp-note").getBoundingClientRect().height };
+          }),
+          amounts: [...root.querySelectorAll(".hero-order-minimums dd")].map(item => item.textContent.replace(/[^0-9]/g, ""))
         };
       });
-      assert(hero.navHeight <= 76, `${scope}: 首页吸顶导航应保持单行 ${JSON.stringify(hero)}`);
-      for (const box of hero.controls) {
-        assert(box.width >= 44 && box.height >= 44 && box.left >= 0 && box.right <= width, `${scope}: 首页四个触控入口完整可见 ${JSON.stringify(box)}`);
-      }
-      const leftToRight = hero.controls.slice().sort((first, second) => first.left - second.left);
-      leftToRight.slice(1).forEach((box, index) => assert(box.left >= leftToRight[index].right, `${scope}: 首页导航入口不能重叠`));
-      assert(hero.photoAlt && /landscape-05-(480|960)\.webp/.test(hero.photoSource), `${scope}: 首屏显示有描述的真实仓库图片`);
-      assert(hero.photoBottom <= 550, `${scope}: 短屏应可完整看见仓库图片`);
-      assert(hero.minimumsTop >= hero.quoteTop + 48, `${scope}: 起订规则紧邻报价按钮`);
-      assert(hero.minimumsScrollWidth <= hero.minimumsWidth, `${scope}: 起订规则不能横向溢出`);
+      assert.equal(hero.headingAlignment, "center", `${scope}: 首屏标题沿用桌面居中样式`);
+      assert.equal(hero.textAlignment, "center", `${scope}: 首屏说明沿用桌面居中样式`);
+      assert.deepEqual(hero.logos, [[84, 84], [84, 84]], `${scope}: 双品牌保持等大且适合窄屏`);
+      assert(hero.copyHeight > 0 && /gradient/.test(hero.cardBackground), `${scope}: 原报价卡和说明可见`);
+      assert.equal(hero.cardHref, "inquiry/", `${scope}: 报价卡仍通往对应语言询盘`);
+      assert(/linear-gradient/.test(hero.buttonBackground) && hero.buttonRadius >= hero.buttonRect.height / 2, `${scope}: 原渐变胶囊按钮保留`);
+      assert(hero.buttonRect.height >= 48 && hero.buttonFont >= 16 && hero.buttonRect.bottom <= hero.viewport, `${scope}: 首屏报价按钮保持完整可点 ${JSON.stringify(hero.buttonRect)}`);
+      assert(Math.abs((hero.buttonRect.left + hero.buttonRect.right) / 2 - hero.rootCenter) <= 1, `${scope}: 报价按钮在首屏中轴上`);
+      assert.deepEqual(hero.stamps.map(stamp => stamp.text), ["QC PASSED ✓", "REPLY < 24H", "TRIAL $1,000"], `${scope}: 三个原有标章顺序`);
+      assert(hero.stamps.every(stamp => stamp.width > 0 && stamp.height > 0 && stamp.left >= -1 && stamp.right <= width + 1 && stamp.note > 0), `${scope}: 三个标章及说明必须可见且不溢出`);
+      assert(!(await photo.isVisible()), `${scope}: 手机专用仓库图不混入桌面版式`);
+      assert(!(await page.locator(".hero-order-minimums").isVisible()), `${scope}: 手机专用价目不混入桌面版式`);
       assert.deepEqual(hero.amounts, ["1000", "3000", "10000"], `${scope}: 三档现有采购金额`);
     } else {
       assert(!(await photo.isVisible()), `${scope}: 手机首屏图片不能改变桌面首屏`);
@@ -166,21 +225,29 @@ async function homeChecks(browser, engine, locale, width) {
       }
     }
     if (width <= 390) {
+      await Promise.all([
+        page.waitForURL(BASE_URL + homePath(locale) + "inquiry/"),
+        page.locator(".site-nav-links .site-nav-quote-desktop").click()
+      ]);
+      await assertMobileNavigation(page, `${scope}/inquiry`, width, true);
+      const fields = await page.locator(".inquiry-form [required]").evaluateAll(elements => elements.map(element => element.name));
+      assert.deepEqual(fields, ["product", "contact"], `${scope}: 询盘原必填项及顺序`);
+      const details = page.locator(".inquiry-additional-details");
+      assert.equal(await details.evaluate(element => element.open), false, `${scope}: 额外字段应默认折叠`);
+      await details.locator("summary").click();
+      assert.equal(await details.evaluate(element => element.open), true, `${scope}: 额外字段可展开`);
+      assert.equal(await details.locator(".inquiry-additional-fields").evaluate(element => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length), 1, `${scope}: 窄屏额外字段保持单列`);
+      assert.equal(await page.locator(".inquiry-form .js-inquiry-direct").isDisabled(), true, `${scope}: 不得绕过询盘验证`);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${scope}: 展开询盘仍无横向溢出`);
+      await Promise.all([
+        page.waitForURL(BASE_URL + homePath(locale)),
+        page.locator(".site-nav-links .site-nav-mobile-return-home").click()
+      ]);
+      assert.deepEqual(errors, [], `${scope}: 真实报价和返回路径无浏览器错误`);
+    } else {
       await page.goto(BASE_URL + homePath(locale) + "inquiry/", { waitUntil: "domcontentloaded" });
-      await page.locator(".site-nav-language > summary[aria-expanded]").waitFor();
-      const controls = await page.locator(".site-nav-brand,.site-nav-return-home,.site-nav-language > summary,.site-nav-mobile-menu > summary").evaluateAll(elements => elements.map(element => {
-        const box = element.getBoundingClientRect();
-        const range = document.createRange();
-        range.selectNodeContents(element);
-        const text = range.getBoundingClientRect();
-        return { class: element.className, width: box.width, height: box.height, left: box.left, right: box.right, textLeft: text.left, textRight: text.right, textWidth: text.width };
-      }));
-      assert.equal(controls.length, 4, `${scope}: 紧凑询盘四个入口`);
-      for (const control of controls) {
-        assert(control.width >= 44 && control.height >= 44 && control.left >= -1 && control.right <= width + 1, `${scope}: 询盘入口显示与44px目标 ${JSON.stringify(control)}`);
-        assert(control.textWidth === 0 || control.textLeft >= control.left - 1 && control.textRight <= control.right + 1, `${scope}: 询盘入口文字不能截断 ${JSON.stringify(control)}`);
-      }
-      assert(await page.locator(".site-nav").evaluate(element => element.getBoundingClientRect().height <= 76), `${scope}: 询盘紧凑导航高度`);
+      assert(await page.locator(".site-nav-return-home").isVisible(), `${scope}: 桌面继续使用原返回链接`);
+      assert(!(await page.locator(".site-nav-mobile-return-home").isVisible()), `${scope}: 手机重复入口在桌面隐藏`);
     }
   } finally {
     await context.close();
@@ -229,7 +296,7 @@ async function languageChecks(browser, engine, width) {
 
 async function firstAnchorChecks(browser, engine, locale, width) {
   // 每条路径都从新页面开始，不能先滚过画廊或主动scrollIntoView修正位置。
-  for (const entry of ["hash", "menu"]) {
+  for (const entry of ["hash", "link"]) {
     const context = await contextFor(browser, width);
     const page = await context.newPage();
     const scope = `${engine}/${locale}/${width}/${entry}`;
@@ -237,12 +304,7 @@ async function firstAnchorChecks(browser, engine, locale, width) {
       await page.goto(BASE_URL + homePath(locale), { waitUntil: "networkidle" });
       await page.evaluate(() => document.fonts.ready);
       if (entry === "hash") await page.evaluate(() => { location.hash = "how-it-works"; });
-      else {
-        if (width < 768) {
-          await page.locator(".site-nav-mobile-menu > summary").click();
-          await page.locator('.site-nav-mobile-panel a[href="#how-it-works"]').click();
-        } else await page.locator('.site-nav-links a[href="#how-it-works"]').click();
-      }
+      else await page.locator('.site-nav-links a[href="#how-it-works"]').click();
       await page.waitForFunction(() => {
         const box = document.querySelector("#how-it-works h2").getBoundingClientRect();
         return box.top >= document.querySelector(".site-nav").getBoundingClientRect().bottom + 15 && box.bottom <= innerHeight;
@@ -323,4 +385,4 @@ for (const [engine, browserType] of [["Chromium", chromium], ["WebKit", webkit]]
 }
 console.log(ONLY_RACE_QA
   ? "FAQ 导航竞争专项通过：12 个语言/尺寸/引擎组合，24 条新 hash/同 hash 路径，零 POST。"
-  : "上线后回归通过：39 个首页组合、126 个章节留白检查、26 个询盘窄屏导航组合、36 条首次自然锚点路径；FAQ 九项、数字继承、静态年份和 4 组语言路由检查；另有 12 个组合/24 条 FAQ 导航竞争路径，零 POST。");
+  : "布局回归通过：39 个首页组合、126 个章节留白检查、26 个窄屏真实报价与返回路径、13 个桌面返回入口检查、36 条首次自然锚点路径；保留 FAQ 九项、数字继承、静态年份和 4 组语言路由检查；另有 12 个组合/24 条 FAQ 导航竞争路径，零 POST。");

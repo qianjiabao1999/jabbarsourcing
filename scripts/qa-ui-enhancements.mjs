@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-192";
+const CSS_VERSION = "apple-194";
 const UI_VERSION = "ui-20261119a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -92,6 +92,7 @@ const VALID_SHIPMENTS = [
 await mkdir(OUTPUT_DIR, { recursive: true });
 
 async function blockAnalytics(context) {
+  await context.route("https://inquiry-api.jabbarsourcing.com/**", (route) => route.abort());
   await context.route("**://www.googletagmanager.com/**", (route) => route.fulfill({ status: 204, body: "" }));
   await context.route("**://www.clarity.ms/**", (route) => route.fulfill({ status: 204, body: "" }));
   await context.route("**/turnstile/v0/api.js*", (route) => route.fulfill({
@@ -210,9 +211,12 @@ async function pageState(page) {
     };
     const toolPill = document.querySelector(".site-nav-tool-pill");
     const socialPill = document.querySelector(".site-nav-social-pill");
-    const quoteLink = window.innerWidth >= 1280
-      ? document.querySelector(".site-nav-quote-desktop, .site-nav-return-home")
-      : document.querySelector(".site-nav-quote-action, .site-nav-return-home");
+    const compactInquiry = document.body.classList.contains("inquiry-page-compact");
+    const compactHome = document.body.classList.contains("home-page");
+    const desktopDerivedMobile = window.innerWidth <= 767 && (compactInquiry || compactHome);
+    const quoteLink = document.querySelector(desktopDerivedMobile
+      ? compactInquiry ? ".site-nav-mobile-return-home" : ".site-nav-quote-desktop"
+      : window.innerWidth >= 1280 ? ".site-nav-quote-desktop, .site-nav-return-home" : ".site-nav-quote-action, .site-nav-return-home");
     const calculatorPage = document.querySelector(".calculator-page");
     const blueprint = calculatorPage ? getComputedStyle(calculatorPage) : null;
     const primaryContainer = document.querySelector(".cbm-visual [data-container-load]");
@@ -221,8 +225,8 @@ async function pageState(page) {
       width: window.innerWidth,
       documentWidth: document.documentElement.scrollWidth,
       direction: document.documentElement.dir || getComputedStyle(document.documentElement).direction,
-      compactInquiry: document.body.classList.contains("inquiry-page-compact"),
-      compactHome: document.body.classList.contains("home-page"),
+      compactInquiry,
+      compactHome,
       cssVersion: document.querySelector('link[href*="styles.min.css"]')?.getAttribute("href") || "",
       uiVersion: document.querySelector('script[src*="site-enhancements.js"]')?.getAttribute("src") || "",
       counts: {
@@ -240,7 +244,8 @@ async function pageState(page) {
         qrCards: document.querySelectorAll(".whatsapp-qr-card").length,
         toolPills: document.querySelectorAll(".site-nav-tool-pill").length,
         socialPills: document.querySelectorAll(".site-nav-social-pill").length,
-        quoteLinks: document.querySelectorAll(".site-nav-quote").length,
+        quoteLinks: document.querySelectorAll(".site-nav-quote:not(.site-nav-mobile-return-home)").length,
+        mobileReturnLinks: document.querySelectorAll(".site-nav-mobile-return-home").length,
         desktopTeamLinks: document.querySelectorAll(".site-nav-links .site-nav-team").length,
         footerContactPills: document.querySelectorAll(".site-footer .contact-actions .contact-link").length,
         sectionCodes: document.querySelectorAll(".section-code").length,
@@ -279,6 +284,14 @@ async function pageState(page) {
         toolBefore: styleSnapshot(".site-nav-tool-pill", "::before"),
         quote: styleSnapshotElement(quoteLink),
         desktopTeam: styleSnapshot(".site-nav-links .site-nav-team"),
+        quoteHref: quoteLink?.getAttribute("href") || "",
+        toolHref: toolPill?.getAttribute("href") || "",
+        directLinks: Array.from(document.querySelectorAll("header.site-nav > .site-nav-links > a"), (link) => ({
+          ...elementRect(link), href: link.getAttribute("href"), text: normalizeText(link.textContent)
+        })),
+        brandWordmark: rect(".site-nav-brand > span"),
+        separateAction: rect(".site-nav-quote-action, .site-nav-return-home"),
+        mobileReturn: rect(".site-nav-mobile-return-home"),
         language: styleSnapshot(".site-nav-language"),
         languageSummary: styleSnapshot(".site-nav-language > summary")
       },
@@ -315,7 +328,13 @@ async function pageState(page) {
         card: styleSnapshot(".team-heading .quote-entry .inquiry-entry-card-cta"),
         cardBefore: styleSnapshot(".team-heading .quote-entry .inquiry-entry-card-cta", "::before"),
         button: styleSnapshot(".team-heading .quote-entry .inquiry-entry-button"),
-        buttonBefore: styleSnapshot(".team-heading .quote-entry .inquiry-entry-button", "::before")
+        buttonBefore: styleSnapshot(".team-heading .quote-entry .inquiry-entry-button", "::before"),
+        heading: styleSnapshot(".home-hero-compact h1"),
+        copy: rect(".home-hero-compact .inquiry-entry-copy"),
+        brands: Array.from(document.querySelectorAll(".home-hero-compact .site-logo-lockup"), elementRect),
+        stamps: Array.from(document.querySelectorAll(".home-hero-compact .stamp"), elementRect),
+        photo: rect(".home-hero-compact .hero-site-photo"),
+        minimums: rect(".home-hero-compact .hero-order-minimums")
       },
       shipmentLists: Array.from(document.querySelectorAll(".shipment-ticker-list"), (element) => ({
         text: normalizeText(element.textContent),
@@ -373,7 +392,10 @@ async function pageState(page) {
 
 async function waitForHomeVisualSignature(page) {
   await page.locator(".stamp-row").scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => document.querySelectorAll(".stamp.land").length === 3);
+  await page.waitForFunction(() => {
+    const stamps = [...document.querySelectorAll(".stamp.land")];
+    return stamps.length === 3 && stamps.every((stamp) => Number.parseFloat(getComputedStyle(stamp).opacity) >= 0.99);
+  });
   await page.locator(".testimonial-quote-cta").waitFor({ state: "visible" }).catch(async (error) => {
     const diagnostic = await page.evaluate(() => ({
       url: location.href,
@@ -511,42 +533,57 @@ function rectanglesOverlap(first, second) {
 }
 
 function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
-  const compact = (state.compactInquiry || state.compactHome) && state.width <= 767;
+  const desktopDerivedMobile = (state.compactInquiry || state.compactHome) && state.width <= 767;
   assert.equal(state.counts.toolPills, 1, `${scope}: tool pill count`);
   assert.equal(state.counts.socialPills, 1, `${scope}: social pill count`);
   assert([1, 2].includes(state.counts.quoteLinks), `${scope}: quote link count ${state.counts.quoteLinks}`);
+  assert.equal(state.counts.mobileReturnLinks, state.compactInquiry ? 1 : 0, `${scope}: narrow inquiry return link count`);
   assert(state.header.socialBeforeTool, `${scope}: social pill must precede the volume tool in the DOM`);
   assert(state.header.socialText, `${scope}: social pill has no localized label`);
   assert.equal(state.header.socialAriaLabel, state.header.socialText, `${scope}: social pill accessible label differs from its full localized label`);
   assert(state.header.socialCompactLabel, `${scope}: social pill has no compact localized label`);
-  if (!desktop || state.counts.quoteLinks === 1) {
+  if (!desktopDerivedMobile && (!desktop || state.counts.quoteLinks === 1)) {
     assert(state.header.toolBeforeQuote, `${scope}: tool pill must precede the responsive quote link in the DOM`);
   }
   assert(state.header.toolText, `${scope}: tool pill has no localized label`);
   assert(state.header.quoteText, `${scope}: quote link has no localized label`);
-  if (compact) {
-    assert.equal(state.rects.toolPill.display, "none", `${scope}: compact header tool must move into menu`);
-    assert.equal(state.rects.socialPill.display, "none", `${scope}: compact header social must move into menu`);
-    assert(state.rects.header.height <= 76, `${scope}: compact header is too tall`);
-    assert(state.rects.quoteLink.height >= 44, `${scope}: compact header primary action is too small`);
-    const controls = [state.rects.brand, state.rects.quoteLink, state.rects.language, state.rects.mobileMenu];
+  if (desktopDerivedMobile) {
+    assert.equal(state.rects.socialPill.display, "none", `${scope}: social action duplicated outside the navigation capsule`);
+    assert.equal(state.rects.mobileMenu.display, "none", `${scope}: collapsed menu duplicates direct navigation`);
+    assert.equal(state.header.separateAction.display, "none", `${scope}: separate primary action duplicates navigation capsule`);
+    assert(state.rects.header.height <= 180, `${scope}: two-row navigation is too tall`);
+    assertVisibleRect(state.header.brandWordmark, `${scope}: desktop brand wordmark`);
+    assertVisibleRect(state.rects.navLinks, `${scope}: navigation capsule`);
+    const links = state.header.directLinks;
+    assert.equal(links.length, 6, `${scope}: direct navigation count`);
+    const rowPositions = links.map(({ top }) => Math.round(top));
+    assert.deepEqual(rowPositions.map((top) => rowPositions.filter((entry) => entry === top).length), [3, 3, 3, 3, 3, 3], `${scope}: navigation must show three links in each row`);
+    assert(rowPositions[0] < rowPositions[3], `${scope}: navigation visual row order changed`);
+    assert(state.direction === "rtl" ? links[0].left > links[1].left : links[0].left < links[1].left, `${scope}: navigation did not mirror in RTL`);
+    assert(links.every((link) => link.width >= 44 && link.height >= 44 && link.text), `${scope}: a direct navigation link is not a labeled 44px touch target`);
+    assert.equal(state.header.toolHref, state.compactInquiry ? "../calculator/" : "calculator/", `${scope}: CBM tool route`);
+    assert.equal(state.header.quoteHref, state.compactInquiry ? "../" : "inquiry/", `${scope}: primary navigation route`);
+    assert.deepEqual(links.map((link) => link.href), state.compactInquiry
+      ? ["../#services", "../#how-it-works", "../#reviews", "#contact", "../#social-accounts", "../"]
+      : ["#services", "#how-it-works", "#reviews", "inquiry/", "#contact", "#social-accounts"], `${scope}: navigation destination order`);
+    const controls = [state.rects.brand, state.rects.toolPill, state.rects.language, ...links];
     for (const [index, control] of controls.entries()) {
-      assertVisibleRect(control, `${scope}: compact header control ${index}`);
-      assert(control.height >= 44, `${scope}: compact header control ${index} is too small`);
-    }
-    for (let first = 0; first < controls.length; first += 1) {
-      assert(controls[first].left >= -1 && controls[first].right <= state.width + 1, `${scope}: compact header action outside viewport`);
-      for (let second = first + 1; second < controls.length; second += 1) {
-        assert(!rectanglesOverlap(controls[first], controls[second]), `${scope}: compact header actions overlap`);
+      assertVisibleRect(control, `${scope}: direct header control ${index}`);
+      assert(control.height >= 44, `${scope}: direct header control ${index} is too small`);
+      assert(control.left >= -1 && control.right <= state.width + 1, `${scope}: direct header control outside viewport`);
+      for (const other of controls.slice(index + 1)) {
+        assert(!rectanglesOverlap(control, other), `${scope}: direct header controls overlap`);
       }
     }
+    assert(links.every((link) => link.top >= Math.max(...controls.slice(0, 3).map((control) => control.bottom)) - 1), `${scope}: capsule overlaps the brand, tool or language row`);
   } else {
     assertVisibleRect(state.rects.toolPill, `${scope}: tool pill`);
     assert(state.rects.toolPill.left >= -1 && state.rects.toolPill.right <= state.width + 1, `${scope}: tool pill is outside the viewport`);
+    if (state.compactInquiry) assert.equal(state.header.mobileReturn.display, "none", `${scope}: mobile return action is visible on desktop`);
   }
   assertVisibleRect(state.rects.quoteLink, `${scope}: quote link`);
   assert(state.rects.quoteLink.left >= -1 && state.rects.quoteLink.right <= state.width + 1, `${scope}: quote link is outside the viewport`);
-  if ((!desktop || state.counts.quoteLinks === 1) && !compact) {
+  if ((!desktop || state.counts.quoteLinks === 1) && !desktopDerivedMobile) {
     assert(Number(state.header.tool.order) < Number(state.header.quote.order), `${scope}: tool pill visual order ${state.header.tool.order} is not before quote ${state.header.quote.order}`);
   }
   assert(state.header.toolBefore, `${scope}: tool pill container visual missing`);
@@ -556,7 +593,7 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   assert(state.header.toolBefore.borderLeftWidth >= 1, `${scope}: tool pill container border missing`);
   assert.notEqual(state.header.toolBefore.backgroundImage, "none", `${scope}: tool pill container ribs/background missing`);
 
-  if (state.width < 1280 && !compact) {
+  if (state.width < 1280 && !desktopDerivedMobile) {
     assertVisibleRect(state.rects.socialPill, `${scope}: responsive social pill`);
     assert(state.rects.socialPill.left >= -1 && state.rects.socialPill.right <= state.width + 1, `${scope}: social pill is outside the viewport`);
     assert(Number(state.header.social.order) < Number(state.header.tool.order), `${scope}: social pill visual order ${state.header.social.order} is not before tool ${state.header.tool.order}`);
@@ -581,7 +618,7 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
         );
       }
     }
-  } else if (!compact) {
+  } else if (!desktopDerivedMobile) {
     assert(state.header.social, `${scope}: desktop social pill style missing`);
     assert.equal(state.header.social.display, "none", `${scope}: responsive social pill remains visible at ${state.width}px`);
   }
@@ -611,7 +648,7 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
       assert.equal(state.header.desktopTeam[`border${side}Width`], 1, `${scope}: desktop Jabbar Team link ${side.toLowerCase()} border`);
     }
     assert.equal(state.header.desktopTeam.boxShadow, "none", `${scope}: desktop Jabbar Team link still has a shadow`);
-  } else {
+  } else if (!desktopDerivedMobile) {
     assert(state.rects.navLinks, `${scope}: mobile navigation links are missing from the DOM`);
     assert.equal(state.rects.navLinks.display, "none", `${scope}: desktop navigation links remain visible on mobile`);
   }
@@ -705,6 +742,18 @@ function assertHeroCta(state, scope) {
   assert(["none", "normal"].includes(state.heroCta.buttonBefore.content), `${scope}: hero quote button decorative arrow remains`);
   assert.equal(state.heroCta.card.textDecorationLine, "none", `${scope}: hero quote CTA is underlined`);
   assert.equal(state.heroCta.button.textDecorationLine, "none", `${scope}: hero quote button is underlined`);
+  if (state.width <= 767) {
+    assert.equal(state.heroCta.heading.textAlign, "center", `${scope}: inherited hero heading is not centered`);
+    assertVisibleRect(state.heroCta.copy, `${scope}: inherited quote card copy`);
+    assert.match(state.heroCta.button.backgroundImage, /linear-gradient/i, `${scope}: inherited quote gradient missing`);
+    assert(state.heroCta.button.height >= 48 && state.heroCta.button.fontSize >= 16, `${scope}: inherited primary quote button is undersized`);
+    assert.equal(state.heroCta.brands.length, 2, `${scope}: inherited dual-brand count`);
+    assert(state.heroCta.brands.every(({ width }) => Math.abs(width - 84) <= 1), `${scope}: dual-brand frames are not 84px`);
+    assert.equal(state.heroCta.stamps.length, 3, `${scope}: inherited stamp count`);
+    state.heroCta.stamps.forEach((stamp, index) => assertVisibleRect(stamp, `${scope}: inherited stamp ${index + 1}`));
+    assert.equal(state.heroCta.photo.display, "none", `${scope}: old mobile-only hero photo reappeared`);
+    assert.equal(state.heroCta.minimums.display, "none", `${scope}: old mobile-only order minimums strip reappeared`);
+  }
   if (state.width <= 560) {
     assert(state.heroCta.button.fontSize >= 15, `${scope}: mobile hero quote font is ${state.heroCta.button.fontSize}px`);
     assert(state.heroCta.button.height >= 44, `${scope}: mobile hero quote height is ${state.heroCta.button.height}px`);
@@ -1575,6 +1624,8 @@ async function inquiryMatrix(browserType) {
     assert.equal(state.rects.conversionBar, null, `${scope}: inquiry must not have mobile conversion bar`);
     assert.equal(await page.locator(".site-nav-return-home").count(), 1, `${scope}: top return-home control count`);
     assert.equal(await page.locator(".site-nav-return-home").getAttribute("href"), "../", `${scope}: top return-home target`);
+    assert.equal(await page.locator(".site-nav-return-home").isVisible(), true, `${scope}: desktop return-home action is hidden`);
+    assert.equal(await page.locator(".site-nav-mobile-return-home").isVisible(), false, `${scope}: narrow return-home action duplicated on desktop`);
     assert.equal(await page.locator(".site-nav-mobile-home").count(), 0, `${scope}: duplicate return-home mobile item remains`);
     assert.equal(await page.locator(".site-nav-inquiry-extra").count(), 2, `${scope}: compact inquiry menu must retain social and calculator destinations`);
     assert.equal(await page.locator(".site-nav-social-pill").count(), 1, `${scope}: responsive social pill count`);
@@ -1614,22 +1665,9 @@ async function mobileHeaderMatrix(browserType) {
       await page.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
       const compactHome = item.type === "home" && width <= 767;
       const compact = width <= 767 && item.type !== "calculator";
-      const primaryAction = compactHome ? ".site-nav-quote-action" : compact ? ".site-nav-return-home" : ".site-nav-social-pill";
+      const primaryAction = compactHome ? ".site-nav-quote-desktop" : compact ? ".site-nav-mobile-return-home" : ".site-nav-social-pill";
       await page.locator(primaryAction).waitFor({ state: "visible" });
-      if (!compact) await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
-      if (compact) {
-        await page.locator(".site-nav-mobile-menu > summary").click();
-        const extraSelector = compactHome ? ".site-nav-home-extra" : ".site-nav-inquiry-extra";
-        const entries = await page.locator(extraSelector).evaluateAll((links) => links.map((link) => ({
-          href: link.getAttribute("href"), height: link.getBoundingClientRect().height,
-          width: link.getBoundingClientRect().width, text: link.textContent.trim()
-        })));
-        assert.equal(entries.length, 2, `${item.locale}/${item.type}: compact menu destinations`);
-        assert(entries.every((entry) => entry.height >= 44 && entry.width > 0 && entry.text), `${item.locale}/${item.type}: compact menu entries must be visible and touch sized`);
-        const prefix = compactHome ? "" : "../";
-        assert.deepEqual(entries.map((entry) => entry.href).sort(), [prefix + "#social-accounts", prefix + "calculator/"], `${item.locale}/${item.type}: compact menu hrefs`);
-        await page.keyboard.press("Escape");
-      }
+      await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
       const scope = `${item.locale} ${item.type} header ${width}x844`;
       const state = await pageState(page);
       assertShared(state, scope);
@@ -1805,7 +1843,9 @@ async function interactionChecks(browserType) {
   await blockAnalytics(mobile);
   const mobilePage = await mobile.newPage();
   const mobileErrors = collectErrors(mobilePage);
-  await mobilePage.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
+  // The calculator still uses the shared compact menu; keep its keyboard,
+  // focus and dismissal checks even though the homepage now has direct links.
+  await mobilePage.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
   assert.equal(await mobilePage.locator(".contact-speed-dial, .mobile-conversion-bar, .site-footer-backtop").count(), 0, "removed floating controls still exist on mobile");
   const languageMenu = mobilePage.locator(".site-nav-language");
   const languageSummary = languageMenu.locator(":scope > summary");
@@ -1837,18 +1877,39 @@ async function interactionChecks(browserType) {
   assert.equal(await languageMenu.getAttribute("open") !== null, false, "outside click did not close the language navigation");
 
   await mobileSummary.click();
-  assert.equal(await mobileMenu.locator('.site-nav-mobile-panel a[href="./"]').count(), 0, "redundant home link remains in the mobile menu");
-  const toolEntry = mobileMenu.locator('.site-nav-mobile-panel a[href="calculator/"]');
-  const socialEntry = mobileMenu.locator('.site-nav-mobile-panel a[href="#social-accounts"]');
-  assert.equal(await toolEntry.count(), 1, "mobile calculator menu destination count");
-  assert.equal(await socialEntry.count(), 1, "mobile social menu destination count");
-  assert(await toolEntry.isVisible(), "mobile calculator menu destination is hidden");
-  assert(await socialEntry.isVisible(), "mobile social menu destination is hidden");
-  assert(!(await mobilePage.locator(".site-nav-social-pill").isVisible()), "social destination must not be duplicated above the mobile menu");
-  assert(!(await mobilePage.locator(".site-nav-tool-pill").isVisible()), "calculator destination must not be duplicated above the mobile menu");
-  await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-menu-trimmed-390x844.png` });
-  await mobileMenu.locator('.site-nav-mobile-panel a[href="#contact"]').click();
+  assert.equal(await mobileMenu.locator('.site-nav-mobile-panel a[href="./"], .site-nav-mobile-panel a[href="../#social-accounts"]').count(), 0, "calculator menu duplicates its top-level tool or social control");
+  assert(await mobilePage.locator(".site-nav-social-pill").isVisible(), "calculator social destination is hidden");
+  assert(await mobilePage.locator(".site-nav-tool-pill").isVisible(), "calculator tool destination is hidden");
+  const calculatorMenuContact = mobileMenu.locator('.site-nav-mobile-panel a[href="../#contact"]');
+  await calculatorMenuContact.evaluate((link) => link.addEventListener("click", (event) => event.preventDefault(), { once: true }));
+  await calculatorMenuContact.click();
   assert.equal(await mobileMenu.getAttribute("open") !== null, false, "mobile navigation link did not close the menu");
+
+  await mobilePage.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
+  assert.equal(await mobileMenu.isVisible(), false, "homepage still exposes a second navigation menu");
+  assert.equal(await mobileMenu.locator('.site-nav-mobile-panel a[href="./"]').count(), 0, "redundant home link remains in the former homepage menu");
+  assert.equal(await mobilePage.locator('.site-nav-links a[href="#social-accounts"]').isVisible(), true, "mobile homepage social destination is hidden");
+  assert.equal(await mobilePage.locator('.site-nav-tool-pill[href="calculator/"]').isVisible(), true, "mobile homepage calculator destination is hidden");
+  assert.equal(await mobilePage.locator(".site-nav-social-pill").isVisible(), false, "social destination duplicates its capsule link");
+  await languageSummary.focus();
+  await mobilePage.keyboard.press("Enter");
+  assert.equal(await languageSummary.getAttribute("aria-expanded"), "true", "homepage language navigation did not open from the keyboard");
+  await mobilePage.keyboard.press("Escape");
+  assert.equal(await languageSummary.getAttribute("aria-expanded"), "false", "Escape did not close homepage language navigation");
+  assert.equal(await languageSummary.evaluate((summary) => document.activeElement === summary), true, "homepage language close did not restore focus");
+  await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-direct-navigation-390x844.png` });
+  await mobilePage.locator(".site-nav-links .site-nav-quote-desktop").tap();
+  await mobilePage.waitForURL(`${BASE_URL}/inquiry/`);
+  await mobilePage.locator(".site-nav-links .site-nav-mobile-return-home").tap();
+  await mobilePage.waitForURL(`${BASE_URL}/`);
+  await mobilePage.locator('.site-nav-links a[href="#contact"]').tap();
+  await mobilePage.waitForURL(`${BASE_URL}/#contact`);
+  await mobilePage.waitForFunction(() => {
+    const heading = document.querySelector("#contact h2") || document.querySelector("#contact");
+    const target = heading?.getBoundingClientRect();
+    const nav = document.querySelector(".site-nav").getBoundingClientRect();
+    return target && target.top >= nav.bottom - 1 && target.bottom <= innerHeight;
+  });
 
   const galleryRail = mobilePage.locator(".gallery-rail").first();
   await galleryRail.scrollIntoViewIfNeeded();
@@ -2077,6 +2138,18 @@ async function accessibilityFallbackChecks(browserType) {
     return card.hidden || style.display === "none" || style.visibility === "hidden";
   }).length);
   assert.equal(noJsHiddenAccounts, 0, "no-JS social accounts are hidden");
+  await noJsPage.setViewportSize({ width: 320, height: 720 });
+  assertHeaderNavigation(await pageState(noJsPage), "320px homepage without JavaScript");
+  await Promise.all([
+    noJsPage.waitForURL(`${BASE_URL}/inquiry/`),
+    noJsPage.locator(".site-nav-links .site-nav-quote-desktop").click()
+  ]);
+  assertHeaderNavigation(await pageState(noJsPage), "320px inquiry without JavaScript");
+  assert.equal(await noJsPage.locator(".js-inquiry-direct").isDisabled(), true, "no-JS inquiry can bypass security verification");
+  await Promise.all([
+    noJsPage.waitForURL(`${BASE_URL}/`),
+    noJsPage.locator(".site-nav-links .site-nav-mobile-return-home").click()
+  ]);
   await noJs.close();
 }
 

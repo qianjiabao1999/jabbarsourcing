@@ -135,6 +135,7 @@ await context.route("**/turnstile/v0/api.js*", async (route) => {
 
 await context.route("**://www.googletagmanager.com/**", (route) => route.fulfill({ status: 200, body: "" }));
 await context.route("**://www.clarity.ms/**", (route) => route.fulfill({ status: 204, body: "" }));
+await context.route("https://inquiry-api.jabbarsourcing.com/**", (route) => route.abort());
 await context.route(API_URL, async (route) => {
   const request = route.request();
   const corsHeaders = {
@@ -662,11 +663,6 @@ for (const viewport of [
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
   for (const item of PAGES) {
     await openInquiry(item.path);
-    if (viewport.name !== "desktop") {
-      await page.locator(".site-nav-mobile-menu").evaluate((menu) => {
-        menu.open = true;
-      });
-    }
     await page.screenshot({
       path: `${OUTPUT_DIR}/${item.locale}-${viewport.name}.png`,
       fullPage: true
@@ -682,8 +678,12 @@ for (const viewport of [
       const status = document.querySelector(".inquiry-status");
       const turnstile = document.querySelector(".js-inquiry-turnstile")?.getBoundingClientRect();
       const socialPill = document.querySelector(".site-nav-social-pill");
-      const socialPillRect = socialPill?.getBoundingClientRect();
-      const toolPillRect = document.querySelector(".site-nav-tool-pill")?.getBoundingClientRect();
+      const desktopReturn = document.querySelector(".site-nav-return-home");
+      const toolPill = document.querySelector(".site-nav-tool-pill");
+      const getLink = (link) => {
+        const { width, height, top, left, right } = link.getBoundingClientRect();
+        return { href: link.getAttribute("href"), text: link.textContent.trim(), width, height, top, left, right };
+      };
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         directWidth: direct?.width || 0,
@@ -711,7 +711,12 @@ for (const viewport of [
         turnstileAppearance: window.__turnstileOptions?.appearance || "",
         submitEnabledAfterToken: document.querySelector(".js-inquiry-direct")?.disabled === false,
         returnHomeCount: document.querySelectorAll(".site-nav-return-home").length,
-        returnHomeHref: document.querySelector(".site-nav-return-home")?.getAttribute("href") || "",
+        returnHomeHref: desktopReturn?.getAttribute("href") || "",
+        returnHomeText: desktopReturn?.textContent.trim() || "",
+        returnHomeVisible: Boolean(desktopReturn?.getClientRects().length),
+        mobileReturn: Array.from(document.querySelectorAll(".site-nav-links .site-nav-mobile-return-home"), getLink),
+        directNavigation: Array.from(document.querySelectorAll(".site-nav-links > a"), getLink),
+        collapsedMenuVisible: Boolean(document.querySelector(".site-nav-mobile-menu")?.getClientRects().length),
         duplicateMobileHomeCount: document.querySelectorAll(".site-nav-mobile-home").length,
         mobileTeamCount: document.querySelectorAll(".site-nav-mobile-team").length,
         mobileExtraEntries: Array.from(document.querySelectorAll(".site-nav-inquiry-extra"), (link) => ({
@@ -723,10 +728,7 @@ for (const viewport of [
         socialPillHref: socialPill?.getAttribute("href") || "",
         socialPillAriaLabel: socialPill?.getAttribute("aria-label") || "",
         socialPillDisplay: socialPill ? getComputedStyle(socialPill).display : "",
-        socialPillLeft: socialPillRect?.left ?? 0,
-        socialPillRight: socialPillRect?.right ?? 0,
-        toolPillLeft: toolPillRect?.left ?? 0,
-        toolPillRight: toolPillRect?.right ?? 0,
+        toolPill: toolPill ? getLink(toolPill) : null,
         brokenImages: Array.from(document.images).filter((image) => image.complete && image.naturalWidth === 0).length,
         dir: document.documentElement.dir || "ltr"
       };
@@ -749,19 +751,32 @@ for (const viewport of [
     assert(metrics.turnstileAppearance === "interaction-only", `${item.locale} ${viewport.name} Turnstile appearance regressed`);
     assert(metrics.submitEnabledAfterToken, `${item.locale} ${viewport.name} token callback did not enable submit`);
     assert(metrics.returnHomeCount === 1 && metrics.returnHomeHref === "../", `${item.locale} ${viewport.name} top Return Home control regressed`);
+    assert(metrics.mobileReturn.length === 1
+      && metrics.mobileReturn[0].href === metrics.returnHomeHref
+      && metrics.mobileReturn[0].text === metrics.returnHomeText, `${item.locale} ${viewport.name} responsive Return Home differs from the real desktop control`);
     assert(metrics.duplicateMobileHomeCount === 0, `${item.locale} ${viewport.name} duplicate Return Home remains in mobile menu`);
     assert(metrics.mobileTeamCount === 0, `${item.locale} ${viewport.name} legacy duplicate social entry remains`);
     assert(metrics.mobileExtraEntries.length === 2, `${item.locale} ${viewport.name} compact inquiry menu destinations missing`);
+    assert(metrics.mobileExtraEntries.some((entry) => entry.href === "../#social-accounts") && metrics.mobileExtraEntries.some((entry) => entry.href === "../calculator/"), `${item.locale} ${viewport.name} retained secondary menu routes regressed`);
     assert(metrics.socialPillCount === 1 && metrics.socialPillHref === "../#social-accounts", `${item.locale} ${viewport.name} responsive social pill target regressed`);
     assert(metrics.socialPillAriaLabel.length > 0, `${item.locale} ${viewport.name} responsive social pill has no accessible label`);
     assert(metrics.brokenImages === 0, `${item.locale} ${viewport.name} has ${metrics.brokenImages} broken loaded images`);
     if (viewport.name !== "desktop") {
-      assert(metrics.socialPillDisplay === "none", `${item.locale} ${viewport.name} secondary social action must move into menu`);
-      assert(metrics.headerHeight <= 76, `${item.locale} ${viewport.name} inquiry header is not compact`);
-      assert(metrics.mobileExtraEntries.every((entry) => entry.height >= 44 && entry.width > 0 && entry.text), `${item.locale} ${viewport.name} secondary menu entries are not visible/touch sized`);
-      assert(metrics.mobileExtraEntries.some((entry) => entry.href === "../#social-accounts") && metrics.mobileExtraEntries.some((entry) => entry.href === "../calculator/"), `${item.locale} ${viewport.name} secondary menu routes regressed`);
+      assert(metrics.socialPillDisplay === "none", `${item.locale} ${viewport.name} secondary social action duplicates the capsule link`);
+      assert(metrics.headerHeight <= 180, `${item.locale} ${viewport.name} two-row inquiry header is too tall`);
+      assert(!metrics.collapsedMenuVisible && !metrics.returnHomeVisible
+        && metrics.mobileExtraEntries.every((entry) => entry.height === 0), `${item.locale} ${viewport.name} redundant navigation controls are visible`);
+      assert(metrics.directNavigation.length === 6
+        && new Set(metrics.directNavigation.map((link) => Math.round(link.top))).size === 2,
+      `${item.locale} ${viewport.name} inquiry navigation must have six links on two rows`);
+      assert(metrics.directNavigation.every((link) => link.height >= 44 && link.width >= 44
+        && link.left >= -1 && link.right <= viewport.width + 1 && link.text), `${item.locale} ${viewport.name} direct links are not labeled in-viewport touch targets`);
+      assert(metrics.directNavigation.some((entry) => entry.href === "../#social-accounts"), `${item.locale} ${viewport.name} missing direct social link`);
+      assert(metrics.toolPill?.href === "../calculator/" && metrics.toolPill.height >= 44 && metrics.toolPill.width >= 44
+        && metrics.toolPill.left >= -1 && metrics.toolPill.right <= viewport.width + 1, `${item.locale} ${viewport.name} calculator pill is missing or clipped`);
     } else {
       assert(metrics.socialPillDisplay === "none", `${item.locale} desktop responsive social pill remains visible`);
+      assert(metrics.returnHomeVisible && metrics.mobileReturn[0].height === 0, `${item.locale} desktop Return Home was changed or duplicated`);
     }
     if (item.rtl) assert(metrics.dir === "rtl", "Arabic inquiry page must remain RTL");
     await page.locator(".inquiry-additional-summary").focus();

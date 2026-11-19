@@ -38,7 +38,12 @@ async function installNetworkGuards(context) {
     policy: "quiet-denied",
     gpc: false,
     analyticsAttempts: [],
+    inquiryAttempts: [],
   };
+  await context.route("https://inquiry-api.jabbarsourcing.com/**", (route) => {
+    networkState.inquiryAttempts.push(route.request().method());
+    return route.abort();
+  });
   await context.route("**/api/consent-region", (route) => route.fulfill({
     status: 200,
     contentType: "application/json; charset=utf-8",
@@ -173,6 +178,15 @@ async function interactionProof(page, label, useTap) {
   assert.equal(await page.locator(".faq-item[open]").count(), 1, `${label}: FAQ opened more than one answer`);
   assert.equal(await firstFaqButton.getAttribute("aria-expanded"), "true", `${label}: FAQ button state did not update`);
 
+  if (await page.evaluate(() => innerWidth <= 767)) {
+    const quote = page.locator(".site-nav-links .site-nav-quote-desktop");
+    assert.equal(await page.locator(".site-nav-mobile-menu").isVisible(), false, `${label}: homepage exposes a duplicate mobile menu`);
+    await Promise.all([page.waitForURL(`${BASE_URL}/en/inquiry/`), activate(quote, useTap)]);
+    const back = page.locator(".site-nav-links .site-nav-mobile-return-home");
+    assert.equal(await page.locator(".site-nav-return-home").isVisible(), false, `${label}: inquiry exposes the desktop return action on mobile`);
+    await Promise.all([page.waitForURL(`${BASE_URL}/en/`), activate(back, useTap)]);
+  }
+
   await page.goto(`${BASE_URL}/en/calculator/`, { waitUntil: "domcontentloaded" });
   for (const [field, value] of [["length", "30"], ["width", "40"], ["height", "40"], ["qty", "100"]]) {
     await page.locator(`#${field}`).fill(value);
@@ -212,6 +226,7 @@ async function runProfile({ browserType, contextOptions, label, routes, screensh
         .every((image) => image.complete && image.naturalWidth > 0));
       await page.screenshot({ path: `${OUTPUT_DIR}/${screenshot}`, fullPage: false });
     }
+    assert.equal(networkState.inquiryAttempts.length, 0, `${label}: browser matrix attempted a real inquiry request`);
     assert.equal(errors.length, 0, `${label}: console/page errors: ${errors.join(" | ")}`);
   } finally {
     if (context) await context.close();
