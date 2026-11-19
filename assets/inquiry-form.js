@@ -38,6 +38,10 @@
       sending: "正在安全提交…",
       sendingLabel: "提交中…",
       turnstileLoading: "正在加载安全验证…",
+      turnstileChecking: "正在进行安全验证…",
+      turnstileSlow: "安全验证耗时较长。请重试，或改用 WhatsApp。",
+      turnstileUnavailable: "暂时无法完成安全验证。请重试，或改用 WhatsApp。",
+      turnstileRetryLabel: "重试安全验证",
       verifyRetry: "安全验证已失效。请完成新的验证后再次提交。",
       whatsappFallback: "改用 WhatsApp",
       referenceLabel: "询盘编号",
@@ -55,6 +59,10 @@
       sending: "Submitting securely…",
       sendingLabel: "Submitting…",
       turnstileLoading: "Loading the security check…",
+      turnstileChecking: "Running the security check…",
+      turnstileSlow: "The security check is taking longer than expected. Retry or continue on WhatsApp.",
+      turnstileUnavailable: "The security check could not be completed. Retry or continue on WhatsApp.",
+      turnstileRetryLabel: "Retry security check",
       verifyRetry: "The security check expired. Complete the new check, then submit again.",
       whatsappFallback: "Continue on WhatsApp",
       referenceLabel: "Inquiry reference",
@@ -72,6 +80,10 @@
       sending: "Enviando de forma segura…",
       sendingLabel: "Enviando…",
       turnstileLoading: "Cargando la verificación de seguridad…",
+      turnstileChecking: "Verificación de seguridad en curso…",
+      turnstileSlow: "La verificación está tardando más de lo previsto. Inténtalo de nuevo o continúa por WhatsApp.",
+      turnstileUnavailable: "No se pudo completar la verificación. Inténtalo de nuevo o continúa por WhatsApp.",
+      turnstileRetryLabel: "Reintentar la verificación",
       verifyRetry: "La verificación de seguridad caducó. Completa la nueva verificación y vuelve a enviar.",
       whatsappFallback: "Continuar por WhatsApp",
       referenceLabel: "Referencia de solicitud",
@@ -89,6 +101,10 @@
       sending: "جارٍ الإرسال بأمان…",
       sendingLabel: "جارٍ الإرسال…",
       turnstileLoading: "جارٍ تحميل التحقق الأمني…",
+      turnstileChecking: "التحقق الأمني قيد التنفيذ…",
+      turnstileSlow: "استغرق التحقق الأمني وقتًا أطول من المتوقع. أعد المحاولة أو تابع عبر WhatsApp.",
+      turnstileUnavailable: "تعذّر إكمال التحقق الأمني. أعد المحاولة أو تابع عبر WhatsApp.",
+      turnstileRetryLabel: "إعادة محاولة التحقق الأمني",
       verifyRetry: "انتهت صلاحية التحقق الأمني. أكمل التحقق الجديد ثم أرسل الطلب مجددًا.",
       whatsappFallback: "المتابعة عبر WhatsApp",
       referenceLabel: "مرجع الطلب",
@@ -106,6 +122,10 @@
       sending: "Envoi sécurisé en cours…",
       sendingLabel: "Envoi…",
       turnstileLoading: "Chargement de la vérification de sécurité…",
+      turnstileChecking: "Vérification de sécurité en cours…",
+      turnstileSlow: "La vérification prend plus de temps que prévu. Réessayez ou continuez sur WhatsApp.",
+      turnstileUnavailable: "La vérification n’a pas pu aboutir. Réessayez ou continuez sur WhatsApp.",
+      turnstileRetryLabel: "Relancer la vérification",
       verifyRetry: "La vérification de sécurité a expiré. Effectuez la nouvelle vérification, puis renvoyez la demande.",
       whatsappFallback: "Continuer sur WhatsApp",
       referenceLabel: "Référence de la demande",
@@ -123,6 +143,10 @@
       sending: "Enviando com segurança…",
       sendingLabel: "Enviando…",
       turnstileLoading: "Carregando a verificação de segurança…",
+      turnstileChecking: "Verificação de segurança em andamento…",
+      turnstileSlow: "A verificação está demorando mais do que o esperado. Tente novamente ou continue no WhatsApp.",
+      turnstileUnavailable: "Não foi possível concluir a verificação. Tente novamente ou continue no WhatsApp.",
+      turnstileRetryLabel: "Tentar a verificação de novo",
       verifyRetry: "A verificação de segurança expirou. Conclua a nova verificação e envie novamente.",
       whatsappFallback: "Continuar no WhatsApp",
       referenceLabel: "Referência da solicitação",
@@ -140,6 +164,10 @@
       sending: "Безопасная отправка…",
       sendingLabel: "Отправка…",
       turnstileLoading: "Загрузка проверки безопасности…",
+      turnstileChecking: "Выполняется проверка безопасности…",
+      turnstileSlow: "Проверка длится дольше обычного. Повторите попытку или продолжите в WhatsApp.",
+      turnstileUnavailable: "Не удалось завершить проверку. Повторите попытку или продолжите в WhatsApp.",
+      turnstileRetryLabel: "Повторить проверку",
       verifyRetry: "Срок проверки безопасности истёк. Пройдите новую проверку и отправьте запрос ещё раз.",
       whatsappFallback: "Продолжить в WhatsApp",
       referenceLabel: "Номер запроса",
@@ -157,6 +185,10 @@
       sending: "Wird sicher gesendet…",
       sendingLabel: "Wird gesendet…",
       turnstileLoading: "Sicherheitsprüfung wird geladen…",
+      turnstileChecking: "Sicherheitsprüfung läuft…",
+      turnstileSlow: "Die Sicherheitsprüfung dauert länger als erwartet. Versuchen Sie es erneut oder fahren Sie über WhatsApp fort.",
+      turnstileUnavailable: "Die Sicherheitsprüfung konnte nicht abgeschlossen werden. Versuchen Sie es erneut oder fahren Sie über WhatsApp fort.",
+      turnstileRetryLabel: "Sicherheitsprüfung wiederholen",
       verifyRetry: "Die Sicherheitsprüfung ist abgelaufen. Schließen Sie die neue Prüfung ab und senden Sie erneut.",
       whatsappFallback: "Über WhatsApp fortfahren",
       referenceLabel: "Anfragereferenz",
@@ -174,6 +206,10 @@
       sending: "Invio sicuro in corso…",
       sendingLabel: "Invio…",
       turnstileLoading: "Caricamento della verifica di sicurezza…",
+      turnstileChecking: "Verifica di sicurezza in corso…",
+      turnstileSlow: "La verifica sta impiegando più tempo del previsto. Riprova o continua su WhatsApp.",
+      turnstileUnavailable: "Non è stato possibile completare la verifica. Riprova o continua su WhatsApp.",
+      turnstileRetryLabel: "Ripeti la verifica",
       verifyRetry: "La verifica di sicurezza è scaduta. Completa la nuova verifica e invia di nuovo.",
       whatsappFallback: "Continua su WhatsApp",
       referenceLabel: "Riferimento richiesta",
@@ -191,6 +227,10 @@
       sending: "Güvenli şekilde gönderiliyor…",
       sendingLabel: "Gönderiliyor…",
       turnstileLoading: "Güvenlik kontrolü yükleniyor…",
+      turnstileChecking: "Güvenlik kontrolü yapılıyor…",
+      turnstileSlow: "Güvenlik kontrolü beklenenden uzun sürüyor. Tekrar deneyin veya WhatsApp ile devam edin.",
+      turnstileUnavailable: "Güvenlik kontrolü tamamlanamadı. Tekrar deneyin veya WhatsApp ile devam edin.",
+      turnstileRetryLabel: "Güvenlik kontrolünü tekrarla",
       verifyRetry: "Güvenlik kontrolünün süresi doldu. Yeni kontrolü tamamlayıp tekrar gönderin.",
       whatsappFallback: "WhatsApp ile devam et",
       referenceLabel: "Talep referansı",
@@ -303,8 +343,10 @@
     return attribution;
   }
 
-  var TURNSTILE_API_URL = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=jabbarTurnstileApiReady";
+  var TURNSTILE_API_URL = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=";
   var turnstileReadyPromise = null;
+  var turnstileLoadAttempt = 0;
+  var cancelTurnstileLoad = null;
 
   function loadTurnstileApi() {
     if (window.turnstile && typeof window.turnstile.render === "function") {
@@ -313,42 +355,47 @@
     if (turnstileReadyPromise) return turnstileReadyPromise;
 
     turnstileReadyPromise = new Promise(function (resolve, reject) {
+      var attempt = turnstileLoadAttempt++;
+      var callbackName = "jabbarTurnstileApiReady" + (attempt ? attempt : "");
+      var script = document.createElement("script");
       var settled = false;
       var timeoutId = window.setTimeout(function () {
-        if (settled) return;
-        settled = true;
-        reject(new Error("turnstile_load_timeout"));
+        fail("turnstile_load_timeout");
       }, 30000);
+
+      function cleanup() {
+        settled = true;
+        window.clearTimeout(timeoutId);
+        delete window[callbackName];
+        cancelTurnstileLoad = null;
+      }
+
+      function fail(code) {
+        if (settled) return;
+        cleanup();
+        script.remove();
+        turnstileReadyPromise = null;
+        reject(new Error(code));
+      }
 
       function finish() {
         if (settled) return;
         if (!window.turnstile || typeof window.turnstile.render !== "function") {
-          settled = true;
-          window.clearTimeout(timeoutId);
-          reject(new Error("turnstile_api_unavailable"));
+          fail("turnstile_api_unavailable");
           return;
         }
-        settled = true;
-        window.clearTimeout(timeoutId);
+        cleanup();
         resolve(window.turnstile);
       }
 
-      window.jabbarTurnstileApiReady = finish;
-      var script = document.querySelector('script[data-jabbar-turnstile-api="true"]');
-      if (!script) {
-        script = document.createElement("script");
-        script.src = TURNSTILE_API_URL;
-        script.async = true;
-        script.setAttribute("data-jabbar-turnstile-api", "true");
-        document.head.appendChild(script);
-      }
+      window[callbackName] = finish;
+      cancelTurnstileLoad = function () { fail("turnstile_load_restarted"); };
+      script.src = TURNSTILE_API_URL + callbackName;
+      script.async = true;
+      script.setAttribute("data-jabbar-turnstile-api", "true");
       script.addEventListener("load", finish, { once: true });
-      script.addEventListener("error", function () {
-        if (settled) return;
-        settled = true;
-        window.clearTimeout(timeoutId);
-        reject(new Error("turnstile_load_failed"));
-      }, { once: true });
+      script.addEventListener("error", function () { fail("turnstile_load_failed"); }, { once: true });
+      document.head.appendChild(script);
     });
 
     return turnstileReadyPromise;
@@ -371,6 +418,8 @@
     var status = form.querySelector(".inquiry-status");
     var turnstileElement = form.querySelector(".js-inquiry-turnstile");
     var widgetId = null;
+    var verificationAttempt = 0;
+    var verificationTimer = null;
     var turnstileToken = "";
     var currentSubmissionId = "";
     var submitting = false;
@@ -705,6 +754,7 @@
         saveDraft();
       }
       updateDraftControls();
+      refreshVerificationFallback();
     }
 
     if (draftPanel) {
@@ -722,7 +772,7 @@
         draftLastSavedAt = 0;
         draftLastSignature = draftSignature(draftFields(), false);
         updateDraftControls();
-        setStatus("", "");
+        updateStatusForDraftEdit();
         showDraftFeedback(draftRemoved ? "cleared" : "delete-failed");
         var firstField = form.elements.product;
         if (firstField) {
@@ -755,6 +805,17 @@
       return "https://wa.me/8618658925544?text=" + encodeURIComponent(lines.join("\n"));
     }
 
+    function refreshVerificationFallback() {
+      var whatsapp = status && status.querySelector(".inquiry-status-whatsapp");
+      if (whatsapp) whatsapp.href = buildWhatsAppSummary();
+    }
+
+    function updateStatusForDraftEdit() {
+      if (submitting) return;
+      if (status && status.dataset.securityRelated === "true") refreshVerificationFallback();
+      else setStatus("", "");
+    }
+
     function setStatus(message, tone, options) {
       if (!status) return;
       options = options || {};
@@ -781,8 +842,26 @@
         }
         status.appendChild(icon);
         status.appendChild(text);
-      } else {
-        status.textContent = message;
+      } else if (options.whatsappFallback || options.retryVerification) {
+        var messageText = document.createElement("span");
+        messageText.className = "inquiry-status-message";
+        messageText.textContent = message;
+        status.appendChild(messageText);
+
+        var actions = document.createElement("span");
+        actions.className = "inquiry-status-actions";
+        if (options.retryVerification) {
+          var retryButton = document.createElement("button");
+          retryButton.type = "button";
+          retryButton.className = "inquiry-status-retry";
+          retryButton.textContent = messages.turnstileRetryLabel;
+          retryButton.addEventListener("click", function () {
+            if (submitting) return;
+            startTurnstile();
+            try { status.focus({ preventScroll: true }); } catch (error) { status.focus(); }
+          });
+          actions.appendChild(retryButton);
+        }
         if (options.whatsappFallback) {
           var whatsapp = document.createElement("a");
           whatsapp.className = "inquiry-status-whatsapp";
@@ -790,8 +869,11 @@
           whatsapp.target = "_blank";
           whatsapp.rel = "noopener noreferrer";
           whatsapp.textContent = messages.whatsappFallback;
-          status.appendChild(whatsapp);
+          actions.appendChild(whatsapp);
         }
+        status.appendChild(actions);
+      } else {
+        status.textContent = message;
       }
 
       if (options.skipScroll) return;
@@ -825,6 +907,7 @@
     }
 
     function resetTurnstile() {
+      stopVerificationTimer();
       turnstileToken = "";
       directButton.disabled = true;
       if (widgetId !== null && window.turnstile && typeof window.turnstile.reset === "function") {
@@ -909,14 +992,14 @@
         saveDraft();
         markFormStart();
         if (!submitting) currentSubmissionId = "";
-        setStatus("", "");
+        updateStatusForDraftEdit();
       });
       field.addEventListener("change", function () {
         revealFieldDetails(field);
         saveDraft();
         markFormStart();
         if (!submitting) currentSubmissionId = "";
-        setStatus("", "");
+        updateStatusForDraftEdit();
       });
     });
 
@@ -943,14 +1026,15 @@
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       if (submitting) return;
-      setStatus("", "");
 
       if (typeof form.reportValidity === "function" && !form.reportValidity()) {
         trackNativeValidationError();
         return;
       }
       if (!turnstileToken) {
-        setStatus(messages.verifyError, "error", { securityRelated: true });
+        if (!status || status.dataset.securityRelated !== "true") {
+          setStatus(messages.verifyError, "error", { securityRelated: true });
+        }
         trackSubmitError("turnstile_missing", 0, "turnstile");
         return;
       }
@@ -1009,7 +1093,7 @@
           return;
         }
         if (response.status === 422) {
-          setStatus(messages.verifyRetry, "error", { securityRelated: true, whatsappFallback: true });
+          setStatus(messages.verifyRetry, "error", { securityRelated: true, whatsappFallback: true, retryVerification: true });
           return;
         }
         if (response.status === 429) {
@@ -1029,14 +1113,61 @@
       });
     });
 
+    function stopVerificationTimer() {
+      if (verificationTimer !== null) window.clearTimeout(verificationTimer);
+      verificationTimer = null;
+    }
+
+    function showVerificationStatus(message, tone, showActions) {
+      setStatus(message, tone, {
+        securityRelated: true,
+        skipScroll: true,
+        whatsappFallback: showActions,
+        retryVerification: showActions
+      });
+    }
+
     function showTurnstileFailure(errorCode) {
+      stopVerificationTimer();
       turnstileToken = "";
       directButton.disabled = true;
-      setStatus(messages.genericError, "error", { securityRelated: true, whatsappFallback: true, skipScroll: true });
+      if (!submitting && (!status || !status.classList.contains("is-success"))) {
+        showVerificationStatus(messages.turnstileUnavailable, "error", true);
+      }
       trackSubmitError(errorCode, 0, "turnstile");
     }
 
-    function renderTurnstile(turnstileApi) {
+    function startTurnstile() {
+      var attempt = ++verificationAttempt;
+      turnstileToken = "";
+      directButton.disabled = true;
+      stopVerificationTimer();
+      if (cancelTurnstileLoad) cancelTurnstileLoad();
+      if (widgetId !== null) {
+        try {
+          window.turnstile.remove(widgetId);
+          widgetId = null;
+        } catch (error) {
+          showTurnstileFailure("turnstile_remove_failed");
+          return;
+        }
+      }
+      showVerificationStatus(messages.turnstileLoading, "pending", false);
+      verificationTimer = window.setTimeout(function () {
+        verificationTimer = null;
+        if (attempt === verificationAttempt && !turnstileToken && !submitting) {
+          showVerificationStatus(messages.turnstileSlow, "pending", true);
+        }
+      }, 8000);
+      loadTurnstileApi().then(function (turnstileApi) {
+        if (attempt === verificationAttempt) renderTurnstile(turnstileApi, attempt);
+      }).catch(function (error) {
+        if (attempt === verificationAttempt) showTurnstileFailure(error.message);
+      });
+    }
+
+    function renderTurnstile(turnstileApi, attempt) {
+      if (verificationTimer !== null) showVerificationStatus(messages.turnstileChecking, "pending", false);
       try {
           widgetId = turnstileApi.render(turnstileElement, {
             sitekey: turnstileElement.getAttribute("data-sitekey"),
@@ -1046,19 +1177,31 @@
             theme: "light",
             appearance: "interaction-only",
             callback: function (token) {
+              if (attempt !== verificationAttempt || !token) return;
+              stopVerificationTimer();
               turnstileToken = String(token || "");
-              directButton.disabled = !turnstileToken;
+              if (!submitting) directButton.disabled = !turnstileToken;
               if (status && status.dataset.securityRelated === "true") setStatus("", "");
             },
+            "before-interactive-callback": function () {
+              if (attempt !== verificationAttempt || submitting || turnstileToken
+                  || !status || status.dataset.securityRelated !== "true") return;
+              stopVerificationTimer();
+              showVerificationStatus(messages.verifyError, "pending", false);
+            },
             "expired-callback": function () {
+              if (attempt !== verificationAttempt) return;
               turnstileToken = "";
               directButton.disabled = true;
             },
             "timeout-callback": function () {
-              showTurnstileFailure("turnstile_timeout");
+              if (attempt === verificationAttempt) showTurnstileFailure("turnstile_timeout");
             },
             "error-callback": function () {
-              showTurnstileFailure("turnstile_widget_error");
+              if (attempt === verificationAttempt) showTurnstileFailure("turnstile_widget_error");
+            },
+            "unsupported-callback": function () {
+              if (attempt === verificationAttempt) showTurnstileFailure("turnstile_unsupported");
             }
           });
       } catch (error) {
@@ -1066,10 +1209,7 @@
       }
     }
 
-    setStatus(messages.turnstileLoading, "pending", { securityRelated: true, skipScroll: true, whatsappFallback: true });
-    loadTurnstileApi().then(renderTurnstile).catch(function () {
-      showTurnstileFailure("turnstile_load_failed");
-    });
+    startTurnstile();
   }
 
   function initialize() {

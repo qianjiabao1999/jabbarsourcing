@@ -104,6 +104,8 @@ await context.route("**/turnstile/v0/api.js*", async (route) => {
         var sequence = 0;
         window.__turnstileResetCount = 0;
         window.__turnstileIssueCount = 0;
+        window.__turnstileRenderCount = 0;
+        window.__turnstileRemoveCount = 0;
         window.__turnstileAutoIssueOnReset = true;
         window.__issueTurnstileToken = function () {
           sequence += 1;
@@ -112,9 +114,14 @@ await context.route("**/turnstile/v0/api.js*", async (route) => {
         };
         window.turnstile = {
           render: function (element, options) {
+            window.__turnstileRenderCount += 1;
             window.__turnstileOptions = options;
             element.innerHTML = '<div data-testid="mock-turnstile" hidden>Security check ready</div>';
-            return 'mock-widget';
+            return 'mock-widget-' + window.__turnstileRenderCount;
+          },
+          remove: function () {
+            window.__turnstileRemoveCount += 1;
+            document.querySelector('.js-inquiry-turnstile').replaceChildren();
           },
           reset: function () {
             window.__turnstileResetCount += 1;
@@ -220,12 +227,74 @@ assert(
   "A slow Turnstile response must show localized pending feedback"
 );
 assert(await slowTurnstilePage.locator(".js-inquiry-direct").isDisabled(), "Submit must remain disabled during a 15-second Turnstile load");
+const slowStatus = slowTurnstilePage.locator(".inquiry-status");
+const slowRetry = slowStatus.getByRole("button", { name: "Retry security check" });
+await slowRetry.waitFor({ timeout: 12000 });
+await slowTurnstilePage.locator('[name="product"]').fill("Slow check draft");
+await slowTurnstilePage.locator('[name="contact"]').fill("slow-check@example.invalid");
+const slowFallback = slowStatus.locator(".inquiry-status-whatsapp");
+assert((await slowFallback.getAttribute("href")).includes("slow-check%40example.invalid"), "Security fallback must reflect edited fields without losing the retry action");
+await slowTurnstilePage.getByRole("button", { name: "Clear draft" }).click();
+assert((await slowStatus.textContent()).includes("taking longer than expected"), "Clearing a draft must preserve active verification feedback");
+assert(await slowRetry.isVisible() && await slowFallback.isVisible(), "Clearing a draft must preserve both security actions");
+assert(!(await slowFallback.getAttribute("href")).includes("slow-check"), "Clearing a draft must remove cleared contact data from the fallback link");
+assert(await slowTurnstilePage.locator(".js-inquiry-direct").isDisabled(), "Clearing a draft must keep direct submit gated");
+await slowTurnstilePage.locator('[name="contact"]').fill("previous-language@example.invalid");
+await slowTurnstilePage.evaluate(() => {
+  sessionStorage.removeItem("jabbarInquiryDraftV1");
+  window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+});
+assert(!(await slowFallback.getAttribute("href")).includes("previous-language"), "A draft cleared on another language page must not remain in the restored fallback link");
 await slowTurnstilePage.waitForFunction(() => Boolean(window.__turnstileOptions), null, { timeout: 25000 });
 await slowTurnstilePage.evaluate(() => window.__issueTurnstileToken());
 await slowTurnstilePage.waitForFunction(() =>
   !document.querySelector(".js-inquiry-direct")?.disabled && !document.querySelector(".inquiry-status")?.textContent.trim()
 );
 await slowTurnstilePage.close();
+
+const retryTurnstilePage = await context.newPage();
+await retryTurnstilePage.setViewportSize({ width: 320, height: 740 });
+await retryTurnstilePage.route("**/turnstile/v0/api.js*", (route) =>
+  route.fulfill({ status: 200, contentType: "application/javascript", body: "" }), { times: 1 }
+);
+await retryTurnstilePage.goto(`${BASE_URL}/en/inquiry/`, { waitUntil: "domcontentloaded" });
+const retryStatus = retryTurnstilePage.locator(".inquiry-status");
+const retryCheck = retryStatus.getByRole("button", { name: "Retry security check" });
+const retrySubmit = retryTurnstilePage.locator(".js-inquiry-direct");
+await retryCheck.waitFor();
+assert((await retryStatus.textContent()).includes("could not be completed"), "Loading failure must describe the security check failure");
+assert(await retryTurnstilePage.locator("script[data-jabbar-turnstile-api]").count() === 0, "Failed verification script must be removed before retry");
+await retryTurnstilePage.locator('[name="product"]').fill("Retry check draft");
+await retryCheck.click();
+await retryTurnstilePage.waitForFunction(() => Boolean(window.__turnstileOptions));
+assert((await retryStatus.textContent()).includes("Running the security check"), "Widget rendering must replace the script loading message");
+assert(await retrySubmit.isDisabled(), "Retry must keep submission gated until a fresh token arrives");
+assert((await retryTurnstilePage.locator('[name="product"]').inputValue()) === "Retry check draft", "Retry must keep the draft");
+await retryTurnstilePage.evaluate(() => {
+  window.__firstTurnstileOptions = window.__turnstileOptions;
+  window.__firstTurnstileOptions["before-interactive-callback"]();
+});
+assert((await retryStatus.textContent()).includes("Please complete the security check"), "Interactive verification must tell the user to complete the visible check");
+await retryTurnstilePage.evaluate(() => window.__firstTurnstileOptions["timeout-callback"]());
+await retryCheck.click();
+await retryTurnstilePage.waitForFunction(() => window.__turnstileRenderCount === 2);
+assert(
+  await retryTurnstilePage.evaluate(() => window.__turnstileRemoveCount === 1),
+  "Widget retry must remove the timed-out widget before rendering another"
+);
+await retryTurnstilePage.evaluate(() => {
+  window.__firstTurnstileOptions.callback("stale-test-token");
+  window.__firstTurnstileOptions["error-callback"]();
+});
+assert(await retrySubmit.isDisabled(), "A late token from the removed widget must not unlock submission");
+assert(await retryCheck.count() === 0, "A late error from the removed widget must not overwrite the current check");
+await retryTurnstilePage.evaluate(() => window.__issueTurnstileToken());
+await retryTurnstilePage.waitForFunction(() =>
+  !document.querySelector(".js-inquiry-direct")?.disabled && !document.querySelector(".inquiry-status")?.textContent.trim()
+);
+assert(apiPayloads.length === 0, "The verification recovery scenarios must not submit an inquiry");
+await retryTurnstilePage.close();
+console.log("Security check QA passed: slow/load failure, draft clear, interactive timeout, retry, stale callbacks and fresh token.");
 
 const indexGuardPage = await context.newPage();
 await indexGuardPage.goto(

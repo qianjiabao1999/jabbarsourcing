@@ -21,9 +21,11 @@ async function check(browser, lang, width) {
   const scope = `${browser.browserType().name()}/${lang}/${width}`;
   const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
   const blockedPosts = [];
+  const excelRequests = [];
   await context.route("**/*", (route) => {
     const request = route.request();
     if (request.method() === "POST") { blockedPosts.push(request.url()); return route.abort(); }
+    if (/\/assets\/(?:calculator-order-(?:analyzer|worker)\.js|vendor\/xlsx\.full\.min\.js)(?:\?|$)/.test(request.url())) excelRequests.push(request.url());
     if (request.url().includes("/api/consent-region")) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ policy: "quiet-denied", country: "CN" }) });
     if (/googletagmanager|google-analytics|clarity\.ms/.test(request.url())) return route.fulfill({ status: 204, body: "" });
     return route.continue();
@@ -140,7 +142,43 @@ async function check(browser, lang, width) {
     assert.equal(await button.isDisabled(), true, `${scope}: invalid estimate remains copyable`);
     assert.equal(await copyText.inputValue(), "", `${scope}: invalid input retains stale manual report`);
     await page.locator("#length").fill("30");
-    await page.locator(".calculator-inquiry-cta").click();
+    const results = page.locator(".calculator-results");
+    const quote = results.locator(".calculator-inquiry-cta");
+    await page.locator("#qty").fill("1.5");
+    assert.equal(await quote.isVisible(), false, `${scope}: invalid quantity leaves the manual link visible`);
+    const clickInactiveQuote = () => quote.evaluate((node) => node.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })));
+    assert.equal(await clickInactiveQuote(), false, `${scope}: invalid manual report accepted a click`);
+    await page.locator("#qty").fill("1000");
+
+    const quickTab = page.locator('[data-calculator-mode="quick"]');
+    const excelTab = page.locator('[data-calculator-mode="excel"]');
+    // Park the pointer away from the panel so opening the tab tests keyboard
+    // activation alone, without the loader's existing hover preload.
+    await page.mouse.move(0, 0);
+    await quickTab.focus();
+    await quickTab.press(lang === "ar" ? "ArrowLeft" : "ArrowRight");
+    assert.equal(await excelTab.getAttribute("aria-selected"), "true", `${scope}: keyboard did not select Excel mode`);
+    assert.equal(await excelTab.evaluate((node) => node === document.activeElement), true, `${scope}: keyboard did not focus Excel tab`);
+    assert.equal(await page.locator("[data-order-load]").isVisible(), true, `${scope}: Excel activation prompt missing`);
+    assert.equal(await results.isVisible(), false, `${scope}: manual result is visible in Excel mode`);
+    assert.equal(await quote.isVisible(), false, `${scope}: manual inquiry link is visible in Excel mode`);
+    assert.equal(await clickInactiveQuote(), false, `${scope}: inactive manual inquiry link accepted a click`);
+    assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null, `${scope}: Excel mode stored a manual report`);
+    assert.deepEqual(excelRequests, [], `${scope}: Excel activation loaded the analyzer before intent`);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-order-analyzer-runtime]").length), 0, `${scope}: analyzer inserted eagerly`);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${scope}: Excel mode horizontal overflow`);
+    await excelTab.press(lang === "ar" ? "ArrowRight" : "ArrowLeft");
+    assert.equal(await quickTab.getAttribute("aria-selected"), "true", `${scope}: keyboard did not return to quick mode`);
+    assert.equal(await quickTab.evaluate((node) => node === document.activeElement), true, `${scope}: keyboard did not focus quick tab`);
+    assert.equal(await results.isVisible(), true, `${scope}: manual result disappeared after returning to quick mode`);
+    assert.equal(await page.locator("#qty").inputValue(), "1000", `${scope}: quantity lost after mode switch`);
+    assert.equal(await page.locator("#product").inputValue(), "Kitchen storage QA", `${scope}: product lost after mode switch`);
+    assert.equal(await page.locator("[data-order-load]").isVisible(), false, `${scope}: Excel prompt is visible in quick mode`);
+    await page.evaluate(() => { window.__copyMode = "success"; });
+    await button.click();
+    await page.waitForFunction((value) => document.querySelector("[data-copy-status]").textContent === value, t.copied);
+    assert.equal(await page.evaluate(() => window.__copied.at(-1)), result.message, `${scope}: switched-back manual copy did not match retained result`);
+    await quote.click();
     await page.waitForURL(`${BASE_URL}/${prefix}inquiry/`);
     await page.waitForFunction(() => document.querySelector('[name="quantity"]')?.value.length > 0);
     assert.equal(await page.locator('[name="quantity"]').inputValue(), quantities[lang], `${scope}: inquiry carton unit was lost`);
@@ -150,8 +188,8 @@ async function check(browser, lang, width) {
     assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null, `${scope}: inquiry prefill not consumed`);
     assert.deepEqual(errors, [], `${scope}: browser errors`);
     assert.deepEqual(blockedPosts, [], `${scope}: unexpected POST attempted`);
-    records.push({ scope, clipboardPaths: ["success", "reject", "missing"], totalCbm: result.totalCbm, bufferedCbm: result.bufferedCbm, quantity: result.quantity, report: result.message, passed: true });
-    console.log(`${scope}: copy feedback, localized report, actual/buffer basis, units and inquiry prefill passed`);
+    records.push({ scope, clipboardPaths: ["success", "reject", "missing", "after mode switch"], totalCbm: result.totalCbm, bufferedCbm: result.bufferedCbm, quantity: result.quantity, report: result.message, passed: true });
+    console.log(`${scope}: copy feedback, localized report, actual/buffer basis, units, mode isolation and inquiry prefill passed`);
   } finally { await context.close(); }
 }
 
@@ -164,4 +202,4 @@ for (const browserType of [chromium, webkit]) {
   } finally { await browser.close(); }
 }
 await writeFile(`${OUTPUT_DIR}/results.json`, JSON.stringify(records, null, 2));
-console.log(`${records.length} browser/locale/viewport flows passed; ${records.length * 3} clipboard path checks. No inquiry submitted.`);
+console.log(`${records.length} browser/locale/viewport flows passed; ${records.length * 4} clipboard path checks. No inquiry submitted.`);

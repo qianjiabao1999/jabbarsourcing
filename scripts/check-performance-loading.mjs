@@ -26,6 +26,9 @@ for (const locale of LOCALES) {
   const partnershipMarks = images.filter((tag) => /jabbar-sourcing-mark-transparent-hd\.webp\?v=brand-20260722hd1/.test(tag));
   assert.equal(navigationMarks.length, 1, `${file}: lightweight navigation mark reference missing`);
   assert.equal(partnershipMarks.length, 1, `${file}: high-density partnership mark reference missing`);
+  const heroPhoto = html.match(/<picture class="hero-site-photo">[\s\S]*?<\/picture>/)?.[0] || "";
+  assert.match(heroPhoto, /media="\(max-width: 767px\)" type="image\/webp" srcset="[^"]*landscape-05-480\.webp[^"]*landscape-05-960\.webp/, `${file}: mobile-only warehouse photo sources`);
+  assert.match(heroPhoto, /media="\(max-width: 767px\)" type="image\/jpeg" srcset="\/assets\/gallery\/responsive\/landscape-05-480\.jpg"/, `${file}: mobile-only warehouse JPEG fallback`);
   assert.match(attribute(navigationMarks[0], "srcset"), /jabbar-sourcing-mark-72\.webp 72w/, `${file}: small navigation logo variant missing`);
   assert.match(attribute(partnershipMarks[0], "srcset"), /jabbar-sourcing-mark-256\.webp 256w/, `${file}: responsive hero logo variant missing`);
   assert.match(attribute(partnershipMarks[0], "sizes"), /84px, 116px/, `${file}: responsive hero logo sizing missing`);
@@ -90,6 +93,10 @@ for (const file of ["assets/container-40hq-shell-20260722.webp", "assets/contain
 }
 
 const deployWorkflow = await load(".github/workflows/deploy.yml");
+const heroFallback = await readFile(resolve(ROOT, "assets/gallery/responsive/landscape-05-480.jpg"));
+assert(heroFallback.byteLength >= 1000 && heroFallback.byteLength <= 60 * 1024, "mobile warehouse JPEG fallback budget exceeded or file missing");
+assert.equal(heroFallback.readUInt16BE(), 0xffd8, "mobile warehouse fallback must be a JPEG");
+assert(deployWorkflow.includes("gallery/responsive/landscape-05-480.jpg"), "deploy.yml: mobile hero fallback artifact assertion missing");
 assert.match(deployWorkflow, /--exclude='\/assets\/social-source\/'/, "deploy.yml: social source archive must not be published");
 assert.match(deployWorkflow, /--exclude='\/assets\/gallery\/\*\.jpg'/, "deploy.yml: unreferenced full-size gallery JPG originals must not be published");
 for (const file of ["container-visual.js", "container-40hq-shell-20260722.webp", "container-cargo-stack-20260722e.webp"]) {

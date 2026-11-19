@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-191";
-const UI_VERSION = "ui-20261011c";
+const CSS_VERSION = "apple-192";
+const UI_VERSION = "ui-20261119a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -23,7 +23,7 @@ const HOME_TITLES = {
   fr: "Agent d'Achat à Yiwu, Chine – Devis Gratuit | Jabbar Sourcing",
   pt: "Agente de Compras em Yiwu, China – Cotação Grátis | Jabbar Sourcing",
   ru: "Агент по закупкам в Иу, Китай – Бесплатный расчёт | Jabbar Sourcing",
-  de: "Yiwu Sourcing Agent in China – Kostenlose Angebote | Jabbar Sourcing",
+  de: "Einkaufsagent in Yiwu, China – Kostenloses Angebot | Jabbar Sourcing",
   it: "Agente di Acquisto a Yiwu, Cina – Preventivo Gratuito | Jabbar Sourcing",
   tr: "Çin’de Yiwu Tedarik Acentesi – Ücretsiz Teklif | Jabbar Sourcing"
 };
@@ -222,6 +222,7 @@ async function pageState(page) {
       documentWidth: document.documentElement.scrollWidth,
       direction: document.documentElement.dir || getComputedStyle(document.documentElement).direction,
       compactInquiry: document.body.classList.contains("inquiry-page-compact"),
+      compactHome: document.body.classList.contains("home-page"),
       cssVersion: document.querySelector('link[href*="styles.min.css"]')?.getAttribute("href") || "",
       uiVersion: document.querySelector('script[src*="site-enhancements.js"]')?.getAttribute("src") || "",
       counts: {
@@ -510,7 +511,7 @@ function rectanglesOverlap(first, second) {
 }
 
 function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
-  const compact = state.compactInquiry && state.width <= 767;
+  const compact = (state.compactInquiry || state.compactHome) && state.width <= 767;
   assert.equal(state.counts.toolPills, 1, `${scope}: tool pill count`);
   assert.equal(state.counts.socialPills, 1, `${scope}: social pill count`);
   assert([1, 2].includes(state.counts.quoteLinks), `${scope}: quote link count ${state.counts.quoteLinks}`);
@@ -524,10 +525,10 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   assert(state.header.toolText, `${scope}: tool pill has no localized label`);
   assert(state.header.quoteText, `${scope}: quote link has no localized label`);
   if (compact) {
-    assert.equal(state.rects.toolPill.display, "none", `${scope}: compact inquiry tool must move into menu`);
-    assert.equal(state.rects.socialPill.display, "none", `${scope}: compact inquiry social must move into menu`);
-    assert(state.rects.header.height <= 76, `${scope}: compact inquiry header is too tall`);
-    assert(state.rects.quoteLink.height >= 44, `${scope}: compact inquiry return action is too small`);
+    assert.equal(state.rects.toolPill.display, "none", `${scope}: compact header tool must move into menu`);
+    assert.equal(state.rects.socialPill.display, "none", `${scope}: compact header social must move into menu`);
+    assert(state.rects.header.height <= 76, `${scope}: compact header is too tall`);
+    assert(state.rects.quoteLink.height >= 44, `${scope}: compact header primary action is too small`);
     const controls = [state.rects.brand, state.rects.quoteLink, state.rects.language, state.rects.mobileMenu];
     for (const [index, control] of controls.entries()) {
       assertVisibleRect(control, `${scope}: compact header control ${index}`);
@@ -633,7 +634,7 @@ function assertNoFloatingControls(state, scope) {
 }
 
 function assertMobileMenuTrimmed(state, scope) {
-  const expected = state.compactInquiry ? 1 : 0;
+  const expected = state.compactInquiry || state.compactHome ? 1 : 0;
   assert.equal(state.mobileMenu.calculatorLinks, expected, `${scope}: mobile menu calculator entry count`);
   assert.equal(state.mobileMenu.teamLinks, expected, `${scope}: mobile menu social entry count`);
 }
@@ -1611,18 +1612,22 @@ async function mobileHeaderMatrix(browserType) {
     const errors = collectErrors(page);
     for (const item of HEADER_PAGES) {
       await page.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
-      const compact = item.type === "inquiry" && width <= 767;
-      await page.locator(compact ? ".site-nav-return-home" : ".site-nav-social-pill").waitFor({ state: "visible" });
+      const compactHome = item.type === "home" && width <= 767;
+      const compact = width <= 767 && item.type !== "calculator";
+      const primaryAction = compactHome ? ".site-nav-quote-action" : compact ? ".site-nav-return-home" : ".site-nav-social-pill";
+      await page.locator(primaryAction).waitFor({ state: "visible" });
       if (!compact) await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
       if (compact) {
         await page.locator(".site-nav-mobile-menu > summary").click();
-        const entries = await page.locator(".site-nav-inquiry-extra").evaluateAll((links) => links.map((link) => ({
+        const extraSelector = compactHome ? ".site-nav-home-extra" : ".site-nav-inquiry-extra";
+        const entries = await page.locator(extraSelector).evaluateAll((links) => links.map((link) => ({
           href: link.getAttribute("href"), height: link.getBoundingClientRect().height,
           width: link.getBoundingClientRect().width, text: link.textContent.trim()
         })));
-        assert.equal(entries.length, 2, `${item.locale}: compact inquiry menu destinations`);
-        assert(entries.every((entry) => entry.height >= 44 && entry.width > 0 && entry.text), `${item.locale}: compact inquiry menu entries must be visible and touch sized`);
-        assert(entries.some((entry) => entry.href === "../#social-accounts") && entries.some((entry) => entry.href === "../calculator/"), `${item.locale}: compact inquiry menu hrefs`);
+        assert.equal(entries.length, 2, `${item.locale}/${item.type}: compact menu destinations`);
+        assert(entries.every((entry) => entry.height >= 44 && entry.width > 0 && entry.text), `${item.locale}/${item.type}: compact menu entries must be visible and touch sized`);
+        const prefix = compactHome ? "" : "../";
+        assert.deepEqual(entries.map((entry) => entry.href).sort(), [prefix + "#social-accounts", prefix + "calculator/"], `${item.locale}/${item.type}: compact menu hrefs`);
         await page.keyboard.press("Escape");
       }
       const scope = `${item.locale} ${item.type} header ${width}x844`;
@@ -1832,9 +1837,15 @@ async function interactionChecks(browserType) {
   assert.equal(await languageMenu.getAttribute("open") !== null, false, "outside click did not close the language navigation");
 
   await mobileSummary.click();
-  assert.equal(await mobilePage.locator('.site-nav-mobile-panel a[href*="calculator"], .site-nav-mobile-panel a[href="./"]').count(), 0, "removed calculator/home links remain in mobile menu");
-  assert.equal(await mobilePage.locator('.site-nav-mobile-panel a[href*="#social-accounts"]').count(), 0, "social-account link remains duplicated in the mobile menu");
-  assert.equal(await mobilePage.locator('.site-nav-social-pill[href*="#social-accounts"]').count(), 1, "top-level social-account pill is missing");
+  assert.equal(await mobileMenu.locator('.site-nav-mobile-panel a[href="./"]').count(), 0, "redundant home link remains in the mobile menu");
+  const toolEntry = mobileMenu.locator('.site-nav-mobile-panel a[href="calculator/"]');
+  const socialEntry = mobileMenu.locator('.site-nav-mobile-panel a[href="#social-accounts"]');
+  assert.equal(await toolEntry.count(), 1, "mobile calculator menu destination count");
+  assert.equal(await socialEntry.count(), 1, "mobile social menu destination count");
+  assert(await toolEntry.isVisible(), "mobile calculator menu destination is hidden");
+  assert(await socialEntry.isVisible(), "mobile social menu destination is hidden");
+  assert(!(await mobilePage.locator(".site-nav-social-pill").isVisible()), "social destination must not be duplicated above the mobile menu");
+  assert(!(await mobilePage.locator(".site-nav-tool-pill").isVisible()), "calculator destination must not be duplicated above the mobile menu");
   await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-menu-trimmed-390x844.png` });
   await mobileMenu.locator('.site-nav-mobile-panel a[href="#contact"]').click();
   assert.equal(await mobileMenu.getAttribute("open") !== null, false, "mobile navigation link did not close the menu");
@@ -1972,6 +1983,8 @@ async function interactionChecks(browserType) {
   assert(Math.abs(restoredGallery.phaseRatio - resizePhaseRatio) <= 0.01, `mobile gallery restore lost its phase (${resizePhaseRatio} -> ${restoredGallery.phaseRatio})`);
 
   await mobilePage.setViewportSize({ width: 844, height: 390 });
+  // 调整视口后图库可能移动到上一个指针位置。先离开图库再验证桌面播放。
+  await mobilePage.mouse.move(1, 1);
   await mobilePage.waitForTimeout(150);
   const desktopBreakpointGallery = await galleryRail.evaluate((rail) => {
     const track = rail.querySelector(".gallery-track");
@@ -1981,13 +1994,15 @@ async function interactionChecks(browserType) {
       desktopReady: track.classList.contains("is-gallery-loop-ready"),
       mobileReady: track.classList.contains("is-gallery-mobile-loop-ready"),
       animationName: style.animationName,
-      animationPlayState: style.animationPlayState
+      animationPlayState: style.animationPlayState,
+      hovering: rail.matches(":hover")
     };
   });
   assert.equal(desktopBreakpointGallery.desktopReady, true, `gallery did not enter desktop loop at 844px (${JSON.stringify(desktopBreakpointGallery)})`);
   assert.equal(desktopBreakpointGallery.mobileReady, false, `gallery retained its mobile loop class at 844px (${JSON.stringify(desktopBreakpointGallery)})`);
   assert(Math.abs(desktopBreakpointGallery.position) <= 1, `desktop gallery rail was not reset for marquee animation (${desktopBreakpointGallery.position}px)`);
   assert.equal(desktopBreakpointGallery.animationName, "galleryMarquee", `desktop breakpoint gallery animation changed (${desktopBreakpointGallery.animationName})`);
+  assert.equal(desktopBreakpointGallery.hovering, false, "desktop gallery autoplay must be sampled away from the hover pause area");
   assert.equal(desktopBreakpointGallery.animationPlayState, "running", `desktop breakpoint gallery animation did not run (${desktopBreakpointGallery.animationPlayState})`);
 
   const restoredAfterDesktopBreakpoint = await readResizedGallery(390);

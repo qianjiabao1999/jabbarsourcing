@@ -1533,10 +1533,25 @@ try {
   const bridgePage = await context.newPage();
   const bridgeErrors = collectErrors(bridgePage);
   await bridgePage.goto(`${BASE_URL}/calculator/`, { waitUntil: "domcontentloaded" });
+  for (const [field, value] of [["length", "50"], ["width", "40"], ["height", "30"], ["qty", "100"]]) {
+    await bridgePage.locator(`#${field}`).fill(value);
+  }
+  const manualResults = bridgePage.locator(".calculator-results");
+  const manualQuoteLink = manualResults.locator(".calculator-inquiry-cta");
+  assert.equal(await manualResults.locator("[data-total-cbm]").textContent(), "6.000 m³", "manual mode fixture volume");
+  assert.equal(await manualQuoteLink.isVisible(), true, "manual mode fixture inquiry CTA");
   await waitForAnalyzer(bridgePage);
   await uploadWorkbook(bridgePage, { name: FIXTURE_NAME, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: fixture });
   const bridgeLink = bridgePage.locator("[data-order-inquiry]");
   assert.equal(await bridgeLink.isVisible(), true, "Excel inquiry CTA is not visible with a valid result");
+  assert.equal(await manualQuoteLink.isVisible(), false, "manual inquiry CTA is visible beside Excel analysis");
+  await bridgePage.locator('[data-calculator-mode="quick"]').click();
+  assert.equal(await bridgeLink.isVisible(), false, "Excel inquiry CTA is visible beside manual calculation");
+  assert.equal(await manualQuoteLink.isVisible(), true, "manual inquiry CTA did not return after switching modes");
+  assert.equal(await bridgePage.locator("#qty").inputValue(), "100", "mode switch cleared manual quantity");
+  await bridgePage.locator('[data-calculator-mode="excel"]').click();
+  assert.equal(await bridgeLink.isVisible(), true, "Excel inquiry CTA did not return after switching modes");
+  assert.equal(await manualQuoteLink.isVisible(), false, "switching to Excel restored the wrong inquiry CTA");
   assert.equal(await bridgeLink.getAttribute("href"), "/inquiry/", "Chinese Excel inquiry CTA path");
   assert.equal((await bridgeLink.textContent())?.trim(), "携带此结果获取报价", "Chinese Excel inquiry CTA label");
   await Promise.all([

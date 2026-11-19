@@ -4795,6 +4795,7 @@ html.gallery-ready .gallery-track {
   background-color: #fef2f2;
 }
 
+.calculator-results[hidden],
 .calculator-result-status[hidden],
 .calculator-results [data-result-detail][hidden] {
   display: none !important;
@@ -9974,6 +9975,32 @@ html[lang="ar"] .section-code {
   outline-offset: 2px;
 }
 
+.inquiry-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+.inquiry-status-actions > a,
+.inquiry-status-retry {
+  min-height: 44px;
+}
+.inquiry-status-retry {
+  padding: 8px 14px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brand-teal);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+.inquiry-status-retry:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 .inquiry-button[aria-busy="true"]::before {
   content: "";
   flex: 0 0 17px;
@@ -10034,8 +10061,12 @@ html[lang="ar"] .section-code {
     align-items: flex-start;
   }
 
+  .inquiry-status-actions {
+    flex: 1 1 100%;
+  }
+
   .inquiry-status-whatsapp {
-    width: 100%;
+    flex: 1 1 auto;
     min-height: 44px;
   }
 }
@@ -10243,6 +10274,10 @@ html[lang="ar"] .section-code {
 
 .calculator-mode-panel[hidden] {
   display: none;
+}
+
+.calculator-panel.is-excel-mode {
+  grid-column: 1 / -1;
 }
 
 .calculator-mode-panel-excel .calculator-order-upload {
@@ -13215,8 +13250,181 @@ main > #team .section-heading h2 {
   outline: 2px solid var(--brand-teal);
   outline-offset: 3px;
 }
+.hero-site-photo,
+.hero-order-minimums,
+.site-nav .site-nav-mobile-panel .site-nav-home-extra {
+  display: none;
+}
 @media (max-width: 767px) {
-  /* 首页双行导航最高117px；章节保留至少16px可读留白。 */
+  .home-page header.site-nav {
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr) max-content 44px !important;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+  .home-page header.site-nav::before,
+  .home-page header.site-nav > .site-nav-social-pill,
+  .home-page header.site-nav > .site-nav-tool-pill {
+    display: none !important;
+  }
+  .home-page header.site-nav .site-nav-brand {
+    display: inline-flex !important;
+    order: 1 !important;
+    grid-column: 1;
+    width: 44px;
+    min-height: 44px;
+    margin: 0 !important;
+  }
+  .home-page header.site-nav .site-nav-quote-action {
+    order: 2 !important;
+    grid-column: 2;
+    justify-self: end;
+    min-width: 44px;
+    max-width: 100%;
+    min-height: 44px !important;
+    padding: 6px 10px !important;
+    border-radius: 12px !important;
+    background: var(--brand-teal) !important;
+    box-shadow: none !important;
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    text-align: center;
+    white-space: normal !important;
+  }
+  .home-page header.site-nav .site-nav-language {
+    order: 3 !important;
+    grid-column: 3;
+    margin: 0 !important;
+  }
+  .home-page header.site-nav .site-nav-language > summary {
+    padding-inline: 8px !important;
+  }
+  .home-page header.site-nav .site-nav-mobile-menu {
+    order: 4 !important;
+    grid-column: 4;
+    margin: 0 !important;
+  }
+  .home-page header.site-nav .language-options,
+  .home-page header.site-nav .site-nav-mobile-panel {
+    max-height: calc(100dvh - 80px) !important;
+  }
+  .home-page .site-nav .site-nav-mobile-panel .site-nav-home-extra {
+    display: flex;
+    align-items: center;
+  }
+  .home-page :is(#team, #services, #how-it-works, #reviews, #faq, #social-accounts, #contact) {
+    scroll-margin-top: 82px;
+  }
+  .home-page .team-heading.home-hero-compact {
+    text-align: start;
+    margin-bottom: 18px;
+  }
+  .home-page .home-hero-compact .hero-brand-partnership {
+    --partnership-logo-size: 42px;
+    width: max-content;
+    margin: 0 0 12px;
+    gap: 8px;
+  }
+  .home-page .home-hero-compact .site-logo-lockup {
+    padding: 4px;
+    border-radius: 10px;
+    box-shadow: none;
+  }
+  .home-page .home-hero-compact .site-logo-lockup img {
+    border-radius: 6px;
+  }
+  .home-page .team-heading.home-hero-compact h1 {
+    margin: 0 0 10px;
+    text-align: start;
+    font-size: clamp(28px, 7.4vw, 42px);
+    letter-spacing: -0.025em;
+  }
+  .home-page .team-heading.home-hero-compact .hero-social {
+    margin: 0;
+    text-align: start;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+  .hero-site-photo {
+    display: block;
+    margin-top: 15px;
+    overflow: hidden;
+    border-radius: 14px;
+    background-color: #e2e8f0;
+  }
+  .hero-site-photo img {
+    display: block;
+    width: 100%;
+    height: clamp(132px, 43vw, 230px);
+    object-fit: cover;
+    object-position: center 55%;
+  }
+  .home-page .team-heading.home-hero-compact .quote-entry {
+    margin-top: 14px !important;
+  }
+  .home-page .team-heading.home-hero-compact .quote-entry .inquiry-entry-card-cta {
+    padding: 0 !important;
+    min-height: 0;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+  .home-page .home-hero-compact .inquiry-entry-copy {
+    display: none;
+  }
+  .home-page .team-heading.home-hero-compact .quote-entry .inquiry-entry-button {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 48px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: #0f645f !important;
+    box-shadow: none !important;
+    font-size: 16px !important;
+  }
+  .hero-order-minimums {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin: 12px 0 0;
+    color: var(--ink-muted-strong);
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: start;
+  }
+  .hero-order-minimums > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 5px;
+  }
+  .hero-order-minimums dd {
+    margin: 0;
+    color: var(--ink);
+    font-weight: 750;
+  }
+  .hero-order-minimums bdi {
+    white-space: nowrap;
+  }
+  .home-page .home-hero-compact .stamp-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 13px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(var(--brand-teal-rgb), 0.18);
+  }
+  .home-page .home-hero-compact .stamp-item {
+    align-items: start;
+    min-width: 0;
+    text-align: start;
+  }
+  .home-page .home-hero-compact .stamp-item:last-child,
+  .home-page .home-hero-compact .stamp {
+    display: none !important;
+  }
+}
+@media (max-width: 767px) {
+  /* 双行导航页面保留至少16px可读章节留白。 */
   #team,
   #services,
   #how-it-works,

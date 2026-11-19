@@ -7,8 +7,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-191";
-const UI_VERSION = "ui-20261011c";
+const CSS_VERSION = "apple-192";
+const UI_VERSION = "ui-20261119a";
 const ORDER_VERSION = "order-20260722c";
 const CONTAINER_VERSION = "container-20261011b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
@@ -105,7 +105,7 @@ const HOME_TITLES = {
   fr: "Agent d'Achat à Yiwu, Chine – Devis Gratuit | Jabbar Sourcing",
   pt: "Agente de Compras em Yiwu, China – Cotação Grátis | Jabbar Sourcing",
   ru: "Агент по закупкам в Иу, Китай – Бесплатный расчёт | Jabbar Sourcing",
-  de: "Yiwu Sourcing Agent in China – Kostenlose Angebote | Jabbar Sourcing",
+  de: "Einkaufsagent in Yiwu, China – Kostenloses Angebot | Jabbar Sourcing",
   it: "Agente di Acquisto a Yiwu, Cina – Preventivo Gratuito | Jabbar Sourcing",
   tr: "Çin’de Yiwu Tedarik Acentesi – Ücretsiz Teklif | Jabbar Sourcing"
 };
@@ -534,6 +534,13 @@ for (const { locale, file } of NAV_PAGES) {
     assert.deepEqual(secondaryEntries.map((entry) => attribute(entry[0], "href")).sort(), ["../#social-accounts", "../calculator/"], `${file}: compact inquiry menu routes regressed`);
     assert.equal(count(mobilePanels[0], /href="[^"]*#social-accounts"/g), 1, `${file}: duplicate compact inquiry social destination`);
     assert.equal(count(mobilePanels[0], /href="[^"]*calculator\/"/g), 1, `${file}: duplicate compact inquiry calculator destination`);
+  } else if (HOME_PAGES.some((page) => page.file === file)) {
+    assert.match(html, /<body class="home-page">/, `${file}: compact homepage marker missing`);
+    const secondaryEntries = tagsWithClass(mobilePanels[0], "a", "site-nav-home-extra");
+    assert.deepEqual(secondaryEntries.map((entry) => attribute(entry[0], "href")).sort(), ["#social-accounts", "calculator/"], `${file}: compact homepage menu routes regressed`);
+    assert.equal(count(mobilePanels[0], /href="#social-accounts"/g), 1, `${file}: duplicate homepage social destination`);
+    assert.equal(count(mobilePanels[0], /href="calculator\/"/g), 1, `${file}: duplicate homepage calculator destination`);
+    assert.equal(count(mobilePanels[0], /href="\.\/"/g), 0, `${file}: redundant homepage link in the menu`);
   } else {
     assert.doesNotMatch(mobilePanels[0], /href="(?:\.\/|[^\"]*calculator\/?)"/, `${file}: calculator link remains in mobile navigation`);
     assert.doesNotMatch(mobilePanels[0], /href="[^"]*#social-accounts"/, `${file}: duplicate social destination remains in mobile navigation`);
@@ -581,9 +588,9 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
 {
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
   const EXPECTED_LANGUAGE_MATRIX_LASTMOD = {
-    home: "2026-10-11",
-    calculator: "2026-10-11",
-    inquiry: "2026-10-11"
+    home: "2026-11-19",
+    calculator: "2026-11-19",
+    inquiry: "2026-11-19"
   };
   const EXPECTED_LEGAL_LASTMOD = {
     [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-08-14",

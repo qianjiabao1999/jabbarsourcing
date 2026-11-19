@@ -282,7 +282,8 @@
     var analyzer = panel && panel.querySelector("[data-order-analyzer]");
     var manualLabel = panel && panel.querySelector(".calculator-manual-label");
     var form = panel && panel.querySelector("#cbm-calculator");
-    if (!panel || !analyzer || !manualLabel || !form || panel.querySelector(".calculator-mode-tabs")) return;
+    var results = document.querySelector(".calculator-results");
+    if (!panel || !analyzer || !manualLabel || !form || !results || panel.querySelector(".calculator-mode-tabs")) return;
 
     var fieldGrid = form.querySelector(".calculator-form-grid");
     var optionalFields = ["product", "weight", "note"].map(function (name) {
@@ -360,6 +361,8 @@
       var excelActive = mode === "excel";
       quickPanel.hidden = excelActive;
       excelPanel.hidden = !excelActive;
+      results.hidden = excelActive;
+      panel.classList.toggle("is-excel-mode", excelActive);
       buttons.forEach(function (button) {
         var selected = button.dataset.calculatorMode === mode;
         button.classList.toggle("is-active", selected);
@@ -406,13 +409,8 @@
 
     var lastResult = null;
 
-    function hasValidDimensions() {
-      return ["length", "width", "height", "qty"].every(function (name) {
-        var field = form.elements.namedItem(name);
-        if (!field) return false;
-        var value = Number(field.value);
-        return name === "qty" ? Math.floor(value) > 0 : value > 0;
-      });
+    function hasCurrentResult() {
+      return lastResult && !results.hidden && results.dataset.resultState === "ready";
     }
 
     window.addEventListener("jabbar:calc-result", function (event) {
@@ -422,7 +420,7 @@
     });
 
     quoteLink.addEventListener("click", function (event) {
-      if (!lastResult || !hasValidDimensions()) {
+      if (!hasCurrentResult()) {
         event.preventDefault();
         return;
       }
@@ -444,7 +442,7 @@
     });
 
     form.addEventListener("submit", function () {
-      if (!lastResult || !hasValidDimensions()) return;
+      if (!hasCurrentResult()) return;
       var submittedResult = lastResult;
       window.requestAnimationFrame(function () {
         window.jabbarTrack("calculator_result", {
@@ -452,7 +450,7 @@
           locale: document.documentElement.lang || lang,
           total_cbm: Number(Number(submittedResult.totalCbm || 0).toFixed(3))
         });
-        if (window.matchMedia("(max-width: 900px)").matches) {
+        if (!results.hidden && window.matchMedia("(max-width: 900px)").matches) {
           results.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
         }
       });
@@ -461,7 +459,7 @@
     var copyButton = form.querySelector("[data-copy-result]");
     if (copyButton) {
       copyButton.addEventListener("click", function () {
-        if (!lastResult || !hasValidDimensions()) return;
+        if (!hasCurrentResult()) return;
         window.requestAnimationFrame(function () {
           window.jabbarTrack("calculator_copy", {
             page_type: "calculator",

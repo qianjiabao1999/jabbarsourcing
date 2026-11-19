@@ -216,6 +216,7 @@ jobs:
             jabbar-sourcing-mark-256.webp
             container-cargo-stack-640.webp
             container-cargo-stack-960.webp
+            gallery/responsive/landscape-05-480.jpg
           )
           for file in "${responsive_assets[@]}"; do
             test -s "_site/assets/$file"

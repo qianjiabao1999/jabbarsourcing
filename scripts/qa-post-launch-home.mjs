@@ -59,6 +59,44 @@ async function homeChecks(browser, engine, locale, width) {
   try {
     await page.goto(BASE_URL + homePath(locale), { waitUntil: "domcontentloaded" });
     await page.locator(".faq-quick-tag").first().waitFor({ state: "attached" });
+    const photo = page.locator(".hero-site-photo img");
+    if (width <= 390) {
+      await photo.evaluate((image) => image.decode());
+      await page.evaluate(() => document.fonts.ready);
+      const hero = await page.evaluate(() => {
+        const nav = document.querySelector("header.site-nav").getBoundingClientRect();
+        const photo = document.querySelector(".hero-site-photo img");
+        const controls = [".site-nav-brand", ".site-nav-quote-action", ".site-nav-language > summary", ".site-nav-mobile-menu > summary"]
+          .map((selector) => document.querySelector(selector).getBoundingClientRect().toJSON());
+        const minimums = document.querySelector(".hero-order-minimums");
+        return {
+          navHeight: nav.height,
+          controls,
+          photoBottom: photo.getBoundingClientRect().bottom,
+          photoSource: photo.currentSrc,
+          photoAlt: photo.alt,
+          quoteTop: document.querySelector(".inquiry-entry-button").getBoundingClientRect().top,
+          minimumsTop: minimums.getBoundingClientRect().top,
+          minimumsScrollWidth: minimums.scrollWidth,
+          minimumsWidth: minimums.clientWidth,
+          amounts: [...minimums.querySelectorAll("dd")].map((item) => item.textContent.replace(/[^0-9]/g, ""))
+        };
+      });
+      assert(hero.navHeight <= 76, `${scope}: 首页吸顶导航应保持单行 ${JSON.stringify(hero)}`);
+      for (const box of hero.controls) {
+        assert(box.width >= 44 && box.height >= 44 && box.left >= 0 && box.right <= width, `${scope}: 首页四个触控入口完整可见 ${JSON.stringify(box)}`);
+      }
+      const leftToRight = hero.controls.slice().sort((first, second) => first.left - second.left);
+      leftToRight.slice(1).forEach((box, index) => assert(box.left >= leftToRight[index].right, `${scope}: 首页导航入口不能重叠`));
+      assert(hero.photoAlt && /landscape-05-(480|960)\.webp/.test(hero.photoSource), `${scope}: 首屏显示有描述的真实仓库图片`);
+      assert(hero.photoBottom <= 550, `${scope}: 短屏应可完整看见仓库图片`);
+      assert(hero.minimumsTop >= hero.quoteTop + 48, `${scope}: 起订规则紧邻报价按钮`);
+      assert(hero.minimumsScrollWidth <= hero.minimumsWidth, `${scope}: 起订规则不能横向溢出`);
+      assert.deepEqual(hero.amounts, ["1000", "3000", "10000"], `${scope}: 三档现有采购金额`);
+    } else {
+      assert(!(await photo.isVisible()), `${scope}: 手机首屏图片不能改变桌面首屏`);
+      assert(!(await page.locator(".hero-order-minimums").isVisible()), `${scope}: 桌面原报价布局保留`);
+    }
     const year = page.locator(".company-metric-card").first().locator(".company-metric-visual");
     const expectedYear = await page.locator(".company-metric-card").first().locator("strong .sr-only").textContent();
     assert.match(expectedYear, /2008/, `${scope}: 成立年份源值`);
