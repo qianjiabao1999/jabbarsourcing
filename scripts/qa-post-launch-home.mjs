@@ -3,11 +3,13 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const ONLY_RACE_QA = process.env.ONLY_RACE_QA === "1";
+const ONLY_HOME_FOCUS_QA = process.env.ONLY_HOME_FOCUS_QA === "1";
+assert(!(ONLY_RACE_QA && ONLY_HOME_FOCUS_QA), "只能选择一种浏览器专项");
 const locales = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
 const homePath = (locale) => locale === "zh" ? "/" : `/${locale}/`;
 
-async function contextFor(browser, width) {
-  const context = await browser.newContext({ viewport: { width, height: 900 } });
+async function contextFor(browser, width, options = {}) {
+  const context = await browser.newContext({ viewport: { width, height: 900 }, ...options });
   await context.addInitScript(() => Object.defineProperty(navigator, "globalPrivacyControl", { value: true }));
   // 本地验证不加载第三方统计，也不提交表单。
   await context.route(/https:\/\/(?:www\.googletagmanager\.com|www\.google-analytics\.com|www\.clarity\.ms|c\.clarity\.ms|challenges\.cloudflare\.com)\//, route => route.abort());
@@ -49,6 +51,52 @@ async function sectionPosition(page, id) {
     const box = label.getBoundingClientRect();
     return { headerBottom: document.querySelector(".site-nav").getBoundingClientRect().bottom, top: box.top, bottom: box.bottom, viewport: innerHeight };
   }, id);
+}
+
+async function mobileQuoteFocusChecks(browser, engine, locale, width) {
+  const context = await contextFor(browser, width, {
+    viewport: { width, height: width === 320 ? 568 : 844 },
+    isMobile: true,
+    hasTouch: true,
+    reducedMotion: "reduce"
+  });
+  const page = await context.newPage();
+  const scope = `${engine}/${locale}/${width}/keyboard-quote`;
+  const language = page.locator("header.site-nav .site-nav-language > summary");
+  const quote = page.locator(".inquiry-entry-card-cta");
+  try {
+    await page.goto(BASE_URL + homePath(locale), { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => document.fonts.ready);
+    const position = () => quote.evaluate(link => {
+      const rect = link.getBoundingClientRect();
+      const header = document.querySelector("header.site-nav").getBoundingClientRect();
+      const hit = document.elementFromPoint((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
+      return { focused: document.activeElement === link, focusVisible: link.matches(":focus-visible"),
+        top: rect.top, bottom: rect.bottom, headerBottom: header.bottom, viewport: innerHeight, hit: link.contains(hit) };
+    });
+    const prepareFocus = async () => {
+      await language.focus();
+      // 先模拟页面已滚动，后续只由真实的键盘焦点驱动滚动。
+      await quote.evaluate(link => window.scrollBy({ top: link.getBoundingClientRect().top - 60, behavior: "instant" }));
+      await waitForScrollSettled(page, `${scope}/before-tab`);
+      const before = await position();
+      assert(before.top > 0 && before.top < before.headerBottom && before.bottom < before.viewport,
+        `${scope}: 复现前报价卡在视口内，但顶部须位于吸顶导航后方 ${JSON.stringify(before)}`);
+      assert(await language.evaluate(summary => document.activeElement === summary), `${scope}: 从语言入口开始键盘导航`);
+    };
+    await prepareFocus();
+    await page.keyboard.press("Tab");
+    if (engine === "WebKit" && !(await position()).focused) {
+      // Safari 的系统键盘设置可能要求 Option+Tab 才会聚焦链接。
+      await prepareFocus();
+      await page.keyboard.press("Alt+Tab");
+    }
+    await waitForScrollSettled(page, `${scope}/after-tab`);
+    const after = await position();
+    assert(after.focused && after.focusVisible, `${scope}: 必须用键盘聚焦正文报价卡 ${JSON.stringify(after)}`);
+    assert(after.top >= after.headerBottom + 8 && after.bottom <= after.viewport && after.hit,
+      `${scope}: 聚焦的报价卡必须完整移到吸顶导航下方 ${JSON.stringify(after)}`);
+  } finally { await context.close(); }
 }
 
 async function assertMobileNavigation(page, scope, width, isInquiry = false) {
@@ -160,11 +208,11 @@ async function homeChecks(browser, engine, locale, width) {
       assert(Math.abs((hero.buttonRect.left + hero.buttonRect.right) / 2 - hero.rootCenter) <= 1, `${scope}: 报价按钮在首屏中轴上`);
       assert.deepEqual(hero.stamps.map(stamp => stamp.text), ["QC PASSED ✓", "REPLY < 24H", "TRIAL $1,000"], `${scope}: 三个原有标章顺序`);
       assert(hero.stamps.every(stamp => stamp.width > 0 && stamp.height > 0 && stamp.left >= -1 && stamp.right <= width + 1 && stamp.note > 0), `${scope}: 三个标章及说明必须可见且不溢出`);
-      assert(!(await photo.isVisible()), `${scope}: 手机专用仓库图不混入桌面版式`);
+      assert.equal(await photo.count(), 0, `${scope}: 首页不请求已经隐藏的手机首图`);
       assert(!(await page.locator(".hero-order-minimums").isVisible()), `${scope}: 手机专用价目不混入桌面版式`);
       assert.deepEqual(hero.amounts, ["1000", "3000", "10000"], `${scope}: 三档现有采购金额`);
     } else {
-      assert(!(await photo.isVisible()), `${scope}: 手机首屏图片不能改变桌面首屏`);
+      assert.equal(await photo.count(), 0, `${scope}: 废弃首图不能进入桌面版式`);
       assert(!(await page.locator(".hero-order-minimums").isVisible()), `${scope}: 桌面原报价布局保留`);
     }
     const year = page.locator(".company-metric-card").first().locator(".company-metric-visual");
@@ -384,16 +432,23 @@ for (const [engine, browserType] of [["Chromium", chromium], ["WebKit", webkit]]
   const browser = await browserType.launch();
   try {
     if (!ONLY_RACE_QA) {
+      for (const locale of ["en", "ar"]) for (const width of [320, 390]) await mobileQuoteFocusChecks(browser, engine, locale, width);
+    }
+    if (!ONLY_RACE_QA && !ONLY_HOME_FOCUS_QA) {
       const selectedLocales = engine === "Chromium" ? locales : ["zh", "en", "ar"];
       for (const locale of selectedLocales) for (const width of [320, 390, 1440]) await homeChecks(browser, engine, locale, width);
       for (const width of [390, 1440]) await languageChecks(browser, engine, width);
       for (const locale of ["zh", "en", "ar"]) for (const width of [320, 390, 1440]) await firstAnchorChecks(browser, engine, locale, width);
     }
-    for (const locale of ["zh", "en", "ar"]) for (const width of [390, 1440]) await faqNavigationRaceChecks(browser, engine, locale, width);
+    if (!ONLY_HOME_FOCUS_QA) {
+      for (const locale of ["zh", "en", "ar"]) for (const width of [390, 1440]) await faqNavigationRaceChecks(browser, engine, locale, width);
+    }
   } finally {
     await browser.close();
   }
 }
-console.log(ONLY_RACE_QA
+console.log(ONLY_HOME_FOCUS_QA
+  ? "手机报价卡键盘焦点检查通过：8 个语言/尺寸/引擎组合。"
+  : ONLY_RACE_QA
   ? "FAQ 导航竞争专项通过：12 个语言/尺寸/引擎组合，24 条新 hash/同 hash 路径，零 POST。"
-  : "布局回归通过：39 个首页组合、126 个章节留白检查、26 个窄屏真实报价与返回路径、13 个桌面返回入口检查、36 条首次自然锚点路径；保留 FAQ 九项、数字继承、静态年份和 4 组语言路由检查；另有 12 个组合/24 条 FAQ 导航竞争路径，零 POST。");
+  : "布局回归通过：39 个首页组合、126 个章节留白检查、26 个窄屏真实报价与返回路径、13 个桌面返回入口检查、36 条首次自然锚点路径、8 个手机报价卡键盘焦点检查；保留 FAQ 九项、数字继承、静态年份和 4 组语言路由检查；另有 12 个组合/24 条 FAQ 导航竞争路径，零 POST。");

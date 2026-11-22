@@ -26,9 +26,12 @@ for (const locale of LOCALES) {
   const partnershipMarks = images.filter((tag) => /jabbar-sourcing-mark-transparent-hd\.webp\?v=brand-20260722hd1/.test(tag));
   assert.equal(navigationMarks.length, 1, `${file}: lightweight navigation mark reference missing`);
   assert.equal(partnershipMarks.length, 1, `${file}: high-density partnership mark reference missing`);
-  const heroPhoto = html.match(/<picture class="hero-site-photo">[\s\S]*?<\/picture>/)?.[0] || "";
-  assert.match(heroPhoto, /media="\(max-width: 767px\)" type="image\/webp" srcset="[^"]*landscape-05-480\.webp[^"]*landscape-05-960\.webp/, `${file}: mobile-only warehouse photo sources`);
-  assert.match(heroPhoto, /media="\(max-width: 767px\)" type="image\/jpeg" srcset="\/assets\/gallery\/responsive\/landscape-05-480\.jpg"/, `${file}: mobile-only warehouse JPEG fallback`);
+  assert.doesNotMatch(html, /\bhero-site-photo\b/, `${file}: hidden former mobile hero must not request warehouse assets`);
+  const warehouseImages = images.filter((tag) => /\bsrc="[^"]*\/landscape-05-960\.webp/.test(tag));
+  assert.equal(warehouseImages.length, 1, `${file}: real warehouse photo must remain in the gallery once`);
+  assert.match(attribute(warehouseImages[0], "srcset"), /landscape-05-480\.webp[^,]*480w,\s*[^,]*landscape-05-960\.webp[^,]*960w/, `${file}: warehouse gallery must retain responsive WebP variants`);
+  assert.equal(attribute(warehouseImages[0], "loading"), "lazy", `${file}: warehouse gallery image must stay lazy`);
+  assert.equal(attribute(warehouseImages[0], "fetchpriority"), "low", `${file}: warehouse gallery image must not compete with the first screen`);
   assert.match(attribute(navigationMarks[0], "srcset"), /jabbar-sourcing-mark-72\.webp 72w/, `${file}: small navigation logo variant missing`);
   assert.match(attribute(partnershipMarks[0], "srcset"), /jabbar-sourcing-mark-256\.webp 256w/, `${file}: responsive hero logo variant missing`);
   assert.match(attribute(partnershipMarks[0], "sizes"), /84px, 116px/, `${file}: responsive hero logo sizing missing`);

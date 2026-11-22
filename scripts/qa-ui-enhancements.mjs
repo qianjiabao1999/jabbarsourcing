@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-195";
+const CSS_VERSION = "apple-196";
 const UI_VERSION = "ui-20261119a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -751,7 +751,7 @@ function assertHeroCta(state, scope) {
     assert(state.heroCta.brands.every(({ width }) => Math.abs(width - 84) <= 1), `${scope}: dual-brand frames are not 84px`);
     assert.equal(state.heroCta.stamps.length, 3, `${scope}: inherited stamp count`);
     state.heroCta.stamps.forEach((stamp, index) => assertVisibleRect(stamp, `${scope}: inherited stamp ${index + 1}`));
-    assert.equal(state.heroCta.photo.display, "none", `${scope}: old mobile-only hero photo reappeared`);
+    assert.equal(state.heroCta.photo, null, `${scope}: hidden old hero photo must not be in the DOM`);
     assert.equal(state.heroCta.minimums.display, "none", `${scope}: old mobile-only order minimums strip reappeared`);
   }
   if (state.width <= 560) {

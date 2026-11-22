@@ -405,6 +405,32 @@
     window.jabbarCaptureAttribution = captureAttribution;
   }
 
+  function keepNarrowFocusVisible(form) {
+    var nav = document.querySelector("header.site-nav");
+    var narrow = window.matchMedia && window.matchMedia("(max-width: 767px)");
+    if (!nav || !narrow) return;
+
+    var focusRevision = 0;
+    form.addEventListener("focusin", function (event) {
+      var field = event.target;
+      var revision = ++focusRevision;
+      if (!narrow.matches) return;
+
+      // 等浏览器默认聚焦滚动完成，再补偿吸顶导航实际遮住的部分。
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          if (revision !== focusRevision || !narrow.matches || document.activeElement !== field) return;
+          var bounds = field.getBoundingClientRect();
+          var header = nav.getBoundingClientRect();
+          if (bounds.width <= 0 || bounds.height <= 0 || header.height <= 0
+              || bounds.top >= header.bottom || bounds.bottom <= header.top
+              || bounds.right <= header.left || bounds.left >= header.right) return;
+          window.scrollBy({ top: bounds.top - header.bottom - 8, behavior: "instant" });
+        });
+      });
+    });
+  }
+
   function initializeForm(form) {
     if (form.getAttribute("data-direct-inquiry-ready") === "true") return;
     form.setAttribute("data-direct-inquiry-ready", "true");
@@ -444,6 +470,7 @@
     }
 
     var directButtonLabel = directButton.textContent;
+    keepNarrowFocusVisible(form);
 
     function analyticsParams(extra) {
       var params = {

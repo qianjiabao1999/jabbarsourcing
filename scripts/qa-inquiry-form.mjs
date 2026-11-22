@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { mkdir } from "node:fs/promises";
-import { chromium } from "playwright";
+import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_OUTPUT_DIR || "/tmp/jabbar-inquiry-qa";
@@ -75,6 +75,119 @@ function assert(condition, message) {
 
 function response(status, body, headers = {}) {
   return { status, body, headers };
+}
+
+async function checkNarrowFocus(engine, engineName) {
+  const browser = await engine.launch({ headless: true });
+  const origin = new URL(BASE_URL).origin;
+  const paths = ["/en/inquiry/", "/ar/inquiry/"];
+  try {
+    for (const width of [320, 390]) {
+      const context = await browser.newContext({
+        viewport: { width, height: 720 }, isMobile: true, hasTouch: true, reducedMotion: "reduce"
+      });
+      try {
+        let posts = 0;
+        await context.route("**/*", (route) => {
+          const request = route.request();
+          if (request.method() === "POST") posts += 1;
+          return request.method() === "GET" && new URL(request.url()).origin === origin
+            ? route.continue() : route.abort();
+        });
+        // 只测焦点和重试反馈；替身不会提供验证令牌。
+        await context.addInitScript(() => {
+          Object.defineProperty(navigator, "globalPrivacyControl", { value: true });
+          window.__focusVerificationRenders = 0;
+          window.turnstile = {
+            render: (_element, options) => {
+              window.__focusVerificationOptions = options;
+              window.__focusVerificationRenders += 1;
+              return "mock-focus-widget";
+            },
+            remove() {},
+            reset() {}
+          };
+        });
+        const focusPage = await context.newPage();
+        const product = focusPage.locator('[name="product"]');
+        const contact = focusPage.locator('[name="contact"]');
+        const feedback = focusPage.locator(".inquiry-status");
+        const retry = focusPage.locator(".inquiry-status-retry");
+        const settleFocus = () => focusPage.evaluate(() => new Promise((done) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(done)))
+        ));
+        const geometry = (locator) => locator.evaluate((element) => {
+          const bounds = element.getBoundingClientRect();
+          return {
+            active: document.activeElement === element,
+            top: bounds.top,
+            bottom: bounds.bottom,
+            navigationBottom: document.querySelector("header.site-nav").getBoundingClientRect().bottom,
+            viewportHeight: innerHeight,
+            scrollY
+          };
+        });
+        const positionByNav = (locator, offset) => locator.evaluate((element, gap) => {
+          const navBottom = document.querySelector("header.site-nav").getBoundingClientRect().bottom;
+          window.scrollBy({ top: element.getBoundingClientRect().top - navBottom - gap, behavior: "instant" });
+        }, offset);
+        for (const path of paths) {
+          const scope = `${engineName} ${width}px ${path}`;
+          await focusPage.goto(`${BASE_URL}${path}`, { waitUntil: "domcontentloaded" });
+          await focusPage.waitForFunction(() => window.__focusVerificationRenders === 1);
+          await focusPage.evaluate(() => document.fonts.ready);
+          await positionByNav(contact, 12);
+          const covered = await geometry(product);
+          assert(covered.top < covered.navigationBottom, `${scope}: fixture must place the product field under the header`);
+
+          // 短时间切换两次焦点时，过期任务不得滚动已经可见的联系方式字段。
+          await focusPage.evaluate(() => {
+            document.querySelector('[name="product"]').focus({ preventScroll: true });
+            document.querySelector('[name="contact"]').focus({ preventScroll: true });
+          });
+          await settleFocus();
+          const untouched = await geometry(contact);
+          assert(untouched.active && untouched.top >= untouched.navigationBottom
+            && untouched.scrollY === covered.scrollY, `${scope}: uncovered focus or stale focus must not move the page`);
+          await focusPage.keyboard.press("Shift+Tab");
+          await settleFocus();
+          const returned = await geometry(product);
+          assert(returned.active && returned.top >= returned.navigationBottom + 6
+            && returned.bottom <= returned.viewportHeight, `${scope}: reverse tab left product focus behind the header: ${JSON.stringify(returned)}`);
+
+          await focusPage.evaluate(() => window.__focusVerificationOptions["error-callback"]());
+          await positionByNav(feedback, -33);
+          const beforeRetry = await geometry(retry);
+          assert(beforeRetry.top >= beforeRetry.navigationBottom && beforeRetry.bottom <= beforeRetry.viewportHeight,
+            `${scope}: retry must be visible while the status starts under the header`);
+          await retry.tap();
+          await focusPage.waitForFunction(() => window.__focusVerificationRenders === 2);
+          await settleFocus();
+          const pending = await geometry(feedback);
+          assert(pending.active && pending.top >= pending.navigationBottom + 6
+            && pending.bottom <= pending.viewportHeight && await feedback.evaluate((node) => node.classList.contains("is-pending")),
+          `${scope}: focused retry feedback was hidden by the header: ${JSON.stringify(pending)}`);
+          assert(await focusPage.locator(".js-inquiry-direct").isDisabled(), `${scope}: retry unlocked the form without a token`);
+        }
+
+        // 在同一文档切到桌面宽度，不能继续应用窄屏补偿。
+        await focusPage.setViewportSize({ width: 1280, height: 900 });
+        await focusPage.waitForFunction(() => !matchMedia("(max-width: 767px)").matches);
+        await positionByNav(product, -18);
+        const desktopBefore = await geometry(product);
+        await product.evaluate((element) => element.focus({ preventScroll: true }));
+        await settleFocus();
+        const desktopAfter = await geometry(product);
+        assert(desktopAfter.active && desktopAfter.scrollY === desktopBefore.scrollY,
+          `${engineName}: narrow focus correction changed desktop scrolling`);
+        assert(posts === 0, `${engineName}: focus-only tests attempted ${posts} POST requests`);
+      } finally {
+        await context.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
 }
 
 await mkdir(OUTPUT_DIR, { recursive: true });
@@ -884,4 +997,7 @@ assert(await page.locator('.not-found-actions a[href*="wa.me"]').count() === 0, 
 assert(consoleErrors.length === 0, `Browser console errors: ${consoleErrors.join(" | ")}`);
 
 await browser.close();
+await checkNarrowFocus(chromium, "Chromium");
+await checkNarrowFocus(webkit, "WebKit");
+console.log("Inquiry narrow focus passed: 320/390px, English/Arabic, both engines; reverse Tab, retry, desktop and zero POST.");
 console.log(`Inquiry Playwright QA passed. Screenshots: ${OUTPUT_DIR}`);
