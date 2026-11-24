@@ -26,4 +26,31 @@ for (const slug of pages) {
     await access(resolve(root, `.${route.endsWith("/") ? route + "index.html" : route}`));
   }
 }
-console.log("两篇服务指南元数据、站内链接和发布链检查通过。");
+// FAQ 不只是搜索引擎数据：九个问题及答案必须与买家打开的折叠面板一致。
+const inspectionTerms = {
+  "": ["开箱", "抽样数量"], en: ["cartons", "sample size"], es: ["cajas", "muestra"],
+  ar: ["الصناديق", "حجم العينة"], fr: ["cartons", "échantillon"], pt: ["caixas", "amostra"],
+  ru: ["коробки", "размер выборки"], de: ["Kartons", "Stichprobe"],
+  it: ["cartoni", "campione"], tr: ["Kolileri", "kaç parçanın"],
+};
+const plainText = (s) => s.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&");
+for (const [lang, terms] of Object.entries(inspectionTerms)) {
+  const file = lang ? `${lang}/index.html` : "index.html";
+  const html = await readFile(resolve(root, file), "utf8");
+  const faq = [...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)]
+    .map((m) => JSON.parse(m[1])).find((s) => s["@type"] === "FAQPage");
+  assert(faq, `${file}: 缺少 FAQPage`);
+  const published = [...html.matchAll(/<details class="faq-item"[^>]*>\s*<summary>([\s\S]*?)<\/summary>\s*<p>([\s\S]*?)<\/p>/g)]
+    .map(([, q, a]) => [plainText(q), plainText(a)]);
+  assert.equal(published.length, 9, `${file}: 可见 FAQ 数量异常`);
+  assert.deepEqual(faq.mainEntity.map((q) => [q.name, q.acceptedAnswer.text]), published,
+    `${file}: FAQPage 与可见问答不一致`);
+  assert(published.some(([, a]) => terms.every((term) => a.includes(term))),
+    `${file}: 质检范围必须区分开箱和抽样检查`);
+}
+for (const slug of ["quality-inspection", "yiwu-sourcing-guide"]) {
+  const html = await readFile(resolve(root, `en/${slug}.html`), "utf8");
+  assert(html.includes("sampled units") && html.includes("sample size") && !html.includes("opens cartons and packages one by one"),
+    `${slug}: 质检指南应说明按订单确认抽样范围`);
+}
+console.log("服务指南元数据、站内链接、发布链，以及十语首页 90 组可见 FAQ 与结构化数据一致性通过。");

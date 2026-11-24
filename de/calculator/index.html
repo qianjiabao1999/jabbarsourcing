@@ -48,7 +48,7 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-196" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-198" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
     <script type="application/ld+json" data-schema="organization">
 {
@@ -179,11 +179,11 @@
               <div class="calculator-form-grid">
                 <div class="calculator-field">
                   <label for="unit">Einheit</label>
-                  <select id="unit" name="unit"><option value="cm">cm</option><option value="in">inch</option></select>
+                  <select id="unit" disabled name="unit"><option value="cm">cm</option><option value="in">inch</option></select>
                 </div>
-                <div class="calculator-field"><label for="length">Länge</label><input id="length" name="length" type="number" min="0" step="0.01" inputmode="decimal" required /></div>
-                <div class="calculator-field"><label for="width">Breite</label><input id="width" name="width" type="number" min="0" step="0.01" inputmode="decimal" required /></div>
-                <div class="calculator-field"><label for="height">Höhe</label><input id="height" name="height" type="number" min="0" step="0.01" inputmode="decimal" required /></div>
+                <div class="calculator-field"><label for="length">Länge (<bdi data-dimension-unit dir="ltr">cm</bdi>)</label><input id="length" name="length" type="number" min="0" step="any" inputmode="decimal" required /></div>
+                <div class="calculator-field"><label for="width">Breite (<bdi data-dimension-unit dir="ltr">cm</bdi>)</label><input id="width" name="width" type="number" min="0" step="any" inputmode="decimal" required /></div>
+                <div class="calculator-field"><label for="height">Höhe (<bdi data-dimension-unit dir="ltr">cm</bdi>)</label><input id="height" name="height" type="number" min="0" step="any" inputmode="decimal" required /></div>
                 <div class="calculator-field"><label for="qty">Kartons</label><input id="qty" name="qty" type="number" min="1" step="1" inputmode="numeric" required value="1" /></div>
                 <div class="calculator-field"><label for="weight">Gewicht pro Karton kg (optional)</label><input id="weight" name="weight" type="number" min="0" step="0.01" inputmode="decimal" /></div>
               </div>
@@ -398,6 +398,10 @@
         }
         function calculate(showInvalid) {
           clearCopyFeedback();
+          if (form.hasAttribute('data-unit-pending')) {
+            setResultState('empty', form.getAttribute('data-unit-pending'));
+            return false;
+          }
           var valid = validateFields(showInvalid);
           var l = val('length'), w = val('width'), h = val('height'), q = Math.max(0, Math.floor(val('qty'))), unit = fields.unit.value;
           if (!valid) {
@@ -484,5 +488,6 @@
   <script src="/assets/container-visual.js?v=container-20261011b" defer></script>
   <script src="/assets/site-enhancements.js?v=ui-20261119a" defer></script>
   <script src="/assets/calculator-order-loader.js?v=order-20260722c" defer></script>
+  <script src="/assets/calculator-controls.js?v=calc-20261124b" defer></script>
   </body>
 </html>

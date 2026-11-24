@@ -11,6 +11,46 @@ const locales = ["", "en/", "es/", "ar/", "fr/", "pt/", "ru/", "de/", "it/", "tr
 const notFoundHtml = await readFile(fileURLToPath(new URL("../404.html", import.meta.url)), "utf8");
 await mkdir(OUTPUT_DIR, { recursive: true });
 
+async function checkUnitChoices(page, scope) {
+  const select = page.locator("#unit");
+  const panel = page.locator(".calculator-unit-choice");
+  const b = (action) => page.locator('[data-unit-action="' + action + '"]');
+  const total = page.locator("[data-total-cbm]");
+  const result = page.locator(".calculator-results");
+  const unitLabels = page.locator("label [data-dimension-unit]");
+  const oldTotal = await total.textContent();
+  await select.selectOption("in");
+  assert.equal(await select.inputValue(), "cm", scope + ": unit changed without a decision");
+  assert.equal(await b("convert").evaluate(el => document.activeElement === el), true);
+  assert.equal(await page.locator("[data-copy-result]").isDisabled(), true);
+  assert.equal(await result.locator(".calculator-inquiry-cta").isVisible(), false);
+  assert.equal(await page.locator("#cbm-calculator button[type=submit]").isDisabled(), true);
+  await page.keyboard.press("Escape");
+  assert.equal(await panel.isVisible(), false);
+  assert.equal(await select.evaluate(el => document.activeElement === el), true);
+  assert.equal(await total.textContent(), oldTotal);
+  await select.selectOption("in");
+  await b("convert").press("Enter");
+  assert.deepEqual(await unitLabels.allTextContents(), ["in","in","in"]);
+  assert.equal(await total.textContent(), oldTotal, scope + ": conversion changed CBM");
+  assert(Math.abs(Number(await page.locator("#length").inputValue()) - 30 / 2.54) < 1e-8);
+  await select.selectOption("cm");
+  await b("convert").click();
+  assert.equal(await page.locator("#length").inputValue(), "30", scope + ": round trip drift");
+  assert.deepEqual(await unitLabels.allTextContents(), ["cm","cm","cm"]);
+  for (const dimension of ["length", "width", "height"]) await page.locator("#" + dimension).fill("");
+  await select.selectOption("in");
+  assert.equal(await panel.isVisible(), false, scope + ": unnecessary empty prompt");
+  assert.deepEqual(await unitLabels.allTextContents(), ["in","in","in"]);
+  await page.locator("#width").fill("2");
+  await select.selectOption("cm");
+  if (!scope.includes("/en/")) assert.notEqual(await b("convert").textContent(), "Convert dimensions", scope + ": English text leaked");
+  await b("convert").click();
+  assert.equal(await page.locator("#length").inputValue(), "");
+  assert.equal(await page.locator("#width").inputValue(), "5.08");
+  assert.equal(await result.getAttribute("data-result-state"), "empty");
+}
+
 async function checkCalculator(context, locale, width, browserName) {
   const page = await context.newPage();
   await page.setViewportSize({ width, height: 844 });
@@ -71,9 +111,61 @@ async function checkCalculator(context, locale, width, browserName) {
   assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"), "ready", `${scope}: optional blank weight blocks calculation`);
   assert.equal(await page.locator(".calculator-field-error:not([hidden])").count(), 0, `${scope}: cleared weight retains error`);
   assert.equal(await page.locator(".calculator-results").getAttribute("aria-live"), "polite", `${scope}: result announcements removed`);
+  await checkUnitChoices(page, scope);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${scope}: horizontal overflow`);
   assert.deepEqual(errors, [], `${scope}: browser errors`);
   await page.close();
+}
+
+async function checkHistoryReturn(context, browserName) {
+  const page = await context.newPage();
+  const base = new URL(BASE_URL).origin;
+  const posts = [];
+  await page.route("**/*", route => {
+    const req = route.request();
+    if (req.method() === "POST") posts.push(new URL(req.url()).pathname);
+    return req.method() === "GET" && new URL(req.url()).origin === base ? route.continue() : route.abort();
+  });
+  try {
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(BASE_URL + "/en/calculator/");
+    await page.evaluate(() => history.replaceState({marker:"keep-existing-entry"}, ""));
+    await page.locator("#unit").selectOption("in");
+    await page.locator(".calculator-optional-summary").click();
+    for (const [name, value] of Object.entries({length:"40",width:"30",height:"20",qty:"3",weight:"2.5",product:"QA private product",note:"QA private note"})) {
+      await page.locator("#" + name).fill(value);
+    }
+    const link = page.locator(".calculator-results .calculator-inquiry-cta");
+    await link.click();
+    await page.waitForURL(BASE_URL + "/en/inquiry/");
+    await page.goBack();
+    const total = page.locator("[data-total-cbm]");
+    await page.waitForFunction(() => !document.querySelector("#unit").disabled
+      && document.querySelector(".calculator-results").dataset.resultState === "ready");
+    assert.equal(await total.textContent(), "1.180 m³", browserName + ": returned estimate");
+    assert.equal(await page.locator("#unit").inputValue(), "in");
+    assert.deepEqual(await page.locator("[data-dimension-unit]").allTextContents(), ["in","in","in"]);
+    assert.equal(await page.locator("[data-weight-total]").textContent(), "7.5 kg");
+    const state = await page.evaluate(() => history.state);
+    assert.equal(state.marker, "keep-existing-entry");
+    assert.deepEqual(state.jabbarQuickDimensionsV1, { unit:"in", values:["40","30","20","3","2.5"] });
+    assert(!JSON.stringify(state).includes("private"), browserName + ": history must not persist free text");
+    await page.locator("#unit").selectOption("cm");
+    assert(await page.locator("[data-unit-action=keep]").isVisible());
+    assert(await page.locator("[data-copy-result]").isDisabled());
+    assert(!await link.isVisible());
+    await page.locator("[data-unit-action=keep]").click();
+    assert.equal(await total.textContent(), "0.072 m³");
+    assert(await link.isVisible());
+    // 重开相同网址不是后退：不能把上次可复制的结果恢复到新表单。
+    await page.waitForFunction(() => history.state?.jabbarQuickDimensionsV1?.unit === "cm");
+    await page.locator("#qty").fill("0.5");
+    await page.goto(BASE_URL + "/en/calculator/", { waitUntil: "load" });
+    await page.locator("#cbmFill").waitFor({state:"attached"});
+    assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"), "empty", browserName + ": direct revisit must not restore a stale result");
+    assert.equal(await page.locator("[data-copy-result]").isDisabled(), true);
+    assert.deepEqual(posts, []);
+  } finally { await page.close(); }
 }
 
 async function checkNestedNotFound(context, browserName) {
@@ -110,6 +202,7 @@ for (const browserType of [chromium, webkit]) {
     }
     for (const locale of locales) await checkCalculator(context, locale, 390, browserType.name());
     for (const width of [360, 1440]) await checkCalculator(context, "en/", width, browserType.name());
+    await checkHistoryReturn(context, browserType.name());
     await checkNestedNotFound(context, browserType.name());
     console.log(`${browserType.name()}: 10-language validation, 360/390/1440px, and nested 404 passed.`);
   } finally {

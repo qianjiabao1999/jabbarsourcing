@@ -49,7 +49,7 @@
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-6" />
 
-    <link rel="stylesheet" href="../styles.min.css?v=apple-196" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-198" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
     <script type="application/ld+json" data-schema="organization">
 {
@@ -127,7 +127,7 @@
       "name": "كيف تتم عملية الفحص ومراقبة الجودة؟",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "يتابع مختص الطلب بالكامل، ويفتح الصناديق والعبوات واحدة تلو الأخرى، ويرسل الصور والفيديوهات فورياً للتأكيد قبل الشحن."
+        "text": "نفتح الصناديق للتحقق من محتوياتها وتغليفها. عادةً نفحص المظهر وجودة الصنع على عينة من القطع، وليس على كل قطعة في الصندوق. عند طلب عرض السعر، نتفق معك على بنود الفحص وحجم العينة لكل منتج. نرسل لك صورًا ومقاطع فيديو لمراجعتها قبل الشحن."
       }
     },
     {
@@ -495,7 +495,7 @@
               </details>
               <details class="faq-item">
                 <summary>كيف تتم عملية الفحص ومراقبة الجودة؟</summary>
-                <p>يتابع مختص الطلب بالكامل، ويفتح الصناديق والعبوات واحدة تلو الأخرى، ويرسل الصور والفيديوهات فورياً للتأكيد قبل الشحن.</p>
+                <p>نفتح الصناديق للتحقق من محتوياتها وتغليفها. عادةً نفحص المظهر وجودة الصنع على عينة من القطع، وليس على كل قطعة في الصندوق. عند طلب عرض السعر، نتفق معك على بنود الفحص وحجم العينة لكل منتج. نرسل لك صورًا ومقاطع فيديو لمراجعتها قبل الشحن.</p>
               </details>
               <details class="faq-item">
                 <summary>ما طرق الدفع المدعومة؟</summary>
@@ -1059,16 +1059,16 @@
         </div>
       </section>
 
-      <div class="contact-modal" id="wechat-modal" hidden data-copied-label="تم النسخ">
+      <div class="contact-modal" id="wechat-modal" hidden data-manual-copy="تعذّر النسخ تلقائيًا. اضغط مطولًا على معرّف WeChat أو استخدم أمر النسخ في جهازك." data-copied-label="تم النسخ">
         <div class="contact-modal-backdrop" data-close-modal></div>
         <section class="contact-modal-card" role="dialog" aria-modal="true" aria-label="WeChat">
-          <button class="contact-modal-close" type="button" data-close-modal aria-label="Close">×</button>
+          <button class="contact-modal-close" type="button" data-close-modal aria-label="إغلاق">×</button>
           <img loading="lazy" class="contact-modal-icon" src="../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
           <p class="contact-modal-title">WeChat</p>
           <p>معرّف WeChat</p>
-          <strong>18658925544</strong>
+          <strong tabindex="-1" dir="ltr">18658925544</strong>
           <button class="contact-modal-copy" type="button" data-copy-contact="18658925544">نسخ المعرّف</button>
-          <span class="contact-modal-hint">افتح WeChat وابحث عن هذا المعرّف لإضافتنا.</span>
+          <span class="contact-modal-hint" role="status" aria-live="polite" aria-atomic="true">افتح WeChat وابحث عن هذا المعرّف لإضافتنا.</span>
         </section>
       </div>
             <footer class="site-footer" aria-label="Footer">
@@ -1204,50 +1204,6 @@
         }
 
 
-        var openContactModal = function (id) {
-          var modal = document.getElementById(id);
-          if (!modal) return;
-          modal.hidden = false;
-          window.setTimeout(function () { modal.classList.add("is-open"); }, 20);
-        };
-        var closeContactModal = function (modal) {
-          if (!modal) return;
-          modal.classList.remove("is-open");
-          window.setTimeout(function () { modal.hidden = true; }, 220);
-        };
-        document.querySelectorAll(".js-contact-modal-open").forEach(function (link) {
-          link.addEventListener("click", function (event) {
-            event.preventDefault();
-            var modalId = link.getAttribute("data-modal-target");
-            var copyText = link.getAttribute("data-copy-text");
-            if (copyText && navigator.clipboard && window.isSecureContext) {
-              navigator.clipboard.writeText(copyText).catch(function () {});
-            }
-            openContactModal(modalId);
-          });
-        });
-        document.querySelectorAll("[data-close-modal]").forEach(function (control) {
-          control.addEventListener("click", function () {
-            closeContactModal(control.closest(".contact-modal"));
-          });
-        });
-        document.querySelectorAll("[data-copy-contact]").forEach(function (button) {
-          button.addEventListener("click", function () {
-            var value = button.getAttribute("data-copy-contact");
-            var modal = button.closest(".contact-modal");
-            var copied = modal && modal.getAttribute("data-copied-label");
-            var original = button.textContent;
-            var done = function () {
-              if (copied) button.textContent = copied;
-              window.setTimeout(function () { button.textContent = original; }, 1400);
-            };
-            if (navigator.clipboard && window.isSecureContext) {
-              navigator.clipboard.writeText(value).then(done).catch(done);
-            } else {
-              done();
-            }
-          });
-        });
 
         document.querySelectorAll(".language-options a").forEach(function (link) {
           link.addEventListener("click", function () {
@@ -1288,6 +1244,7 @@
         });
       })();
     </script>
+  <script src="/assets/wechat-contact.js?v=wechat-20261124a" defer></script>
   <script src="/assets/site-enhancements.js?v=ui-20261119a" defer></script>
   </body>
 </html>

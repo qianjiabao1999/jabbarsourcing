@@ -348,7 +348,14 @@ await slowTurnstilePage.locator('[name="product"]').fill("Slow check draft");
 await slowTurnstilePage.locator('[name="contact"]').fill("slow-check@example.invalid");
 const slowFallback = slowStatus.locator(".inquiry-status-whatsapp");
 assert((await slowFallback.getAttribute("href")).includes("slow-check%40example.invalid"), "Security fallback must reflect edited fields without losing the retry action");
-await slowTurnstilePage.getByRole("button", { name: "Clear draft" }).click();
+await slowTurnstilePage.locator(".inquiry-additional-summary").click();
+await slowTurnstilePage.locator('[name="referenceUrl"]').fill("https://example.invalid/item?size=2&color=blue");
+const fallbackCategory = slowTurnstilePage.locator('[name="category"]');
+await fallbackCategory.selectOption({ index: 1 });
+const shareText = new URL(await slowFallback.getAttribute("href")).searchParams.get("text");
+assert(shareText.includes("https://example.invalid/item?size=2&color=blue") && shareText.includes(await fallbackCategory.inputValue()), "WhatsApp 草稿需完整包含参考链接和品类");
+await slowTurnstilePage.locator(".inquiry-draft-clear").click();
+await slowTurnstilePage.locator(".inquiry-clear-confirm").click();
 assert((await slowStatus.textContent()).includes("taking longer than expected"), "Clearing a draft must preserve active verification feedback");
 assert(await slowRetry.isVisible() && await slowFallback.isVisible(), "Clearing a draft must preserve both security actions");
 assert(!(await slowFallback.getAttribute("href")).includes("slow-check"), "Clearing a draft must remove cleared contact data from the fallback link");
@@ -459,12 +466,13 @@ await page.evaluate(() => {
 });
 await openInquiry("/inquiry/");
 assert((await page.locator('[name="product"]').inputValue()) === "QA calculator product", "Fresh calculator handoff must prefill product");
-assert((await page.locator('[name="quantity"]').inputValue()) === "3,600 pcs", "Fresh calculator handoff must prefill quantity");
+assert((await page.locator('[name="quantity"]').inputValue()) === "", "计算摘要不得代填采购量");
 assert(
-  (await page.locator('[name="note"]').inputValue()) === "QA calculator result: 12.4 CBM, one 20GP container",
-  "Calculator message must prefill note"
+  (await page.locator(".inquiry-estimate-text").textContent()) === "QA calculator result: 12.4 CBM, one 20GP container" && (await page.locator('[name="note"]').inputValue()) === "",
+  "摘要与手填备注必须分离"
 );
-assert(await page.locator("details.inquiry-additional-details[open]").count() === 1, "Calculator handoff must reveal prefilled optional details");
+assert(await page.locator("details.inquiry-additional-details[open]").count() === 0, "摘要不应主动打开空的选填折叠组");
+await page.locator(".inquiry-additional-summary").click();
 const freshDetailVisibility = await page.evaluate((fieldNames) => fieldNames.every((name) => {
   const field = document.querySelector(`[name="${name}"]`);
   return Boolean(field && field.getClientRects().length > 0 && (!field.closest("details") || field.closest("details").open));
@@ -858,8 +866,14 @@ for (const viewport of [
     assert(metrics.privacyCheckboxCount === 0, `${item.locale} ${viewport.name} still has a privacy checkbox`);
     assert(metrics.privacyNoticeCount === 1 && metrics.privacyLinkCount === 1, `${item.locale} ${viewport.name} privacy submit notice regressed`);
     assert(metrics.detailsCount === 1 && metrics.openDetailsCount === 0, `${item.locale} ${viewport.name} must start with one closed optional-details disclosure`);
-    assert(metrics.visibleCoreFieldCount === 3 && metrics.visibleOrderDetailCount === 1, `${item.locale} ${viewport.name} must initially show product, contact, and reference URL only`);
-    assert(JSON.stringify(metrics.collapsedFieldNames) === JSON.stringify(["budget", "category", "company", "market", "note", "quantity"]), `${item.locale} ${viewport.name} must retain all six optional detail fields`);
+    const narrowInquiry = viewport.width <= 767;
+    assert(metrics.visibleCoreFieldCount === (narrowInquiry ? 2 : 3) && metrics.visibleOrderDetailCount === (narrowInquiry ? 0 : 1),
+      `${item.locale} ${viewport.name}: initially show the two required fields, plus the URL on desktop only`);
+    const optionalFields = ["budget", "category", "company", "market", "note", "quantity"];
+    if (narrowInquiry) optionalFields.push("referenceUrl");
+    assert(JSON.stringify(metrics.collapsedFieldNames) === JSON.stringify(optionalFields), `${item.locale} ${viewport.name}: wrong optional field group`);
+    const attachment = page.locator(".inquiry-attachment-note");
+    assert((await attachment.isVisible()) === !narrowInquiry, `${item.locale} ${viewport.name}: misplaced attachment information`);
     assert(metrics.turnstileHeight >= 65 && metrics.turnstileHeight <= 70, `${item.locale} ${viewport.name} Turnstile placeholder is ${metrics.turnstileHeight}px instead of a stable 65px`);
     assert(metrics.turnstileAppearance === "interaction-only", `${item.locale} ${viewport.name} Turnstile appearance regressed`);
     assert(metrics.submitEnabledAfterToken, `${item.locale} ${viewport.name} token callback did not enable submit`);
@@ -895,6 +909,7 @@ for (const viewport of [
     await page.locator(".inquiry-additional-summary").focus();
     await page.keyboard.press("Enter");
     assert(await page.locator(".inquiry-additional-details[open]").count() === 1, `${item.locale} ${viewport.name} native disclosure must open by keyboard`);
+    assert(await attachment.isVisible(), `${item.locale} ${viewport.name}: attachment information must remain available`);
     for (const name of ORDER_DETAIL_FIELDS) {
       assert(await page.locator(`[name="${name}"]`).isVisible(), `${item.locale} ${viewport.name} expanded ${name} field is not visible`);
     }

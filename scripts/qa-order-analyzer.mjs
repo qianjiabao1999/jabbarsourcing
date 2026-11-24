@@ -1585,17 +1585,19 @@ try {
     bridgeLink.click()
   ]);
   await bridgePage.waitForFunction(() => window.__qaOrderBridgeTurnstileRendered === true);
+  await bridgePage.locator(".inquiry-estimate summary").click();
   const inquiryBridgeState = await bridgePage.evaluate(() => {
     const form = document.querySelector(".js-inquiry-form");
-    const isVisible = (field) => Boolean(field && field.getClientRects().length);
+    const isVisible = (field) => Boolean(field && field.getClientRects().length && (!field.closest("details") || field.closest("details").open));
     return {
       product: form?.elements.product?.value || "",
       quantity: form?.elements.quantity?.value || "",
       note: form?.elements.note?.value || "",
+      estimate: form?.querySelector(".inquiry-estimate-text")?.innerText || "",
       productVisible: isVisible(form?.elements.product),
       quantityVisible: isVisible(form?.elements.quantity),
       noteVisible: isVisible(form?.elements.note),
-      detailsCount: form?.querySelectorAll("details").length ?? -1,
+      detailsCount: form?.querySelectorAll("details.inquiry-additional-details").length ?? -1,
       additionalDetailsOpen: form?.querySelector("details.inquiry-additional-details")?.open ?? false,
       quantityInAdditionalDetails: Boolean(form?.elements.quantity?.closest("details.inquiry-additional-details")),
       noteInAdditionalDetails: Boolean(form?.elements.note?.closest("details.inquiry-additional-details")),
@@ -1603,15 +1605,17 @@ try {
     };
   });
   assert.equal(inquiryBridgeState.product, "QA Product 1 / QA Product 2 / QA Product 3 +2", "Excel inquiry product handoff");
-  assert.equal(inquiryBridgeState.quantity, "380", "Excel inquiry quantity handoff");
-  assert.match(inquiryBridgeState.note, /订单自动统计结果/, "Excel inquiry result title handoff");
-  assert.match(inquiryBridgeState.note, /总体积: 9\.5 m³/, "Excel inquiry volume handoff");
-  assert.match(inquiryBridgeState.note, /qa-order-analyzer-190-products\.xlsx/, "Excel inquiry source file handoff");
+  assert.equal(inquiryBridgeState.quantity, "", "Excel 数量留在摘要");
+  assert.equal(inquiryBridgeState.note, "");
+  assert.match(inquiryBridgeState.estimate, /订单自动统计结果/);
+  assert.match(inquiryBridgeState.estimate, /380/);
+  assert.match(inquiryBridgeState.estimate, /总体积: 9\.5 m³/);
+  assert.match(inquiryBridgeState.estimate, /qa-order-analyzer-190-products\.xlsx/);
   assert.equal(inquiryBridgeState.productVisible, true, "Excel inquiry prefilled product field is not visible");
-  assert.equal(inquiryBridgeState.quantityVisible, true, "Excel inquiry prefilled quantity field is not visible");
-  assert.equal(inquiryBridgeState.noteVisible, true, "Excel inquiry prefilled note field is not visible");
+  assert.equal(inquiryBridgeState.quantityVisible, false, "空的采购数量默认折叠");
+  assert.equal(inquiryBridgeState.noteVisible, false, "空的备注默认折叠");
   assert.equal(inquiryBridgeState.detailsCount, 1, "Excel inquiry must contain one optional-details group");
-  assert.equal(inquiryBridgeState.additionalDetailsOpen, true, "Excel inquiry must expand prefilled optional details");
+  assert.equal(inquiryBridgeState.additionalDetailsOpen, false, "独立摘要不展开选填字段");
   assert.equal(inquiryBridgeState.quantityInAdditionalDetails, true, "Excel inquiry quantity must remain in the optional-details group");
   assert.equal(inquiryBridgeState.noteInAdditionalDetails, true, "Excel inquiry note must remain in the optional-details group");
   assert.equal(inquiryBridgeState.stored, null, "Excel inquiry handoff was not consumed");

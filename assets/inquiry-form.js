@@ -431,6 +431,39 @@
     });
   }
 
+  function arrangeNarrowInquiry(form, details) {
+    var media = window.matchMedia && window.matchMedia("(max-width: 767px)");
+    var group = details && details.querySelector(".inquiry-additional-fields");
+    var summaryLabel = details && details.querySelector("summary > span");
+    var reference = form.elements.referenceUrl;
+    if (!media || !group || !summaryLabel || !reference) return;
+    var desktopLabel = summaryLabel.textContent;
+    var firstDetail = group.firstElementChild;
+    var compactItems = [reference.closest("label"), form.querySelector(".inquiry-attachment-note"), form.querySelector(".inquiry-guide-tip")].filter(Boolean);
+    var panel = form.closest(".inquiry-panel");
+    var intro = panel && panel.querySelector(".inquiry-copy");
+    var proof = intro && intro.querySelector(".inquiry-trust-points");
+    var isCompact = false;
+    function update() {
+      if (media.matches === isCompact) return;
+      isCompact = media.matches;
+      var active = document.activeElement;
+      var movingFocus = compactItems.some(function (item) { return item.contains(active); });
+      if (isCompact && movingFocus) details.open = true;
+      compactItems.forEach(function (item) {
+        if (isCompact) group.insertBefore(item, firstDetail);
+        else form.insertBefore(item, details);
+      });
+      summaryLabel.textContent = isCompact ? (summaryLabel.getAttribute("data-narrow-label") || desktopLabel) : desktopLabel;
+      if (proof) (isCompact ? panel : intro).appendChild(proof);
+      // 跨断点移动的是原字段，不拷贝值，不换控件；保留正在编辑的焦点。
+      if (movingFocus && document.activeElement !== active) active.focus({ preventScroll: true });
+    }
+    update();
+    if (media.addEventListener) media.addEventListener("change", update);
+    else media.addListener(update);
+  }
+
   function initializeForm(form) {
     if (form.getAttribute("data-direct-inquiry-ready") === "true") return;
     form.setAttribute("data-direct-inquiry-ready", "true");
@@ -456,6 +489,9 @@
     var draftPanel = form.querySelector(".inquiry-draft-panel");
     var draftNotice = form.querySelector(".inquiry-draft-notice");
     var draftClearButton = form.querySelector(".inquiry-draft-clear");
+    var clearPrompt = form.querySelector(".inquiry-clear-prompt");
+    var clearCancel = form.querySelector(".inquiry-clear-cancel");
+    var clearConfirm = form.querySelector(".inquiry-clear-confirm");
     var draftFeedback = form.querySelector(".inquiry-draft-feedback");
     var draftNoticeText = draftNotice ? draftNotice.textContent : "";
     var draftLastSignature = "";
@@ -463,13 +499,28 @@
     var draftStorageReadable = true;
     var draftRemovalPending = false;
     var draftExpiryTimer = null;
-    var calculatorPrefilledFields = {};
+    var estimateText = "";
+    var estimateSection = null;
+    var estimateWarning = null;
+    var estimateCopy = ({
+      zh: ["随询价发送的计算摘要", "移除计算摘要", "备注和计算摘要合计超过 1,500 字符。请缩短备注或移除摘要后提交；已填内容不会被截断。"],
+      en: ["Attached calculator summary", "Remove summary", "Notes and the summary exceed 1,500 characters. Shorten your notes or remove the summary to submit. Your text has not been cut."],
+      es: ["Resumen de cálculo adjunto", "Quitar el resumen", "Las notas y el resumen superan los 1.500 caracteres. Acorta las notas o quita el resumen para enviar. Tu texto se conserva."],
+      ar: ["ملخص الحساب المرفق", "إزالة الملخص", "تتجاوز الملاحظات والملخص ١٥٠٠ حرف. اختصر الملاحظات أو أزل الملخص قبل الإرسال. لم يُحذف أي نص."],
+      fr: ["Récapitulatif du calcul joint", "Retirer le récapitulatif", "Les notes et le récapitulatif dépassent 1 500 caractères. Raccourcissez les notes ou retirez le récapitulatif pour envoyer. Votre texte est conservé."],
+      pt: ["Resumo do cálculo anexado", "Remover o resumo", "As notas e o resumo excedem 1.500 caracteres. Encurte as notas ou remova o resumo antes de enviar. O texto foi mantido."],
+      ru: ["Приложенная сводка расчёта", "Убрать сводку", "Примечания и сводка содержат более 1 500 символов. Сократите примечания или уберите сводку перед отправкой. Текст сохранён."],
+      de: ["Beigefügte Berechnung", "Berechnung entfernen", "Notizen und Berechnung überschreiten 1.500 Zeichen. Kürzen Sie die Notizen oder entfernen Sie die Berechnung vor dem Senden. Ihr Text bleibt erhalten."],
+      it: ["Riepilogo del calcolo allegato", "Rimuovi il riepilogo", "Note e riepilogo superano 1.500 caratteri. Accorcia le note o rimuovi il riepilogo prima dell’invio. Il testo è conservato."],
+      tr: ["Eklenen hesaplama özeti", "Özeti kaldır", "Notlar ve özet toplam 1.500 karakteri aşıyor. Göndermek için notları kısaltın veya özeti kaldırın. Metniniz korunur."]
+    })[locale];
 
     if (!directButton || !turnstileElement || !endpoint || !sourcePath || !privacyVersion) {
       return;
     }
 
     var directButtonLabel = directButton.textContent;
+    arrangeNarrowInquiry(form, additionalDetails);
     keepNarrowFocusVisible(form);
 
     function analyticsParams(extra) {
@@ -553,7 +604,6 @@
 
     function consumeCalculatorResult() {
       var raw = null;
-      calculatorPrefilledFields = {};
       try {
         raw = window.sessionStorage.getItem(CALCULATOR_RESULT_KEY);
         if (!raw) return;
@@ -564,23 +614,10 @@
         var age = Date.now() - savedAt;
         if (age < -5 * 60 * 1000 || age > CALCULATOR_RESULT_MAX_AGE) return;
 
-        var values = {
-          product: result.product,
-          quantity: result.quantity,
-          note: result.note || result.message
-        };
-        var prefilled = false;
-        ["product", "quantity", "note"].forEach(function (name) {
-          var field = form.elements[name];
-          var value = typeof values[name] === "string" ? values[name].trim() : "";
-          if (!field || !value) return;
-          var maximum = Number(field.getAttribute("maxlength"));
-          field.value = Number.isFinite(maximum) && maximum > 0 ? value.slice(0, maximum) : value;
-          calculatorPrefilledFields[name] = true;
-          prefilled = true;
-        });
-        if (prefilled) form.setAttribute("data-calculator-prefill", "true");
-        return prefilled;
+        var message = result.note || result.message;
+        if (typeof message === "string" && message.trim()) {
+          return { text: message.trim(), product: typeof result.product === "string" ? result.product.trim() : "" };
+        }
       } catch (error) {
       } finally {
         if (raw !== null) {
@@ -607,12 +644,68 @@
       return values;
     }
 
+    function combinedNote() {
+      var note = readValue("note");
+      return note && estimateText ? note + "\n\n" + estimateText : note || estimateText;
+    }
+
+    function estimateTooLong() {
+      return Boolean(estimateText && combinedNote().length > form.elements.note.maxLength);
+    }
+
+    function clearEstimate() {
+      estimateText = "";
+      if (estimateSection) estimateSection.remove();
+      if (estimateWarning) estimateWarning.remove();
+      estimateSection = estimateWarning = null;
+      form.removeAttribute("data-calculator-prefill");
+      var notice = form.querySelector(".calculator-prefill-notice");
+      if (notice) notice.remove();
+    }
+
+    function showEstimate(text) {
+      if (text === estimateText) return;
+      clearEstimate();
+      if (!text) return;
+      estimateText = text;
+      estimateSection = document.createElement("details");
+      estimateSection.className = "inquiry-estimate field-wide";
+      var heading = document.createElement("summary");
+      heading.textContent = estimateCopy[0];
+      var content = document.createElement("pre");
+      content.className = "inquiry-estimate-text";
+      content.dir = "auto";
+      content.textContent = text;
+      var remove = document.createElement("button");
+      remove.className = "inquiry-estimate-remove";
+      remove.type = "button";
+      remove.textContent = estimateCopy[1];
+      remove.addEventListener("click", function () {
+        clearEstimate();
+        if (!submitting) currentSubmissionId = "";
+        saveDraft();
+        updateStatusForDraftEdit();
+        refreshVerificationFallback();
+        if (additionalDetails) additionalDetails.querySelector("summary").focus();
+      });
+      estimateSection.append(heading, content, remove);
+      estimateWarning = document.createElement("p");
+      estimateWarning.className = "inquiry-estimate-warning field-wide";
+      estimateWarning.tabIndex = -1;
+      estimateWarning.setAttribute("role", "status");
+      estimateWarning.textContent = estimateCopy[2];
+      estimateWarning.hidden = !estimateTooLong();
+      form.insertBefore(estimateSection, directButton.closest(".inquiry-direct-panel"));
+      estimateSection.before(estimateWarning);
+      form.setAttribute("data-calculator-prefill", "true");
+    }
+
     function hasDraftContent(values) {
       return FIELD_NAMES.some(function (name) { return Boolean(String(values[name] || "").trim()); });
     }
 
     function draftSignature(values, detailsOpen) {
-      return JSON.stringify({ fields: values, detailsOpen: Boolean(detailsOpen) });
+      return JSON.stringify({ fields: values, detailsOpen: Boolean(detailsOpen), estimate: estimateText });
     }
 
     function showDraftFeedback(kind) {
@@ -628,7 +721,8 @@
     }
 
     function updateDraftControls() {
-      if (draftClearButton) draftClearButton.hidden = !hasDraftContent(draftFields());
+      if (draftClearButton) draftClearButton.hidden = !estimateText && !hasDraftContent(draftFields());
+      if (estimateWarning) estimateWarning.hidden = !estimateTooLong();
     }
 
     function removeDraft() {
@@ -683,11 +777,12 @@
           if (field && field.tagName === "SELECT" && !Array.prototype.some.call(field.options, function (option) { return option.getAttribute("data-draft-value") === value; })) value = "";
           fields[name] = value;
         });
-        if (!hasDraftContent(fields)) {
+        var savedEstimate = typeof record.estimate === "string" ? record.estimate : "";
+        if (!savedEstimate && !hasDraftContent(fields)) {
           removeDraft();
           return null;
         }
-        return { fields: fields, detailsOpen: record.detailsOpen === true, savedAt: Number(record.savedAt) };
+        return { fields: fields, estimate: savedEstimate, detailsOpen: record.detailsOpen === true, savedAt: Number(record.savedAt) };
       } catch (error) {
         // 损坏的草稿或禁用存储不影响表单、原生校验和安全提交。
         removeDraft();
@@ -709,7 +804,7 @@
       updateDraftControls();
       if (signature === draftLastSignature) return;
       draftLastSignature = signature;
-      if (!hasDraftContent(fields)) {
+      if (!estimateText && !hasDraftContent(fields)) {
         removeDraft();
         form.removeAttribute("data-calculator-prefill");
         draftLastSavedAt = 0;
@@ -717,8 +812,10 @@
       }
       try {
         var savedAt = Date.now();
-        // 仅允许九个业务字段；不保存 token、同意状态、隐藏字段或提交标识。
-        window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ version: 1, savedAt: savedAt, detailsOpen: detailsOpen, fields: fields }));
+        // 手填字段与可移除的计算摘要分开，不保存验证令牌或提交标识。
+        var record = { version: 1, savedAt: savedAt, detailsOpen: detailsOpen, fields: fields };
+        if (estimateText) record.estimate = estimateText;
+        window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(record));
         draftLastSavedAt = savedAt;
         if (draftNotice) draftNotice.textContent = draftNoticeText;
         if (draftFeedback) draftFeedback.hidden = true;
@@ -732,10 +829,11 @@
       var record = draftPanel ? readDraft() : null;
       var browserRestoredDetails = false;
       if (record) {
+        showEstimate(record.estimate);
         var newerDraft = previousSavedAt > 0 && record.savedAt > previousSavedAt;
         FIELD_NAMES.forEach(function (name) {
           var field = form.elements[name];
-          if (!field || calculatorPrefilledFields[name]) return;
+          if (!field) return;
           // 保留浏览器已恢复或用户正在编辑的值；草稿补齐未恢复的字段。
           if (!newerDraft && String(field.value || "").trim()) {
             if (draftFieldValue(field) !== record.fields[name] && field.closest(".inquiry-additional-details")) browserRestoredDetails = true;
@@ -760,10 +858,10 @@
         // 同标签页另一语言已清除/过期：BFCache 的旧表单不得复活该草稿。
         if (draftStorageReadable && previousSavedAt > 0) {
           FIELD_NAMES.forEach(function (name) {
-            if (form.elements[name] && !calculatorPrefilledFields[name]) form.elements[name].value = "";
+            if (form.elements[name]) form.elements[name].value = "";
           });
           if (additionalDetails) additionalDetails.open = false;
-          if (!calculatorPrefilled) form.removeAttribute("data-calculator-prefill");
+          clearEstimate();
           draftLastSavedAt = 0;
           if (draftFeedback && draftFeedback.hidden) showDraftFeedback("cleared");
         }
@@ -771,8 +869,10 @@
         draftLastSignature = draftSignature(draftFields(), additionalDetails && additionalDetails.open);
       }
       if (calculatorPrefilled) {
-        revealPopulatedDetails();
-        // 新计算器预填优先于旧草稿，且写回同一标签页的最新副本。
+        var productField = form.elements.product;
+        if (!productField.value.trim() && calculatorPrefilled.product.length <= productField.maxLength) productField.value = calculatorPrefilled.product;
+        showEstimate(calculatorPrefilled.text);
+        // 新报告只替换旧报告：箱数不是采购件数，手填字段保持原样。
         draftLastSignature = "";
         saveDraft();
       }
@@ -788,7 +888,32 @@
       draftPanel.hidden = false;
       if (additionalDetails) additionalDetails.addEventListener("toggle", saveDraft);
       window.addEventListener("pagehide", saveDraft);
-      if (draftClearButton) draftClearButton.addEventListener("click", function () {
+      function closeClearPrompt(restoreFocus) {
+        if (!clearPrompt || clearPrompt.hidden) return;
+        clearPrompt.hidden = true;
+        draftClearButton.setAttribute("aria-expanded", "false");
+        if (restoreFocus && !draftClearButton.hidden) draftClearButton.focus();
+      }
+      if (draftClearButton && clearPrompt && clearCancel && clearConfirm) {
+        draftClearButton.addEventListener("click", function () {
+          if (!clearPrompt.hidden) return closeClearPrompt(true);
+          clearPrompt.hidden = false;
+          draftClearButton.setAttribute("aria-expanded", "true");
+          clearCancel.focus();
+        });
+        clearCancel.addEventListener("click", function () { closeClearPrompt(true); });
+        clearPrompt.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") { event.preventDefault(); closeClearPrompt(true); }
+        });
+        form.addEventListener("focusin", function (event) {
+          if (!clearPrompt.contains(event.target) && event.target !== draftClearButton) closeClearPrompt(false);
+        });
+        window.addEventListener("pagehide", function () { closeClearPrompt(false); });
+      }
+      if (clearConfirm) clearConfirm.addEventListener("click", function () {
+        if (submitting || clearPrompt.hidden) return;
+        closeClearPrompt(false);
+        clearEstimate();
         FIELD_NAMES.forEach(function (name) {
           if (form.elements[name]) form.elements[name].value = "";
         });
@@ -816,6 +941,8 @@
     function buildWhatsAppSummary() {
       var labels = {
         product: "Product",
+        referenceUrl: "Product reference URL",
+        category: "Product category",
         quantity: "Quantity",
         budget: "Budget",
         market: "Market",
@@ -826,9 +953,13 @@
       var lines = ["Jabbar Sourcing inquiry: secure form unavailable"];
       Object.keys(labels).forEach(function (name) {
         var value = readValue(name);
-        if (value) lines.push(labels[name] + ": " + value);
+        var caption = form.elements[name] && form.elements[name].closest("label");
+        var title = caption && caption.querySelector("span");
+        var text = title && title.firstChild && title.firstChild.nodeType === 3 && title.firstChild.textContent.trim();
+        if (value) lines.push((text || labels[name]) + ": " + value);
       });
-      lines.push("Page: " + window.location.href.split("#")[0]);
+      if (estimateText) lines.push(estimateCopy[0] + ":\n" + estimateText);
+      lines.push("Page: " + window.location.origin + window.location.pathname);
       return "https://wa.me/8618658925544?text=" + encodeURIComponent(lines.join("\n"));
     }
 
@@ -949,6 +1080,7 @@
 
     function contentKey() {
       return JSON.stringify(FIELD_NAMES.map(readValue).concat([
+        estimateText,
         locale,
         sourcePath,
         privacyVersion,
@@ -967,7 +1099,7 @@
         market: readValue("market"),
         contact: readValue("contact"),
         company: readValue("company"),
-        note: readValue("note"),
+        note: combinedNote(),
         locale: locale,
         sourcePath: sourcePath,
         privacyAcknowledged: true,
@@ -982,7 +1114,7 @@
       var hasNewEdits = Boolean(submittedContentKey && contentKey() !== submittedContentKey);
       if (!hasNewEdits) {
         form.reset();
-        form.removeAttribute("data-calculator-prefill");
+        clearEstimate();
       }
       var submittedDraftRemoved = removeDraft();
       draftLastSavedAt = 0;
@@ -1054,6 +1186,10 @@
       event.preventDefault();
       if (submitting) return;
 
+      if (estimateTooLong()) {
+        estimateWarning.focus();
+        return;
+      }
       if (typeof form.reportValidity === "function" && !form.reportValidity()) {
         trackNativeValidationError();
         return;

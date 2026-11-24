@@ -7,7 +7,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-196";
+const CSS_VERSION = "apple-198";
 const UI_VERSION = "ui-20261119a";
 const ORDER_VERSION = "order-20260722c";
 const CONTAINER_VERSION = "container-20261011b";
@@ -598,9 +598,9 @@ assert.doesNotMatch(inquiryFormJavascript, /trackEvent\(["']channel_fallback["']
 {
   const PUBLIC_ORIGIN = "https://www.jabbarsourcing.com";
   const EXPECTED_LANGUAGE_MATRIX_LASTMOD = {
-    home: "2026-11-19",
-    calculator: "2026-11-19",
-    inquiry: "2026-11-19"
+    home: "2026-11-24",
+    calculator: "2026-11-24",
+    inquiry: "2026-11-24"
   };
   const EXPECTED_LEGAL_LASTMOD = {
     [`${PUBLIC_ORIGIN}/privacy-policy.html`]: "2026-08-14",

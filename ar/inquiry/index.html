@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-196" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-198" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261122a" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261124b" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -176,7 +176,12 @@
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="ar" data-inquiry-source="/ar/inquiry/" data-privacy-version="2026-07-22">
                 <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="تعذر حذف المسودة المحفوظة. أغلق علامة التبويب هذه للتخلص منها." data-draft-restored="تمت استعادة المسودة في علامة التبويب هذه." data-draft-cleared="تم مسح المسودة والنموذج." data-draft-expired="انتهت صلاحية المسودة المحفوظة." data-draft-unavailable="حفظ المسودة غير متاح. أبقِ الصفحة مفتوحة حتى تنتهي.">
                   <p class="inquiry-draft-notice" id="inquiry-draft-notice">المسودة تشمل بيانات التواصل: في علامة التبويب هذه فقط لمدة 30 دقيقة. لا تُرسل قبل الإرسال.</p>
-                  <button type="button" class="inquiry-draft-clear" hidden>مسح المسودة</button>
+                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>مسح هذا الاستفسار</button>
+                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
+                    <p id="inquiry-clear-question">هل تريد مسح النموذج ومسودته المحفوظة؟</p>
+                    <button type="button" class="inquiry-clear-cancel">متابعة التحرير</button>
+                    <button type="button" class="inquiry-clear-confirm">تأكيد المسح</button>
+                  </div>
                   <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
                 <label class="field field-wide">
@@ -193,7 +198,7 @@
                 </label>
                 <p class="inquiry-attachment-note field-wide">يقبل هذا النموذج النصوص والروابط فقط. بعد إرسال الطلب، أرسل الصور أو قائمة Excel عبر <a href="#contact">WhatsApp في قسم التواصل</a> واذكر مرجع الطلب.</p>
                 <details class="inquiry-additional-details field-wide">
-                  <summary class="inquiry-additional-summary"><span>أضف تفاصيل للحصول على عرض سعر أدق</span><small>اختياري</small></summary>
+                  <summary class="inquiry-additional-summary"><span data-narrow-label="رابط المنتج وتفاصيل إضافية">أضف تفاصيل للحصول على عرض سعر أدق</span><small>اختياري</small></summary>
                   <div class="inquiry-additional-fields">
                     <label class="field">
                       <span>الفئة</span>
@@ -247,16 +252,16 @@
         </div>
       </section>
 
-            <div class="contact-modal" id="wechat-modal" hidden data-copied-label="تم النسخ">
+            <div class="contact-modal" id="wechat-modal" hidden data-manual-copy="تعذّر النسخ تلقائيًا. اضغط مطولًا على معرّف WeChat أو استخدم أمر النسخ في جهازك." data-copied-label="تم النسخ">
         <div class="contact-modal-backdrop" data-close-modal></div>
         <section class="contact-modal-card" role="dialog" aria-modal="true" aria-label="WeChat">
-          <button class="contact-modal-close" type="button" data-close-modal aria-label="Close">×</button>
+          <button class="contact-modal-close" type="button" data-close-modal aria-label="إغلاق">×</button>
           <img loading="lazy" class="contact-modal-icon" src="../../assets/wechat-ios-icon.webp" alt="" aria-hidden="true" width="64" height="64" />
           <p class="contact-modal-title">WeChat</p>
           <p>معرّف WeChat</p>
-          <strong>18658925544</strong>
+          <strong tabindex="-1" dir="ltr">18658925544</strong>
           <button class="contact-modal-copy" type="button" data-copy-contact="18658925544">نسخ المعرّف</button>
-          <span class="contact-modal-hint">افتح WeChat وابحث عن هذا المعرّف لإضافتنا.</span>
+          <span class="contact-modal-hint" role="status" aria-live="polite" aria-atomic="true">افتح WeChat وابحث عن هذا المعرّف لإضافتنا.</span>
         </section>
       </div>
       <footer class="site-footer" aria-label="Footer">
@@ -311,50 +316,6 @@
 </main>
     <script>
       (function () {
-        var openContactModal = function (id) {
-          var modal = document.getElementById(id);
-          if (!modal) return;
-          modal.hidden = false;
-          window.setTimeout(function () { modal.classList.add("is-open"); }, 20);
-        };
-        var closeContactModal = function (modal) {
-          if (!modal) return;
-          modal.classList.remove("is-open");
-          window.setTimeout(function () { modal.hidden = true; }, 220);
-        };
-        document.querySelectorAll(".js-contact-modal-open").forEach(function (link) {
-          link.addEventListener("click", function (event) {
-            event.preventDefault();
-            var modalId = link.getAttribute("data-modal-target");
-            var copyText = link.getAttribute("data-copy-text");
-            if (copyText && navigator.clipboard && window.isSecureContext) {
-              navigator.clipboard.writeText(copyText).catch(function () {});
-            }
-            openContactModal(modalId);
-          });
-        });
-        document.querySelectorAll("[data-close-modal]").forEach(function (control) {
-          control.addEventListener("click", function () {
-            closeContactModal(control.closest(".contact-modal"));
-          });
-        });
-        document.querySelectorAll("[data-copy-contact]").forEach(function (button) {
-          button.addEventListener("click", function () {
-            var value = button.getAttribute("data-copy-contact");
-            var modal = button.closest(".contact-modal");
-            var copied = modal && modal.getAttribute("data-copied-label");
-            var original = button.textContent;
-            var done = function () {
-              if (copied) button.textContent = copied;
-              window.setTimeout(function () { button.textContent = original; }, 1400);
-            };
-            if (navigator.clipboard && window.isSecureContext) {
-              navigator.clipboard.writeText(value).then(done).catch(done);
-            } else {
-              done();
-            }
-          });
-        });
 
         document.querySelectorAll(".language-options a").forEach(function (link) {
           link.addEventListener("click", function () {
@@ -363,6 +324,7 @@
         });
       })();
     </script>
+  <script src="/assets/wechat-contact.js?v=wechat-20261124a" defer></script>
   <script src="/assets/site-enhancements.js?v=ui-20261119a" defer></script>
   </body>
 </html>

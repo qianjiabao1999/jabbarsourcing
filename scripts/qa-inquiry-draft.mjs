@@ -90,16 +90,68 @@ const readStored = (page) => page.evaluate((key) => JSON.parse(sessionStorage.ge
 async function fillAll(page) {
   await page.locator('[name="product"]').fill(FIXTURE.product);
   await page.locator('[name="contact"]').fill(FIXTURE.contact);
-  await page.locator('[name="referenceUrl"]').fill(FIXTURE.referenceUrl);
   await page.locator(".inquiry-additional-summary").click();
+  await page.locator('[name="referenceUrl"]').fill(FIXTURE.referenceUrl);
   for (const name of ["quantity", "budget", "market", "company", "note"]) await page.locator(`[name="${name}"]`).fill(FIXTURE[name]);
   await page.locator('[name="category"]').selectOption({ index: 3 });
   return { ...FIXTURE, category: await page.locator('[name="category"]').inputValue() };
 }
 
+async function verifyAttachedEstimate(browser, engineName) {
+  const { context, state } = await contextFor(browser);
+  try {
+    const page = await context.newPage();
+    await open(page, "en");
+    const original = await fillAll(page);
+    async function attach(text) {
+      await page.goto(BASE_URL + "/en/calculator/");
+      await page.evaluate(message => sessionStorage.setItem("jabbarCalcResult", JSON.stringify({
+        savedAt: Date.now(), product: "Other product", quantity: "10 cartons", message
+      })), text);
+      await open(page, "en");
+      assert.deepEqual(await readValues(page), original, "导入/替换不能覆盖任何手填字段");
+      assert.equal(await page.locator(".inquiry-estimate-text").count(), 1);
+      assert.equal(await page.locator(".inquiry-estimate-text").textContent(), text);
+    }
+    const report = "CBM estimate: 10 cartons, 2 m³";
+    await attach("Old report");
+    await attach(report);
+    await page.reload({ waitUntil: "networkidle" });
+    assert.equal(await page.locator(".inquiry-estimate-text").textContent(), report);
+    await page.evaluate(() => window.__draftQaTurnstile["error-callback"]("300001"));
+    let wa = new URL(await page.locator(".inquiry-status-whatsapp").getAttribute("href")).searchParams.get("text");
+    for (const value of [original.product, original.quantity, original.note, report]) assert(wa.includes(value), "WhatsApp 缺失 " + value);
+    assert(!wa.includes("Old report"), "新结果不应叠加旧报告");
+    await page.locator(".inquiry-estimate summary").click();
+    await page.locator(".inquiry-estimate-remove").click();
+    assert.deepEqual(await readValues(page), original, "仅移除摘要，不得清除人工输入");
+    wa = new URL(await page.locator(".inquiry-status-whatsapp").getAttribute("href")).searchParams.get("text");
+    assert(!wa.includes(report), "移除后 WhatsApp 仍带旧摘要");
+    await attach(report);
+    await page.locator("[name=note]").fill("A".repeat(1499));
+    assert(await page.locator(".inquiry-estimate-warning").isVisible());
+    await page.locator(".js-inquiry-direct").click();
+    assert.equal(state.posts.length, 0, "超限时不能截断后发送");
+    assert.equal(await page.locator(".inquiry-estimate-warning").evaluate(node => document.activeElement === node), true, "超限原因应获焦");
+    assert.equal((await page.locator("[name=note]").inputValue()).length, 1499);
+    await page.locator("[name=note]").fill(original.note);
+    assert(!(await page.locator(".inquiry-estimate-warning").isVisible()));
+    await page.locator(".js-inquiry-direct").click();
+    await page.locator(".inquiry-status.is-success").waitFor();
+    assert.equal(state.posts.length, 1);
+    assert.equal(state.posts[0].quantity, original.quantity);
+    assert.equal(state.posts[0].note, original.note + "\n\n" + report);
+    assert.equal(state.posts[0].product, original.product);
+    assert.equal(await page.locator(".inquiry-estimate").count(), 0);
+    assert.equal(await readStored(page), null);
+    console.log(engineName + ": 报告可替换、草稿独立保存、可移除、回退/直接发送与长度边界通过（本地替身）。");
+  } finally { await context.close(); }
+}
+
 for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]]) {
   const browser = await engine.launch({ headless: true });
   try {
+    await verifyAttachedEstimate(browser, engineName);
     for (const [index, locale] of (process.env.QA_DRAFT_EDGE_ONLY === "1" ? [] : LOCALES).entries()) {
       const { context, state } = await contextFor(browser);
       try {
@@ -110,7 +162,8 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         const noticeBeforeInput = await page.evaluate(() => document.querySelector(".inquiry-draft-notice").getBoundingClientRect().bottom <= document.querySelector('[name="product"]').getBoundingClientRect().top);
         assert.equal(noticeBeforeInput, true, `${locale}: transparent notice must precede first field`);
         assert.equal(await page.locator("input[required]").count(), 2);
-        assert.equal(await page.locator(".inquiry-additional-fields input,.inquiry-additional-fields select,.inquiry-additional-fields textarea").count(), 6);
+        assert.equal(await page.locator(".inquiry-additional-fields input,.inquiry-additional-fields select,.inquiry-additional-fields textarea").count(), 7);
+        assert.equal(await page.locator('[name="referenceUrl"]').isVisible(), false);
         const expected = await fillAll(page);
         let record = await readStored(page);
         assert.deepEqual(Object.keys(record).sort(), ["detailsOpen", "fields", "savedAt", "version"]);
@@ -158,6 +211,15 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         assert.equal(await page.evaluate(() => location.search), "", `${locale}: draft must not be placed in URL`);
 
         await page.locator(".inquiry-draft-clear").click();
+        assert.deepEqual(await readValues(page), { ...FIXTURE, category: translatedCategory }, "发起清空不能删除输入");
+        assert(await page.locator(".inquiry-clear-cancel").evaluate(el => document.activeElement === el));
+        await page.keyboard.press("Escape");
+        assert(await page.locator(".inquiry-clear-prompt").isHidden());
+        await page.locator(".inquiry-draft-clear").click();
+        await page.locator(".inquiry-clear-cancel").click();
+        assert.deepEqual(await readValues(page), { ...FIXTURE, category: translatedCategory }, "继续填写保留全部字段");
+        await page.locator(".inquiry-draft-clear").click();
+        await page.locator(".inquiry-clear-confirm").click();
         assert.equal(await readStored(page), null);
         assert(Object.values(await readValues(page)).every((value) => value === ""));
         assert.equal(await page.evaluate(() => document.activeElement.name), "product");
@@ -191,6 +253,7 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
       await page.locator('[name="product"]').fill("Edited after expiry");
       assert.equal((await readStored(page)).fields.product, "Edited after expiry");
       await page.locator(".inquiry-draft-clear").click();
+      await page.locator(".inquiry-clear-confirm").click();
       await page.evaluate((key) => sessionStorage.setItem(key, "{broken-json"), DRAFT_KEY);
       await page.reload({ waitUntil: "networkidle" });
       assert.equal(await readStored(page), null, `${engineName}: malformed draft must be removed`);
@@ -198,6 +261,7 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
       await page.locator('[name="product"]').fill("Saved before deletion became unavailable");
       await page.evaluate(() => { window.__blockSessionAccess = true; });
       await page.locator(".inquiry-draft-clear").click();
+      await page.locator(".inquiry-clear-confirm").click();
       assert.equal(await page.locator('[name="product"]').inputValue(), "");
       assert((await page.locator(".inquiry-draft-feedback").textContent()).includes("could not be deleted"));
       await page.evaluate(() => { window.__blockSessionAccess = false; });
@@ -214,10 +278,12 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         sessionStorage.setItem("jabbarCalcResult", JSON.stringify({ savedAt: Date.now(), product: "New calculator product", quantity: "250 cartons", note: "New calculator notes" }));
       }, { key: DRAFT_KEY, fields: { ...FIXTURE, category: "kitchenware" } });
       await page.reload({ waitUntil: "networkidle" });
-      assert.deepEqual(await readValues(page), { ...FIXTURE, product: "New calculator product", quantity: "250 cartons", note: "New calculator notes" });
-      assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), true);
+      assert.deepEqual(await readValues(page), FIXTURE, "导入时必须保留九项已有草稿");
+      assert.equal(await page.locator(".inquiry-additional-details").evaluate(node => node.open), false);
+      assert.equal(await page.locator(".inquiry-estimate-text").textContent(), "New calculator notes");
       assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null);
-      assert.equal((await readStored(page)).fields.product, "New calculator product");
+      assert.equal((await readStored(page)).fields.product, FIXTURE.product);
+      assert.equal((await readStored(page)).estimate, "New calculator notes");
       assert.equal(await page.locator(".js-inquiry-form").getAttribute("data-calculator-prefill"), "true");
 
       // 模拟 BFCache 旧文档返回：同标签页更晚的另一语言草稿应覆盖旧非空值。

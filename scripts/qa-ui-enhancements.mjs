@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-196";
+const CSS_VERSION = "apple-198";
 const UI_VERSION = "ui-20261119a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -2256,8 +2256,10 @@ async function calculatorAnalyticsChecks(browserType) {
   await quoteLink.waitFor({ state: "visible" });
   await quoteLink.click();
   await page.waitForURL(`${BASE_URL}/inquiry/`);
-  assert.equal(await page.locator('[name="quantity"]').inputValue(), "1350 箱", "calculator quantity and carton unit were not transferred to inquiry");
-  assert((await page.locator('[name="note"]').inputValue()).includes("总体积"), "localized calculator summary was not transferred to inquiry notes");
+  assert.equal(await page.locator('[name="quantity"]').inputValue(), "","箱数不得充当采购数量");
+  await page.locator(".inquiry-estimate summary").click();
+  const estimateText = await page.locator(".inquiry-estimate-text").innerText();
+  assert(estimateText.includes("总体积") && /1,?350/.test(estimateText), "必须传递完整本地化摘要与箱数");
   const prefillNotice = page.locator(".calculator-prefill-notice");
   await prefillNotice.waitFor({ state: "visible" });
   assert.equal(await prefillNotice.count(), 1, "calculator handoff notice count");

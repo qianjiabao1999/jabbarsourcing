@@ -10,6 +10,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BUDGETS = {
   "assets/site-enhancements.js": 15 * 1024,
   "assets/container-visual.js": 4 * 1024,
+  "assets/calculator-controls.js": 4 * 1024,
   "assets/site-home-enhancements.js": 4 * 1024,
   "assets/site-footer-tools.js": 3 * 1024,
 };

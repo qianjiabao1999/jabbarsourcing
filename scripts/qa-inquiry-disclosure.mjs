@@ -90,6 +90,29 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         assert.equal(await details.evaluate((node) => node.open), true, `${scope}: restored populated details must open`);
         assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("name")), "contact", `${scope}: restoration must not steal focus`);
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth <= 1), true, `${scope}: expanded details overflow`);
+        if (width === 360) {
+          await page.goto(`${BASE_URL}${path}`, { waitUntil: "networkidle" });
+          const reference = page.locator('[name="referenceUrl"]');
+          await page.locator('[name="product"]').fill("Local fixture");
+          await page.locator('[name="contact"]').fill("local@example.invalid");
+          await details.locator("summary").click();
+          await reference.fill("ftp://example.invalid/not-accepted");
+          await details.locator("summary").click();
+          assert.equal(await reference.isVisible(), false, `${scope}: closed optional URL should be hidden`);
+          await submit.click();
+          await page.waitForFunction(() => document.activeElement?.name === "referenceUrl");
+          assert.equal(await reference.isVisible(), true, `${scope}: invalid URL must reopen and focus`);
+          assert.equal(inquiryRequests, 0);
+          // 改变断点时仍是同一个字段，保持值和焦点；回到手机后可继续编辑。
+          await page.setViewportSize({ width: 1024, height: 800 });
+          await page.waitForFunction(() => !document.querySelector('[name="referenceUrl"]').closest("details"));
+          await details.evaluate((el) => { el.open = false; });
+          await reference.focus();
+          await page.setViewportSize({ width, height: 800 });
+          await page.waitForFunction(() => document.activeElement?.name === "referenceUrl" && document.activeElement.closest("details[open]"));
+          assert.equal(await reference.inputValue(), "ftp://example.invalid/not-accepted");
+          assert.equal(await reference.count(), 1);
+        }
         console.log(`${scope}: PASS`);
       }
       assert.deepEqual(pageErrors, [], `${engineName} ${width}px: page errors`);

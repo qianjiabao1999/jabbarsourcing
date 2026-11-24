@@ -107,12 +107,15 @@ async function check(browser, lang, width) {
     }
 
     await page.locator("#unit").selectOption("in");
+    assert.equal(await button.isDisabled(), true, `${scope}: stale result can be copied while units are undecided`);
+    await page.locator('[data-unit-action="keep"]').click();
     const inches = await page.evaluate(() => window.__result);
     assert(Math.abs(inches.totalCbm - 786.579072) < 1e-8, `${scope}: inch conversion changed`);
     assert(stripBidi(inches.message).includes("30 × 40 × 40 in"), `${scope}: report retained old dimension unit`);
     assert.equal(await status.textContent(), "", `${scope}: stale copy feedback after input change`);
     assert.equal(await fallback.isVisible(), false, `${scope}: stale manual text after input change`);
     await page.locator("#unit").selectOption("cm");
+    await page.locator('[data-unit-action="keep"]').click();
     assert.equal((await page.evaluate(() => window.__result)).totalCbm, 48, `${scope}: cm roundtrip changed`);
 
     await page.locator("#qty").fill("1350");
@@ -180,11 +183,13 @@ async function check(browser, lang, width) {
     assert.equal(await page.evaluate(() => window.__copied.at(-1)), result.message, `${scope}: switched-back manual copy did not match retained result`);
     await quote.click();
     await page.waitForURL(`${BASE_URL}/${prefix}inquiry/`);
-    await page.waitForFunction(() => document.querySelector('[name="quantity"]')?.value.length > 0);
-    assert.equal(await page.locator('[name="quantity"]').inputValue(), quantities[lang], `${scope}: inquiry carton unit was lost`);
+    await page.locator(".inquiry-estimate summary").waitFor();
+    assert.equal(await page.locator('[name="quantity"]').inputValue(), "", `${scope}: 箱数不得代填采购件数`);
     assert.equal(await page.locator('[name="product"]').inputValue(), "Kitchen storage QA", `${scope}: inquiry product was lost`);
-    assert.equal(await page.locator('[name="note"]').inputValue(), result.message, `${scope}: inquiry report differs from copy report`);
-    assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), true, `${scope}: prefilled optional fields collapsed`);
+    assert.equal(await page.locator('[name="note"]').inputValue(), "", `${scope}: 备注须保留给买家`);
+    await page.locator(".inquiry-estimate summary").click();
+    assert.equal(await page.locator(".inquiry-estimate-text").innerText(), result.message, `${scope}: 摘要与复制报告一致`);
+    assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), false, `${scope}: 摘要不展开采购选填区`);
     assert.equal(await page.evaluate(() => sessionStorage.getItem("jabbarCalcResult")), null, `${scope}: inquiry prefill not consumed`);
     assert.deepEqual(errors, [], `${scope}: browser errors`);
     assert.deepEqual(blockedPosts, [], `${scope}: unexpected POST attempted`);
