@@ -10,30 +10,67 @@ const origin = new URL(process.env.BASE_URL || "http://127.0.0.1:4173").origin;
 assert(["localhost", "127.0.0.1", "[::1]"].includes(new URL(origin).hostname), "Local browser QA only");
 const profile = await mkdtemp(join(tmpdir(), "jabbar-qa-text-zoom-"));
 const locales = ["zh","en","es","ar","fr","pt","ru","de","it","tr"];
-const options = {viewport:{width:1024,height:768}, reducedMotion:"reduce", firefoxUserPrefs:{"browser.zoom.full":false}};
+const options = {viewport:{width:1024,height:768}, reducedMotion:"reduce", timeout:45000, firefoxUserPrefs:{"browser.zoom.full":false}};
+const started = Date.now();
+let stage = "starting";
+function mark(label) {
+  stage = label;
+  console.log(`[text-zoom +${Math.round((Date.now()-started)/1000)}s] ${label}`);
+}
+// Playwright action deadlines don't cover all protocol promises (notably context.close and evaluate).
+function bounded(label, ms, action) {
+  mark(label);
+  let timer;
+  return Promise.race([
+    Promise.resolve().then(action),
+    new Promise((_,reject) => { timer=setTimeout(()=>reject(new Error(`${label}: exceeded ${ms}ms (last: ${stage})`)),ms); }),
+  ]).finally(()=>clearTimeout(timer));
+}
+const watchdog = setTimeout(()=>{
+  console.error(`Firefox text-only zoom: exceeded 6 minutes at ${stage}`);
+  process.exit(1);
+},360000);
+watchdog.unref();
+let ctx;
 async function start() {
-  const context = await firefox.launchPersistentContext(profile, options);
-  await context.route("**/*", route => {
+  ctx = await firefox.launchPersistentContext(profile, options);
+  ctx.setDefaultTimeout(12000);
+  ctx.setDefaultNavigationTimeout(20000);
+  await ctx.route("**/*", route => {
     const r = route.request(), u = new URL(r.url());
     if (u.origin !== origin || !["GET","HEAD"].includes(r.method())) return route.abort();
     if (u.pathname === "/api/consent-region") return route.fulfill({json:{policy:"quiet-denied",gpc:true}});
     return route.continue();
   });
-  return context;
+  // Persistent Firefox creates an initial tab. Use it instead of leaving a background tab
+  // waiting for layout/animation frames while another tab owns the foreground.
+  const page=ctx.pages()[0] ?? await ctx.newPage();
+  await page.bringToFront();
+  return page;
 }
-async function probe(page) {
-  await page.goto(origin+"/en/");
-  await page.evaluate(() => document.fonts.ready);
+async function open(page,path,label) {
+  mark(label+" navigation");
+  await page.bringToFront();
+  const response=await page.goto(origin+path,{waitUntil:"domcontentloaded"});
+  assert.equal(response?.status(),200,label+": expected HTTP 200");
+  mark(label+" visible text and fonts");
+  await page.waitForFunction(()=>{
+    const h=document.querySelector("h1");
+    return document.visibilityState==="visible" && h?.getBoundingClientRect().width>0 && document.fonts.status==="loaded";
+  },null,{polling:100,timeout:12000});
+}
+async function probe(page,label) {
+  await open(page,"/en/",label);
   return page.locator("h1").evaluate(el => {
     const r = document.createRange(); r.setStart(el.firstChild,0); r.setEnd(el.firstChild,2);
     return [r.getBoundingClientRect().width, innerWidth, devicePixelRatio];
   });
 }
-let ctx;
 try {
-  ctx = await start();
-  const before = await probe(await ctx.newPage());
-  await ctx.close(); ctx = null;
+  const initial = await bounded("launch Firefox at 100%",55000,start);
+  const before = await bounded("baseline calibration",40000,()=>probe(initial,"100%"));
+  await bounded("close baseline Firefox",20000,()=>ctx.close()); ctx = null;
+  mark("write native zoom preference in disposable profile");
   // Only the disposable profile created above is ever opened, after Firefox has closed it.
   const db = new DatabaseSync(join(profile, "content-prefs.sqlite"));
   try {
@@ -42,40 +79,50 @@ try {
       DELETE FROM prefs WHERE groupID IS NULL AND settingID IN (SELECT id FROM settings WHERE name='browser.content.full-zoom');
       INSERT INTO prefs(settingID,value,timestamp) SELECT id,2.0,0 FROM settings WHERE name='browser.content.full-zoom';`);
   } finally { db.close(); }
-  ctx = await start();
-  const page = await ctx.newPage();
-  page.setDefaultTimeout(8000);
-  const after = await probe(page);
-  assert(Math.abs(after[0]/before[0]-2)<0.03 && before[1]===after[1] && before[2]===after[2], "Native 200% text-only zoom not active");
+  const page = await bounded("relaunch Firefox at 200%",55000,start);
+  const after = await bounded("200% calibration",40000,()=>probe(page,"200%"));
+  assert(Math.abs(after[0]/before[0]-2)<0.03 && before[1]===after[1] && before[2]===after[2], `Native 200% text-only zoom not active: ${JSON.stringify({before,after})}`);
   for (const [width,height] of [[375,667],[1024,768],[1366,768],[2560,1440]]) {
-    await page.setViewportSize({width,height});
+    await bounded(`viewport ${width}x${height}`,12000,()=>page.setViewportSize({width,height}));
     for (const locale of locales) {
-      const prefix = locale === "zh" ? "/" : "/"+locale+"/";
-      await page.goto(origin+prefix);
-      await page.evaluate(() => document.fonts.ready);
-      const heading = await page.locator("h1").evaluate(el => {
-        const r = document.createRange(); r.selectNodeContents(el);
-        return [...r.getClientRects()].filter(b=>b.width).every(b=>b.left>=-1 && b.right<=innerWidth+1);
+      const label=locale+" "+width+"px";
+      await bounded(label,60000,async()=>{
+        const prefix = locale === "zh" ? "/" : "/"+locale+"/";
+        await open(page,prefix,label);
+        mark(label+" headline and navigation hit targets");
+        const heading = await page.locator("h1").evaluate(el => {
+          const r = document.createRange(); r.selectNodeContents(el);
+          return [...r.getClientRects()].filter(b=>b.width).every(b=>b.left>=-1 && b.right<=innerWidth+1);
+        });
+        assert(heading, `${locale} ${width}: magnified headline outside viewport`);
+        const panel = page.locator("header .site-nav-mobile-menu");
+        const tool = page.locator("header .site-nav-tool-pill:visible").first();
+        if (!await tool.count() && await panel.locator("summary").isVisible()) {
+          await panel.locator("summary").click();
+        }
+        const link = page.locator('header a[href$="calculator/"]:visible').first();
+        for (const item of [page.locator("header .site-nav-brand:visible").first(),link]) {
+          await item.scrollIntoViewIfNeeded();
+          assert(await item.evaluate(el => {
+            const b=el.getBoundingClientRect();
+            return el.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2));
+          }), `${locale} ${width}: enlarged navigation controls overlap`);
+        }
+        mark(label+" follow calculator link");
+        await Promise.all([
+          page.waitForURL(origin+prefix+"calculator/",{waitUntil:"domcontentloaded",timeout:15000}),
+          link.click({timeout:12000}),
+        ]);
+        assert.equal(new URL(page.url()).pathname,prefix+"calculator/",`${locale} ${width}: calculator navigation`);
       });
-      assert(heading, `${locale} ${width}: magnified headline outside viewport`);
-      const panel = page.locator("header .site-nav-mobile-menu");
-      const tool = page.locator("header .site-nav-tool-pill:visible").first();
-      if (!await tool.count() && await panel.locator("summary").isVisible()) {
-        await panel.locator("summary").click();
-      }
-      const link = page.locator('header a[href$="calculator/"]:visible').first();
-      for (const item of [page.locator("header .site-nav-brand:visible").first(),link]) {
-        await item.scrollIntoViewIfNeeded();
-        assert(await item.evaluate(el => {
-          const b=el.getBoundingClientRect();
-          return el.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2));
-        }), `${locale} ${width}: enlarged navigation controls overlap`);
-      }
-      await link.click({timeout:4500});
-      assert.equal(new URL(page.url()).pathname,prefix+"calculator/",`${locale} ${width}: calculator navigation`);
     }
   }
   console.log("Firefox native 200% text-only zoom: fixed viewport and DPR, 40 readable headlines and calculator navigation paths.");
 } finally {
-  try { if (ctx) await ctx.close(); } finally { await rm(profile,{recursive:true,force:true}); }
+  try {
+    if (ctx) await bounded("close Firefox",20000,()=>ctx.close());
+    await bounded("remove disposable profile",10000,()=>rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:150}));
+  } finally {
+    clearTimeout(watchdog);
+  }
 }

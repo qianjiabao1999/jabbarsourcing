@@ -16,7 +16,164 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install frontend QA dependencies
+        run: npm ci
+
+      - name: Run frontend static checks
+        run: npm test
+
+      - name: Verify generated CSS is current
+        run: |
+          npm run build:css
+          git diff --exit-code -- styles.min.css
+
+  browser-qa:
+    name: Browser QA / ${{ matrix.group }}
+    needs: static-checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: interface
+            browsers: chromium firefox webkit
+          - group: home
+            browsers: chromium webkit
+          - group: inquiry
+            browsers: chromium webkit
+          - group: calculator
+            browsers: chromium webkit
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install frontend QA dependencies
+        run: npm ci
+
+      - name: Install required Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browsers }}
+
+      - name: Start local preview
+        timeout-minutes: 1
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 </dev/null >"$RUNNER_TEMP/jabbar-static-server.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/jabbar-static-server.pid"
+          curl --retry 15 --retry-connrefused --retry-delay 1 --max-time 3 --fail --silent --show-error http://127.0.0.1:4173/inquiry/ >/dev/null
+
+      - name: qa:text-zoom
+        if: matrix.group == 'interface'
+        timeout-minutes: 10
+        run: npm run qa:text-zoom
+
+      - name: qa:ui
+        if: matrix.group == 'interface'
+        timeout-minutes: 18
+        run: npm run qa:ui
+
+      - name: qa:analytics-consent
+        if: matrix.group == 'interface'
+        timeout-minutes: 10
+        run: npm run qa:analytics-consent
+
+      - name: qa:browser-matrix
+        if: matrix.group == 'interface'
+        timeout-minutes: 10
+        run: npm run qa:browser-matrix
+
+      - name: qa:post-launch-home
+        if: matrix.group == 'home'
+        timeout-minutes: 18
+        run: npm run qa:post-launch-home
+
+      - name: qa:buyer-paths
+        if: matrix.group == 'home'
+        timeout-minutes: 10
+        run: npm run qa:buyer-paths
+
+      - name: qa:wechat-contact
+        if: matrix.group == 'home'
+        timeout-minutes: 10
+        run: npm run qa:wechat-contact
+
+      - name: qa:inquiry
+        if: matrix.group == 'inquiry'
+        timeout-minutes: 10
+        run: npm run qa:inquiry
+
+      - name: qa:inquiry-disclosure
+        if: matrix.group == 'inquiry'
+        timeout-minutes: 10
+        run: npm run qa:inquiry-disclosure
+
+      - name: qa:inquiry-draft
+        if: matrix.group == 'inquiry'
+        timeout-minutes: 10
+        run: npm run qa:inquiry-draft
+
+      - name: qa:public-routes
+        if: matrix.group == 'inquiry'
+        timeout-minutes: 18
+        run: npm run qa:public-routes
+
+      - name: qa:calculator-order
+        if: matrix.group == 'calculator'
+        timeout-minutes: 10
+        run: npm run qa:calculator-order
+
+      - name: qa:order-resilience
+        if: matrix.group == 'calculator'
+        timeout-minutes: 10
+        run: npm run qa:order-resilience
+
+      - name: qa:container-allocation
+        if: matrix.group == 'calculator'
+        timeout-minutes: 10
+        run: npm run qa:container-allocation
+
+      - name: qa:calculator-validation
+        if: matrix.group == 'calculator'
+        timeout-minutes: 10
+        run: npm run qa:calculator-validation
+
+      - name: qa:calculator-feedback
+        if: matrix.group == 'calculator'
+        timeout-minutes: 10
+        run: npm run qa:calculator-feedback
+
+      - name: Stop local preview
+        if: always()
+        run: |
+          if test -s "$RUNNER_TEMP/jabbar-static-server.pid"; then
+            kill "$(cat "$RUNNER_TEMP/jabbar-static-server.pid")" 2>/dev/null || true
+          fi
+
   build:
+    needs: browser-qa
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,49 +188,6 @@ jobs:
             package-lock.json
             cloudflare/inquiry-api/package-lock.json
             cloudflare/site-response-headers/package-lock.json
-
-      - name: Install frontend QA dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium firefox webkit
-
-      - name: Run frontend static checks
-        run: npm test
-
-      - name: Verify generated CSS is current
-        run: |
-          npm run build:css
-          git diff --exit-code -- styles.min.css
-
-      - name: Run multilingual inquiry browser QA
-        run: |
-          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/jabbar-static-server.log 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid"' EXIT
-          for attempt in {1..20}; do
-            if curl --fail --silent http://127.0.0.1:4173/inquiry/ >/dev/null; then
-              break
-            fi
-            sleep 1
-          done
-          curl --fail --silent http://127.0.0.1:4173/inquiry/ >/dev/null
-          npm run qa:inquiry
-          npm run qa:inquiry-disclosure
-          npm run qa:ui
-          npm run qa:analytics-consent
-          npm run qa:browser-matrix
-          npm run qa:text-zoom
-          npm run qa:calculator-order
-          npm run qa:order-resilience
-          npm run qa:container-allocation
-          npm run qa:calculator-validation
-          npm run qa:calculator-feedback
-          npm run qa:inquiry-draft
-          npm run qa:post-launch-home
-          npm run qa:buyer-paths
-          npm run qa:wechat-contact
-          npm run qa:public-routes
 
       - name: Install Worker verification dependencies
         run: npm ci --prefix cloudflare/inquiry-api
