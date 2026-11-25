@@ -470,6 +470,26 @@
 
     var locale = form.getAttribute("data-inquiry-locale") || "en";
     var messages = MESSAGES[locale] || MESSAGES.en;
+    var referenceField = form.elements.referenceUrl;
+    var referenceErrors = ({
+      zh: ["请使用不含用户名或密码的产品链接。", "编码后的链接超过 500 个字符，请缩短链接。"],
+      en: ["Use a product link without a username or password.", "The encoded link exceeds 500 characters. Please shorten it."],
+      es: ["Usa un enlace sin nombre de usuario ni contraseña.", "El enlace codificado supera los 500 caracteres. Acórtalo."],
+      ar: ["استخدم رابطًا لا يحتوي على اسم مستخدم أو كلمة مرور.", "يتجاوز الرابط بعد الترميز ٥٠٠ حرف. يُرجى اختصاره."],
+      fr: ["Utilisez un lien sans nom d’utilisateur ni mot de passe.", "Le lien encodé dépasse 500 caractères. Veuillez le raccourcir."],
+      pt: ["Use um link sem nome de usuário ou senha.", "O link codificado excede 500 caracteres. Encurte-o."],
+      ru: ["Используйте ссылку без имени пользователя и пароля.", "После кодирования ссылка длиннее 500 символов. Сократите её."],
+      de: ["Verwenden Sie einen Link ohne Benutzernamen oder Passwort.", "Der kodierte Link ist länger als 500 Zeichen. Bitte kürzen Sie ihn."],
+      it: ["Usa un link senza nome utente o password.", "Il link codificato supera i 500 caratteri. Accorcialo."],
+      tr: ["Kullanıcı adı veya parola içermeyen bir bağlantı kullanın.", "Kodlanmış bağlantı 500 karakteri aşıyor. Lütfen kısaltın."]
+    })[locale] || [];
+    var omittedReference = ({
+      zh: "当前参考链接无效，不会包含在 WhatsApp 消息中。", en: "The current link is invalid and will not be included in the WhatsApp message.",
+      es: "El enlace no es válido y no se incluirá en el mensaje de WhatsApp.", ar: "الرابط الحالي غير صالح ولن يُدرج في رسالة واتساب.",
+      fr: "Le lien actuel est invalide et ne sera pas inclus dans le message WhatsApp.", pt: "O link atual é inválido e não será incluído na mensagem do WhatsApp.",
+      ru: "Эта ссылка недействительна и не войдёт в сообщение WhatsApp.", de: "Der aktuelle Link ist ungültig und wird nicht in die WhatsApp-Nachricht aufgenommen.",
+      it: "Il link non è valido e non sarà incluso nel messaggio WhatsApp.", tr: "Geçerli olmayan bu bağlantı WhatsApp mesajına eklenmeyecek."
+    })[locale];
     var endpoint = form.getAttribute("data-inquiry-endpoint") || "";
     var sourcePath = form.getAttribute("data-inquiry-source") || "";
     var privacyVersion = form.getAttribute("data-privacy-version") || "";
@@ -880,6 +900,7 @@
         revealPopulatedDetails();
         saveDraft();
       }
+      validateReference();
       updateDraftControls();
       refreshVerificationFallback();
     }
@@ -919,6 +940,7 @@
         });
         if (additionalDetails) additionalDetails.open = false;
         form.removeAttribute("data-calculator-prefill");
+        validateReference();
         currentSubmissionId = "";
         var draftRemoved = removeDraft();
         draftLastSavedAt = 0;
@@ -953,6 +975,8 @@
       var lines = ["Jabbar Sourcing inquiry: secure form unavailable"];
       Object.keys(labels).forEach(function (name) {
         var value = readValue(name);
+        // 与安全表单一致，不将不合规的链接（尤其是登录凭据）写进第三方消息。
+        if (name === "referenceUrl" && referenceError(value)) return;
         var caption = form.elements[name] && form.elements[name].closest("label");
         var title = caption && caption.querySelector("span");
         var text = title && title.firstChild && title.firstChild.nodeType === 3 && title.firstChild.textContent.trim();
@@ -966,6 +990,8 @@
     function refreshVerificationFallback() {
       var whatsapp = status && status.querySelector(".inquiry-status-whatsapp");
       if (whatsapp) whatsapp.href = buildWhatsAppSummary();
+      var hint = status && status.querySelector(".inquiry-reference-omitted");
+      if (hint) hint.hidden = !referenceError(readValue("referenceUrl"));
     }
 
     function updateStatusForDraftEdit() {
@@ -1021,6 +1047,12 @@
           actions.appendChild(retryButton);
         }
         if (options.whatsappFallback) {
+          var hint = document.createElement("span");
+          hint.className = "inquiry-reference-omitted";
+          hint.hidden = !referenceError(readValue("referenceUrl"));
+          hint.appendChild(document.createElement("br"));
+          hint.appendChild(document.createTextNode(omittedReference || referenceField.title));
+          messageText.appendChild(hint);
           var whatsapp = document.createElement("a");
           whatsapp.className = "inquiry-status-whatsapp";
           whatsapp.href = buildWhatsAppSummary();
@@ -1114,6 +1146,7 @@
       var hasNewEdits = Boolean(submittedContentKey && contentKey() !== submittedContentKey);
       if (!hasNewEdits) {
         form.reset();
+        validateReference();
         clearEstimate();
       }
       var submittedDraftRemoved = removeDraft();
@@ -1143,23 +1176,35 @@
       trackEvent("inquiry_form_start", { form_name: "sourcing_inquiry" });
     }
 
-    var referenceField = form.elements.referenceUrl;
+    function referenceError(value) {
+      if (!value || !referenceField) return "";
+      var invalid = referenceField.title;
+      if (!/^https?:\/\//i.test(value)) return invalid;
+      try {
+        var url = new URL(value);
+        if (!url.hostname) return invalid;
+        if (url.username || url.password) return referenceErrors[0] || invalid;
+        if (value.length > referenceField.maxLength || url.href.length > referenceField.maxLength) return referenceErrors[1] || invalid;
+      } catch (error) { return invalid; }
+      return "";
+    }
+    function validateReference() {
+      if (referenceField) referenceField.setCustomValidity(referenceError(referenceField.value));
+    }
     function completeReferenceLink() {
       var value = referenceField.value;
-      // 只处理明确的 www 域名；不猜邮箱、普通文字、相对地址或带认证信息的 URL。
-      if (!/^www\./i.test(value) || /[\s\\]/.test(value)) return;
-      var host = value.split(/[/?#]/, 1)[0];
-      if (!/^www\.(?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+[a-z]{2,63}$/i.test(host)) return;
-      var completed = "https://" + value;
-      try {
-        // Worker 校验规范化后的长度；只补协议，不改买家原始路径、查询及片段。
-        if (completed.length > referenceField.maxLength || new URL(completed).href.length > referenceField.maxLength) return;
-      } catch (error) { return; }
-      referenceField.value = completed;
-      saveDraft();
-      updateStatusForDraftEdit();
+      var completed = value.replace(/^https?(?=:\/\/)/i, function (scheme) { return scheme.toLowerCase(); });
+      // 仅为明确的 www 主机补协议，不猜测邮箱、相对路径或其他文本。
+      if (!/[\s\\]/.test(value) && /^www\.(?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+[a-z]{2,63}$/i.test(value.split(/[/?#]/, 1)[0])) completed = "https://" + value;
+      if (completed !== value && !referenceError(completed)) {
+        referenceField.value = completed;
+        saveDraft();
+        updateStatusForDraftEdit();
+      }
+      validateReference();
     }
     if (referenceField) {
+      referenceField.addEventListener("input", validateReference);
       referenceField.addEventListener("change", completeReferenceLink);
       // 提交按钮的默认动作才发起原生校验；也涵盖在输入框回车的隐式提交。
       directButton.addEventListener("click", completeReferenceLink);

@@ -5,14 +5,14 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const LOCAL_ORIGIN = new URL(BASE_URL).origin;
-const PAGES = ["/en/inquiry/", "/ar/inquiry/"];
+const PAGES = ["", "en/", "es/", "ar/", "fr/", "pt/", "ru/", "de/", "it/", "tr/"].map(prefix => "/" + prefix + "inquiry/");
 
 // 只测前端错误路径；任何真实询盘请求都阻断并计为失败。
 for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]]) {
   const browser = await engine.launch({ headless: true });
   try {
     for (const width of [360, 1280]) {
-      const context = await browser.newContext({ viewport: { width, height: 800 } });
+      const context = await browser.newContext({ viewport: { width, height: 800 }, serviceWorkers: "block" });
       let inquiryRequests = 0;
       await context.addInitScript(() => {
         // 每个旧错误聚焦场景需要空表；草稿恢复在专用套件验收。
@@ -29,11 +29,11 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
       });
       await context.route("**/*", async (route) => {
         const url = new URL(route.request().url());
-        if (url.origin === LOCAL_ORIGIN) return route.continue();
-        if (url.hostname === "inquiry-api.jabbarsourcing.com" && url.pathname === "/inquiry") {
+        if (route.request().method() !== "GET" && route.request().method() !== "HEAD") {
           inquiryRequests += 1;
           return route.abort();
         }
+        if (url.origin === LOCAL_ORIGIN) return route.continue();
         return route.fulfill({ status: 200, contentType: "application/javascript", body: "" });
       });
       const page = await context.newPage();
@@ -41,7 +41,11 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
       page.on("pageerror", (error) => pageErrors.push(error.message));
       for (const path of PAGES) {
         const scope = `${engineName} ${width}px ${path}`;
-        await page.goto(`${BASE_URL}${path}`, { waitUntil: "networkidle" });
+        const home = path.replace(/inquiry\/$/, "");
+        await page.goto(BASE_URL + home, { waitUntil: "domcontentloaded" });
+        await page.locator('header.site-nav a[href="inquiry/"]:visible').first().click();
+        await page.waitForURL(BASE_URL + path);
+        assert.equal(await page.locator(".js-inquiry-form").getAttribute("data-inquiry-source"), path);
         const details = page.locator(".inquiry-additional-details");
         const submit = page.locator(".js-inquiry-direct");
         const quantity = page.locator('[name="quantity"]');
@@ -129,6 +133,28 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         await page.evaluate(() => window.qaSecurityFailure());
         const summaryHref = await page.locator(".inquiry-status-whatsapp").getAttribute("href");
         assert(new URL(summaryHref).searchParams.get("text").includes(completed), `${scope}: fallback must preserve the complete normalized URL`);
+        // 与 Worker 相同：不接收凭据和编码后超长链接，且不把无效内容交给 WhatsApp。
+        await page.locator('[name="product"]').fill("QA cup");
+        await page.locator('[name="contact"]').fill("demo@example.invalid");
+        const longPath = "https://example.invalid/" + (path.startsWith("/ar/") ? "ع".repeat(81) : "样".repeat(60));
+        for (const value of ["https://fixture:example-only@example.invalid/product", longPath]) {
+          await reference.fill(value);
+          await reference.press("Tab");
+          assert.equal(await reference.inputValue(), value, scope + ": 原文需保留供修正");
+          assert(await reference.evaluate(el => el.validity.customError && !!el.validationMessage), scope + ": 无效链接需要本地化提示");
+          const href = await page.locator(".inquiry-status-whatsapp").getAttribute("href");
+          const text = new URL(href).searchParams.get("text");
+          assert(text.includes("QA cup") && !text.includes(value) && !text.includes("example-only"), scope + ": 无效链接不能进入备用消息");
+          assert(await page.locator(".inquiry-reference-omitted").isVisible(), scope + ": 买家须知备用消息不含该链接");
+        }
+        const exact = "https://example.invalid/" + "a".repeat(500 - "https://example.invalid/".length);
+        for (const [raw, expected] of [[exact, exact], ["HTTPS://example.invalid/货品?规格=绿%2F白#图", "https://example.invalid/货品?规格=绿%2F白#图"], ["", ""]]) {
+          await reference.fill(raw);
+          await reference.press("Tab");
+          assert.equal(await reference.inputValue(), expected, scope + ": 只调整协议大小写");
+          assert(await reference.evaluate(el => el.validity.valid), scope + ": 修正后应立即恢复可用");
+          assert(await page.locator(".inquiry-reference-omitted").isHidden(), scope + ": 已修正时不应提示链接缺失");
+        }
         for (const untouched of ["http://www.example.invalid/item", "https://www.example.invalid/a?b=2", "tea cup", "buyer@example.invalid", "ftp://www.example.invalid/a", "//www.example.invalid/a", "www.example.invalid@other.invalid", "www.example.invalid:wrong", "www.example.invalid/" + "a".repeat(478)]) {
           await reference.fill(untouched);
           await reference.press("Tab");
@@ -160,4 +186,4 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
     await browser.close();
   }
 }
-console.log("Inquiry disclosure focus QA passed: Chromium/WebKit, English/Arabic, 360/1280px; no inquiry requests.");
+console.log("十语询价导航、输入、草稿、表单错误、链接边界和备用交互已通过：Chromium/WebKit × 360/1280px，全程无写请求。");

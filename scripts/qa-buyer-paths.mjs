@@ -8,6 +8,39 @@ const output = process.env.QA_BUYER_OUTPUT_DIR;
 if (output) await mkdir(output, { recursive: true });
 const locales = ["zh","en","ar","de","es","fr","it","pt","ru","tr"];
 
+async function checkMenuExits(page, prefix, scope, sizes) {
+  const menu = page.locator(".site-nav-language");
+  const summary = menu.locator("summary");
+  for (const [width, height] of sizes) {
+    const label = scope + "/" + width;
+    await page.setViewportSize({width, height});
+    const url = base + prefix + "#faq";
+    await page.goto(url);
+    await page.locator(".faq-quick-tag").first().waitFor({state:"attached"});
+    const open = async () => {
+      await summary.focus();
+      await page.keyboard.press("Enter");
+      assert.equal(await summary.getAttribute("aria-expanded"), "true", label + ": 打开语言菜单");
+    };
+    for (const forward of [true, false]) {
+      await open();
+      if (forward) await menu.locator("a[lang]").last().focus();
+      await page.keyboard.press(forward ? "Tab" : "Shift+Tab");
+      assert.equal(await menu.evaluate(el => el.contains(document.activeElement)), false, label + ": 保留实际 Tab 目的地");
+      assert.equal(await summary.getAttribute("aria-expanded"), "false", label + ": 离开语言菜单时应收起");
+      assert.equal(await menu.evaluate(el => el.open), false);
+    }
+    await open();
+    const current = menu.locator("a[aria-current]");
+    assert.equal(await current.evaluate(el => el.href), url);
+    await current.focus();
+    await page.keyboard.press("Enter");
+    assert.equal(page.url(), url);
+    assert.equal(await menu.evaluate(el => el.open), false, label + ": 重选当前语言应收起而非覆盖章节");
+    assert(await summary.evaluate(el => document.activeElement === el), label + ": 返回触发按钮");
+  }
+}
+
 async function checkLanguagePanel(page, prefix, scope) {
   for (const [width, height, section, keyboard] of [
     [320, 568, "", true], [320, 568, "inquiry/", false], [320, 568, "calculator/", false],
@@ -45,6 +78,7 @@ async function checkLanguagePanel(page, prefix, scope) {
         if (!i && !(await focused(link))) {
           // Safari/macOS may use Option+Tab for link navigation.
           await trigger.focus();
+          if (await trigger.getAttribute("aria-expanded") === "false") await page.keyboard.press("Enter");
           key = "Alt+Tab";
           await page.keyboard.press(key);
         }
@@ -142,6 +176,8 @@ for (const engine of [chromium, webkit]) {
         await page.locator(".inquiry-estimate summary").click();
         assert.equal(await page.locator("[name=note]").inputValue(), "");
         assert((await page.locator(".inquiry-estimate-text").innerText()).includes("100"), scope + ": 带结果询价不得丢失尺寸");
+        await checkMenuExits(page, prefix, scope, ["ar","de"].includes(lang)
+          ? [[320,568],[390,844],[844,390],[1024,768],[1440,900]] : [[390,844]]);
         if (lang === "de" || lang === "ar") await checkLanguagePanel(page, prefix, scope);
         assert.deepEqual(errors, [], scope);
         assert.deepEqual(posts, [], scope);

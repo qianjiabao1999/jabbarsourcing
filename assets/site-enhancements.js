@@ -1029,17 +1029,12 @@
     var menus = [languageMenu, mobileMenu].filter(Boolean);
     if (!menus.length) return;
 
-    function menuSummary(menu) {
-      var summary = menu && menu.firstElementChild;
-      return summary && summary.tagName === "SUMMARY" ? summary : null;
-    }
-
     function setMenuOpen(menu, open, restoreFocus) {
-      if (!menu) return;
-      var summary = menuSummary(menu);
+      var summary = menu.querySelector("summary");
+      if (!summary) return;
       menu.open = Boolean(open);
-      if (summary) summary.setAttribute("aria-expanded", String(Boolean(open)));
-      if (!open && restoreFocus && summary) summary.focus();
+      summary.setAttribute("aria-expanded", String(menu.open));
+      if (restoreFocus) summary.focus({ preventScroll: true });
     }
 
     function closeMenusExcept(current) {
@@ -1049,18 +1044,24 @@
     }
 
     menus.forEach(function (menu) {
-      var summary = menuSummary(menu);
-      if (summary) {
-        summary.setAttribute("aria-expanded", String(menu.open));
-        summary.addEventListener("click", function (event) {
-          event.preventDefault();
-          if (!menu.open) closeMenusExcept(menu);
-          setMenuOpen(menu, !menu.open, false);
-        });
-      }
+      var summary = menu.querySelector("summary");
+      if (!summary) return;
+      summary.setAttribute("aria-expanded", String(menu.open));
+      summary.addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!menu.open) closeMenusExcept(menu);
+        setMenuOpen(menu, !menu.open, false);
+      });
       menu.addEventListener("toggle", function () {
-        if (summary) summary.setAttribute("aria-expanded", String(menu.open));
+        summary.setAttribute("aria-expanded", String(menu.open));
         if (menu.open) closeMenusExcept(menu);
+      });
+      var tabbing = false;
+      menu.addEventListener("keydown", function (event) { tabbing = event.key === "Tab"; });
+      menu.addEventListener("keyup", function () { tabbing = false; });
+      menu.addEventListener("focusout", function (event) {
+        if (menu.open && (event.relatedTarget || tabbing) && !menu.contains(event.relatedTarget)) setMenuOpen(menu, false, false);
+        tabbing = false;
       });
     });
 
@@ -1072,10 +1073,14 @@
     }
 
     document.addEventListener("click", function (event) {
+      var current = event.target.closest && event.target.closest(".site-nav-language a[aria-current]");
+      if (current && current.href === location.href && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+        event.preventDefault();
+        setMenuOpen(languageMenu, false, true);
+        return;
+      }
       if (menus.some(function (menu) { return menu.contains(event.target); })) return;
-      menus.forEach(function (menu) {
-        if (menu.open) setMenuOpen(menu, false, false);
-      });
+      closeMenusExcept();
     });
 
     document.addEventListener("keydown", function (event) {
@@ -1105,7 +1110,6 @@
       links.forEach(function (link) {
         var destination = new URL(link.getAttribute("href"), window.location.href);
         if (destination.origin !== window.location.origin || !homePath.test(destination.pathname)) return;
-        // 只保留站内首页路径与白名单章节，查询参数不会跨语言转发。
         link.setAttribute("href", destination.pathname + hash);
       });
     }
@@ -1116,7 +1120,7 @@
       var select = event.target;
       if (!select.matches(".site-footer-language-select") || !sectionHash()) return;
       if (allowedLocales.indexOf(select.value) === -1) return;
-      // 页脚工具异步创建；捕获阶段接管首页章节跳转，深层页面仍用原路由。
+      // 先于页脚的异步绑定处理。
       event.stopImmediatePropagation();
       window.location.assign((select.value === "zh" ? "/" : "/" + select.value + "/") + sectionHash());
     }, true);

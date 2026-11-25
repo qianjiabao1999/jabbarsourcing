@@ -4,10 +4,14 @@ import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { chromium, webkit } from "playwright";
+import XLSX from "../assets/vendor/xlsx.full.min.js";
 
 const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/, "");
 const OUTPUT_DIR = process.env.QA_CALCULATOR_VALIDATION_OUTPUT_DIR || "/tmp/jabbar-calculator-validation-qa";
 const locales = ["", "en/", "es/", "ar/", "fr/", "pt/", "ru/", "de/", "it/", "tr/"];
+const workbook = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([["Product","Quantity","Amount CNY"],["QA local carton",2,20]]), "Packing");
+const spreadsheet = {name:"small-cartons.xlsx",mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",buffer:Buffer.from(XLSX.write(workbook,{type:"buffer",bookType:"xlsx",compression:true}))};
 const notFoundHtml = await readFile(fileURLToPath(new URL("../404.html", import.meta.url)), "utf8");
 await mkdir(OUTPUT_DIR, { recursive: true });
 
@@ -229,6 +233,88 @@ async function checkHistoryReturn(context, browserName) {
   } finally { await page.close(); }
 }
 
+// 十语的真实买家路径：小箱估算、复制、Excel 本地读文件、回到手算并纠正越界值。
+async function checkSmallCartonsAndExcel(browser, browserName, width) {
+  const touch = width < 500;
+  const context = await browser.newContext({viewport:{width,height:900},isMobile:touch,hasTouch:touch,serviceWorkers:"block"});
+  const writes = [];
+  await context.route("**/*", route => {
+    if (!["GET", "HEAD"].includes(route.request().method())) { writes.push(route.request().method()); return route.abort(); }
+    return new URL(route.request().url()).origin === new URL(BASE_URL).origin ? route.continue() : route.abort();
+  });
+  await context.addInitScript(() => Object.defineProperty(navigator,"clipboard",{configurable:true,value:undefined}));
+  const page = await context.newPage();
+  const activate = el => touch ? el.tap() : el.press("Enter");
+  try {
+    for (const locale of locales) {
+      const scope = browserName + "/" + (locale || "zh/") + width;
+      await page.goto(BASE_URL + "/" + locale + "calculator/",{waitUntil:"domcontentloaded"});
+      const lang = await page.locator("html").getAttribute("lang");
+      const fmt = n => n.toLocaleString(lang,{maximumFractionDigits:6});
+      for (const id of ["length","width","height"]) await page.locator("#"+id).fill("2");
+      await activate(page.locator(".calculator-optional-summary"));
+      await page.locator("#weight").fill("0.02");
+      const total = page.locator("[data-total-cbm]"), weight = page.locator("[data-weight-total]");
+      assert.equal(await total.innerText(), fmt(0.000008) + " m³",scope);
+      assert.equal(await page.locator("[data-buffer-cbm]").innerText(), (0.0000084).toLocaleString(lang,{maximumSignificantDigits:3}) + " m³",scope);
+      assert.equal(await weight.innerText(), fmt(0.02) + " kg",scope);
+      await activate(page.locator("[data-copy-result]"));
+      const report = await page.locator("[data-copy-text]").inputValue();
+      assert(report.includes(await total.innerText()) && report.includes(await weight.innerText()), scope + ": 复制内容与实际测量不一致");
+      const quick = page.locator('[data-calculator-mode="quick"]'), excel = page.locator('[data-calculator-mode="excel"]');
+      await activate(excel);
+      await activate(page.locator("[data-order-load]"));
+      const upload = page.locator("[data-order-file]");
+      await upload.waitFor({state:"attached"});
+      if (!touch) await page.waitForFunction(() => document.activeElement === document.querySelector("[data-order-file]"));
+      await upload.setInputFiles(spreadsheet);
+      await page.locator("[data-order-results]").waitFor({state:"visible"});
+      assert((await page.locator("[data-order-file-item]").innerText()).includes(spreadsheet.name),scope);
+      await activate(quick);
+      assert.equal(await total.innerText(),fmt(0.000008) + " m³",scope);
+      await page.locator("#length").fill("1e308");
+      await activate(page.locator("#cbm-calculator button[type=submit]"));
+      assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"),"invalid",scope);
+      assert.equal(await page.locator("[data-copy-result]").isDisabled(),true,scope);
+      assert.equal(await page.locator(".calculator-results .calculator-inquiry-cta").isVisible(),false,scope);
+      assert.equal(await page.locator("#length").getAttribute("aria-invalid"),"true",scope);
+      await page.locator("#length").fill("0.01");
+      assert.equal(await total.innerText(),"< " + fmt(0.000001) + " m³",scope);
+      await page.locator("#weight").fill("0");
+      assert.equal(await weight.innerText(),fmt(0) + " kg",scope);
+      assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"),"ready",scope);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth > innerWidth),false,scope);
+    }
+    assert.deepEqual(writes,[]);
+    console.log(browserName+"/"+width+"px: 十语手算、复制、Excel 本地导入、切回与错误恢复通过。");
+  } finally { await context.close(); }
+}
+
+async function checkLoaderRetryFocus(context, browserName) {
+  const page = await context.newPage();
+  let attempts = 0, release;
+  const gate = new Promise(allow => { release = allow; });
+  await page.route("**/assets/calculator-order-analyzer.js*", async route => {
+    if (++attempts === 1) return route.abort();
+    await gate;
+    await route.continue();
+  });
+  try {
+    await page.goto(BASE_URL+"/en/calculator/");
+    await page.locator('[data-calculator-mode="excel"]').press("Enter");
+    await page.locator("[data-order-load]").press("Enter");
+    const retry = page.locator("[data-order-analyzer] .order-analyzer__actions button:not([data-order-load])");
+    await retry.waitFor();
+    assert(await retry.evaluate(node=>document.activeElement===node),browserName+": 加载失败后重试按钮应获焦");
+    await retry.press("Enter");
+    const quick = page.locator('[data-calculator-mode="quick"]');
+    await quick.focus();
+    release();
+    await page.locator("[data-order-file]").waitFor({state:"attached"});
+    assert(await quick.evaluate(node=>document.activeElement===node),browserName+": 延迟加载不能抢走已移开的焦点");
+  } finally { if (release) release(); await page.close(); }
+}
+
 async function checkNestedNotFound(context, browserName) {
   const page = await context.newPage();
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -264,6 +350,8 @@ for (const browserType of [chromium, webkit]) {
     for (const locale of locales) await checkCalculator(context, locale, 390, browserType.name());
     for (const width of [360, 1440]) await checkCalculator(context, "en/", width, browserType.name());
     await checkHistoryReturn(context, browserType.name());
+    await checkLoaderRetryFocus(context, browserType.name());
+    for (const width of [390,1440]) await checkSmallCartonsAndExcel(browser,browserType.name(),width);
     await checkNestedNotFound(context, browserType.name());
     console.log(`${browserType.name()}: 10-language validation, 360/390/1440px, and nested 404 passed.`);
   } finally {

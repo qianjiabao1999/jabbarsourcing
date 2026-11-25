@@ -1,20 +1,36 @@
 const menuButton = document.querySelector('.menu-toggle');
 const navigation = document.querySelector('.main-nav');
 
-menuButton?.addEventListener('click', () => {
-  const isOpen = navigation.classList.toggle('open');
-  menuButton.setAttribute('aria-expanded', String(isOpen));
-  menuButton.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
-  document.body.style.overflow = isOpen ? 'hidden' : '';
-});
-
-navigation?.querySelectorAll('a').forEach((link) => {
-  link.addEventListener('click', () => {
-    navigation.classList.remove('open');
-    menuButton?.setAttribute('aria-expanded', 'false');
-    document.body.style.overflow = '';
+if (menuButton && navigation) {
+  const narrow = window.matchMedia('(max-width: 620px)');
+  const labels = document.documentElement.lang.startsWith('zh')
+    ? ['打开导航', '关闭导航'] : ['Open navigation', 'Close navigation'];
+  menuButton.setAttribute('aria-controls', navigation.id || (navigation.id = 'legal-navigation'));
+  function setOpen(open, restoreFocus = false) {
+    navigation.classList.toggle('open', open);
+    menuButton.setAttribute('aria-expanded', String(open));
+    menuButton.setAttribute('aria-label', labels[open ? 1 : 0]);
+    if (restoreFocus) menuButton.focus();
+  }
+  setOpen(false);
+  menuButton.addEventListener('click', () => setOpen(!navigation.classList.contains('open')));
+  navigation.addEventListener('click', e => { if (e.target.closest('a[href]')) setOpen(false); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !e.defaultPrevented && navigation.classList.contains('open')) {
+      e.preventDefault();
+      setOpen(false, true);
+    }
   });
-});
+  function dismissOutside(e) {
+    if (!menuButton.contains(e.target) && !navigation.contains(e.target) && navigation.classList.contains('open')) setOpen(false);
+  }
+  document.addEventListener('click', dismissOutside);
+  document.addEventListener('focusin', dismissOutside);
+  const resized = () => { if (!narrow.matches) setOpen(false); };
+  if (narrow.addEventListener) narrow.addEventListener('change', resized);
+  else narrow.addListener(resized);
+  window.addEventListener('pagehide', () => setOpen(false));
+}
 
 const observer = new IntersectionObserver(
   (entries) => {

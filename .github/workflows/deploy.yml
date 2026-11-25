@@ -72,6 +72,7 @@ jobs:
           npm run qa:post-launch-home
           npm run qa:buyer-paths
           npm run qa:wechat-contact
+          npm run qa:public-routes
 
       - name: Install Worker verification dependencies
         run: npm ci --prefix cloudflare/inquiry-api
@@ -257,6 +258,7 @@ jobs:
           test -f _site/assets/container-visual.js
           test -s _site/assets/calculator-controls.js
           test -s _site/assets/wechat-contact.js
+          test -s _site/assets/not-found-locale.js
           test -f _site/assets/container-40hq-shell-20260722.webp
           test -f _site/assets/container-cargo-stack-20260722e.webp
           test -f _site/assets/calculator-order-loader.js

@@ -140,6 +140,10 @@ a { color: inherit; text-decoration: none; }
     radial-gradient(circle at 88% 18%, rgba(175, 82, 222, 0.045), transparent 25%),
     #fff;
 }
+/* Clip decorative overflow without creating a scrollable ancestor for focused cards. */
+body.home-page #team.team {
+  overflow: clip;
+}
 .team::before {
   content: "";
   position: absolute;
@@ -3261,11 +3265,23 @@ html.gallery-ready .gallery-track {
     position: fixed;
     inset: 68px 0 auto 0;
     display: none;
-    padding: 18px 24px 24px;
+    padding: 8px 16px 12px;
+    gap: 3px;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    max-height: calc(100vh - 68px);
+    max-height: calc(100dvh - 68px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     background: rgba(255, 255, 255, 0.96);
     border-bottom: 1px solid var(--line);
+  }
+
+  .legal-header .main-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: 12px;
   }
 
   .legal-header .main-nav.open {
@@ -3274,6 +3290,8 @@ html.gallery-ready .gallery-track {
 
   .legal-header .menu-toggle {
     display: block;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .legal-hero {
@@ -3282,7 +3300,9 @@ html.gallery-ready .gallery-track {
 
   .legal-hero h1 {
     font-size: 40px;
+    overflow-wrap: anywhere;
   }
+  :is(html[lang="de"], html[lang="ru"]) .legal-hero h1 { hyphens: auto; }
 
   .legal-content {
     padding: 38px 0 62px;
@@ -13525,3 +13545,19 @@ main > #team .section-heading h2 {
   color: var(--brand-teal); background: #fff; font: inherit; cursor: pointer;
 }
 .inquiry-clear-prompt .inquiry-clear-cancel { color: #fff; background: var(--brand-teal); }
+@media (max-width: 767px) {
+  .js-inquiry-form input[name="product"]::placeholder,
+  .js-inquiry-form input[name="contact"]::placeholder {
+    font-size: 16px;
+    font-weight: 400;
+  }
+  /* 尺寸名和括号参与同一段自然换行，别让 flex 把 cm 拆成两行。 */
+  .calculator-field label:is([for="length"], [for="width"], [for="height"]) {
+    display: block;
+    align-self: end;
+  }
+  .calculator-field [data-dimension-unit] { white-space: nowrap; }
+  :is(.calculator-field-length, .calculator-field-width, .calculator-field-height) {
+    grid-template-rows: 1fr auto;
+  }
+}

@@ -2,7 +2,7 @@
   var root = document.querySelector("[data-order-analyzer]");
   if (!root || root.getAttribute("data-order-loader-bound") === "true") return;
 
-  var VERSION = "order-20260722c";
+  var VERSION = "order-20261125a";
   var SCRIPT_URL = "/assets/calculator-order-analyzer.js?v=" + VERSION;
   var language = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
   var labels = {
@@ -106,12 +106,16 @@
     root.setAttribute("aria-busy", "false");
     root.removeAttribute("aria-label");
     removeIntentListeners();
+    var moveFocus = document.activeElement === root;
     window.JabbarOrderAnalyzer.init();
+    var upload = root.querySelector("[data-order-file]");
+    if (moveFocus && upload) upload.focus({ preventScroll: true });
     removePreloadDragListeners();
     replayPendingDrop();
   }
 
   function showLoadError() {
+    var moveFocus = document.activeElement === root;
     loading = false;
     loaded = false;
     root.setAttribute("aria-busy", "false");
@@ -137,10 +141,17 @@
 
     root.appendChild(status);
     root.appendChild(actions);
+    if (moveFocus) retry.focus({ preventScroll: true });
   }
 
   function loadAnalyzer() {
-    if (loaded || loading) return;
+    if (loaded) return;
+    if (root.contains(document.activeElement) && document.activeElement.tagName === "BUTTON") {
+      // 下载期间把焦点停在不会被重新渲染的节点；用户移开后不再抢回。
+      root.setAttribute("tabindex", "-1");
+      root.focus({ preventScroll: true });
+    }
+    if (loading) return;
     if (window.JabbarOrderAnalyzer && typeof window.JabbarOrderAnalyzer.init === "function") {
       finishLoading();
       return;
@@ -150,7 +161,8 @@
     root.setAttribute("aria-busy", "true");
     var loadButton = root.querySelector("[data-order-load]");
     if (loadButton) {
-      loadButton.disabled = true;
+      // 保留键盘焦点；loading 已防止重复加载。只在原按钮仍有焦点时移交到上传控件。
+      loadButton.setAttribute("aria-disabled", "true");
       loadButton.textContent = copy.loading;
     }
     var script = document.createElement("script");

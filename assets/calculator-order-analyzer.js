@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "order-20260722c";
+  var VERSION = "order-20261125a";
   var MAX_FILE_BYTES = 50 * 1024 * 1024;
   // Main-thread parsing is an emergency compatibility path. Keep its memory
   // ceiling well below the Worker limit so older mobile browsers stay usable.

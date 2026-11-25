@@ -48,7 +48,7 @@
     <link rel="shortcut icon" href="../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../styles.min.css?v=apple-200" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-201" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
     <script type="application/ld+json" data-schema="organization">
 {
@@ -256,7 +256,7 @@
         var resultDetails = results.querySelectorAll('[data-result-detail]');
         var copyButton = form.querySelector('[data-copy-result]');
         var fields = ['length','width','height','qty','weight','unit','product','note'].reduce(function (acc, name) { acc[name] = form.elements.namedItem(name); return acc; }, {});
-        var validationText = {"positive":"请输入大于 0 的有效数值。","cartons":"请输入大于 0 的整数箱数。","weight":"请输入大于或等于 0 的有效重量，或留空。","summary":"请检查并修正标出的输入项。"};
+        var validationText = {"positive":"请输入大于 0 的有效数值。","cartons":"请输入大于 0 的整数箱数。","weight":"请输入大于或等于 0 的有效重量，或留空。","summary":"请检查并修正标出的输入项。","range":"这组数值超出可计算范围，请检查箱规、箱数和重量。"};
         var validationStarted = false;
         var numericFields = ['length','width','height','qty','weight'];
         function fieldError(name) {
@@ -267,6 +267,7 @@
             return badNumber || (field.value !== '' && value < 0) ? validationText.weight : '';
           }
           if (name === 'qty') {
+            if (Number.isInteger(value) && !Number.isSafeInteger(value)) return validationText.range;
             return badNumber || !(value > 0) || !Number.isInteger(value) ? validationText.cartons : '';
           }
           return badNumber || !(value > 0) ? validationText.positive : '';
@@ -347,7 +348,14 @@
             : value;
         }
         var locale = document.documentElement.lang || navigator.language || 'en';
-        var fmt = function (num) { return Number(num || 0).toLocaleString(locale, { maximumFractionDigits: 3, minimumFractionDigits: 3 }); };
+        // 常规体积保留三位；小箱用有效数字显示，低于分辨率时以小于号标记。
+        function smallNumber(value, digits) {
+          var floor = Math.pow(10, -digits);
+          var options = { maximumFractionDigits: digits };
+          if (value > 0 && value < floor) return '< ' + floor.toLocaleString(locale, options);
+          return value.toLocaleString(locale, value > 0 && value < 0.001 ? { maximumSignificantDigits: 3 } : options);
+        }
+        var fmt = function (num) { return num > 0 && num < 0.001 ? smallNumber(num, 6) : num.toLocaleString(locale, { maximumFractionDigits: 3, minimumFractionDigits: 3 }); };
         var pct = function (num) { return Math.min(100, Math.round(num)); };
         var val = function (name) { return Number(fields[name].value || 0); };
         function setTextWithMonoNumbers(element, value) {
@@ -420,6 +428,18 @@
           var buffer = total * 1.05;
           var weight = val('weight');
           var weightTotal = weight ? weight * q : 0;
+          if (!(per > 0) || ![per, total, buffer, weightTotal].every(Number.isFinite)) {
+            var problem = !(per > 0) || !Number.isFinite(per) ? 'length' : !Number.isFinite(weightTotal) ? 'weight' : 'qty';
+            setResultState('invalid', validationText.range);
+            if (showInvalid) {
+              showFieldError(problem, validationText.range);
+              var details = fields[problem].closest('details');
+              if (details) details.open = true;
+              fields[problem].focus();
+            }
+            return false;
+          }
+          var weightText = fields.weight.value !== '' ? smallNumber(weightTotal, 3) + ' kg' : t.noWeight;
           var container = '';
           if (buffer <= 8) container = t.lcl;
           else if (buffer <= 68) container = t.forty + ' ' + pct(buffer / 68 * 100) + '%';
@@ -428,7 +448,7 @@
           out.total.textContent = fmt(total) + ' m³';
           out.buffer.textContent = fmt(buffer) + ' m³';
           setTextWithMonoNumbers(out.container, container);
-          out.weight.textContent = weightTotal ? weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg' : t.noWeight;
+          out.weight.textContent = weightText;
           var containerLabel = t.container + ' (' + t.bufferCbm + ')';
           setTextWithMonoNumbers(out.summary, containerLabel + ': ' + container + ' · ' + t.totalCbm + ': ' + fmt(total) + ' m³');
           var product = fields.product.value.trim() || '-';
@@ -442,7 +462,7 @@
             t.totalCbm + ': ' + reportNumber(fmt(total) + ' m³'),
             t.bufferCbm + ': ' + reportNumber(fmt(buffer) + ' m³'),
             containerLabel + ': ' + reportContainer(container),
-            t.weightTotal + ': ' + (weightTotal ? reportNumber(weightTotal.toLocaleString(locale, { maximumFractionDigits: 1 }) + ' kg') : t.noWeight),
+            t.weightTotal + ': ' + (fields.weight.value !== '' ? reportNumber(weightText) : t.noWeight),
             feedback.noteLabel + ': ' + note
           ].join('\n');
           setResultState('ready', '');
@@ -492,8 +512,8 @@
       })();
     </script>
   <script src="/assets/container-visual.js?v=container-20261011b" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20261119a" defer></script>
-  <script src="/assets/calculator-order-loader.js?v=order-20260722c" defer></script>
-  <script src="/assets/calculator-controls.js?v=calc-20261125a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261125a" defer></script>
+  <script src="/assets/calculator-order-loader.js?v=order-20261125a" defer></script>
+  <script src="/assets/calculator-controls.js?v=calc-20261125b" defer></script>
   </body>
 </html>

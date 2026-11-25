@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-200";
-const UI_VERSION = "ui-20261119a";
+const CSS_VERSION = "apple-201";
+const UI_VERSION = "ui-20261125a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -1297,7 +1297,7 @@ async function assertTestimonialCardLayout(page, scope, locale) {
   assert.deepEqual(cards.map(card => card.flag), ["🇬🇧", "🇰🇪", "🇳🇬"], `${scope}: 客户卡阅读顺序`);
   const width = page.viewportSize().width;
   for (const [i, { box, parts }] of cards.entries()) {
-    assert(box.left >= -1 && box.right <= width + 1, `${scope}: 客户卡超出视口`);
+    assert(box.left >= -1 && box.right <= width + 1, `${scope}: 客户卡超出视口，预期宽 ${width}，实际 [${box.left}, ${box.right}]`);
     parts.forEach((part, j) => {
       assert(part.width > 0 && part.height > 0 && (!j || part.top >= parts[j - 1].bottom - 1), `${scope}: 第 ${i + 1} 张卡的国家、图片、金额、评价及署名顺序`);
     });
@@ -1531,7 +1531,10 @@ async function homeMatrix(browserType) {
       if (!viewport.mobile && item.rtl) {
         for (const width of [979, 980]) {
           await page.setViewportSize({ width, height: viewport.height });
+          await page.waitForFunction(w => matchMedia(`(width: ${w}px)`).matches, width);
           await assertTestimonialCardLayout(page, `${item.locale} ${width}px`, item.locale);
+          assert.equal(await page.locator("#team").evaluate(node => Math.abs(node.scrollLeft)), 0,
+            `${item.locale} ${width}px: 首页面板不可因焦点而横移`);
         }
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
       }
@@ -1539,6 +1542,44 @@ async function homeMatrix(browserType) {
     }
     await context.close();
   }
+}
+
+async function narrowTextChecks(browser) {
+  const context = await browser.newContext({ isMobile: true, hasTouch: true, reducedMotion: "reduce" });
+  try {
+    await blockAnalytics(context);
+    const page = await context.newPage();
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      for (const locale of ["de", "ru"]) {
+        await page.goto(`${BASE_URL}/${locale}/website-privacy-policy.html`);
+        await page.evaluate(() => document.fonts.ready);
+        const fits = await page.locator(".legal-hero h1").evaluate(el => el.scrollWidth <= el.clientWidth + 1);
+        assert(fits, `${locale}/${width}: 隐私页完整标题必须在容器内换行`);
+      }
+      for (const locale of ["fr", "pt", "it", "tr", "ar"]) {
+        await page.goto(`${BASE_URL}/${locale}/calculator/`);
+        await page.evaluate(() => document.fonts.ready);
+        for (const unit of ["cm", "in"]) {
+          await page.locator("#unit").selectOption(unit);
+          const fields = await page.locator("#cbm-calculator [data-dimension-unit]").evaluateAll(nodes => nodes.map(bdi => {
+            const top = (text, i) => {
+              const range = document.createRange();
+              range.setStart(text, i); range.setEnd(text, i + 1);
+              return range.getBoundingClientRect().top;
+            };
+            return { unit: bdi.textContent, inputTop: bdi.closest("label").control.getBoundingClientRect().top,
+              glyphs: [top(bdi.previousSibling, bdi.previousSibling.length - 1), top(bdi.firstChild, 0),
+                top(bdi.firstChild, 1), top(bdi.nextSibling, 0)] };
+          }));
+          assert.equal(fields.length, 3);
+          const spread = values => Math.max(...values) - Math.min(...values);
+          assert(fields.every(f => f.unit === unit && spread(f.glyphs) <= 2), `${locale}/${width}: (${unit}) 不应拆到两行`);
+          assert(spread(fields.map(f => f.inputTop)) <= 1, `${locale}/${width}: 三个尺寸输入应保持对齐`);
+        }
+      }
+    }
+  } finally { await context.close(); }
 }
 
 async function calculatorMatrix(browserType) {
@@ -2338,6 +2379,7 @@ async function calculatorAnalyticsChecks(browserType) {
 }
 
 const chromiumBrowser = await chromium.launch({ headless: true });
+await narrowTextChecks(chromiumBrowser);
 await homeMatrix(chromiumBrowser);
 await calculatorMatrix(chromiumBrowser);
 await inquiryMatrix(chromiumBrowser);
@@ -2351,6 +2393,7 @@ await footerToolsChecks(chromiumBrowser);
 await chromiumBrowser.close();
 
 const webkitBrowser = await webkit.launch({ headless: true });
+await narrowTextChecks(webkitBrowser);
 const webkitContext = await webkitBrowser.newContext({ viewport: { width: 390, height: 844 }, screen: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 await blockAnalytics(webkitContext);
 const webkitPage = await webkitContext.newPage();
