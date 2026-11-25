@@ -82,6 +82,49 @@ try {
   const page = await bounded("relaunch Firefox at 200%",55000,start);
   const after = await bounded("200% calibration",40000,()=>probe(page,"200%"));
   assert(Math.abs(after[0]/before[0]-2)<0.03 && before[1]===after[1] && before[2]===after[2], `Native 200% text-only zoom not active: ${JSON.stringify({before,after})}`);
+  // 真正使用 200% 纯文本缩放：语言面板不能盖住增高后的页头，也不能让末项滚不到。
+  for (const [width,height] of [[320,568],[390,844],[667,320]]) {
+    await page.setViewportSize({width,height});
+    for (const locale of width===667 ? ["de","ar"] : locales) {
+      await bounded(`询价页/200% 字号/${locale}/${width}`,18000,async()=>{
+        const prefix=locale==="zh"?"/":"/"+locale+"/";
+        await page.goto(origin+prefix+"inquiry/#contact",{waitUntil:"load"});
+        await page.evaluate(()=>document.fonts.ready);
+        const menu=page.locator(".site-nav-language"), summary=menu.locator("summary");
+        const header=page.locator("header.site-nav");
+        const assertContact=()=>page.waitForFunction(()=>{
+          const target=document.querySelector("#contact").getBoundingClientRect();
+          return target.top>=document.querySelector("header.site-nav").getBoundingClientRect().bottom-1
+            && target.top<innerHeight && target.bottom>target.top;
+        },null,{timeout:4000,polling:100});
+        await assertContact();
+        await summary.click();
+        const bounds=await header.evaluate(el=>{
+          const h=el.getBoundingClientRect(),p=el.querySelector(".language-options").getBoundingClientRect();
+          const hits=[".site-nav-mobile-return-home",".site-nav-language summary"].every(s=>{
+            const n=el.querySelector(s),r=n.getBoundingClientRect();
+            return n.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+          });
+          return {bottom:p.bottom,visible:innerHeight,top:p.top,header:h.bottom,hits,overflow:document.documentElement.scrollWidth-innerWidth};
+        });
+        assert(bounds.hits && bounds.overflow<=1 && bounds.top>=bounds.header-1 && bounds.bottom<=bounds.visible+1,
+          "语言面板不得覆盖控制或超出视口："+JSON.stringify(bounds));
+        const options=menu.locator(".language-options a"); assert.equal(await options.count(),10);
+        const last=options.last();
+        await last.scrollIntoViewIfNeeded();
+        assert(await last.evaluate(a=>{const r=a.getBoundingClientRect();return a.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),"末项必须可点");
+        await page.keyboard.press("Escape");
+        assert(await summary.evaluate(el=>!el.parentElement.open && document.activeElement===el),"Esc 应关闭面板并返回语言按钮");
+        await summary.click();
+        const to=locale==="tr"?"en":"tr";
+        await Promise.all([
+          page.waitForURL(origin+"/"+to+"/inquiry/#contact"),
+          menu.locator('a[lang="'+to+'"]').click()
+        ]);
+        await assertContact();
+      });
+    }
+  }
   for (const [width,height] of [[375,667],[1024,768],[1366,768],[2560,1440]]) {
     await bounded(`viewport ${width}x${height}`,12000,()=>page.setViewportSize({width,height}));
     for (const locale of locales) {
@@ -117,7 +160,7 @@ try {
       });
     }
   }
-  console.log("Firefox native 200% text-only zoom: fixed viewport and DPR, 40 readable headlines and calculator navigation paths.");
+  console.log("Firefox native 200% text-only zoom: fixed viewport and DPR, 40 homepage paths and 22 inquiry menu/anchor paths.");
 } finally {
   try {
     if (ctx) await bounded("close Firefox",20000,()=>ctx.close());

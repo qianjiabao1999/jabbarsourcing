@@ -13710,10 +13710,27 @@ main > #team .section-heading h2 {
   }
   body.inquiry-page-compact header.site-nav > .site-nav-language {
     justify-self: end; max-width: 100%; min-width: 0;
+    position: static !important; transform: none !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  }
+  /* 由吸顶页头定位，不假设字号或行数；剩余视口只滚动语言列表。 */
+  body.inquiry-page-compact header.site-nav .language-options {
+    position: absolute !important; top: calc(100% + 5px) !important;
+    max-height: calc(100vh - 100% - 12px) !important;
+    max-height: calc(100dvh - 100% - 12px) !important;
+    box-sizing: border-box;
   }
   body.inquiry-page-compact header.site-nav .site-nav-language > summary {
     box-sizing: border-box; min-height: 48px !important; max-width: 100%;
     white-space: normal !important; overflow-wrap: anywhere;
   }
-  body.inquiry-page-compact #contact, body.inquiry-page-compact #inquiry { scroll-margin-top: 80px; }
+  body.inquiry-page-compact #contact, body.inquiry-page-compact #inquiry {
+    scroll-margin-top: var(--inquiry-anchor-clearance, 80px);
+  }
+}
+/* 无脚本且文本相对视口很大时，为锚点保留多行页头的空间。 */
+@media (max-width: 21em) and (max-width: 767px) {
+  body.inquiry-page-compact #contact, body.inquiry-page-compact #inquiry {
+    scroll-margin-top: var(--inquiry-anchor-clearance, min(200px, 55vh));
+  }
 }

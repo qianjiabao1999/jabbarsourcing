@@ -1483,6 +1483,15 @@
   }
 
   function initialize() {
+    var header = document.querySelector("body.inquiry-page-compact > header.site-nav");
+    if (header) {
+      function measureHeader() {
+        document.documentElement.style.setProperty("--inquiry-anchor-clearance", Math.max(80, Math.ceil(header.getBoundingClientRect().height) + 12) + "px");
+      }
+      measureHeader();
+      if (window.ResizeObserver) new ResizeObserver(measureHeader).observe(header);
+      else window.addEventListener("resize", measureHeader);
+    }
     document.querySelectorAll(".js-inquiry-form").forEach(initializeForm);
   }
 
