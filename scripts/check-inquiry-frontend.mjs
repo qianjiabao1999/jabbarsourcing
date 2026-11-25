@@ -9,9 +9,9 @@ const ENDPOINT = "https://inquiry-api.jabbarsourcing.com/inquiry";
 const SITEKEY = "0x4AAAAAADz9u67h7xPWOdMV";
 const TURNSTILE_ACTION = "turnstile-spin-v1";
 const PRIVACY_VERSION = "2026-07-22";
-const CSS_VERSION = "apple-202";
+const CSS_VERSION = "apple-203";
 const CONSENT_VERSION = "consent-20260722a";
-const JS_VERSION = "inquiry-20261125b";
+const JS_VERSION = "inquiry-20261126a";
 
 const PAGES = [
   { file: "inquiry/index.html", locale: "zh", source: "/inquiry/" },

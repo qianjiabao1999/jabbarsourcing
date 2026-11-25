@@ -7,8 +7,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-202";
-const UI_VERSION = "ui-20261125a";
+const CSS_VERSION = "apple-203";
+const UI_VERSION = "ui-20261126a";
 const ORDER_VERSION = "order-20261125a";
 const CONTAINER_VERSION = "container-20261011b";
 const LOCALES = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
@@ -508,7 +508,12 @@ for (const { locale, file } of INQUIRY_PAGES) {
   assert.equal(countClass(html, "site-nav-mobile-return-home"), 1, `${file}: mobile return-home link count`);
   assert.equal(mobileReturn.length, 1, `${file}: mobile return-home must be inside the shared navigation`);
   assert.equal(attribute(mobileReturn[0][0], "href"), attribute(returnLinks[0][0], "href"), `${file}: mobile and desktop return-home targets differ`);
-  assert.equal(decodeText(mobileReturn[0][0]), decodeText(returnLinks[0][0]), `${file}: mobile and desktop return-home labels differ`);
+  const [shortBack] = textsForClass(nav[0], "a", "site-nav-mobile-return-home");
+  assert(shortBack && attribute(mobileReturn[0][0], "aria-label").includes(shortBack), `${file}: 返回操作的无障碍名称必须包含可见文案`);
+  assert.deepEqual(textsForClass(html, "span", "inquiry-phone-title"),
+    textsForClass(await load(HOME_PAGES.find(page => page.locale === locale).file), "a", "phone-quote"),
+    `${file}: 手机询价标题须与本语种首页报价入口一致`);
+  for (const section of ["inquiry", "contact"]) assert.equal(count(html, new RegExp('id="' + section + '"', 'g')), 1, `${file}: 语种切换可保留的目标必须唯一存在`);
   assert.equal(tagsWithClass(nav[0], "a", "site-nav-return-home").length, 0, `${file}: desktop return-home must stay outside primary navigation`);
   assert.match(nav[0], /class="[^"]*\bsite-nav-mobile-return-home\b[^"]*"[^>]*>[^<]*<\/a>\s*(?:<\/nav>)?\s*$/, `${file}: mobile return-home must follow the other links`);
   assert.equal(countClass(html, "site-nav-mobile-home"), 0, `${file}: duplicate return-home item remains in mobile menu`);

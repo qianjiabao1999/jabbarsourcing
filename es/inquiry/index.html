@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-202" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-203" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261125b" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261126a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -123,13 +123,14 @@
         <a href="../#reviews">Reseñas</a>
         <a href="#contact">Contacto</a>
         <a class="site-nav-team" href="../#social-accounts">Redes sociales</a>
-        <a class="site-nav-quote site-nav-mobile-return-home" href="../">Volver al inicio</a>
+        <a class="site-nav-quote site-nav-mobile-return-home" href="../" aria-label="Volver al inicio">Volver</a>
 
 
       </nav>
       <a class="site-nav-social-pill" href="../#social-accounts" aria-label="Redes sociales" data-compact-label="Social"><span>Redes sociales</span></a>
       <a class="site-nav-tool-pill" href="../calculator/">Volumen</a>
       <a class="site-nav-quote site-nav-return-home" href="../">Volver al inicio</a>
+      <span class="inquiry-phone-title">Cotización gratis</span>
       <details class="language-switch language-menu site-nav-language">
           <summary>Español</summary>
           <nav class="language-options" aria-label="Cambio de idioma">
@@ -176,13 +177,6 @@
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="es" data-inquiry-source="/es/inquiry/" data-privacy-version="2026-07-22">
                 <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="No se pudo borrar el borrador guardado. Cierra esta pestaña para descartarlo." data-draft-restored="Se ha restaurado tu borrador en esta pestaña." data-draft-cleared="Se han borrado el borrador y el formulario." data-draft-expired="El borrador guardado ha caducado." data-draft-unavailable="No se puede guardar el borrador. Mantén esta página abierta hasta terminar.">
                   <p class="inquiry-draft-notice" id="inquiry-draft-notice">El borrador incluye tu contacto: solo en esta pestaña, 30 minutos. No se envía nada hasta que lo envíes.</p>
-                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>Borrar esta consulta</button>
-                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
-                    <p id="inquiry-clear-question">¿Borrar el formulario y su borrador guardado?</p>
-                    <button type="button" class="inquiry-clear-cancel">Seguir editando</button>
-                    <button type="button" class="inquiry-clear-confirm">Confirmar borrado</button>
-                  </div>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
                 <label class="field field-wide">
                   <span>Productos buscados</span>
@@ -193,12 +187,13 @@
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp · email · WeChat" autocomplete="on" />
                 </label>
                 <label class="field field-wide">
-                  <span>URL de referencia del producto (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Solo se aceptan enlaces http:// o https://" />
+                  <span id="inquiry-reference-label">URL de referencia del producto (Alibaba / Amazon / TikTok)</span>
+                  <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-error" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Pega una URL completa del producto, por ejemplo https://example.com/item." />
+                  <small id="inquiry-reference-error" class="inquiry-reference-error" aria-live="polite"></small>
                 </label>
                 <p class="inquiry-attachment-note field-wide">Este formulario solo admite texto y enlaces. Tras enviarlo, comparte las fotos o la lista de Excel por <a href="#contact">WhatsApp en la sección de contacto</a> e indica la referencia de tu solicitud.</p>
                 <details class="inquiry-additional-details field-wide">
-                  <summary class="inquiry-additional-summary"><span data-narrow-label="Enlace del producto y más detalles">Añade detalles para una cotización más precisa</span><small>Opcional</small></summary>
+                  <summary class="inquiry-additional-summary"><span data-link-label="Añadir un enlace del producto" data-narrow-label="Más detalles">Añade detalles para una cotización más precisa</span><small>Opcional</small></summary>
                   <div class="inquiry-additional-fields">
                     <label class="field">
                       <span>Categoría</span>
@@ -245,6 +240,15 @@
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="es"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Enviar solicitud</button>
                   <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+                </div>
+                <div class="inquiry-draft-actions field-wide">
+                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>Borrar esta consulta</button>
+                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
+                    <p id="inquiry-clear-question">¿Borrar el formulario y su borrador guardado?</p>
+                    <button type="button" class="inquiry-clear-cancel">Seguir editando</button>
+                    <button type="button" class="inquiry-clear-confirm">Confirmar borrado</button>
+                  </div>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
               </form>
             </div>
@@ -325,6 +329,6 @@
       })();
     </script>
   <script src="/assets/wechat-contact.js?v=wechat-20261124a" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20261125a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261126a" defer></script>
   </body>
 </html>

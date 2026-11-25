@@ -24,6 +24,7 @@
     "qa:calculator-feedback": "node scripts/qa-calculator-feedback.mjs",
     "qa:inquiry-draft": "node scripts/qa-inquiry-draft.mjs",
     "qa:post-launch-home": "node scripts/qa-post-launch-home.mjs",
+    "qa:mobile-quote-path": "node scripts/qa-mobile-quote-path.mjs",
     "qa:buyer-paths": "node scripts/qa-buyer-paths.mjs",
     "qa:wechat-contact": "node scripts/qa-wechat-contact.mjs",
     "qa:analytics-consent": "node scripts/qa-analytics-consent.mjs",

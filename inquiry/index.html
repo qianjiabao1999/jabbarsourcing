@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../styles.min.css?v=apple-202" />
+    <link rel="stylesheet" href="../styles.min.css?v=apple-203" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261125b" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261126a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -123,13 +123,14 @@
         <a href="../#reviews">客户评价</a>
         <a href="#contact">联系我们</a>
         <a class="site-nav-team" href="../#social-accounts">社媒账号</a>
-        <a class="site-nav-quote site-nav-mobile-return-home" href="../">返回首页</a>
+        <a class="site-nav-quote site-nav-mobile-return-home" href="../" aria-label="返回首页">返回</a>
 
 
       </nav>
       <a class="site-nav-social-pill" href="../#social-accounts" aria-label="社媒账号" data-compact-label="社媒账号"><span>社媒账号</span></a>
       <a class="site-nav-tool-pill" href="../calculator/">体积工具</a>
       <a class="site-nav-quote site-nav-return-home" href="../">返回首页</a>
+      <span class="inquiry-phone-title">免费报价</span>
       <details class="language-switch language-menu site-nav-language">
           <summary>中文</summary>
           <nav class="language-options" aria-label="语言切换">
@@ -176,13 +177,6 @@
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="zh" data-inquiry-source="/inquiry/" data-privacy-version="2026-07-22">
                 <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="无法删除已保存的草稿；请关闭此标签页以丢弃它。" data-draft-restored="已恢复此标签页的草稿。" data-draft-cleared="草稿和表单已清除。" data-draft-expired="已保存的草稿已过期。" data-draft-unavailable="无法保存草稿。完成前请保持此页面打开。">
                   <p class="inquiry-draft-notice" id="inquiry-draft-notice">草稿含联系方式，仅在此标签页保留30分钟；提交前不会发送。</p>
-                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>清空这张询价单</button>
-                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
-                    <p id="inquiry-clear-question">确定清空表单和已保存的草稿吗？</p>
-                    <button type="button" class="inquiry-clear-cancel">继续填写</button>
-                    <button type="button" class="inquiry-clear-confirm">确认清空</button>
-                  </div>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
                 <label class="field field-wide">
                   <span>想采购的产品</span>
@@ -193,12 +187,13 @@
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp · 邮箱 · 微信号" autocomplete="on" />
                 </label>
                 <label class="field field-wide">
-                  <span>产品参考链接（Alibaba / Amazon / TikTok）</span>
-                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="仅接受 http:// 或 https:// 链接" />
+                  <span id="inquiry-reference-label">产品参考链接（Alibaba / Amazon / TikTok）</span>
+                  <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-error" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="请粘贴完整的产品网址，例如 https://example.com/item。" />
+                  <small id="inquiry-reference-error" class="inquiry-reference-error" aria-live="polite"></small>
                 </label>
                 <p class="inquiry-attachment-note field-wide">表单仅接收文字和链接。提交后，请通过<a href="#contact">联系区的 WhatsApp</a>补发图片或 Excel 清单，并附上询盘编号。</p>
                 <details class="inquiry-additional-details field-wide">
-                  <summary class="inquiry-additional-summary"><span data-narrow-label="参考链接和更多需求">补充详情，便于准确报价</span><small>可选</small></summary>
+                  <summary class="inquiry-additional-summary"><span data-link-label="添加产品链接" data-narrow-label="更多采购需求">补充详情，便于准确报价</span><small>可选</small></summary>
                   <div class="inquiry-additional-fields">
                     <label class="field">
                       <span>产品方向</span>
@@ -245,6 +240,15 @@
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="zh-cn"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">提交询盘</button>
                   <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+                </div>
+                <div class="inquiry-draft-actions field-wide">
+                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>清空这张询价单</button>
+                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
+                    <p id="inquiry-clear-question">确定清空表单和已保存的草稿吗？</p>
+                    <button type="button" class="inquiry-clear-cancel">继续填写</button>
+                    <button type="button" class="inquiry-clear-confirm">确认清空</button>
+                  </div>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
               </form>
             </div>
@@ -325,6 +329,6 @@
       })();
     </script>
   <script src="/assets/wechat-contact.js?v=wechat-20261124a" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20261125a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261126a" defer></script>
   </body>
 </html>

@@ -349,6 +349,7 @@ await slowTurnstilePage.locator('[name="contact"]').fill("slow-check@example.inv
 const slowFallback = slowStatus.locator(".inquiry-status-whatsapp");
 assert((await slowFallback.getAttribute("href")).includes("slow-check%40example.invalid"), "Security fallback must reflect edited fields without losing the retry action");
 await slowTurnstilePage.locator(".inquiry-additional-summary").click();
+if (await slowTurnstilePage.locator(".inquiry-reference-details").count()) await slowTurnstilePage.locator(".inquiry-reference-details > summary").click();
 await slowTurnstilePage.locator('[name="referenceUrl"]').fill("https://example.invalid/item?size=2&color=blue");
 const fallbackCategory = slowTurnstilePage.locator('[name="category"]');
 await fallbackCategory.selectOption({ index: 1 });
@@ -803,7 +804,7 @@ for (const viewport of [
       const toolPill = document.querySelector(".site-nav-tool-pill");
       const getLink = (link) => {
         const { width, height, top, left, right } = link.getBoundingClientRect();
-        return { href: link.getAttribute("href"), text: link.textContent.trim(), width, height, top, left, right };
+        return { href: link.getAttribute("href"), text: link.textContent.trim(), label: link.getAttribute("aria-label"), width, height, top, left, right };
       };
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
@@ -870,8 +871,8 @@ for (const viewport of [
     assert(metrics.visibleCoreFieldCount === (narrowInquiry ? 2 : 3) && metrics.visibleOrderDetailCount === (narrowInquiry ? 0 : 1),
       `${item.locale} ${viewport.name}: initially show the two required fields, plus the URL on desktop only`);
     const optionalFields = ["budget", "category", "company", "market", "note", "quantity"];
-    if (narrowInquiry) optionalFields.push("referenceUrl");
     assert(JSON.stringify(metrics.collapsedFieldNames) === JSON.stringify(optionalFields), `${item.locale} ${viewport.name}: wrong optional field group`);
+    assert((await page.locator(".inquiry-reference-details [name=referenceUrl]").count()) === (narrowInquiry ? 1 : 0), "手机链接单独展开，电脑链接保持可见");
     const attachment = page.locator(".inquiry-attachment-note");
     assert((await attachment.isVisible()) === !narrowInquiry, `${item.locale} ${viewport.name}: misplaced attachment information`);
     assert(metrics.turnstileHeight >= 65 && metrics.turnstileHeight <= 70, `${item.locale} ${viewport.name} Turnstile placeholder is ${metrics.turnstileHeight}px instead of a stable 65px`);
@@ -880,7 +881,7 @@ for (const viewport of [
     assert(metrics.returnHomeCount === 1 && metrics.returnHomeHref === "../", `${item.locale} ${viewport.name} top Return Home control regressed`);
     assert(metrics.mobileReturn.length === 1
       && metrics.mobileReturn[0].href === metrics.returnHomeHref
-      && metrics.mobileReturn[0].text === metrics.returnHomeText, `${item.locale} ${viewport.name} responsive Return Home differs from the real desktop control`);
+      && metrics.mobileReturn[0].label.includes(metrics.mobileReturn[0].text), `${item.locale} ${viewport.name} 手机与桌面返回目标必须相同，短标签须在无障碍名称内`);
     assert(metrics.duplicateMobileHomeCount === 0, `${item.locale} ${viewport.name} duplicate Return Home remains in mobile menu`);
     assert(metrics.mobileTeamCount === 0, `${item.locale} ${viewport.name} legacy duplicate social entry remains`);
     assert(metrics.mobileExtraEntries.length === 2, `${item.locale} ${viewport.name} compact inquiry menu destinations missing`);
@@ -890,17 +891,14 @@ for (const viewport of [
     assert(metrics.brokenImages === 0, `${item.locale} ${viewport.name} has ${metrics.brokenImages} broken loaded images`);
     if (viewport.name !== "desktop") {
       assert(metrics.socialPillDisplay === "none", `${item.locale} ${viewport.name} secondary social action duplicates the capsule link`);
-      assert(metrics.headerHeight <= 180, `${item.locale} ${viewport.name} two-row inquiry header is too tall`);
+      assert(metrics.headerHeight <= 82, `${item.locale} ${viewport.name} 询价单行导航遮挡表单`);
       assert(!metrics.collapsedMenuVisible && !metrics.returnHomeVisible
         && metrics.mobileExtraEntries.every((entry) => entry.height === 0), `${item.locale} ${viewport.name} redundant navigation controls are visible`);
-      assert(metrics.directNavigation.length === 6
-        && new Set(metrics.directNavigation.map((link) => Math.round(link.top))).size === 2,
-      `${item.locale} ${viewport.name} inquiry navigation must have six links on two rows`);
-      assert(metrics.directNavigation.every((link) => link.height >= 44 && link.width >= 44
-        && link.left >= -1 && link.right <= viewport.width + 1 && link.text), `${item.locale} ${viewport.name} direct links are not labeled in-viewport touch targets`);
-      assert(metrics.directNavigation.some((entry) => entry.href === "../#social-accounts"), `${item.locale} ${viewport.name} missing direct social link`);
-      assert(metrics.toolPill?.href === "../calculator/" && metrics.toolPill.height >= 44 && metrics.toolPill.width >= 44
-        && metrics.toolPill.left >= -1 && metrics.toolPill.right <= viewport.width + 1, `${item.locale} ${viewport.name} calculator pill is missing or clipped`);
+      const visibleNav = metrics.directNavigation.filter(link => link.width > 0 && link.height > 0);
+      assert(visibleNav.length === 1 && visibleNav[0].href === "../", `${item.locale} ${viewport.name} 手机只露出原导航中的返回入口`);
+      assert(visibleNav[0].height >= 44 && visibleNav[0].width >= 44 && visibleNav[0].left >= -1 && visibleNav[0].right <= viewport.width + 1,
+        `${item.locale} ${viewport.name} 返回入口须完整可点`);
+      assert(metrics.toolPill?.href === "../calculator/" && metrics.toolPill.height === 0, `${item.locale} ${viewport.name} 桌面工具不得占用手机询价页头`);
     } else {
       assert(metrics.socialPillDisplay === "none", `${item.locale} desktop responsive social pill remains visible`);
       assert(metrics.returnHomeVisible && metrics.mobileReturn[0].height === 0, `${item.locale} desktop Return Home was changed or duplicated`);
@@ -909,6 +907,11 @@ for (const viewport of [
     await page.locator(".inquiry-additional-summary").focus();
     await page.keyboard.press("Enter");
     assert(await page.locator(".inquiry-additional-details[open]").count() === 1, `${item.locale} ${viewport.name} native disclosure must open by keyboard`);
+    if (narrowInquiry) {
+      assert(await page.locator('[name="referenceUrl"]').isHidden(), "展开采购详情不得同时展开链接");
+      assert(await attachment.isHidden(), "附图说明跟随链接，不跟随六项资料");
+      await page.locator(".inquiry-reference-details > summary").click();
+    }
     assert(await attachment.isVisible(), `${item.locale} ${viewport.name}: attachment information must remain available`);
     for (const name of ORDER_DETAIL_FIELDS) {
       assert(await page.locator(`[name="${name}"]`).isVisible(), `${item.locale} ${viewport.name} expanded ${name} field is not visible`);

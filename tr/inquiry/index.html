@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-202" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-203" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261125b" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261126a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -123,13 +123,14 @@
         <a href="../#reviews">Yorumlar</a>
         <a href="#contact">İletişim</a>
         <a class="site-nav-team" href="../#social-accounts">Sosyal Medya Hesapları</a>
-        <a class="site-nav-quote site-nav-mobile-return-home" href="../">Ana sayfa</a>
+        <a class="site-nav-quote site-nav-mobile-return-home" href="../" aria-label="Geri: Ana sayfa">Geri</a>
 
 
       </nav>
       <a class="site-nav-social-pill" href="../#social-accounts" aria-label="Sosyal Medya Hesapları" data-compact-label="Sosyal"><span>Sosyal Medya Hesapları</span></a>
       <a class="site-nav-tool-pill" href="../calculator/">Hacim</a>
       <a class="site-nav-quote site-nav-return-home" href="../">Ana sayfa</a>
+      <span class="inquiry-phone-title">Ücretsiz Teklif</span>
       <details class="language-switch language-menu site-nav-language">
           <summary>Türkçe</summary>
           <nav class="language-options" aria-label="Dil seçimi">
@@ -176,13 +177,6 @@
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="tr" data-inquiry-source="/tr/inquiry/" data-privacy-version="2026-07-22">
                 <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="Kaydedilen taslak silinemedi. Taslağı kaldırmak için bu sekmeyi kapatın." data-draft-restored="Taslağınız bu sekmede geri yüklendi." data-draft-cleared="Taslak ve form temizlendi." data-draft-expired="Kaydedilen taslağın süresi doldu." data-draft-unavailable="Taslak kaydedilemiyor. Bitirene kadar bu sayfayı açık tutun.">
                   <p class="inquiry-draft-notice" id="inquiry-draft-notice">Taslak iletişim bilgilerini içerir: yalnızca bu sekmede, 30 dakika. Siz göndermeden iletilmez.</p>
-                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>Bu talebi temizle</button>
-                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
-                    <p id="inquiry-clear-question">Form ve kayıtlı taslağı temizlemek istiyor musunuz?</p>
-                    <button type="button" class="inquiry-clear-cancel">Düzenlemeye devam et</button>
-                    <button type="button" class="inquiry-clear-confirm">Temizlemeyi onayla</button>
-                  </div>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
                 <label class="field field-wide">
                   <span>Gerekli ürünler</span>
@@ -193,12 +187,13 @@
                   <input name="contact" type="text" maxlength="200" placeholder="E-posta/WhatsApp/WeChat" autocomplete="on"  required/>
                 </label>
                 <label class="field field-wide">
-                  <span>Ürün referans bağlantısı (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Yalnızca http:// veya https:// bağlantıları kabul edilir" />
+                  <span id="inquiry-reference-label">Ürün referans bağlantısı (Alibaba / Amazon / TikTok)</span>
+                  <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-error" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Ürünün tam bağlantısını yapıştırın; örneğin https://example.com/item." />
+                  <small id="inquiry-reference-error" class="inquiry-reference-error" aria-live="polite"></small>
                 </label>
                 <p class="inquiry-attachment-note field-wide">Bu form yalnızca metin ve bağlantı kabul eder. Formu gönderdikten sonra fotoğrafları veya Excel listesini <a href="#contact">iletişim bölümündeki WhatsApp</a> üzerinden gönderin ve talep referansınızı belirtin.</p>
                 <details class="inquiry-additional-details field-wide">
-                  <summary class="inquiry-additional-summary"><span data-narrow-label="Ürün bağlantısı ve ek bilgiler">Daha doğru bir teklif için ayrıntı ekleyin</span><small>İsteğe bağlı</small></summary>
+                  <summary class="inquiry-additional-summary"><span data-link-label="Ürün bağlantısı ekle" data-narrow-label="Ek bilgiler">Daha doğru bir teklif için ayrıntı ekleyin</span><small>İsteğe bağlı</small></summary>
                   <div class="inquiry-additional-fields">
                     <label class="field">
                       <span>Ürün kategorisi</span>
@@ -245,6 +240,15 @@
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="tr"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Talebi gönder</button>
                   <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+                </div>
+                <div class="inquiry-draft-actions field-wide">
+                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>Bu talebi temizle</button>
+                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
+                    <p id="inquiry-clear-question">Form ve kayıtlı taslağı temizlemek istiyor musunuz?</p>
+                    <button type="button" class="inquiry-clear-cancel">Düzenlemeye devam et</button>
+                    <button type="button" class="inquiry-clear-confirm">Temizlemeyi onayla</button>
+                  </div>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
               </form>
             </div>
@@ -324,6 +328,6 @@
       })();
     </script>
   <script src="/assets/wechat-contact.js?v=wechat-20261124a" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20261125a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261126a" defer></script>
   </body>
 </html>

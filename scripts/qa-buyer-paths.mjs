@@ -144,8 +144,10 @@ for (const engine of [chromium, webkit]) {
         await page.setViewportSize({ width:390, height:844 });
         await page.locator("form[data-direct-inquiry-ready=true]").waitFor();
         const optional = page.locator(".inquiry-additional-details");
-        assert.equal(await optional.locator('[name=referenceUrl]').count(), 1, scope + ": 选填区应包含原参考链接字段");
-        assert.equal(await optional.locator('[name=referenceUrl]').isVisible(), false);
+        const linkEntry = page.locator(".inquiry-reference-details");
+        assert.equal(await optional.locator('[name=referenceUrl]').count(), 0, scope + ": 链接独立于其他补充信息");
+        assert.equal(await linkEntry.locator('[name=referenceUrl]').count(), 1, scope + ": 独立链接区须包含原字段");
+        assert.equal(await linkEntry.locator('[name=referenceUrl]').isVisible(), false);
         assert(await page.locator("[name=contact]").isVisible());
         await screenshot("inquiry-390");
         await page.goto(base + prefix + "calculator/");

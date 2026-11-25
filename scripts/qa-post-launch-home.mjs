@@ -122,33 +122,37 @@ async function assertMobileNavigation(page, scope, width, isInquiry = false) {
       return { width: bounds.width, height: bounds.height, left: bounds.left, right: bounds.right, top: bounds.top, bottom: bounds.bottom,
         textLeft: text.left, textRight: text.right, textTop: text.top, textBottom: text.bottom, href: element.getAttribute("href") };
     };
-    const controls = [".site-nav-brand", ".site-nav-tool-pill", ".site-nav-language > summary"].map(selector => boxAndText(header.querySelector(selector)));
+    const selectors = inquiry ? [".site-nav-mobile-return-home", ".site-nav-language > summary"]
+      : [".site-nav-brand", ".site-nav-tool-pill", ".site-nav-language > summary"];
+    const controls = selectors.map(selector => boxAndText(header.querySelector(selector)));
     const capsule = header.querySelector(inquiry ? ".site-nav-links" : ".phone-desk-strip");
     const links = [...capsule.querySelectorAll("a")].map(boxAndText);
-    const countColumns = getComputedStyle(capsule).gridTemplateColumns.trim().split(/\s+/).length;
     const visible = selector => [...header.querySelectorAll(selector)].some(element => element.getBoundingClientRect().width > 0);
     const brand = header.querySelector(".site-nav-brand > span");
-    return { controls, links, countColumns, capsuleTop: capsule.getBoundingClientRect().top,
+    return { controls, links, capsuleTop: capsule.getBoundingClientRect().top,
+      title: inquiry && boxAndText(header.querySelector(".inquiry-phone-title")), toolVisible: visible(".site-nav-tool-pill"),
       headerHeight: header.getBoundingClientRect().height,
       wordmark: brand.getBoundingClientRect().width > 0 && brand.textContent.trim() === "Jabbar Sourcing",
       hasLegacyMenu: visible(".site-nav-mobile-menu,.site-nav-quote-action,.site-nav-return-home"),
       legacyGridVisible: visible(".site-nav-links"), rail: inquiry ? null : boxAndText(capsule.querySelector(".phone-chapters")) };
   }, isInquiry);
-  assert(layout.wordmark, `${scope}: 桌面品牌字标仍完整可见`);
   assert(!layout.hasLegacyMenu, `${scope}: 旧手机菜单、独立报价和外置返回入口必须隐藏`);
   const destinations = isInquiry
     ? ["../#services", "../#how-it-works", "../#reviews", "#contact", "../#social-accounts", "../"]
     : ["#services", "#how-it-works", "#reviews", "#contact", "#social-accounts", "inquiry/"];
   assert.deepEqual(layout.links.map(link => link.href), destinations, `${scope}: 六个导航入口的实际地址与顺序`);
-  const rowCounts = new Map();
-  for (const link of layout.links) {
-    const row = Math.round(link.top);
-    rowCounts.set(row, (rowCounts.get(row) || 0) + 1);
-  }
   if (isInquiry) {
-    assert.equal(layout.countColumns, 3, `${scope}: 询价页导航胶囊保持三列`);
-    assert.deepEqual([...rowCounts.values()], [3, 3], `${scope}: 询价页六个入口保持两行`);
+    assert(!layout.wordmark && !layout.toolVisible, `${scope}: 不显示旧询价导航和工具`);
+    assert.deepEqual(layout.links.filter(link => link.width > 0).map(link => link.href), ["../"], `${scope}: 旧导航中仅返回入口可见`);
+    assert(layout.headerHeight <= 82, `${scope}: 询价页头应为一行`);
+    const {title} = layout;
+    assert(title.height > 0 && Math.abs((title.left+title.right)/2-width/2)<=1
+      && title.textLeft >= title.left-1 && title.textRight <= title.right+1, `${scope}: 本语种报价标题应在屏幕正中且不裁切`);
+    const [left,right] = [...layout.controls].sort((a,b) => a.left-b.left);
+    assert(left.right<=title.left+1 && right.left>=title.right-1
+      && layout.controls.every(c=>c.top<=title.bottom && c.bottom>=title.top), `${scope}: 返回、标题、语言同列一行且不遮挡`);
   } else {
+    assert(layout.wordmark, `${scope}: 桌面品牌字标仍完整可见`);
     assert(!layout.legacyGridVisible, `${scope}: 首页不显示旧六宫格`);
     assert(layout.links.slice(0,-1).every(a => a.top >= layout.rail.top-1 && a.bottom <= layout.rail.bottom+1 && a.height >= 44 && a.width >= 44), `${scope}: 五个章节位于同一条可横滑的触控栏`);
     const quote = page.locator(".phone-desk-strip .phone-quote");
@@ -174,12 +178,12 @@ async function assertMobileNavigation(page, scope, width, isInquiry = false) {
       assert(Math.abs(s.x-buttonBox.x)<1 && Math.abs(s.y-buttonBox.y)<1 && s.width>=44 && s.height>=44, `${scope}: 横滑章节时免费报价不随动`);
     }
   }
-  for (const control of [...layout.controls, ...(isInquiry ? layout.links : layout.links.slice(-1))]) {
+  for (const control of [...layout.controls, ...(isInquiry ? [] : layout.links.slice(-1))]) {
     assert(control.width >= 44 && control.height >= 44 && control.left >= -1 && control.right <= width + 1, `${scope}: 完整显示 44px 触控入口 ${JSON.stringify(control)}`);
     assert(control.textLeft >= control.left - 1 && control.textRight <= control.right + 1 && control.textTop >= control.top - 1 && control.textBottom <= control.bottom + 1, `${scope}: 导航入口文字不能裁切 ${JSON.stringify(control)}`);
   }
   const topRow = [...layout.controls].sort((first, second) => first.left - second.left);
-  assert(topRow.every((control, index) => control.bottom <= layout.capsuleTop + 1 && (!index || control.left >= topRow[index - 1].right - 0.5)), `${scope}: 第一行三个入口不得重叠 ${JSON.stringify(layout)}`);
+  if (!isInquiry) assert(topRow.every((control, index) => control.bottom <= layout.capsuleTop + 1 && (!index || control.left >= topRow[index - 1].right - 0.5)), `${scope}: 第一行三个入口不得重叠 ${JSON.stringify(layout)}`);
   assert(layout.headerHeight <= 172, `${scope}: 吸顶导航不得出现多余第三行 ${JSON.stringify(layout)}`);
   return layout;
 }
@@ -362,7 +366,10 @@ async function languageChecks(browser, engine, width) {
       { from: "/ar/#reviews", lang: "en", to: "/en/#reviews" },
       { from: "/en/#not-a-section", lang: "ar", to: "/ar/" },
       { from: "/en/calculator/", lang: "ar", to: "/ar/calculator/" },
-      { from: "/en/inquiry/", lang: "fr", to: "/fr/inquiry/" }
+      { from: "/en/inquiry/", lang: "fr", to: "/fr/inquiry/" },
+      { from: "/inquiry/?unrelated=sample#contact", lang: "en", to: "/en/inquiry/#contact" },
+      { from: "/en/inquiry/#inquiry", lang: "ar", to: "/ar/inquiry/#inquiry" },
+      { from: "/ar/inquiry/#unknown", lang: "tr", to: "/tr/inquiry/" }
     ]) {
       await page.goto(BASE_URL + example.from, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => document.querySelector(".site-nav-language > summary")?.hasAttribute("aria-expanded"));
@@ -371,12 +378,21 @@ async function languageChecks(browser, engine, width) {
       await page.waitForURL(BASE_URL + example.to);
       assert.equal(new URL(page.url()).pathname + new URL(page.url()).hash, example.to, `${engine}/${width}: 页首语言路由及章节`);
       assert.equal(new URL(page.url()).search, "", `${engine}/${width}: 不转发查询参数`);
+      if (example.to.endsWith("inquiry/#contact")) {
+        await waitForScrollSettled(page, engine + "/inquiry-language-contact");
+        const visible = await page.locator("#contact").evaluate(el => {
+          const section = el.getBoundingClientRect(), header = document.querySelector("header.site-nav").getBoundingClientRect();
+          return section.top >= header.bottom-1 && section.top < innerHeight && section.bottom > header.bottom;
+        });
+        assert(visible, `${engine}/${width}: 切换语言后联系区仍应可见`);
+      }
     }
     for (const example of [
       { from: "/en/#faq", locale: "zh", to: "/#faq" },
       { from: "/ar/#contact", locale: "de", to: "/de/#contact" },
       { from: "/en/calculator/", locale: "fr", to: "/fr/calculator/" },
-      { from: "/en/inquiry/", locale: "de", to: "/de/inquiry/" }
+      { from: "/en/inquiry/", locale: "de", to: "/de/inquiry/" },
+      { from: "/ar/inquiry/#contact", locale: "zh", to: "/inquiry/#contact" }
     ]) {
       await page.goto(BASE_URL + example.from, { waitUntil: "domcontentloaded" });
       await page.locator(".site-footer-language-select").selectOption(example.locale);

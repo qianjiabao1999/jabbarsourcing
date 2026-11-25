@@ -91,6 +91,7 @@ async function fillAll(page) {
   await page.locator('[name="product"]').fill(FIXTURE.product);
   await page.locator('[name="contact"]').fill(FIXTURE.contact);
   await page.locator(".inquiry-additional-summary").click();
+  await page.locator(".inquiry-reference-details > summary").click();
   await page.locator('[name="referenceUrl"]').fill(FIXTURE.referenceUrl);
   for (const name of ["quantity", "budget", "market", "company", "note"]) await page.locator(`[name="${name}"]`).fill(FIXTURE[name]);
   await page.locator('[name="category"]').selectOption({ index: 3 });
@@ -162,8 +163,13 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         const noticeBeforeInput = await page.evaluate(() => document.querySelector(".inquiry-draft-notice").getBoundingClientRect().bottom <= document.querySelector('[name="product"]').getBoundingClientRect().top);
         assert.equal(noticeBeforeInput, true, `${locale}: transparent notice must precede first field`);
         assert.equal(await page.locator("input[required]").count(), 2);
-        assert.equal(await page.locator(".inquiry-additional-fields input,.inquiry-additional-fields select,.inquiry-additional-fields textarea").count(), 7);
+        assert.equal(await page.locator(".inquiry-additional-fields input,.inquiry-additional-fields select,.inquiry-additional-fields textarea").count(), 6);
+        assert.equal(await page.locator(".inquiry-reference-details input").count(), 1);
         assert.equal(await page.locator('[name="referenceUrl"]').isVisible(), false);
+        const inputTop = () => page.locator('[name="product"]').evaluate(el => el.getBoundingClientRect().top + window.scrollY);
+        const originalTop = await inputTop();
+        await page.locator('[name="product"]').fill("A");
+        assert(Math.abs((await inputTop()) - originalTop) <= 1, locale + ": 输入首字不能推动表单");
         const expected = await fillAll(page);
         let record = await readStored(page);
         assert.deepEqual(Object.keys(record).sort(), ["detailsOpen", "fields", "savedAt", "version"]);
@@ -174,6 +180,7 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
 
         await page.reload({ waitUntil: "networkidle" });
         assert.deepEqual(await readValues(page), expected, `${locale}: regular reload must restore all business fields`);
+        assert(await page.locator('[name="referenceUrl"]').isVisible(), locale + ": 恢复时应显示已有链接");
         assert.equal(await page.locator(".inquiry-additional-details").evaluate((node) => node.open), true);
         assert.equal((await readStored(page)).savedAt, record.savedAt, `${locale}: restoration must not extend expiry`);
         await page.locator(".inquiry-additional-summary").click();

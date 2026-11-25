@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-202" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-203" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261125b" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261126a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -123,13 +123,14 @@
         <a href="../#reviews">آراء العملاء</a>
         <a href="#contact">اتصل بنا</a>
         <a class="site-nav-team" href="../#social-accounts">حسابات التواصل الاجتماعي</a>
-        <a class="site-nav-quote site-nav-mobile-return-home" href="../">العودة للرئيسية</a>
+        <a class="site-nav-quote site-nav-mobile-return-home" href="../" aria-label="رجوع إلى الرئيسية">رجوع</a>
 
 
       </nav>
       <a class="site-nav-social-pill" href="../#social-accounts" aria-label="حسابات التواصل الاجتماعي" data-compact-label="تواصل"><span>حسابات التواصل الاجتماعي</span></a>
       <a class="site-nav-tool-pill" href="../calculator/">الحجم</a>
       <a class="site-nav-quote site-nav-return-home" href="../">العودة للرئيسية</a>
+      <span class="inquiry-phone-title">عرض سعر مجاني</span>
       <details class="language-switch language-menu site-nav-language">
           <summary>العربية</summary>
           <nav class="language-options" aria-label="تغيير اللغة">
@@ -176,13 +177,6 @@
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="ar" data-inquiry-source="/ar/inquiry/" data-privacy-version="2026-07-22">
                 <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="تعذر حذف المسودة المحفوظة. أغلق علامة التبويب هذه للتخلص منها." data-draft-restored="تمت استعادة المسودة في علامة التبويب هذه." data-draft-cleared="تم مسح المسودة والنموذج." data-draft-expired="انتهت صلاحية المسودة المحفوظة." data-draft-unavailable="حفظ المسودة غير متاح. أبقِ الصفحة مفتوحة حتى تنتهي.">
                   <p class="inquiry-draft-notice" id="inquiry-draft-notice">المسودة تشمل بيانات التواصل: في علامة التبويب هذه فقط لمدة 30 دقيقة. لا تُرسل قبل الإرسال.</p>
-                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>مسح هذا الاستفسار</button>
-                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
-                    <p id="inquiry-clear-question">هل تريد مسح النموذج ومسودته المحفوظة؟</p>
-                    <button type="button" class="inquiry-clear-cancel">متابعة التحرير</button>
-                    <button type="button" class="inquiry-clear-confirm">تأكيد المسح</button>
-                  </div>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
                 <label class="field field-wide">
                   <span>المنتجات المطلوبة</span>
@@ -193,12 +187,13 @@
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp · بريد · WeChat" autocomplete="on" />
                 </label>
                 <label class="field field-wide">
-                  <span>رابط مرجعي للمنتج (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" dir="auto" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="تُقبل روابط http:// أو https:// فقط" />
+                  <span id="inquiry-reference-label">رابط مرجعي للمنتج (Alibaba / Amazon / TikTok)</span>
+                  <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-error" dir="auto" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="ألصق رابط المنتج كاملاً، مثل https://example.com/item" />
+                  <small id="inquiry-reference-error" class="inquiry-reference-error" aria-live="polite"></small>
                 </label>
                 <p class="inquiry-attachment-note field-wide">يقبل هذا النموذج النصوص والروابط فقط. بعد إرسال الطلب، أرسل الصور أو قائمة Excel عبر <a href="#contact">WhatsApp في قسم التواصل</a> واذكر مرجع الطلب.</p>
                 <details class="inquiry-additional-details field-wide">
-                  <summary class="inquiry-additional-summary"><span data-narrow-label="رابط المنتج وتفاصيل إضافية">أضف تفاصيل للحصول على عرض سعر أدق</span><small>اختياري</small></summary>
+                  <summary class="inquiry-additional-summary"><span data-link-label="إضافة رابط المنتج" data-narrow-label="تفاصيل إضافية">أضف تفاصيل للحصول على عرض سعر أدق</span><small>اختياري</small></summary>
                   <div class="inquiry-additional-fields">
                     <label class="field">
                       <span>الفئة</span>
@@ -245,6 +240,15 @@
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="ar"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">إرسال الطلب</button>
                   <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+                </div>
+                <div class="inquiry-draft-actions field-wide">
+                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>مسح هذا الاستفسار</button>
+                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
+                    <p id="inquiry-clear-question">هل تريد مسح النموذج ومسودته المحفوظة؟</p>
+                    <button type="button" class="inquiry-clear-cancel">متابعة التحرير</button>
+                    <button type="button" class="inquiry-clear-confirm">تأكيد المسح</button>
+                  </div>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
               </form>
             </div>
@@ -325,6 +329,6 @@
       })();
     </script>
   <script src="/assets/wechat-contact.js?v=wechat-20261124a" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20261125a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261126a" defer></script>
   </body>
 </html>

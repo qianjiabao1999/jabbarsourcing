@@ -47,6 +47,7 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         await page.waitForURL(BASE_URL + path);
         assert.equal(await page.locator(".js-inquiry-form").getAttribute("data-inquiry-source"), path);
         const details = page.locator(".inquiry-additional-details");
+        const linkDetails = page.locator(".inquiry-reference-details");
         const submit = page.locator(".js-inquiry-direct");
         const quantity = page.locator('[name="quantity"]');
         assert.equal(await details.evaluate((node) => node.open), false, `${scope}: empty disclosure must start closed`);
@@ -100,13 +101,24 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
           const reference = page.locator('[name="referenceUrl"]');
           await page.locator('[name="product"]').fill("Local fixture");
           await page.locator('[name="contact"]').fill("local@example.invalid");
-          await details.locator("summary").click();
+          const submitTop = () => submit.evaluate(el => el.getBoundingClientRect().top + window.scrollY);
+          const oldTop = await submitTop();
+          await linkDetails.locator("summary").click();
+          assert(!(await details.evaluate(el => el.open)), scope + ": 添加链接不应展开其他六项");
+          assert((await submitTop()) - oldTop < 320, scope + ": 单一链接与发图说明不应推出半屏");
+          assert(await linkDetails.locator('.inquiry-attachment-note a[href="#contact"]').isVisible(), scope + ": 无需展开六项资料即可找到发图入口");
           await reference.fill("ftp://example.invalid/not-accepted");
-          await details.locator("summary").click();
+          await reference.press("Tab");
+          assert.equal(await reference.getAttribute("aria-invalid"), "true");
+          assert.equal(await reference.getAttribute("aria-describedby"), "inquiry-reference-error");
+          assert.equal(await page.locator("#inquiry-reference-error").textContent(), await reference.getAttribute("title"));
+          await linkDetails.locator("summary").click();
+          assert(await linkDetails.locator(".inquiry-reference-summary-error").isVisible(), scope + ": 折叠时仍须提示链接有误");
           assert.equal(await reference.isVisible(), false, `${scope}: closed optional URL should be hidden`);
           await submit.click();
           await page.waitForFunction(() => document.activeElement?.name === "referenceUrl");
           assert.equal(await reference.isVisible(), true, `${scope}: invalid URL must reopen and focus`);
+          assert.equal(await details.evaluate(el => el.open), false, scope + ": 链接错误只展开链接，不干扰采购详情");
           assert.equal(inquiryRequests, 0);
           // 改变断点时仍是同一个字段，保持值和焦点；回到手机后可继续编辑。
           await page.setViewportSize({ width: 1024, height: 800 });
@@ -121,7 +133,7 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         // 常见的复制地址缺协议：输入中不改写；完成编辑或按回车再补全。
         await page.goto(`${BASE_URL}${path}`, { waitUntil: "networkidle" });
         const reference = page.locator('[name="referenceUrl"]');
-        if (width === 360) await details.locator("summary").click();
+        if (width === 360) await linkDetails.locator("summary").click();
         const bare = "www.alibaba.com/product-detail/tea-cup.html?options=blue%2Fred&lang=ar#details";
         const completed = "https://" + bare;
         await reference.fill(bare);
@@ -153,6 +165,8 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
           await reference.press("Tab");
           assert.equal(await reference.inputValue(), expected, scope + ": 只调整协议大小写");
           assert(await reference.evaluate(el => el.validity.valid), scope + ": 修正后应立即恢复可用");
+          assert.equal(await reference.getAttribute("aria-invalid"), null);
+          assert.equal(await page.locator("#inquiry-reference-error").textContent(), "");
           assert(await page.locator(".inquiry-reference-omitted").isHidden(), scope + ": 已修正时不应提示链接缺失");
         }
         for (const untouched of ["http://www.example.invalid/item", "https://www.example.invalid/a?b=2", "tea cup", "buyer@example.invalid", "ftp://www.example.invalid/a", "//www.example.invalid/a", "www.example.invalid@other.invalid", "www.example.invalid:wrong", "www.example.invalid/" + "a".repeat(478)]) {
@@ -164,7 +178,7 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         await page.goto(`${BASE_URL}${path}`, { waitUntil: "networkidle" });
         await page.locator('[name="product"]').fill("Local product");
         await page.locator('[name="contact"]').fill("local@example.invalid");
-        if (width === 360) await details.locator("summary").click();
+        if (width === 360) await linkDetails.locator("summary").click();
         await reference.fill(bare);
         await page.evaluate(() => {
           const form = document.querySelector(".js-inquiry-form");

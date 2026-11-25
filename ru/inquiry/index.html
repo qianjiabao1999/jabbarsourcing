@@ -48,9 +48,9 @@
     <link rel="shortcut icon" href="../../favicon.ico?v=jabbar-6" />
     <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=jabbar-6" sizes="180x180" />
     <link rel="manifest" href="../../site.webmanifest?v=jabbar-6" />
-    <link rel="stylesheet" href="../../styles.min.css?v=apple-202" />
+    <link rel="stylesheet" href="../../styles.min.css?v=apple-203" />
     <script src="/assets/analytics-consent.js?v=consent-20260722a" defer></script>
-    <script src="/assets/inquiry-form.js?v=inquiry-20261125b" defer></script>
+    <script src="/assets/inquiry-form.js?v=inquiry-20261126a" defer></script>
     <script type="application/ld+json">
       {
             "@context": "https://schema.org",
@@ -123,13 +123,14 @@
         <a href="../#reviews">Отзывы</a>
         <a href="#contact">Контакты</a>
         <a class="site-nav-team" href="../#social-accounts">Аккаунты в соцсетях</a>
-        <a class="site-nav-quote site-nav-mobile-return-home" href="../">На главную</a>
+        <a class="site-nav-quote site-nav-mobile-return-home" href="../" aria-label="Назад на главную">Назад</a>
 
 
       </nav>
       <a class="site-nav-social-pill" href="../#social-accounts" aria-label="Аккаунты в соцсетях" data-compact-label="Соцсети"><span>Аккаунты в соцсетях</span></a>
       <a class="site-nav-tool-pill" href="../calculator/">Объём</a>
       <a class="site-nav-quote site-nav-return-home" href="../">На главную</a>
+      <span class="inquiry-phone-title">Бесплатный расчёт</span>
       <details class="language-switch language-menu site-nav-language">
           <summary>Русский</summary>
           <nav class="language-options" aria-label="Выбор языка">
@@ -176,13 +177,6 @@
               <form class="inquiry-form js-inquiry-form" data-inquiry-endpoint="https://inquiry-api.jabbarsourcing.com/inquiry" data-inquiry-locale="ru" data-inquiry-source="/ru/inquiry/" data-privacy-version="2026-07-22">
                 <div class="inquiry-draft-panel field-wide" hidden data-draft-delete-failed="Не удалось удалить сохранённый черновик. Закройте эту вкладку, чтобы отказаться от него." data-draft-restored="Черновик восстановлен в этой вкладке." data-draft-cleared="Черновик и форма очищены." data-draft-expired="Срок хранения черновика истёк." data-draft-unavailable="Сохранение черновика недоступно. Не закрывайте страницу до завершения.">
                   <p class="inquiry-draft-notice" id="inquiry-draft-notice">Черновик, включая контакты: только в этой вкладке, 30 минут. До отправки данные не передаются.</p>
-                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>Очистить запрос</button>
-                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
-                    <p id="inquiry-clear-question">Очистить форму и сохранённый черновик?</p>
-                    <button type="button" class="inquiry-clear-cancel">Продолжить заполнение</button>
-                    <button type="button" class="inquiry-clear-confirm">Подтвердить очистку</button>
-                  </div>
-                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
                 <label class="field field-wide">
                   <span>Нужные товары</span>
@@ -193,12 +187,13 @@
                   <input name="contact" type="text" maxlength="200" required placeholder="WhatsApp · почта · WeChat" autocomplete="on" />
                 </label>
                 <label class="field field-wide">
-                  <span>Ссылка на товар (Alibaba / Amazon / TikTok)</span>
-                  <input name="referenceUrl" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Принимаются только ссылки http:// или https://" />
+                  <span id="inquiry-reference-label">Ссылка на товар (Alibaba / Amazon / TikTok)</span>
+                  <input name="referenceUrl" aria-labelledby="inquiry-reference-label" aria-describedby="inquiry-reference-error" type="url" inputmode="url" maxlength="500" pattern="https?://.*" autocomplete="url" placeholder="https://…" title="Вставьте полную ссылку на товар, например https://example.com/item." />
+                  <small id="inquiry-reference-error" class="inquiry-reference-error" aria-live="polite"></small>
                 </label>
                 <p class="inquiry-attachment-note field-wide">Эта форма принимает только текст и ссылки. После отправки запроса пришлите фотографии или файл Excel через <a href="#contact">WhatsApp в разделе контактов</a> и укажите номер запроса.</p>
                 <details class="inquiry-additional-details field-wide">
-                  <summary class="inquiry-additional-summary"><span data-narrow-label="Ссылка на товар и другие сведения">Добавьте сведения для более точного предложения</span><small>Необязательно</small></summary>
+                  <summary class="inquiry-additional-summary"><span data-link-label="Добавить ссылку на товар" data-narrow-label="Дополнительные сведения">Добавьте сведения для более точного предложения</span><small>Необязательно</small></summary>
                   <div class="inquiry-additional-fields">
                     <label class="field">
                       <span>Категория</span>
@@ -245,6 +240,15 @@
                   <div class="inquiry-turnstile js-inquiry-turnstile" data-appearance="interaction-only" data-sitekey="0x4AAAAAADz9u67h7xPWOdMV" data-action="turnstile-spin-v1" data-language="ru"></div>
                   <button type="submit" class="inquiry-button inquiry-button-primary js-inquiry-direct" disabled aria-busy="false">Отправить запрос</button>
                   <p class="inquiry-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+                </div>
+                <div class="inquiry-draft-actions field-wide">
+                  <button type="button" class="inquiry-draft-clear" aria-expanded="false" aria-controls="inquiry-clear-prompt" hidden>Очистить запрос</button>
+                  <div class="inquiry-clear-prompt" id="inquiry-clear-prompt" role="group" aria-labelledby="inquiry-clear-question" hidden>
+                    <p id="inquiry-clear-question">Очистить форму и сохранённый черновик?</p>
+                    <button type="button" class="inquiry-clear-cancel">Продолжить заполнение</button>
+                    <button type="button" class="inquiry-clear-confirm">Подтвердить очистку</button>
+                  </div>
+                  <p class="inquiry-draft-feedback" role="status" aria-live="polite" hidden></p>
                 </div>
               </form>
             </div>
@@ -325,6 +329,6 @@
       })();
     </script>
   <script src="/assets/wechat-contact.js?v=wechat-20261124a" defer></script>
-  <script src="/assets/site-enhancements.js?v=ui-20261125a" defer></script>
+  <script src="/assets/site-enhancements.js?v=ui-20261126a" defer></script>
   </body>
 </html>

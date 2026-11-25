@@ -1092,11 +1092,11 @@
     });
   }
 
-  function initHomeLanguageContext() {
-    var homePath = /^\/(?:(?:en|es|ar|fr|pt|ru|de|it|tr)\/)?$/;
-    var currentPath = window.location.pathname.replace(/\/index\.html$/, "/");
-    if (!homePath.test(currentPath)) return;
-    var allowedSections = ["team", "services", "how-it-works", "reviews", "faq", "social-accounts", "contact"];
+  function initLanguageContext() {
+    var route = /^\/(?:(?:en|es|ar|fr|pt|ru|de|it|tr)\/)?(inquiry\/|)$/;
+    var page = window.location.pathname.replace(/\/index\.html$/, "/").match(route);
+    if (!page) return;
+    var allowedSections = page[1] ? ["inquiry", "contact"] : ["team", "services", "how-it-works", "reviews", "faq", "social-accounts", "contact"];
     var allowedLocales = ["zh", "en", "es", "ar", "fr", "pt", "ru", "de", "it", "tr"];
     var links = Array.prototype.slice.call(document.querySelectorAll(".site-nav-language .language-options a[href]"));
 
@@ -1109,7 +1109,8 @@
       var hash = sectionHash();
       links.forEach(function (link) {
         var destination = new URL(link.getAttribute("href"), window.location.href);
-        if (destination.origin !== window.location.origin || !homePath.test(destination.pathname)) return;
+        var target = destination.pathname.match(route);
+        if (destination.origin !== window.location.origin || !target || target[1] !== page[1]) return;
         link.setAttribute("href", destination.pathname + hash);
       });
     }
@@ -1122,7 +1123,7 @@
       if (allowedLocales.indexOf(select.value) === -1) return;
       // 先于页脚的异步绑定处理。
       event.stopImmediatePropagation();
-      window.location.assign((select.value === "zh" ? "/" : "/" + select.value + "/") + sectionHash());
+      window.location.assign((select.value === "zh" ? "/" : "/" + select.value + "/") + page[1] + sectionHash());
     }, true);
   }
 
@@ -1296,7 +1297,7 @@
   initGalleryMarquee();
   initHomepageMotion();
   initNavigationDisclosures();
-  initHomeLanguageContext();
+  initLanguageContext();
   initFaqTags();
   initSocialAccountDisclosure();
   initFooterUtilities();

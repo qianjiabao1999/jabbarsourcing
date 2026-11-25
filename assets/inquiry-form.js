@@ -439,7 +439,17 @@
     if (!media || !group || !summaryLabel || !reference) return;
     var desktopLabel = summaryLabel.textContent;
     var firstDetail = group.firstElementChild;
-    var compactItems = [reference.closest("label"), form.querySelector(".inquiry-attachment-note"), form.querySelector(".inquiry-guide-tip")].filter(Boolean);
+    var referenceLabel = reference.closest("label");
+    var linkDetails = document.createElement("details");
+    linkDetails.className = "inquiry-reference-details field-wide";
+    var linkSummary = document.createElement("summary");
+    linkSummary.textContent = summaryLabel.getAttribute("data-link-label");
+    var summaryError = document.createElement("small");
+    summaryError.className = "inquiry-reference-summary-error";
+    linkSummary.appendChild(summaryError);
+    linkDetails.appendChild(linkSummary);
+    var attachment = form.querySelector(".inquiry-attachment-note");
+    var compactItems = [form.querySelector(".inquiry-guide-tip")].filter(Boolean);
     var panel = form.closest(".inquiry-panel");
     var intro = panel && panel.querySelector(".inquiry-copy");
     var proof = intro && intro.querySelector(".inquiry-trust-points");
@@ -450,6 +460,19 @@
       var active = document.activeElement;
       var movingFocus = compactItems.some(function (item) { return item.contains(active); });
       if (isCompact && movingFocus) details.open = true;
+      var editingReference = active === reference || (attachment && attachment.contains(active));
+      if (isCompact) {
+        form.insertBefore(linkDetails, referenceLabel);
+        linkDetails.appendChild(referenceLabel);
+        if (attachment) linkDetails.appendChild(attachment);
+        summaryError.textContent = reference.hasAttribute("aria-invalid") ? reference.validationMessage : "";
+        if (editingReference || reference.value) linkDetails.open = true;
+      } else {
+        form.insertBefore(referenceLabel, linkDetails);
+        if (attachment) form.insertBefore(attachment, linkDetails);
+        linkDetails.remove();
+        if (active === linkSummary) { active = reference; editingReference = true; }
+      }
       compactItems.forEach(function (item) {
         if (isCompact) group.insertBefore(item, firstDetail);
         else form.insertBefore(item, details);
@@ -457,7 +480,7 @@
       summaryLabel.textContent = isCompact ? (summaryLabel.getAttribute("data-narrow-label") || desktopLabel) : desktopLabel;
       if (proof) (isCompact ? panel : intro).appendChild(proof);
       // 跨断点移动的是原字段，不拷贝值，不换控件；保留正在编辑的焦点。
-      if (movingFocus && document.activeElement !== active) active.focus({ preventScroll: true });
+      if ((movingFocus || editingReference) && document.activeElement !== active) active.focus({ preventScroll: true });
     }
     update();
     if (media.addEventListener) media.addEventListener("change", update);
@@ -471,6 +494,7 @@
     var locale = form.getAttribute("data-inquiry-locale") || "en";
     var messages = MESSAGES[locale] || MESSAGES.en;
     var referenceField = form.elements.referenceUrl;
+    var referenceFeedback = form.querySelector("#inquiry-reference-error");
     var referenceErrors = ({
       zh: ["请使用不含用户名或密码的产品链接。", "编码后的链接超过 500 个字符，请缩短链接。"],
       en: ["Use a product link without a username or password.", "The encoded link exceeds 500 characters. Please shorten it."],
@@ -611,7 +635,7 @@
     }
 
     function revealFieldDetails(field) {
-      var details = field && field.closest("details.inquiry-additional-details");
+      var details = field && field.closest("details.inquiry-additional-details, details.inquiry-reference-details");
       if (details) details.open = true;
     }
 
@@ -870,6 +894,7 @@
           }
         });
         if (additionalDetails) additionalDetails.open = record.detailsOpen;
+        if (referenceField.value && previousSavedAt !== record.savedAt) revealFieldDetails(referenceField);
         draftLastSignature = draftSignature(record.fields, record.detailsOpen);
         draftLastSavedAt = record.savedAt;
         scheduleDraftExpiry(record.savedAt);
@@ -900,7 +925,7 @@
         revealPopulatedDetails();
         saveDraft();
       }
-      validateReference();
+      validateReference(Boolean(referenceField.value));
       updateDraftControls();
       refreshVerificationFallback();
     }
@@ -939,6 +964,8 @@
           if (form.elements[name]) form.elements[name].value = "";
         });
         if (additionalDetails) additionalDetails.open = false;
+        var linkDetails = form.querySelector(".inquiry-reference-details");
+        if (linkDetails) linkDetails.open = false;
         form.removeAttribute("data-calculator-prefill");
         validateReference();
         currentSubmissionId = "";
@@ -1146,6 +1173,8 @@
       var hasNewEdits = Boolean(submittedContentKey && contentKey() !== submittedContentKey);
       if (!hasNewEdits) {
         form.reset();
+        var linkDetails = form.querySelector(".inquiry-reference-details");
+        if (linkDetails) linkDetails.open = false;
         validateReference();
         clearEstimate();
       }
@@ -1188,8 +1217,17 @@
       } catch (error) { return invalid; }
       return "";
     }
-    function validateReference() {
-      if (referenceField) referenceField.setCustomValidity(referenceError(referenceField.value));
+    function validateReference(showError) {
+      if (!referenceField) return;
+      var error = referenceError(referenceField.value);
+      referenceField.setCustomValidity(error);
+      // 不在首次打字时抢报错；失焦、恢复草稿或尝试提交后，随修改就地刷新。
+      var feedback = error && (showError === true || referenceField.hasAttribute("aria-invalid")) ? error : "";
+      if (feedback) referenceField.setAttribute("aria-invalid", "true");
+      else referenceField.removeAttribute("aria-invalid");
+      if (referenceFeedback && referenceFeedback.textContent !== feedback) referenceFeedback.textContent = feedback;
+      var summaryError = form.querySelector(".inquiry-reference-summary-error");
+      if (summaryError && summaryError.textContent !== feedback) summaryError.textContent = feedback;
     }
     function completeReferenceLink() {
       var value = referenceField.value;
@@ -1201,11 +1239,12 @@
         saveDraft();
         updateStatusForDraftEdit();
       }
-      validateReference();
+      validateReference(true);
     }
     if (referenceField) {
       referenceField.addEventListener("input", validateReference);
       referenceField.addEventListener("change", completeReferenceLink);
+      referenceField.addEventListener("blur", completeReferenceLink);
       // 提交按钮的默认动作才发起原生校验；也涵盖在输入框回车的隐式提交。
       directButton.addEventListener("click", completeReferenceLink);
     }
@@ -1231,7 +1270,8 @@
 
     form.addEventListener("invalid", function (event) {
       var field = event.target;
-      var details = field.closest("details.inquiry-additional-details");
+      var details = field.closest("details.inquiry-additional-details, details.inquiry-reference-details");
+      if (field === referenceField) validateReference(true);
       var wasClosed = details && !details.open;
       var firstInvalid = form.querySelector("input:invalid, select:invalid, textarea:invalid");
       // 原生校验先展开详情；WebKit 需等布局后才能聚焦原先隐藏的字段。
@@ -1241,7 +1281,7 @@
           if (!field.isConnected || field.validity.valid
               || form.querySelector("input:invalid, select:invalid, textarea:invalid") !== field) return;
           try { field.focus({ preventScroll: true }); } catch (error) { field.focus(); }
-          field.scrollIntoView({ block: "nearest", behavior: "auto" });
+          field.scrollIntoView({ block: "nearest", behavior: "instant" });
         });
       }
       trackNativeValidationError();

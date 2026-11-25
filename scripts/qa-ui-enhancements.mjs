@@ -6,8 +6,8 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-202";
-const UI_VERSION = "ui-20261125a";
+const CSS_VERSION = "apple-203";
+const UI_VERSION = "ui-20261126a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
   { locale: "ar", path: "/ar/", rtl: true }, { locale: "fr", path: "/fr/" }, { locale: "pt", path: "/pt/" },
@@ -299,6 +299,7 @@ async function pageState(page) {
         phoneQuoteText: phoneQuote ? quoteRange.getBoundingClientRect().toJSON() : null,
         phoneRail: rect(".phone-chapters"),
         brandWordmark: rect(".site-nav-brand > span"),
+        inquiryTitle: rect(".inquiry-phone-title"),
         separateAction: rect(".site-nav-quote-action, .site-nav-return-home"),
         mobileReturn: rect(".site-nav-mobile-return-home"),
         language: styleSnapshot(".site-nav-language"),
@@ -556,40 +557,46 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
   }
   assert(state.header.toolText, `${scope}: tool pill has no localized label`);
   assert(state.header.quoteText, `${scope}: quote link has no localized label`);
-  if (desktopDerivedMobile) {
+  if (desktopDerivedMobile && state.compactInquiry) {
+    const { header, brand, toolPill, socialPill, mobileMenu, language, quoteLink } = state.rects;
+    const title = state.header.inquiryTitle;
+    for (const el of [brand, toolPill, socialPill, mobileMenu, state.header.separateAction])
+      assert.equal(el.display, "none", `${scope}: 手机询价页不得显示旧页头入口`);
+    assert(header.height <= 82, `${scope}: 精简页头不得挤占表单`);
+    assertVisibleRect(title, `${scope}: 询价标题应可见`);
+    near((title.left+title.right)/2, state.width/2, 1, `${scope}: 询价标题应居中`);
+    assert.deepEqual(state.header.directLinks.filter(link => link.width > 0).map(link => link.href), ["../"], `${scope}: 旧导航仅保留本地返回入口`);
+    for (const el of [quoteLink, language]) {
+      assertVisibleRect(el, `${scope}: 返回和语言应可见`);
+      assert(el.width >= 44 && el.height >= 44 && el.left >= -1 && el.right <= state.width+1 && !rectanglesOverlap(el,title),
+        `${scope}: 返回和语言应可触控，且不与标题重叠`);
+    }
+    assert(state.direction === "rtl" ? quoteLink.left >= title.right-1 : quoteLink.right <= title.left+1, `${scope}: 返回入口须遵循阅读方向`);
+    assert.equal(state.header.toolHref, "../calculator/", `${scope}: 保留原桌面工具路由`);
+  } else if (desktopDerivedMobile) {
     assert.equal(state.rects.socialPill.display, "none", `${scope}: social action duplicated outside the navigation capsule`);
     assert.equal(state.rects.mobileMenu.display, "none", `${scope}: collapsed menu duplicates direct navigation`);
     assert.equal(state.header.separateAction.display, "none", `${scope}: separate primary action duplicates navigation capsule`);
     assert(state.rects.header.height <= 180, `${scope}: two-row navigation is too tall`);
     assertVisibleRect(state.header.brandWordmark, `${scope}: desktop brand wordmark`);
-    const links = state.compactHome ? state.header.phoneLinks : state.header.directLinks;
-    if (state.compactHome) {
-      assert.equal(state.rects.navLinks.display, "none", `${scope}: 首页旧六宫格仍可见`);
-      assertVisibleRect(state.header.phoneStrip, `${scope}: 手机导航`);
-      assertVisibleRect(state.header.phoneRail, `${scope}: 横滑栏目`);
-      assert.equal(links.length, 5, `${scope}: 手机首页直接显示五个栏目`);
-      assert(links.every(link => Math.abs(link.top-links[0].top) <= 1), `${scope}: 首页栏目应为一行`);
-      assert(state.rects.quoteLink.left >= state.header.phoneRail.right - 1, `${scope}: 报价按钮必须在滚动区物理右侧`);
-      assert(state.rects.quoteLink.height >= 48, `${scope}: 报价主操作至少48px高`);
-      const quote = state.rects.quoteLink, text = state.header.phoneQuoteText;
-      near((text.left+text.right)/2,(quote.left+quote.right)/2,1,`${scope}: 报价文字应水平居中`);
-      near((text.top+text.bottom)/2,(quote.top+quote.bottom)/2,1.5,`${scope}: 报价文字应垂直居中（允许字体字面与行盒差）`);
-    } else {
-      assertVisibleRect(state.rects.navLinks, `${scope}: navigation capsule`);
-      assert.equal(links.length, 6, `${scope}: direct navigation count`);
-      const rowPositions = links.map(({ top }) => Math.round(top));
-      assert.deepEqual(rowPositions.map((top) => rowPositions.filter((entry) => entry === top).length), [3, 3, 3, 3, 3, 3], `${scope}: navigation must show three links in each row`);
-      assert(rowPositions[0] < rowPositions[3], `${scope}: navigation visual row order changed`);
-    }
+    const links = state.header.phoneLinks;
+    assert.equal(state.rects.navLinks.display, "none", `${scope}: 首页旧六宫格仍可见`);
+    assertVisibleRect(state.header.phoneStrip, `${scope}: 手机导航`);
+    assertVisibleRect(state.header.phoneRail, `${scope}: 横滑栏目`);
+    assert.equal(links.length, 5, `${scope}: 手机首页直接显示五个栏目`);
+    assert(links.every(link => Math.abs(link.top-links[0].top) <= 1), `${scope}: 首页栏目应为一行`);
+    assert(state.rects.quoteLink.left >= state.header.phoneRail.right - 1, `${scope}: 报价按钮必须在滚动区物理右侧`);
+    assert(state.rects.quoteLink.height >= 48, `${scope}: 报价主操作至少48px高`);
+    const quote = state.rects.quoteLink, text = state.header.phoneQuoteText;
+    near((text.left+text.right)/2,(quote.left+quote.right)/2,1,`${scope}: 报价文字应水平居中`);
+    near((text.top+text.bottom)/2,(quote.top+quote.bottom)/2,1.5,`${scope}: 报价文字应垂直居中（允许字体字面与行盒差）`);
     assert(state.direction === "rtl" ? links[0].left > links[1].left : links[0].left < links[1].left, `${scope}: navigation did not mirror in RTL`);
     assert(links.every((link) => link.width >= 44 && link.height >= 44 && link.text), `${scope}: a direct navigation link is not a labeled 44px touch target`);
-    assert.equal(state.header.toolHref, state.compactInquiry ? "../calculator/" : "calculator/", `${scope}: CBM tool route`);
-    assert.equal(state.header.quoteHref, state.compactInquiry ? "../" : "inquiry/", `${scope}: primary navigation route`);
-    assert.deepEqual(links.map((link) => link.href), state.compactInquiry
-      ? ["../#services", "../#how-it-works", "../#reviews", "#contact", "../#social-accounts", "../"]
-      : ["#services", "#how-it-works", "#reviews", "#contact", "#social-accounts"], `${scope}: navigation destination order`);
-    const controls = [state.rects.brand, state.rects.toolPill, state.rects.language,
-      ...(state.compactHome ? [state.header.phoneRail,state.rects.quoteLink] : links)];
+    assert.equal(state.header.toolHref, "calculator/", `${scope}: CBM tool route`);
+    assert.equal(state.header.quoteHref, "inquiry/", `${scope}: primary navigation route`);
+    assert.deepEqual(links.map((link) => link.href),
+      ["#services", "#how-it-works", "#reviews", "#contact", "#social-accounts"], `${scope}: navigation destination order`);
+    const controls = [state.rects.brand, state.rects.toolPill, state.rects.language, state.header.phoneRail, state.rects.quoteLink];
     for (const [index, control] of controls.entries()) {
       assertVisibleRect(control, `${scope}: direct header control ${index}`);
       assert(control.height >= 44, `${scope}: direct header control ${index} is too small`);
@@ -603,7 +610,10 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
     if (state.compactHome) assert.equal(state.header.phoneStrip.display,"none", `${scope}: 桌面不应出现手机导航`);
     assertVisibleRect(state.rects.toolPill, `${scope}: tool pill`);
     assert(state.rects.toolPill.left >= -1 && state.rects.toolPill.right <= state.width + 1, `${scope}: tool pill is outside the viewport`);
-    if (state.compactInquiry) assert.equal(state.header.mobileReturn.display, "none", `${scope}: mobile return action is visible on desktop`);
+    if (state.compactInquiry) {
+      assert.equal(state.header.mobileReturn.display, "none", `${scope}: mobile return action is visible on desktop`);
+      assert.equal(state.header.inquiryTitle.display, "none", `${scope}: 电脑端不应出现手机询价标题`);
+    }
   }
   assertVisibleRect(state.rects.quoteLink, `${scope}: quote link`);
   assert(state.rects.quoteLink.left >= -1 && state.rects.quoteLink.right <= state.width + 1, `${scope}: quote link is outside the viewport`);
@@ -1790,7 +1800,7 @@ async function mobileHeaderMatrix(browserType) {
       const compact = width <= 767 && item.type !== "calculator";
       const primaryAction = compactHome ? ".phone-quote" : compact ? ".site-nav-mobile-return-home" : ".site-nav-social-pill";
       await page.locator(primaryAction).waitFor({ state: "visible" });
-      await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
+      await page.locator(".site-nav-tool-pill").waitFor({ state: compact && !compactHome ? "hidden" : "visible" });
       const scope = `${item.locale} ${item.type} header ${width}x844`;
       const state = await pageState(page);
       assertShared(state, scope);
