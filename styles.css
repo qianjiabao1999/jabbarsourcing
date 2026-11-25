@@ -11577,6 +11577,22 @@ main > #team.team {
   }
 }
 
+/* A desktop viewport can still be narrow in text units when a reader enlarges
+   only the font. Keep the links in flow so they wrap before covering actions. */
+@media (min-width: 1280px) and (width < 80em) {
+  header.site-nav .site-nav-brand {
+    flex-shrink: 0;
+  }
+
+  header.site-nav .site-nav-links {
+    position: static !important;
+    transform: none !important;
+    flex: 0 1 auto;
+    flex-wrap: wrap !important;
+    margin-inline: auto !important;
+  }
+}
+
 /* 2026-07-19 mobile social shortcut and non-floating analytics control. */
 .site-nav-social-pill {
   display: none !important;
@@ -13172,7 +13188,10 @@ html[lang="ar"] #services .company-metric-card strong {
   .team-heading.home-hero-compact h1 {
     font-size: clamp(30px, 8vw, 42px);
     line-height: 1.16;
+    /* Keep long words visible when a reader enlarges only the text. */
+    overflow-wrap: anywhere;
   }
+  html[lang="de"] .team-heading.home-hero-compact h1 { hyphens: auto; }
   .sourcing-offer-grid {
     grid-template-columns: 1fr;
     gap: 24px;

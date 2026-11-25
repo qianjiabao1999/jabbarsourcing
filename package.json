@@ -28,6 +28,7 @@
     "qa:wechat-contact": "node scripts/qa-wechat-contact.mjs",
     "qa:analytics-consent": "node scripts/qa-analytics-consent.mjs",
     "qa:browser-matrix": "node scripts/qa-browser-matrix.mjs",
+    "qa:text-zoom": "node scripts/qa-text-zoom.mjs",
     "qa:public-routes": "node scripts/qa-public-routes.mjs",
     "qa:android-device": "node scripts/qa-android-device.mjs",
     "test:worker": "npm --prefix cloudflare/inquiry-api test",

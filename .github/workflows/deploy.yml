@@ -63,6 +63,7 @@ jobs:
           npm run qa:ui
           npm run qa:analytics-consent
           npm run qa:browser-matrix
+          npm run qa:text-zoom
           npm run qa:calculator-order
           npm run qa:order-resilience
           npm run qa:container-allocation
