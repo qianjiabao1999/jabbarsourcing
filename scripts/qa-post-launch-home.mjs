@@ -62,11 +62,23 @@ async function mobileQuoteFocusChecks(browser, engine, locale, width) {
   });
   const page = await context.newPage();
   const scope = `${engine}/${locale}/${width}/keyboard-quote`;
-  const language = page.locator("header.site-nav .site-nav-language > summary");
+  const lastHeaderLink = page.locator("header.site-nav .phone-quote");
   const quote = page.locator(".inquiry-entry-card-cta");
   try {
     await page.goto(BASE_URL + homePath(locale), { waitUntil: "domcontentloaded" });
     await page.evaluate(() => document.fonts.ready);
+    // 栏目超宽时，键盘也必须能依次浏览五项，并最终落在常显的报价按钮。
+    const stripLinks = await page.locator("header .phone-desk-strip a").all();
+    assert.equal(stripLinks.length, 6, scope + ": 可键盘访问的手机导航入口");
+    await stripLinks[0].focus();
+    for (let i=1;i<stripLinks.length;i++) {
+      await page.keyboard.press("Tab");
+      if (engine==="WebKit" && !await stripLinks[i].evaluate(a=>a===document.activeElement)) {
+        await stripLinks[i-1].focus();
+        await page.keyboard.press("Alt+Tab");
+      }
+      assert(await stripLinks[i].evaluate(a=>a===document.activeElement), scope + ": 栏目键盘顺序 " + i);
+    }
     const position = () => quote.evaluate(link => {
       const rect = link.getBoundingClientRect();
       const header = document.querySelector("header.site-nav").getBoundingClientRect();
@@ -75,14 +87,14 @@ async function mobileQuoteFocusChecks(browser, engine, locale, width) {
         top: rect.top, bottom: rect.bottom, headerBottom: header.bottom, viewport: innerHeight, hit: link.contains(hit) };
     });
     const prepareFocus = async () => {
-      await language.focus();
+      await lastHeaderLink.focus();
       // 先模拟页面已滚动，后续只由真实的键盘焦点驱动滚动。
       await quote.evaluate(link => window.scrollBy({ top: link.getBoundingClientRect().top - 60, behavior: "instant" }));
       await waitForScrollSettled(page, `${scope}/before-tab`);
       const before = await position();
       assert(before.top > 0 && before.top < before.headerBottom && before.bottom < before.viewport,
         `${scope}: 复现前报价卡在视口内，但顶部须位于吸顶导航后方 ${JSON.stringify(before)}`);
-      assert(await language.evaluate(summary => document.activeElement === summary), `${scope}: 从语言入口开始键盘导航`);
+      assert(await lastHeaderLink.evaluate(link => document.activeElement === link), `${scope}: 从导航报价入口开始键盘导航`);
     };
     await prepareFocus();
     await page.keyboard.press("Tab");
@@ -101,7 +113,7 @@ async function mobileQuoteFocusChecks(browser, engine, locale, width) {
 
 async function assertMobileNavigation(page, scope, width, isInquiry = false) {
   await page.evaluate(() => document.fonts.ready);
-  const layout = await page.locator("header.site-nav").evaluate(header => {
+  const layout = await page.locator("header.site-nav").evaluate((header, inquiry) => {
     const boxAndText = element => {
       const bounds = element.getBoundingClientRect();
       const range = document.createRange();
@@ -111,30 +123,58 @@ async function assertMobileNavigation(page, scope, width, isInquiry = false) {
         textLeft: text.left, textRight: text.right, textTop: text.top, textBottom: text.bottom, href: element.getAttribute("href") };
     };
     const controls = [".site-nav-brand", ".site-nav-tool-pill", ".site-nav-language > summary"].map(selector => boxAndText(header.querySelector(selector)));
-    const capsule = header.querySelector(".site-nav-links");
-    const links = [...capsule.querySelectorAll(":scope > a")].map(boxAndText);
+    const capsule = header.querySelector(inquiry ? ".site-nav-links" : ".phone-desk-strip");
+    const links = [...capsule.querySelectorAll("a")].map(boxAndText);
     const countColumns = getComputedStyle(capsule).gridTemplateColumns.trim().split(/\s+/).length;
     const visible = selector => [...header.querySelectorAll(selector)].some(element => element.getBoundingClientRect().width > 0);
     const brand = header.querySelector(".site-nav-brand > span");
     return { controls, links, countColumns, capsuleTop: capsule.getBoundingClientRect().top,
       headerHeight: header.getBoundingClientRect().height,
       wordmark: brand.getBoundingClientRect().width > 0 && brand.textContent.trim() === "Jabbar Sourcing",
-      hasLegacyMenu: visible(".site-nav-mobile-menu,.site-nav-quote-action,.site-nav-return-home") };
-  });
+      hasLegacyMenu: visible(".site-nav-mobile-menu,.site-nav-quote-action,.site-nav-return-home"),
+      legacyGridVisible: visible(".site-nav-links"), rail: inquiry ? null : boxAndText(capsule.querySelector(".phone-chapters")) };
+  }, isInquiry);
   assert(layout.wordmark, `${scope}: 桌面品牌字标仍完整可见`);
   assert(!layout.hasLegacyMenu, `${scope}: 旧手机菜单、独立报价和外置返回入口必须隐藏`);
-  assert.equal(layout.countColumns, 3, `${scope}: 导航胶囊应有三列`);
   const destinations = isInquiry
     ? ["../#services", "../#how-it-works", "../#reviews", "#contact", "../#social-accounts", "../"]
-    : ["#services", "#how-it-works", "#reviews", "inquiry/", "#contact", "#social-accounts"];
+    : ["#services", "#how-it-works", "#reviews", "#contact", "#social-accounts", "inquiry/"];
   assert.deepEqual(layout.links.map(link => link.href), destinations, `${scope}: 六个导航入口的实际地址与顺序`);
   const rowCounts = new Map();
   for (const link of layout.links) {
     const row = Math.round(link.top);
     rowCounts.set(row, (rowCounts.get(row) || 0) + 1);
   }
-  assert.deepEqual([...rowCounts.values()], [3, 3], `${scope}: 六个入口应排列成两行`);
-  for (const control of [...layout.controls, ...layout.links]) {
+  if (isInquiry) {
+    assert.equal(layout.countColumns, 3, `${scope}: 询价页导航胶囊保持三列`);
+    assert.deepEqual([...rowCounts.values()], [3, 3], `${scope}: 询价页六个入口保持两行`);
+  } else {
+    assert(!layout.legacyGridVisible, `${scope}: 首页不显示旧六宫格`);
+    assert(layout.links.slice(0,-1).every(a => a.top >= layout.rail.top-1 && a.bottom <= layout.rail.bottom+1 && a.height >= 44 && a.width >= 44), `${scope}: 五个章节位于同一条可横滑的触控栏`);
+    const quote = page.locator(".phone-desk-strip .phone-quote");
+    const buttonBox = await quote.boundingBox();
+    assert(buttonBox.x >= layout.rail.right-1, `${scope}: 包括阿语在内，报价必须位于横滑栏物理右侧`);
+    const labelBox = await quote.evaluate(a => {
+      const text=document.createRange(); text.selectNodeContents(a);
+      const bounds=text.getBoundingClientRect(),button=a.getBoundingClientRect();
+      return Math.abs((bounds.left+bounds.right-button.left-button.right)/2);
+    });
+    assert(labelBox<=1, `${scope}: 报价文案须居中，不被箭头挤偏（偏差 ${labelBox}px）`);
+    for (const chapter of await page.locator(".phone-chapters a").all()) {
+      await chapter.scrollIntoViewIfNeeded();
+      assert(await chapter.evaluate(a => {
+        const r=a.getBoundingClientRect(), band=a.parentElement.getBoundingClientRect();
+        const left=Math.max(r.left,band.left),right=Math.min(r.right,band.right);
+        const range=document.createRange(); range.selectNodeContents(a);
+        const text=range.getBoundingClientRect();
+        return text.left>=r.left-1 && text.right<=r.right+1 && text.top>=r.top-1 && text.bottom<=r.bottom+1 &&
+          right-left>=Math.min(r.width,band.width)-2 && a.contains(document.elementFromPoint((left+right)/2,(r.top+r.bottom)/2));
+      }), `${scope}: 每个章节均可滑到并命中`);
+      const s = await quote.boundingBox();
+      assert(Math.abs(s.x-buttonBox.x)<1 && Math.abs(s.y-buttonBox.y)<1 && s.width>=44 && s.height>=44, `${scope}: 横滑章节时免费报价不随动`);
+    }
+  }
+  for (const control of [...layout.controls, ...(isInquiry ? layout.links : layout.links.slice(-1))]) {
     assert(control.width >= 44 && control.height >= 44 && control.left >= -1 && control.right <= width + 1, `${scope}: 完整显示 44px 触控入口 ${JSON.stringify(control)}`);
     assert(control.textLeft >= control.left - 1 && control.textRight <= control.right + 1 && control.textTop >= control.top - 1 && control.textBottom <= control.bottom + 1, `${scope}: 导航入口文字不能裁切 ${JSON.stringify(control)}`);
   }
@@ -157,12 +197,12 @@ async function homeChecks(browser, engine, locale, width) {
     if (width <= 390) {
       await assertMobileNavigation(page, scope, width);
       if (locale === "ar" && width === 320) {
-        const social = page.locator(".site-nav-links > .site-nav-team");
-        // 模拟备用字形让一个导航标签更高；同行的三个触控区仍必须对齐。
+        const social = page.locator('.phone-chapters a[href="#social-accounts"]');
+        // 模拟备用字形增高，横向栏不能溢出或遮挡同排报价。
         await social.evaluate(link => link.style.setProperty("min-height", "47px", "important"));
         try {
           const reflow = await assertMobileNavigation(page, scope + "/font-reflow", width);
-          assert(reflow.links.slice(3).every(link => link.height >= 47), scope + ": 第二行必须按最高标签铺齐");
+          assert(reflow.rail.height >= 47 && reflow.links[4].height >= 47, scope + ": 横滑栏容纳增高的栏目标签");
         } finally {
           await social.evaluate(link => link.style.removeProperty("min-height"));
         }
@@ -286,7 +326,7 @@ async function homeChecks(browser, engine, locale, width) {
     if (width <= 390) {
       await Promise.all([
         page.waitForURL(BASE_URL + homePath(locale) + "inquiry/"),
-        page.locator(".site-nav-links .site-nav-quote-desktop").click()
+        page.locator(".phone-desk-strip .phone-quote").click()
       ]);
       await assertMobileNavigation(page, `${scope}/inquiry`, width, true);
       const fields = await page.locator(".inquiry-form [required]").evaluateAll(elements => elements.map(element => element.name));
@@ -363,7 +403,7 @@ async function firstAnchorChecks(browser, engine, locale, width) {
       await page.goto(BASE_URL + homePath(locale), { waitUntil: "networkidle" });
       await page.evaluate(() => document.fonts.ready);
       if (entry === "hash") await page.evaluate(() => { location.hash = "how-it-works"; });
-      else await page.locator('.site-nav-links a[href="#how-it-works"]').click();
+      else await page.locator(width <= 767 ? '.phone-chapters a[href="#how-it-works"]' : '.site-nav-links a[href="#how-it-works"]').click();
       await page.waitForFunction(() => {
         const box = document.querySelector("#how-it-works h2").getBoundingClientRect();
         return box.top >= document.querySelector(".site-nav").getBoundingClientRect().bottom + 15 && box.bottom <= innerHeight;

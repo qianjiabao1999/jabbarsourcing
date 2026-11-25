@@ -7,7 +7,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_VERSION = "apple-201";
+const CSS_VERSION = "apple-202";
 const UI_VERSION = "ui-20261125a";
 const ORDER_VERSION = "order-20261125a";
 const CONTAINER_VERSION = "container-20261011b";
@@ -521,9 +521,11 @@ let existingSocialAccountNavLinkCount = 0;
 for (const { locale, file } of NAV_PAGES) {
   const html = await load(file);
   assert.deepEqual(textsForClass(html, "a", "site-nav-brand"), ["Jabbar Sourcing"], `${file}: header brand name`);
-  const desktopSocialAccountLabels = textsForClass(html, "a", "site-nav-team");
+  const desktopNavigation = regionsForClass(html, "nav", "site-nav-links");
+  assert.equal(desktopNavigation.length,1,`${file}: 桌面导航容器`);
+  const desktopSocialAccountLabels = textsForClass(desktopNavigation[0], "a", "site-nav-team");
   assert.deepEqual(desktopSocialAccountLabels, [SOCIAL_ACCOUNT_NAV_LABELS[locale]], `${file}: desktop social-account label`);
-  const desktopSocialAccountLinks = tagsWithClass(html, "a", "site-nav-team");
+  const desktopSocialAccountLinks = tagsWithClass(desktopNavigation[0], "a", "site-nav-team");
   const socialPillLinks = tagsWithClass(html, "a", "site-nav-social-pill");
   assert.equal(socialPillLinks.length, 1, `${file}: site-nav-social-pill count`);
   assert.equal(attribute(socialPillLinks[0][0], "href"), attribute(desktopSocialAccountLinks[0][0], "href"), `${file}: social destinations differ`);
@@ -534,6 +536,19 @@ for (const { locale, file } of NAV_PAGES) {
   assert(attribute(toolLinks[0][0], "href"), `${file}: site-nav-tool-pill href missing`);
   assert(html.indexOf(socialPillLinks[0][0]) < html.indexOf(toolLinks[0][0]), `${file}: social pill must precede volume tool`);
   const mobilePanels = regionsForClass(html, "nav", "site-nav-mobile-panel");
+  const isHome = HOME_PAGES.some(page => page.file === file);
+  const phoneStrips = regionsForClass(html, "nav", "phone-desk-strip");
+  assert.equal(phoneStrips.length, Number(isHome), `${file}: 新的窄屏导航仅在首页启用`);
+  if (isHome) {
+    const rail = regionsForClass(phoneStrips[0], "div", "phone-chapters");
+    assert.equal(rail.length,1,`${file}: 单独的可滑动栏目区域`);
+    assert.deepEqual([...rail[0].matchAll(/<a\b[^>]*>/gi)].map(([tag])=>attribute(tag,"href")),
+      ["#services","#how-it-works","#reviews","#contact","#social-accounts"], `${file}: 手机栏目链接顺序`);
+    const quote = tagsWithClass(phoneStrips[0],"a","phone-quote");
+    assert.equal(quote.length,1,`${file}: 手机报价入口唯一`);
+    assert.equal(attribute(quote[0][0],"href"),"inquiry/",`${file}: 手机报价须指向本语种询价`);
+    assert.deepEqual(textsForClass(phoneStrips[0],"a","phone-quote"),textsForClass(desktopNavigation[0],"a","site-nav-quote-desktop"),`${file}: 手机和电脑报价文案一致`);
+  }
   assert.equal(mobilePanels.length, 1, `${file}: mobile navigation panel count`);
   assert.equal(countClass(mobilePanels[0], "site-nav-mobile-team"), 0, `${file}: social account remains in mobile navigation`);
   if (INQUIRY_PAGES.some((page) => page.file === file)) {

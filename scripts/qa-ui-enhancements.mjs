@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-201";
+const CSS_VERSION = "apple-202";
 const UI_VERSION = "ui-20261125a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -215,8 +215,11 @@ async function pageState(page) {
     const compactHome = document.body.classList.contains("home-page");
     const desktopDerivedMobile = window.innerWidth <= 767 && (compactInquiry || compactHome);
     const quoteLink = document.querySelector(desktopDerivedMobile
-      ? compactInquiry ? ".site-nav-mobile-return-home" : ".site-nav-quote-desktop"
+      ? compactInquiry ? ".site-nav-mobile-return-home" : ".phone-quote"
       : window.innerWidth >= 1280 ? ".site-nav-quote-desktop, .site-nav-return-home" : ".site-nav-quote-action, .site-nav-return-home");
+    const phoneQuote = document.querySelector(".phone-quote");
+    const quoteRange = document.createRange();
+    if (phoneQuote) quoteRange.selectNodeContents(phoneQuote);
     const calculatorPage = document.querySelector(".calculator-page");
     const blueprint = calculatorPage ? getComputedStyle(calculatorPage) : null;
     const primaryContainer = document.querySelector(".cbm-visual [data-container-load]");
@@ -289,6 +292,12 @@ async function pageState(page) {
         directLinks: Array.from(document.querySelectorAll("header.site-nav > .site-nav-links > a"), (link) => ({
           ...elementRect(link), href: link.getAttribute("href"), text: normalizeText(link.textContent)
         })),
+        phoneLinks: Array.from(document.querySelectorAll(".phone-chapters > a"), link => ({
+          ...elementRect(link), href: link.getAttribute("href"), text: normalizeText(link.textContent)
+        })),
+        phoneStrip: rect(".phone-desk-strip"),
+        phoneQuoteText: phoneQuote ? quoteRange.getBoundingClientRect().toJSON() : null,
+        phoneRail: rect(".phone-chapters"),
         brandWordmark: rect(".site-nav-brand > span"),
         separateAction: rect(".site-nav-quote-action, .site-nav-return-home"),
         mobileReturn: rect(".site-nav-mobile-return-home"),
@@ -553,20 +562,34 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
     assert.equal(state.header.separateAction.display, "none", `${scope}: separate primary action duplicates navigation capsule`);
     assert(state.rects.header.height <= 180, `${scope}: two-row navigation is too tall`);
     assertVisibleRect(state.header.brandWordmark, `${scope}: desktop brand wordmark`);
-    assertVisibleRect(state.rects.navLinks, `${scope}: navigation capsule`);
-    const links = state.header.directLinks;
-    assert.equal(links.length, 6, `${scope}: direct navigation count`);
-    const rowPositions = links.map(({ top }) => Math.round(top));
-    assert.deepEqual(rowPositions.map((top) => rowPositions.filter((entry) => entry === top).length), [3, 3, 3, 3, 3, 3], `${scope}: navigation must show three links in each row`);
-    assert(rowPositions[0] < rowPositions[3], `${scope}: navigation visual row order changed`);
+    const links = state.compactHome ? state.header.phoneLinks : state.header.directLinks;
+    if (state.compactHome) {
+      assert.equal(state.rects.navLinks.display, "none", `${scope}: 首页旧六宫格仍可见`);
+      assertVisibleRect(state.header.phoneStrip, `${scope}: 手机导航`);
+      assertVisibleRect(state.header.phoneRail, `${scope}: 横滑栏目`);
+      assert.equal(links.length, 5, `${scope}: 手机首页直接显示五个栏目`);
+      assert(links.every(link => Math.abs(link.top-links[0].top) <= 1), `${scope}: 首页栏目应为一行`);
+      assert(state.rects.quoteLink.left >= state.header.phoneRail.right - 1, `${scope}: 报价按钮必须在滚动区物理右侧`);
+      assert(state.rects.quoteLink.height >= 48, `${scope}: 报价主操作至少48px高`);
+      const quote = state.rects.quoteLink, text = state.header.phoneQuoteText;
+      near((text.left+text.right)/2,(quote.left+quote.right)/2,1,`${scope}: 报价文字应水平居中`);
+      near((text.top+text.bottom)/2,(quote.top+quote.bottom)/2,1.5,`${scope}: 报价文字应垂直居中（允许字体字面与行盒差）`);
+    } else {
+      assertVisibleRect(state.rects.navLinks, `${scope}: navigation capsule`);
+      assert.equal(links.length, 6, `${scope}: direct navigation count`);
+      const rowPositions = links.map(({ top }) => Math.round(top));
+      assert.deepEqual(rowPositions.map((top) => rowPositions.filter((entry) => entry === top).length), [3, 3, 3, 3, 3, 3], `${scope}: navigation must show three links in each row`);
+      assert(rowPositions[0] < rowPositions[3], `${scope}: navigation visual row order changed`);
+    }
     assert(state.direction === "rtl" ? links[0].left > links[1].left : links[0].left < links[1].left, `${scope}: navigation did not mirror in RTL`);
     assert(links.every((link) => link.width >= 44 && link.height >= 44 && link.text), `${scope}: a direct navigation link is not a labeled 44px touch target`);
     assert.equal(state.header.toolHref, state.compactInquiry ? "../calculator/" : "calculator/", `${scope}: CBM tool route`);
     assert.equal(state.header.quoteHref, state.compactInquiry ? "../" : "inquiry/", `${scope}: primary navigation route`);
     assert.deepEqual(links.map((link) => link.href), state.compactInquiry
       ? ["../#services", "../#how-it-works", "../#reviews", "#contact", "../#social-accounts", "../"]
-      : ["#services", "#how-it-works", "#reviews", "inquiry/", "#contact", "#social-accounts"], `${scope}: navigation destination order`);
-    const controls = [state.rects.brand, state.rects.toolPill, state.rects.language, ...links];
+      : ["#services", "#how-it-works", "#reviews", "#contact", "#social-accounts"], `${scope}: navigation destination order`);
+    const controls = [state.rects.brand, state.rects.toolPill, state.rects.language,
+      ...(state.compactHome ? [state.header.phoneRail,state.rects.quoteLink] : links)];
     for (const [index, control] of controls.entries()) {
       assertVisibleRect(control, `${scope}: direct header control ${index}`);
       assert(control.height >= 44, `${scope}: direct header control ${index} is too small`);
@@ -577,6 +600,7 @@ function assertHeaderNavigation(state, scope, { desktop = false } = {}) {
     }
     assert(links.every((link) => link.top >= Math.max(...controls.slice(0, 3).map((control) => control.bottom)) - 1), `${scope}: capsule overlaps the brand, tool or language row`);
   } else {
+    if (state.compactHome) assert.equal(state.header.phoneStrip.display,"none", `${scope}: 桌面不应出现手机导航`);
     assertVisibleRect(state.rects.toolPill, `${scope}: tool pill`);
     assert(state.rects.toolPill.left >= -1 && state.rects.toolPill.right <= state.width + 1, `${scope}: tool pill is outside the viewport`);
     if (state.compactInquiry) assert.equal(state.header.mobileReturn.display, "none", `${scope}: mobile return action is visible on desktop`);
@@ -1291,14 +1315,28 @@ async function assertTestimonialCardLayout(page, scope, locale) {
     return {
       flag: card.querySelector(".testimonial-flag").textContent.trim(), box: rect(card),
       parts: [".testimonial-country", "img", ".testimonial-order-meta", "p", ".testimonial-author"].map(s => rect(card.querySelector(s))),
+      quoteAlign: getComputedStyle(card.querySelector("p")).textAlign,
+      chips: [...card.querySelector(".testimonial-order-meta").children].map(rect),
       fit: getComputedStyle(image).objectFit
     };
   }));
   assert.deepEqual(cards.map(card => card.flag), ["🇬🇧", "🇰🇪", "🇳🇬"], `${scope}: 客户卡阅读顺序`);
   const width = page.viewportSize().width;
-  for (const [i, { box, parts }] of cards.entries()) {
+  for (const [i, { box, parts, quoteAlign, chips }] of cards.entries()) {
+    const mid = r => (r.left + r.right) / 2;
+    assert.equal(quoteAlign, "center", `${scope}: 客户评价文字须居中`);
+    const rows = new Map();
+    for (const chip of chips) {
+      const key = Math.round((chip.top + chip.bottom) / 2);
+      rows.set(key, [...(rows.get(key) || []), chip]);
+    }
+    for (const row of rows.values()) {
+      near((Math.min(...row.map(r=>r.left)) + Math.max(...row.map(r=>r.right))) / 2, mid(box), 1,
+        `${scope}: 换行后每行采购标签须独立居中`);
+    }
     assert(box.left >= -1 && box.right <= width + 1, `${scope}: 客户卡超出视口，预期宽 ${width}，实际 [${box.left}, ${box.right}]`);
     parts.forEach((part, j) => {
+      near(mid(part), mid(box), 1, `${scope}: 第 ${i+1} 张卡的第 ${j+1} 项须沿卡片中线对齐`);
       assert(part.width > 0 && part.height > 0 && (!j || part.top >= parts[j - 1].bottom - 1), `${scope}: 第 ${i + 1} 张卡的国家、图片、金额、评价及署名顺序`);
     });
     if (!i) continue;
@@ -1750,7 +1788,7 @@ async function mobileHeaderMatrix(browserType) {
       await page.goto(`${BASE_URL}${item.path}`, { waitUntil: "domcontentloaded" });
       const compactHome = item.type === "home" && width <= 767;
       const compact = width <= 767 && item.type !== "calculator";
-      const primaryAction = compactHome ? ".site-nav-quote-desktop" : compact ? ".site-nav-mobile-return-home" : ".site-nav-social-pill";
+      const primaryAction = compactHome ? ".phone-quote" : compact ? ".site-nav-mobile-return-home" : ".site-nav-social-pill";
       await page.locator(primaryAction).waitFor({ state: "visible" });
       await page.locator(".site-nav-tool-pill").waitFor({ state: "visible" });
       const scope = `${item.locale} ${item.type} header ${width}x844`;
@@ -1973,7 +2011,13 @@ async function interactionChecks(browserType) {
   await mobilePage.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
   assert.equal(await mobileMenu.isVisible(), false, "homepage still exposes a second navigation menu");
   assert.equal(await mobileMenu.locator('.site-nav-mobile-panel a[href="./"]').count(), 0, "redundant home link remains in the former homepage menu");
-  assert.equal(await mobilePage.locator('.site-nav-links a[href="#social-accounts"]').isVisible(), true, "mobile homepage social destination is hidden");
+  const chapters = mobilePage.locator(".phone-chapters");
+  const fixedQuote = mobilePage.locator(".phone-quote");
+  const beforeSwipe = await fixedQuote.boundingBox();
+  const socialLink = chapters.locator('a[href="#social-accounts"]');
+  await socialLink.scrollIntoViewIfNeeded();
+  assert.equal(await socialLink.isVisible(), true, "mobile homepage social destination is hidden");
+  assert.deepEqual(await fixedQuote.boundingBox(),beforeSwipe,"滚动栏目后报价按钮的位置不应改变");
   assert.equal(await mobilePage.locator('.site-nav-tool-pill[href="calculator/"]').isVisible(), true, "mobile homepage calculator destination is hidden");
   assert.equal(await mobilePage.locator(".site-nav-social-pill").isVisible(), false, "social destination duplicates its capsule link");
   await languageSummary.focus();
@@ -1983,11 +2027,11 @@ async function interactionChecks(browserType) {
   assert.equal(await languageSummary.getAttribute("aria-expanded"), "false", "Escape did not close homepage language navigation");
   assert.equal(await languageSummary.evaluate((summary) => document.activeElement === summary), true, "homepage language close did not restore focus");
   await mobilePage.screenshot({ path: `${OUTPUT_DIR}/mobile-direct-navigation-390x844.png` });
-  await mobilePage.locator(".site-nav-links .site-nav-quote-desktop").tap();
+  await fixedQuote.tap();
   await mobilePage.waitForURL(`${BASE_URL}/inquiry/`);
   await mobilePage.locator(".site-nav-links .site-nav-mobile-return-home").tap();
   await mobilePage.waitForURL(`${BASE_URL}/`);
-  await mobilePage.locator('.site-nav-links a[href="#contact"]').tap();
+  await chapters.locator('a[href="#contact"]').tap();
   await mobilePage.waitForURL(`${BASE_URL}/#contact`);
   await mobilePage.waitForFunction(() => {
     const heading = document.querySelector("#contact h2") || document.querySelector("#contact");
@@ -2227,7 +2271,7 @@ async function accessibilityFallbackChecks(browserType) {
   assertHeaderNavigation(await pageState(noJsPage), "320px homepage without JavaScript");
   await Promise.all([
     noJsPage.waitForURL(`${BASE_URL}/inquiry/`),
-    noJsPage.locator(".site-nav-links .site-nav-quote-desktop").click()
+    noJsPage.locator(".phone-quote").click()
   ]);
   assertHeaderNavigation(await pageState(noJsPage), "320px inquiry without JavaScript");
   assert.equal(await noJsPage.locator(".js-inquiry-direct").isDisabled(), true, "no-JS inquiry can bypass security verification");

@@ -179,7 +179,8 @@ async function interactionProof(page, label, useTap) {
   assert.equal(await firstFaqButton.getAttribute("aria-expanded"), "true", `${label}: FAQ button state did not update`);
 
   if (await page.evaluate(() => innerWidth <= 767)) {
-    const quote = page.locator(".site-nav-links .site-nav-quote-desktop");
+    const quote = page.locator(".phone-desk-strip .phone-quote");
+    assert(!(await page.locator(".site-nav-links").isVisible()), `${label}: old homepage grid should be hidden on mobile`);
     assert.equal(await page.locator(".site-nav-mobile-menu").isVisible(), false, `${label}: homepage exposes a duplicate mobile menu`);
     await Promise.all([page.waitForURL(`${BASE_URL}/en/inquiry/`), activate(quote, useTap)]);
     const back = page.locator(".site-nav-links .site-nav-mobile-return-home");

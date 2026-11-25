@@ -13007,12 +13007,13 @@ main > #team.team {
   display: flex !important;
   flex-direction: column;
   align-items: stretch;
+  text-align: center;
   min-width: 0;
   height: auto !important;
   padding: 18px !important;
 }
 .testimonial-grid .testimonial-country {
-  align-self: flex-start;
+  align-self: center;
   min-height: 28px;
   padding: 4px 11px !important;
 }
@@ -13034,21 +13035,22 @@ main > #team.team {
   object-fit: contain;
 }
 .testimonial-grid .testimonial-order-meta {
-  align-self: flex-start;
-  justify-content: flex-start !important;
+  align-self: stretch;
+  justify-content: center;
   margin: 12px 0 0;
   gap: 5px;
 }
 .testimonial-grid .testimonial-card p {
   flex: 0 0 auto;
   margin: 10px 0 12px !important;
-  text-align: start !important;
+  text-align: center;
+  text-wrap: balance;
   font-size: 16px !important;
   line-height: 1.55 !important;
 }
 .testimonial-grid .testimonial-author {
-  justify-content: flex-start !important;
-  align-self: flex-start;
+  justify-content: center;
+  align-self: center;
   margin-top: auto;
 }
 #social-accounts .team-grid {
@@ -13484,6 +13486,56 @@ main > #team .section-heading h2 {
     min-height: 56px !important;
     font-size: 18px !important;
   }
+}
+
+/* 手机首页沿用桌面导航层级；章节可横滑，报价独立于滑动区。 */
+.phone-desk-strip { display: none; }
+@media (max-width: 767px) {
+  body.home-page header.site-nav {
+    padding: 5px 10px 9px !important;
+    gap: 4px 7px !important;
+  }
+  body.home-page header.site-nav > .site-nav-links { display: none !important; }
+  body.home-page header.site-nav .site-nav-brand { gap: 7px; }
+  body.home-page header.site-nav .site-nav-brand > span { font-size: clamp(13px,3.8vw,16px) !important; }
+  body.home-page header.site-nav > .site-nav-tool-pill { font-size: 12px !important; min-height: 44px !important; }
+  body.home-page header.site-nav .site-nav-language > summary { min-height: 44px !important; }
+  body.home-page header.site-nav .phone-desk-strip {
+    display: grid; grid-area: 2/1/3/-1;
+    direction: ltr; grid-template-columns: minmax(0,1fr) auto;
+    align-items: center; gap: 3px;
+    box-sizing: border-box; width: 100%; min-width: 0;
+    padding: 3px; border-radius: 27px;
+    border: 1px solid #cedfe5; background: #f1f7f8;
+  }
+  html[dir="rtl"] .phone-desk-strip > * { direction: rtl; }
+  .phone-desk-strip .phone-chapters {
+    display: flex; min-width: 0; align-items: center; overflow-x: auto;
+    scrollbar-width: none;
+    border-radius: 22px;
+  }
+  .phone-desk-strip .phone-chapters::-webkit-scrollbar { display:none; }
+  .phone-desk-strip a {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-height:44px; box-sizing:border-box; line-height:1.15; text-decoration:none;
+  }
+  .phone-desk-strip .phone-chapters a {
+    flex:1 0 auto; min-width:44px; padding-inline:7px; color:#24384b;
+    font-size:14px; font-weight:650; white-space:nowrap;
+  }
+  .phone-desk-strip .phone-chapters a:active { background:#deecee; border-radius:22px; }
+  .phone-desk-strip .phone-quote {
+    position:relative; min-height:48px; max-width:42vw;
+    padding:7px 19px; border-radius:23px;
+    color:white; background:#116c73 linear-gradient(115deg,#135f88,#08736e);
+    font-size:16px; font-weight:800; text-align:center; overflow-wrap:anywhere;
+  }
+  .phone-desk-strip .phone-quote::after {
+    content:""; position:absolute; inset-inline-end:8px; width:6px; height:6px; border-block-start:2px solid;
+    border-inline-end:2px solid; flex:none; transform:rotate(45deg);
+  }
+  [dir=rtl] .phone-desk-strip .phone-quote::after {transform:rotate(-45deg);}
+  .phone-desk-strip a:focus-visible { outline:2px solid #123c4e; outline-offset:-3px; }
 }
 
 /* 短屏保留双品牌与完整说明，把同一张卡的报价动作放到说明前面。 */
