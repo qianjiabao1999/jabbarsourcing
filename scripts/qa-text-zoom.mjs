@@ -47,7 +47,7 @@ try {
   page.setDefaultTimeout(8000);
   const after = await probe(page);
   assert(Math.abs(after[0]/before[0]-2)<0.03 && before[1]===after[1] && before[2]===after[2], "Native 200% text-only zoom not active");
-  for (const [width,height] of [[375,667],[1024,768],[1366,768]]) {
+  for (const [width,height] of [[375,667],[1024,768],[1366,768],[2560,1440]]) {
     await page.setViewportSize({width,height});
     for (const locale of locales) {
       const prefix = locale === "zh" ? "/" : "/"+locale+"/";
@@ -75,7 +75,7 @@ try {
       assert.equal(new URL(page.url()).pathname,prefix+"calculator/",`${locale} ${width}: calculator navigation`);
     }
   }
-  console.log("Firefox native 200% text-only zoom: fixed viewport and DPR, 30 readable headlines and calculator navigation paths.");
+  console.log("Firefox native 200% text-only zoom: fixed viewport and DPR, 40 readable headlines and calculator navigation paths.");
 } finally {
   try { if (ctx) await ctx.close(); } finally { await rm(profile,{recursive:true,force:true}); }
 }

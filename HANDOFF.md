@@ -19,4 +19,4 @@
 - `npm run build:css`、`npm test`；`qa:public-routes` 覆盖 45 个站点地图页面及 404，共 46 页 × 5 个视口 × Chromium/WebKit = 460 组。检查横向溢出、标题/语言/RTL、站内链接和锚点、资源及脚本异常，并实际测试菜单、错误路径。回归用本地回环预览，不向生产提交询盘。
 - 买家操作验收另用 `qa:buyer-paths`、`qa:inquiry-disclosure`、`qa:inquiry`、`qa:inquiry-draft`、`qa:calculator-validation`、`qa:calculator-feedback`、`qa:calculator-order`、`qa:browser-matrix` 和既有 CI 其余步骤。浏览器的触控、微信或设备尺寸模拟不可等同于每一款手机的真机测试。
 - 发布仍由 main 的带测试工作流完成。上线后以正式域名核验页面/资源版本、三档照片、客户卡、询价/算量和本地化 404；仅做只读操作，不发送测试询盘。
-- 增加 `qa:text-zoom` 云端门禁：使用一次性 Firefox 配置实际将文字放大两倍，先证明文字宽翻倍而视口及 DPR 不变，再测十语首页 375/1024/1366px 标题和导航命中、跳转。此前的 `d42fef8` 已在部署前取消，未上线。
+- 增加 `qa:text-zoom` 云端门禁：使用一次性 Firefox 配置实际将文字放大两倍，先证明文字宽翻倍而视口及 DPR 不变，再测十语首页 375/1024/1366/2560px 标题和导航命中、跳转，包含大屏内宽封顶后的排布。中间候选均未部署。

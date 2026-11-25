@@ -11577,9 +11577,9 @@ main > #team.team {
   }
 }
 
-/* A desktop viewport can still be narrow in text units when a reader enlarges
-   only the font. Keep the links in flow so they wrap before covering actions. */
-@media (min-width: 1280px) and (width < 80em) {
+/* The desktop header caps its content at 1800px. When that available width
+   falls below 80 text ems, let links wrap in flow before they cover actions. */
+@media (min-width: 1280px) and (width < calc(80em + max(0px, 100vw - 1800px))) {
   header.site-nav .site-nav-brand {
     flex-shrink: 0;
   }
