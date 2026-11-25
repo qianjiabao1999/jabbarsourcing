@@ -179,7 +179,8 @@ async function showAutomaticPanelOnFirstScroll(page, label) {
 
   const productField = page.locator('.js-inquiry-form input[name="product"]');
   const contactField = page.locator('.js-inquiry-form input[name="contact"]');
-  const outsideControl = page.locator(".site-nav-brand");
+  const outsideControl = page.locator("header .site-nav-mobile-return-home:visible");
+  assert.equal(await outsideControl.count(), 1, "手机询价页须有一个可见、可聚焦的返回入口");
   assert.equal(await page.locator("#jabbar-analytics-consent").isVisible(), false, "inquiry prompt appeared before the automatic trigger");
   await productField.focus();
   await productField.fill("QA sourcing request");
