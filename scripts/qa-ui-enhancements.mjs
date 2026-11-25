@@ -6,7 +6,7 @@ import { chromium, webkit } from "playwright";
 
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:4173";
 const OUTPUT_DIR = process.env.QA_UI_OUTPUT_DIR || "/tmp/jabbar-ui-enhancements-qa";
-const CSS_VERSION = "apple-198";
+const CSS_VERSION = "apple-200";
 const UI_VERSION = "ui-20261119a";
 const HOME_PAGES = [
   { locale: "zh", path: "/" }, { locale: "en", path: "/en/" }, { locale: "es", path: "/es/" },
@@ -1281,6 +1281,42 @@ async function assertCompanyProofLayout(page, scope, mobile) {
   }
 }
 
+async function assertTestimonialCardLayout(page, scope, locale) {
+  const photo = page.locator(".testimonial-nigeria-photo");
+  await photo.scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelector(".testimonial-nigeria-photo")?.naturalWidth > 0);
+  const cards = await page.locator(".testimonial-grid > article").evaluateAll(nodes => nodes.map(card => {
+    const rect = node => node.getBoundingClientRect().toJSON();
+    const image = card.querySelector("img");
+    return {
+      flag: card.querySelector(".testimonial-flag").textContent.trim(), box: rect(card),
+      parts: [".testimonial-country", "img", ".testimonial-order-meta", "p", ".testimonial-author"].map(s => rect(card.querySelector(s))),
+      fit: getComputedStyle(image).objectFit
+    };
+  }));
+  assert.deepEqual(cards.map(card => card.flag), ["🇬🇧", "🇰🇪", "🇳🇬"], `${scope}: 客户卡阅读顺序`);
+  const width = page.viewportSize().width;
+  for (const [i, { box, parts }] of cards.entries()) {
+    assert(box.left >= -1 && box.right <= width + 1, `${scope}: 客户卡超出视口`);
+    parts.forEach((part, j) => {
+      assert(part.width > 0 && part.height > 0 && (!j || part.top >= parts[j - 1].bottom - 1), `${scope}: 第 ${i + 1} 张卡的国家、图片、金额、评价及署名顺序`);
+    });
+    if (!i) continue;
+    const prev = cards[i - 1].box;
+    if (width >= 980) {
+      near(box.top, prev.top, 1, `${scope}: 桌面三张客户卡同排`);
+      near(box.width, prev.width, 1, `${scope}: 桌面卡片等宽`);
+      assert(locale === "ar" ? box.right <= prev.left + 1 : box.left >= prev.right - 1, `${scope}: 客户卡排列须跟随语言方向`);
+    } else {
+      near(box.left, prev.left, 1, `${scope}: 窄屏客户卡同列`);
+      assert(box.top >= prev.bottom - 1, `${scope}: 窄屏客户卡上下排列`);
+    }
+  }
+  assert.equal(cards[2].fit, "contain", `${scope}: 尼日利亚照片不可裁切`);
+  const imageBox = cards[2].parts[1];
+  near(imageBox.width / imageBox.height, 720 / 568, 0.015, `${scope}: 尼日利亚合照须保留原比例`);
+}
+
 async function assertTestimonialProof(page, scope, locale) {
   const proof = page.locator(".testimonial-card--proof");
   assert.equal(await proof.count(), 1, `${scope}: Boyner proof card count`);
@@ -1457,6 +1493,7 @@ async function homeMatrix(browserType) {
       if (!viewport.mobile) await assertDesktopGalleryMarquee(page, scope);
       await assertCompanyProofLayout(page, scope, viewport.mobile);
       await assertTestimonialProof(page, scope, item.locale);
+      await assertTestimonialCardLayout(page, scope, item.locale);
       await assertJointBrandParity(page, scope);
       await assertFooterJoin(page, scope);
       assert.equal(state.counts.faqTags, 9, `${scope}: FAQ tag count`);
@@ -1491,6 +1528,13 @@ async function homeMatrix(browserType) {
       }
       if (item.rtl) assert.equal(state.direction, "rtl", `${scope}: Arabic direction`);
       if (!viewport.mobile && IMAGE_AUDIT_LOCALES.has(item.locale)) await auditImages(page, scope);
+      if (!viewport.mobile && item.rtl) {
+        for (const width of [979, 980]) {
+          await page.setViewportSize({ width, height: viewport.height });
+          await assertTestimonialCardLayout(page, `${item.locale} ${width}px`, item.locale);
+        }
+        await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      }
       assert.equal(errors.length, 0, `${scope}: console errors ${errors.splice(0).join(" | ")}`);
     }
     await context.close();
@@ -2324,6 +2368,7 @@ for (const item of HOME_PAGES.filter(({ locale }) => ["zh", "en", "ar"].includes
   assertHomeVisualSignature(state, `WebKit ${item.locale}`, item.locale);
   assertHeroCta(state, `WebKit ${item.locale}`);
   await assertCompanyProofLayout(webkitPage, `WebKit ${item.locale}`, true);
+  await assertTestimonialCardLayout(webkitPage, `WebKit ${item.locale}`, item.locale);
   await assertJointBrandParity(webkitPage, `WebKit ${item.locale}`);
   await assertFooterJoin(webkitPage, `WebKit ${item.locale}`);
   await assertMobileGalleryScroll(webkitPage, `WebKit ${item.locale}`);

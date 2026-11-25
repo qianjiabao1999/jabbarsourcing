@@ -117,6 +117,45 @@ async function checkCalculator(context, locale, width, browserName) {
   await page.close();
 }
 
+async function checkExactConversions(page, browserName) {
+  const convert = async unit => {
+    await page.locator("#unit").selectOption(unit);
+    await page.locator("[data-unit-action=convert]").click();
+  };
+  const per = page.locator("[data-per-cbm]");
+  for (const [name, value] of Object.entries({length:"50",width:"30",height:"15",qty:"1"})) {
+    await page.locator("#" + name).fill(value);
+  }
+  assert.equal(await per.textContent(), "0.023 m³");
+  await convert("in");
+  assert.equal(await per.textContent(), "0.023 m³", browserName + ": original dimensions lost at a rounding boundary");
+  await page.locator("#qty").fill("3");
+  assert.equal(await page.locator("[data-total-cbm]").textContent(), "0.068 m³");
+  assert.equal(await page.locator("[data-buffer-cbm]").textContent(), "0.071 m³");
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", {configurable:true, value:undefined}));
+  await page.locator("[data-copy-result]").click();
+  const copy = await page.locator("[data-copy-text]").inputValue();
+  for (const line of ["CBM / carton: 0.023 m³", "Total CBM: 0.068 m³", "With 5% buffer: 0.071 m³"]) assert(copy.includes(line), line);
+  await page.locator(".calculator-results .calculator-inquiry-cta").click();
+  await page.waitForURL(BASE_URL + "/en/inquiry/");
+  assert.equal(await page.locator(".inquiry-estimate-text").textContent(), copy);
+  await page.goBack();
+  await page.waitForFunction(() => !document.querySelector("#unit").disabled
+    && document.querySelector(".calculator-results").dataset.resultState === "ready");
+  assert.equal(await per.textContent(), "0.023 m³", browserName + ": exact conversion lost on back");
+  // 仅修改英寸宽度，其他两边的厘米原值不能失效。
+  await page.locator("#width").fill("10");
+  assert.equal(await per.textContent(), "0.019 m³");
+  await convert("cm");
+  for (const [name, value] of Object.entries({length:"50",width:"25.4",height:"15"})) assert.equal(await page.locator("#" + name).inputValue(), value);
+  // 实际小于半界线，不可用人为的偏移量强行向上舍入。
+  await page.locator("#width").fill("30");
+  await page.locator("#length").fill("49.9999999999999");
+  assert.equal(await per.textContent(), "0.022 m³");
+  await convert("in");
+  assert.equal(await per.textContent(), "0.022 m³");
+}
+
 async function checkHistoryReturn(context, browserName) {
   const page = await context.newPage();
   const base = new URL(BASE_URL).origin;
@@ -157,6 +196,27 @@ async function checkHistoryReturn(context, browserName) {
     await page.locator("[data-unit-action=keep]").click();
     assert.equal(await total.textContent(), "0.072 m³");
     assert(await link.isVisible());
+    // 刷新本条历史应恢复已确认的单位；不要擅自应用尚未确认的“换算”。
+    await page.locator("#length").fill("45.5");
+    await page.locator("#unit").selectOption("in");
+    assert(await page.locator("[data-unit-action=keep]").isVisible());
+    assert(!await link.isVisible());
+    await page.reload({ waitUntil:"load" });
+    await page.waitForFunction(() => !document.querySelector("#unit").disabled
+      && document.querySelector(".calculator-results").dataset.resultState === "ready");
+    assert.equal(await page.locator("#unit").inputValue(), "cm");
+    assert.deepEqual(await page.locator("[data-dimension-unit]").allTextContents(), ["cm","cm","cm"]);
+    assert.equal(await page.locator("#length").inputValue(), "45.5");
+    assert.equal(await total.textContent(), "0.082 m³");
+    assert(!await page.locator("[data-unit-action=keep]").isVisible());
+    assert(await link.isVisible());
+    // 当前字段尚未失焦、延迟写入尚未触发就刷新，也不能复原为上一个数字。
+    await page.locator("#height").fill("25");
+    await page.reload({ waitUntil:"load" });
+    await page.waitForFunction(() => !document.querySelector("#unit").disabled
+      && document.querySelector(".calculator-results").dataset.resultState === "ready");
+    assert.equal(await page.locator("#height").inputValue(), "25");
+    assert.equal(await total.textContent(), "0.102 m³");
     // 重开相同网址不是后退：不能把上次可复制的结果恢复到新表单。
     await page.waitForFunction(() => history.state?.jabbarQuickDimensionsV1?.unit === "cm");
     await page.locator("#qty").fill("0.5");
@@ -164,6 +224,7 @@ async function checkHistoryReturn(context, browserName) {
     await page.locator("#cbmFill").waitFor({state:"attached"});
     assert.equal(await page.locator(".calculator-results").getAttribute("data-result-state"), "empty", browserName + ": direct revisit must not restore a stale result");
     assert.equal(await page.locator("[data-copy-result]").isDisabled(), true);
+    await checkExactConversions(page, browserName);
     assert.deepEqual(posts, []);
   } finally { await page.close(); }
 }

@@ -20,6 +20,7 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
         localStorage.setItem("jabbar.analyticsConsent.v1", "granted");
         window.turnstile = {
           render: (element, options) => {
+            window.qaSecurityFailure = () => options["error-callback"]();
             setTimeout(() => options.callback("mock-disclosure-validation-only"), 0);
             return "mock-disclosure-widget";
           },
@@ -113,6 +114,43 @@ for (const [engineName, engine] of [["Chromium", chromium], ["WebKit", webkit]])
           assert.equal(await reference.inputValue(), "ftp://example.invalid/not-accepted");
           assert.equal(await reference.count(), 1);
         }
+        // 常见的复制地址缺协议：输入中不改写；完成编辑或按回车再补全。
+        await page.goto(`${BASE_URL}${path}`, { waitUntil: "networkidle" });
+        const reference = page.locator('[name="referenceUrl"]');
+        if (width === 360) await details.locator("summary").click();
+        const bare = "www.alibaba.com/product-detail/tea-cup.html?options=blue%2Fred&lang=ar#details";
+        const completed = "https://" + bare;
+        await reference.fill(bare);
+        assert.equal(await reference.inputValue(), bare, `${scope}: typing must not move the caret by rewriting the URL`);
+        await reference.press("Tab");
+        assert.equal(await reference.inputValue(), completed, `${scope}: committed www address should gain HTTPS`);
+        assert.equal(await reference.evaluate(field => field.validity.valid), true);
+        assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem("jabbarInquiryDraftV1")).fields.referenceUrl), completed);
+        await page.evaluate(() => window.qaSecurityFailure());
+        const summaryHref = await page.locator(".inquiry-status-whatsapp").getAttribute("href");
+        assert(new URL(summaryHref).searchParams.get("text").includes(completed), `${scope}: fallback must preserve the complete normalized URL`);
+        for (const untouched of ["http://www.example.invalid/item", "https://www.example.invalid/a?b=2", "tea cup", "buyer@example.invalid", "ftp://www.example.invalid/a", "//www.example.invalid/a", "www.example.invalid@other.invalid", "www.example.invalid:wrong", "www.example.invalid/" + "a".repeat(478)]) {
+          await reference.fill(untouched);
+          await reference.press("Tab");
+          assert.equal(await reference.inputValue(), untouched, `${scope}: never reinterpret ambiguous, explicit or oversized address`);
+        }
+        // 有效的直接提交只在本页观察原生 submit 事件；不调用任何接口。
+        await page.goto(`${BASE_URL}${path}`, { waitUntil: "networkidle" });
+        await page.locator('[name="product"]').fill("Local product");
+        await page.locator('[name="contact"]').fill("local@example.invalid");
+        if (width === 360) await details.locator("summary").click();
+        await reference.fill(bare);
+        await page.evaluate(() => {
+          const form = document.querySelector(".js-inquiry-form");
+          form.addEventListener("submit", event => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            window.qaSubmittedReference = new FormData(form).get("referenceUrl");
+          }, { capture: true, once: true });
+        });
+        await reference.press("Enter");
+        await page.waitForFunction(value => window.qaSubmittedReference === value, completed);
+        assert.equal(inquiryRequests, 0);
         console.log(`${scope}: PASS`);
       }
       assert.deepEqual(pageErrors, [], `${engineName} ${width}px: page errors`);

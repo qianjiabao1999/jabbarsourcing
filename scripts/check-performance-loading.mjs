@@ -55,6 +55,27 @@ for (const locale of LOCALES) {
   const proofImage = images.find((tag) => /testimonial-boyner-720\.webp/.test(tag));
   assert(proofImage, `${file}: responsive client proof image missing`);
   assert.match(attribute(proofImage, "srcset"), /480w.*720w.*1200w/, `${file}: client proof image srcset missing`);
+  const nigeria = (html.match(/<article\b[^>]*>[\s\S]*?<\/article>/gi) || []).filter(card => card.includes("🇳🇬"));
+  assert.equal(nigeria.length, 1, `${file}: expected one Nigeria customer card`);
+  const visit = imageTags(nigeria[0]);
+  assert.equal(visit.length, 1);
+  const amount = nigeria[0].match(/<bdi\b[^>]*class="num-mono"[^>]*>([^<]+)<\/bdi>/)?.[1];
+  assert.equal(amount?.replace(/[^0-9]/g, ""), "94000", file + ": unchanged Nigeria order value");
+  assert.match(amount, /USD|دولار/);
+  assert(nigeria[0].includes("Samuel N."), file + ": unchanged reviewer");
+  assert.equal(attribute(visit[0], "width"), "720");
+  assert.equal(attribute(visit[0], "height"), "568");
+  assert.equal(attribute(visit[0], "loading"), "lazy");
+  assert.equal(attribute(visit[0], "decoding"), "async");
+  assert.equal(attribute(visit[0], "fetchpriority"), "low");
+  assert(attribute(visit[0], "alt").trim());
+  const stem = "/assets/nigeria-client-visit-20261125-";
+  assert.equal(attribute(visit[0], "src"), stem + "720.webp");
+  assert.equal(attribute(visit[0], "srcset"), [480, 720, 1080].map(w => stem + w + ".webp " + w + "w").join(", "));
+}
+for (const width of [480, 720, 1080]) {
+  const photo = await readFile(resolve(ROOT, `assets/nigeria-client-visit-20261125-${width}.webp`));
+  assert.equal(photo.toString("ascii", 8, 12), "WEBP");
 }
 
 for (const locale of LOCALES) {

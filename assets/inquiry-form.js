@@ -1143,6 +1143,28 @@
       trackEvent("inquiry_form_start", { form_name: "sourcing_inquiry" });
     }
 
+    var referenceField = form.elements.referenceUrl;
+    function completeReferenceLink() {
+      var value = referenceField.value;
+      // 只处理明确的 www 域名；不猜邮箱、普通文字、相对地址或带认证信息的 URL。
+      if (!/^www\./i.test(value) || /[\s\\]/.test(value)) return;
+      var host = value.split(/[/?#]/, 1)[0];
+      if (!/^www\.(?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+[a-z]{2,63}$/i.test(host)) return;
+      var completed = "https://" + value;
+      try {
+        // Worker 校验规范化后的长度；只补协议，不改买家原始路径、查询及片段。
+        if (completed.length > referenceField.maxLength || new URL(completed).href.length > referenceField.maxLength) return;
+      } catch (error) { return; }
+      referenceField.value = completed;
+      saveDraft();
+      updateStatusForDraftEdit();
+    }
+    if (referenceField) {
+      referenceField.addEventListener("change", completeReferenceLink);
+      // 提交按钮的默认动作才发起原生校验；也涵盖在输入框回车的隐式提交。
+      directButton.addEventListener("click", completeReferenceLink);
+    }
+
     FIELD_NAMES.forEach(function (name) {
       var field = form.elements[name];
       if (!field) return;

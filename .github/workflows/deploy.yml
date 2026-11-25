@@ -214,6 +214,9 @@ jobs:
 
           # assets/*** 已覆盖响应式图片；单独验证本轮新增资源确实进入发布物。
           responsive_assets=(
+            nigeria-client-visit-20261125-480.webp
+            nigeria-client-visit-20261125-720.webp
+            nigeria-client-visit-20261125-1080.webp
             jabbar-sourcing-mark-72.webp
             jabbar-sourcing-mark-256.webp
             container-cargo-stack-640.webp

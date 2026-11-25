@@ -20,7 +20,8 @@
     tr: ["{a} → {b}: ölçüler dönüştürülsün mü, yoksa sayılar korunarak yalnızca birim mi düzeltilsin?", "Ölçüleri dönüştür", "Sayıları koru", "İptal"]
   };
   var t = strings[document.documentElement.lang.split("-")[0]] || strings.en;
-  var applied = unit.value, pending = "", previous = null;
+  var applied = unit.value, pending = "";
+  var originals = form.cbmOriginals = [null, null, null];
   var panel = document.createElement("div");
   panel.className = "calculator-unit-choice";
   panel.hidden = true;
@@ -38,17 +39,17 @@
   function complete(mode) {
     if (!pending) return;
     if (mode === "convert") {
-      var original = dims.map(function (f) { return f.value; });
-      var converted = dims.map(function (f, i) {
-        if (!f.value) return "";
-        if (previous && previous.unit === pending && previous.converted[i] === f.value) return previous.original[i];
-        var value = applied === "cm" ? f.valueAsNumber / 2.54 : f.valueAsNumber * 2.54;
-        return String(Number(value.toPrecision(12)));
+      if (!canConvert()) return;
+      dims.forEach(function (f, i) {
+        if (originals[i] !== null) {
+          f.value = originals[i];
+          originals[i] = null;
+        } else if (f.value) {
+          originals[i] = f.value;
+          f.value = Number((applied === "cm" ? f.valueAsNumber / 2.54 : f.valueAsNumber * 2.54).toPrecision(12));
+        }
       });
-      if (converted.some(function (v) { return v !== "" && !Number.isFinite(Number(v)); })) return;
-      dims.forEach(function (f, i) { f.value = converted[i]; });
-      previous = { unit: applied, original: original, converted: converted };
-    } else if (mode === "keep") previous = null;
+    } else if (mode === "keep") originals.fill(null);
     if (mode !== "cancel") applied = pending;
     unit.value = applied;
     pending = "";
@@ -57,6 +58,7 @@
     panel.hidden = true;
     announceUnits();
     refresh();
+    saveEntry();
     unit.focus();
   }
   var buttons = ["convert", "keep", "cancel"].map(function (mode, index) {
@@ -84,7 +86,7 @@
     if (target === applied) return;
     if (!dims.some(function (f) { return f.value !== "" || f.validity.badInput; })) {
       if (pending) complete("cancel");
-      previous = null;
+      originals.fill(null);
       applied = target;
       unit.value = target;
       announceUnits();
@@ -103,8 +105,11 @@
     buttons[buttons[0].disabled ? 1 : 0].focus();
   });
   form.addEventListener("input", function (e) {
-    if (pending && dims.indexOf(e.target) !== -1) buttons[0].disabled = !canConvert();
-  });
+    var i = dims.indexOf(e.target);
+    if (i < 0) return;
+    originals[i] = null;
+    if (pending) buttons[0].disabled = !canConvert();
+  }, true);
   form.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && pending) { e.preventDefault(); complete("cancel"); }
   });
@@ -114,10 +119,12 @@
   var timer, restoring = false;
   function saveEntry() {
     clearTimeout(timer);
+    window.removeEventListener("beforeunload", saveEntry);
     if (restoring) return;
     var values = numeric.map(function (f) { return f.value; });
     try {
       var draft = { unit: applied, values: values };
+      if (originals.some(Boolean)) draft.originals = originals;
       var state = history.state || {};
       if (JSON.stringify(state[key]) === JSON.stringify(draft)) return;
       var next = Object.assign({}, state);
@@ -132,7 +139,10 @@
   }
   function applyEntry(d) {
     pending = "";
-    previous = null;
+    dims.forEach(function (f, i) {
+      var v = d && d.originals && d.originals[i];
+      originals[i] = typeof v === "string" && v && Number.isFinite(Number(v)) ? v : null;
+    });
     panel.hidden = true;
     if (d) numeric.forEach(function (f, index) { f.value = d.values[index]; });
     applied = d ? d.unit : (unit.value === "in" ? "in" : "cm");
@@ -142,15 +152,19 @@
     form.removeAttribute("data-unit-pending");
     refresh();
   }
-  function isTraversal() {
+  function resumesEntry() {
     var nav = performance.getEntriesByType("navigation")[0];
-    return nav ? nav.type === "back_forward" : performance.navigation && performance.navigation.type === 2;
+    if (nav) return nav.type === "back_forward" || nav.type === "reload";
+    var type = performance.navigation && performance.navigation.type;
+    return type === 2 || type === 1;
   }
-  // 直接重开同一个网址时 Chromium 也可能交回上一条 state；它不是一次“后退”。
-  var saved = isTraversal() && readEntry();
+  // 新打开的网址不恢复旧记录。
+  var saved = resumesEntry() && readEntry();
   if (saved) applyEntry(saved);
-  form.addEventListener("input", function () {
-    if (restoring) return;
+  form.addEventListener("change", saveEntry);
+  form.addEventListener("input", function (e) {
+    if (restoring || numeric.indexOf(e.target) < 0) return;
+    window.addEventListener("beforeunload", saveEntry);
     clearTimeout(timer);
     timer = setTimeout(saveEntry, 250);
   });
@@ -160,9 +174,9 @@
   document.addEventListener("visibilitychange", function () { if (document.hidden) saveEntry(); });
   window.addEventListener("pagehide", saveEntry);
   window.addEventListener("pageshow", function (e) {
-    if (!e.persisted && !isTraversal()) return;
+    if (!e.persisted && !resumesEntry()) return;
     var entry = readEntry();
-    // 某些浏览器在 pageshow 之后才重新填入表单，不可提前发布可复制的结果。
+    // 等浏览器填完表单再发布结果。
     restoring = true;
     unit.disabled = submit.disabled = true;
     form.setAttribute("data-unit-pending", "");
@@ -205,7 +219,7 @@
     if (narrow.addEventListener) narrow.addEventListener("change", arrange);
     else narrow.addListener(arrange);
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initResultLayout, { once: true });
-  else if (document.querySelector(".calculator-results .calculator-inquiry-cta")) initResultLayout();
-  else document.addEventListener("DOMContentLoaded", initResultLayout, { once: true });
+  if (document.readyState === "loading" || !document.querySelector(".calculator-results .calculator-inquiry-cta"))
+    document.addEventListener("DOMContentLoaded", initResultLayout, { once: true });
+  else initResultLayout();
 })();

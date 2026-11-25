@@ -7,6 +7,65 @@ const base = process.env.BASE_URL || "http://127.0.0.1:4173";
 const output = process.env.QA_BUYER_OUTPUT_DIR;
 if (output) await mkdir(output, { recursive: true });
 const locales = ["zh","en","ar","de","es","fr","it","pt","ru","tr"];
+
+async function checkLanguagePanel(page, prefix, scope) {
+  for (const [width, height, section, keyboard] of [
+    [320, 568, "", true], [320, 568, "inquiry/", false], [320, 568, "calculator/", false],
+    [430, 320, "", false], [431, 320, "", true], [1440, 900, "", false],
+  ]) {
+    const label = `${scope}/${section || "home"}/${width}×${height}`;
+    await page.setViewportSize({ width, height });
+    await page.goto(base + prefix + section);
+    await page.evaluate(() => window.scrollTo(0, 320));
+    await page.waitForFunction(() => window.scrollY >= 300);
+    const trigger = page.locator(".site-nav-language > summary");
+    const panel = page.locator(".site-nav-language .language-options");
+    const options = panel.locator("a[lang]");
+    if (keyboard) {
+      await trigger.focus();
+      await page.keyboard.press("Enter");
+    } else {
+      await trigger.tap();
+    }
+    await panel.waitFor();
+    const rect = await panel.boundingBox();
+    assert(rect && rect.x >= -1 && rect.x + rect.width <= width + 1 && rect.y >= -1 && rect.y + rect.height <= height + 1, label + ": 语言面板必须全部留在视口 " + JSON.stringify(rect));
+    if (width <= 430) {
+      assert(Math.abs(rect.x - 12) <= 1 && Math.abs(rect.x + rect.width - (width - 12)) <= 1, label + ": 窄屏语言面板应紧贴左右安全边距");
+    } else {
+      assert(rect.width < width / 2, label + ": 宽屏保留原紧凑下拉框");
+    }
+    assert.equal(await options.count(), 10, label);
+    const focused = link => link.evaluate(el => el === document.activeElement);
+    let key = "Tab";
+    if (keyboard) {
+      for (let i = 0; i < 10; i++) {
+        const link = options.nth(i);
+        await page.keyboard.press(key);
+        if (!i && !(await focused(link))) {
+          // Safari/macOS may use Option+Tab for link navigation.
+          await trigger.focus();
+          key = "Alt+Tab";
+          await page.keyboard.press(key);
+        }
+        assert(await focused(link), label + ": 键盘应依次聚焦第 " + (i + 1) + " 种语言");
+      }
+    } else {
+      await options.last().scrollIntoViewIfNeeded();
+    }
+    const point = await options.last().evaluate(el => {
+      const r = el.getBoundingClientRect();
+      const p = el.parentElement.getBoundingClientRect();
+      const x = r.x + r.width / 2, y = r.y + r.height / 2;
+      return { x, y, fullyVisible: r.left >= p.left - 1 && r.right <= p.right + 1 && r.top >= p.top - 1 && r.bottom <= p.bottom + 1 && el.contains(document.elementFromPoint(x, y)) };
+    });
+    assert(point.fullyVisible, label + ": 列表末项必须完整可见且中心可触达 " + JSON.stringify(point));
+    const destination = new URL("/tr/" + section, base).href;
+    await Promise.all([page.waitForURL(destination), keyboard ? page.keyboard.press("Enter") : page.touchscreen.tap(point.x, point.y)]);
+    assert.equal(await page.locator("html").getAttribute("lang"), "tr", label + ": 实际激活末项应切换到土耳其语同类页面");
+  }
+}
+
 for (const engine of [chromium, webkit]) {
   const browser = await engine.launch();
   try {
@@ -83,10 +142,11 @@ for (const engine of [chromium, webkit]) {
         await page.locator(".inquiry-estimate summary").click();
         assert.equal(await page.locator("[name=note]").inputValue(), "");
         assert((await page.locator(".inquiry-estimate-text").innerText()).includes("100"), scope + ": 带结果询价不得丢失尺寸");
+        if (lang === "de" || lang === "ar") await checkLanguagePanel(page, prefix, scope);
         assert.deepEqual(errors, [], scope);
         assert.deepEqual(posts, [], scope);
       } finally { await context.close(); }
     }
-    console.log(engine.name() + "：十语短屏报价、询价折叠、手算结果顺序、断点恢复与带结果询价通过。");
+    console.log(engine.name() + "：十语短屏报价、询价折叠、手算结果顺序、带结果询价及双向语言菜单断点与切换通过。");
   } finally { await browser.close(); }
 }
